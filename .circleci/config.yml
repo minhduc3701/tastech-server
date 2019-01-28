@@ -2,14 +2,13 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:10
     steps:
       - checkout
       - run:
-          name: install-dependencies
+          name: Install dependencies
           command: npm install
       - run:
-          name: aws
+          name: AWS EC2 deploy
           command:
-            scp -r -o StrictHostKeyChecking=no ./ ubuntu@ec2-3-17-139-99.us-east-2.compute.amazonaws.com:/home/ubuntu/server/
-            ssh -o StrictHostKeyChecking=no ubuntu@ec2-3-17-139-99.us-east-2.compute.amazonaws.com "./deploy.sh"
+            ssh -o StrictHostKeyChecking=no ubuntu@ec2-3-17-139-99.us-east-2.compute.amazonaws.com "cd ~/server; git pull; npm install; pm2 stop server; pm2 start server"
