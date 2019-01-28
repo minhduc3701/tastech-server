@@ -10,4 +10,6 @@ jobs:
           command: npm install
       - run:
           name: aws
-          command: ssh -o StrictHostKeyChecking=no ubuntu@ec2-3-17-139-99.us-east-2.compute.amazonaws.com "./deploy.sh"
+          command:
+            scp -r -o StrictHostKeyChecking=no ./ ubuntu@ec2-3-17-139-99.us-east-2.compute.amazonaws.com:/home/ubuntu/server/
+            ssh -o StrictHostKeyChecking=no ubuntu@ec2-3-17-139-99.us-east-2.compute.amazonaws.com "./deploy.sh"
