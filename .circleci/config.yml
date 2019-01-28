@@ -20,9 +20,8 @@ jobs:
             cd ~/server && \
             git pull && \
             npm i && \
-            npm run build && \
-            pm2 stop build/server && \
-            pm2 start build/server && \
+            pm2 stop server && \
+            pm2 start server && \
             echo Deploy end"
 workflows:
   version: 2
