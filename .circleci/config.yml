@@ -8,6 +8,6 @@ jobs:
       - run:
           name: install-dependencies
           command: npm install
-      - deploy:
+      - run:
           name: aws
-          command: ssh -o "StrictHostKeyChecking no" ubuntu@ec2-3-17-139-99.us-east-2.compute.amazonaws.com "cd ~/server; git pull; npm install; PORT=8080 pm2 start server.js --name 'server'"
+          command: ssh -o StrictHostKeyChecking=no ubuntu@ec2-3-17-139-99.us-east-2.compute.amazonaws.com "./deploy.sh"
