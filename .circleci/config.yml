@@ -11,7 +11,7 @@ jobs:
       - deploy:
           name: AWS EC2 deploy
           command: |
-            ssh -o StrictHostKeyChecking=no ubuntu@18.191.6.154 \
+            ssh -o StrictHostKeyChecking=no ubuntu@3.17.139.99 \
             "echo Start deploy && \
             cd ~/server && \
             git pull && \
