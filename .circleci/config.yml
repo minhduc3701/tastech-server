@@ -7,27 +7,15 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: npm install
-  deploy:
-    docker: 
-      - image: circleci/node:10.15.0-jessie-browsers-legacy
-    steps:
-      - run:
+          command: yarn
+      - deploy:
           name: AWS EC2 deploy
           command: |
             ssh -o StrictHostKeyChecking=no ubuntu@3.17.139.99 \
             "echo Start deploy && \
             cd ~/server && \
             git pull && \
-            npm i && \
-            pm2 stop server && \
-            pm2 start server && \
+            yarn && \
+            pm2 stop "server" && \
+            PORT=8080 pm2 start server.js --name "server" && \
             echo Deploy end"
-workflows:
-  version: 2
-  build-and-deploy:
-    jobs:
-      - build
-      - deploy:
-          requires:
-            - build
