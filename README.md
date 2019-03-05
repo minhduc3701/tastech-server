@@ -1,18 +1,21 @@
 # API
 
 ## Installation
+
 ```
 yarn
 ```
 
 ## Start server
+
 ```
 yarn start
 ```
 
-Open http://locahost:3000
+Open http://locahost:8080
 
 ### Start server with other port
+
 ```
-PORT=8080 yarn start
+PORT=8888 yarn start
 ```
