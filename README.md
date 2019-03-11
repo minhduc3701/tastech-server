@@ -9,7 +9,7 @@ yarn
 ## Start server
 
 ```
-yarn start
+DEBUG=tas-server-app:* yarn start
 ```
 
 Open http://locahost:8080
