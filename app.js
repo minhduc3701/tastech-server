@@ -1,16 +1,14 @@
+require('./config/mongoose')
+
 var createError = require('http-errors')
 var express = require('express')
 var path = require('path')
 var cookieParser = require('cookie-parser')
 var logger = require('morgan')
-
-var mongoose = require('./db/mongoose')
 var passport = require('passport')
-var LocalStrategy = require('passport-local').Strategy
-var User = require('./models/user')
 
-var indexRouter = require('./routes/index')
-var usersRouter = require('./routes/users')
+var authRouter = require('./routes/auth')
+var userRouter = require('./routes/user')
 
 var app = express()
 
@@ -25,28 +23,10 @@ app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(passport.initialize())
-passport.use(
-  new LocalStrategy(
-    {
-      usernameField: 'email',
-      passwordField: 'passwd'
-    },
-    function(email, passwd, cb) {
-      //this one is typically a DB call. Assume that the returned user object is pre-formatted and ready for storing in JWT
-      return User.findOne({ email, passwd })
-        .then(user => {
-          if (!user) {
-            return cb(null, false, { message: 'Incorrect email or password.' })
-          }
-          return cb(null, user, { message: 'Logged In Successfully' })
-        })
-        .catch(err => cb(err))
-    }
-  )
-)
+require('./config/passport')
 
-app.use('/', indexRouter)
-app.use('/users', usersRouter)
+app.use('/auth', authRouter)
+app.use('/user', passport.authenticate('jwt', { session: false }), userRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
