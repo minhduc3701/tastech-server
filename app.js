@@ -1,4 +1,5 @@
 require('./config/mongoose')
+const requestDemo = require('./models/requestDemoModel')
 const requestDemoRouter = require('./routes/requestDemoRouter')(requestDemo)
 var createError = require('http-errors')
 var express = require('express')
