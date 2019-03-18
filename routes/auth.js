@@ -3,11 +3,14 @@ var router = express.Router()
 var passport = require('passport')
 var User = require('../models/user')
 var jwt = require('jsonwebtoken')
+const { ObjectID } = require('mongodb')
+const crypto = require('crypto')
 
 router.post('/register', function(req, res) {
   User.register(
     new User({
       username: req.body.email,
+      email: req.body.email,
       firstName: req.body.firstName,
       lastName: req.body.lastName
     }),
@@ -48,9 +51,66 @@ router.post('/login', function(req, res, next) {
         { id: user.id, email: user.username },
         'ILovePokemon'
       )
-      return res.json({ user: user.username, token })
+      return res.json({ email: user.username, token })
     })
   })(req, res)
+})
+
+router.post('/forgot-password', function(req, res) {
+  User.find({ email: req.body.email }).then(
+    user => {
+      crypto.randomBytes(20, function(err, buf) {
+        var token = buf.toString('hex')
+
+        User.findOneAndUpdate(
+          {
+            email: req.body.email
+          },
+          {
+            $set: {
+              resetPasswordToken: token,
+              resetPasswordExpires: Date.now() + 3600000 // 1 hour
+            }
+          },
+          {
+            new: true
+          }
+        )
+          .then(user => {
+            if (!user) {
+              return res.status(404).send()
+            }
+
+            res.status(200).send(token)
+          })
+          .catch(e => {
+            res.status(400).send(e)
+          })
+      })
+    },
+    e => {
+      res.status(400).send({})
+    }
+  )
+})
+
+router.post('/reset-password/:token', function(req, res) {
+  User.findOne({
+    resetPasswordToken: req.params.token,
+    resetPasswordExpires: { $gt: Date.now() }
+  })
+    .then(user => {
+      user.setPassword(req.body.newPassword).then(() => {
+        user.resetPasswordToken = undefined
+        user.resetPasswordExpires = undefined
+        user.save().then(() => {
+          res.status(200).send('Reset password successfully')
+        })
+      })
+    })
+    .catch(e => {
+      res.status(400).send('Password reset token is invalid or has expired.')
+    })
 })
 
 module.exports = router
