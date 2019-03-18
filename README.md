@@ -1,5 +1,22 @@
 # API
 
+Add config/config.json with the content like below:
+
+```
+{
+  "test": {
+    "PORT": "8081",
+    "MONGODB_URI": "mongodb://localhost:27017/server-db-test",
+    "JWT_SECRET": "sdfksdlfjsu834osfu988sdf"
+  },
+  "development": {
+    "PORT": "8080",
+    "MONGODB_URI": "mongodb://localhost:27017/server-db",
+    "JWT_SECRET": "sdf989sd8f80sd0f9890ds8f"
+  }
+}
+```
+
 ## Installation
 
 ```
