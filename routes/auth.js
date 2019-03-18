@@ -57,41 +57,34 @@ router.post('/login', function(req, res, next) {
 })
 
 router.post('/forgot-password', function(req, res) {
-  User.find({ email: req.body.email }).then(
-    user => {
-      crypto.randomBytes(20, function(err, buf) {
-        var token = buf.toString('hex')
+  crypto.randomBytes(20, function(err, buf) {
+    var token = buf.toString('hex')
 
-        User.findOneAndUpdate(
-          {
-            email: req.body.email
-          },
-          {
-            $set: {
-              resetPasswordToken: token,
-              resetPasswordExpires: Date.now() + 3600000 // 1 hour
-            }
-          },
-          {
-            new: true
-          }
-        )
-          .then(user => {
-            if (!user) {
-              return res.status(404).send()
-            }
+    User.findOneAndUpdate(
+      {
+        email: req.body.email
+      },
+      {
+        $set: {
+          resetPasswordToken: token,
+          resetPasswordExpires: Date.now() + 3600000 // 1 hour
+        }
+      },
+      {
+        new: true
+      }
+    )
+      .then(user => {
+        if (!user) {
+          return res.status(404).send()
+        }
 
-            res.status(200).send(token)
-          })
-          .catch(e => {
-            res.status(400).send(e)
-          })
+        res.status(200).send({ token })
       })
-    },
-    e => {
-      res.status(400).send({})
-    }
-  )
+      .catch(e => {
+        res.status(400).send(e)
+      })
+  })
 })
 
 router.post('/reset-password/:token', function(req, res) {
