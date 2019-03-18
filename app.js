@@ -27,10 +27,10 @@ require('./config/passport')
 
 app.use('/auth', authRouter)
 app.use('/user', passport.authenticate('jwt', { session: false }), userRouter)
-app.use('/request', requestRouter)
+app.use('/requests', requestRouter)
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  console.log('wrong!!!')
   next(createError(404))
 })
 
