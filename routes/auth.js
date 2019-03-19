@@ -6,8 +6,8 @@ var jwt = require('jsonwebtoken')
 const { ObjectID } = require('mongodb')
 const crypto = require('crypto')
 const async = require('async')
-const nodemailer = require('nodemailer')
-const sgTransport = require('nodemailer-sendgrid-transport')
+const { mail } = require('../config/mail')
+const mailTemplates = require('../config/mailTemplates.js')
 
 router.post('/register', function(req, res) {
   User.register(
@@ -95,30 +95,14 @@ router.post('/forgot-password', function(req, res) {
           })
       },
       function(token, user, done) {
-        var options = {
-          auth: {
-            api_user: process.env.SENDGRID_USERNAME,
-            api_key: process.env.SENDGRID_PASSWORD
-          }
-        }
-
-        var client = nodemailer.createTransport(sgTransport(options))
         var mailOptions = {
           to: user.email,
           from: 'no-reply@eztrip.com',
           subject: `Password Reset for ${user.email}`,
-          text:
-            'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
-            'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-            'http://' +
-            req.headers.host +
-            '/reset-password/' +
-            token +
-            '\n\n' +
-            'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+          text: mailTemplates.forgotPassword(req.headers.host, token)
         }
 
-        client.sendMail(mailOptions, function(err, info) {
+        mail.sendMail(mailOptions, function(err, info) {
           done(err, user)
         })
       }
