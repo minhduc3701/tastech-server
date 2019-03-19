@@ -68,3 +68,5 @@ source ~/.bashrc
 ```
 
 Now you ready to run your app
+
+Read more at: http://mrngoitall.net/blog/2013/10/13/best-practices-on-deploying-node-dot-js-to-aws-ec2/
