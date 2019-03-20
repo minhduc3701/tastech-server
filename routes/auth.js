@@ -10,27 +10,50 @@ const { mail } = require('../config/mail')
 const mailTemplates = require('../config/mailTemplates.js')
 
 router.post('/register', function(req, res) {
-  User.register(
-    new User({
-      username: req.body.email,
-      email: req.body.email,
-      firstName: req.body.firstName,
-      lastName: req.body.lastName
-    }),
-    req.body.password,
-    function(err, account) {
-      if (err) {
-        return res.status(500).send({
-          message: 'An error occurred: ' + err
+  async.waterfall(
+    [
+      function(done) {
+        User.register(
+          new User({
+            username: req.body.email,
+            email: req.body.email,
+            firstName: req.body.firstName,
+            lastName: req.body.lastName
+          }),
+          req.body.password,
+          function(err, account) {
+            if (err) {
+              done(err)
+            }
+
+            passport.authenticate('local', {
+              session: false
+            })(req, res, () => {
+              done(null, req.user)
+            })
+          }
+        )
+      },
+      function(user, done) {
+        var mailOptions = {
+          to: user.email,
+          from: 'no-reply@eztrip.com',
+          subject: `New account ${user.email}`,
+          text: mailTemplates.register()
+        }
+
+        mail.sendMail(mailOptions, function(err, info) {
+          done(err, user)
         })
       }
+    ],
+    function(err) {
+      if (err) {
+        res.status(500).send(err)
+      }
 
-      passport.authenticate('local', {
-        session: false
-      })(req, res, () => {
-        res.status(200).send({
-          message: 'Successfully created new account'
-        })
+      res.status(200).send({
+        message: 'Successfully created new account'
       })
     }
   )
@@ -101,7 +124,7 @@ router.post('/forgot-password', function(req, res) {
           })
       },
       function(token, user, done) {
-        var mailOptions = {
+        let mailOptions = {
           to: user.email,
           from: 'no-reply@eztrip.com',
           subject: `Password Reset for ${user.email}`,

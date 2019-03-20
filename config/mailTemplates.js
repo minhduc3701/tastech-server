@@ -1,3 +1,7 @@
+function register() {
+  return 'Your new account is created successfully.'
+}
+
 function forgotPassword(token) {
   return (
     'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
@@ -11,5 +15,6 @@ function forgotPassword(token) {
 }
 
 module.exports = {
+  register,
   forgotPassword
 }
