@@ -35,7 +35,7 @@ router.post('/register', function(req, res) {
         )
       },
       function(user, done) {
-        var mailOptions = {
+        let mailOptions = {
           to: user.email,
           from: 'no-reply@eztrip.com',
           subject: `New account ${user.email}`,
