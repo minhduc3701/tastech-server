@@ -7,14 +7,19 @@ Add config/config.json with the content like below:
   "test": {
     "PORT": "8081",
     "MONGODB_URI": "mongodb://localhost:27017/server-db-test",
-    "JWT_SECRET": "sdfksdlfjsu834osfu988sdf"
+    "JWT_SECRET": "sd9d9sd88sdd9s898sd89ds89",
+    "SENDGRID_USERNAME": "sg-username",
+    "SENDGRID_PASSWORD": "sg-password"
   },
   "development": {
     "PORT": "8080",
     "MONGODB_URI": "mongodb://localhost:27017/server-db",
-    "JWT_SECRET": "sdf989sd8f80sd0f9890ds8f"
+    "JWT_SECRET": "ds99s9ds9s9sd09ds90sd9d09",
+    "SENDGRID_USERNAME": "sg-username",
+    "SENDGRID_PASSWORD": "sg-password"
   }
 }
+
 ```
 
 ## Installation

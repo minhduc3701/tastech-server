@@ -5,6 +5,9 @@ var User = require('../models/user')
 var jwt = require('jsonwebtoken')
 const { ObjectID } = require('mongodb')
 const crypto = require('crypto')
+const async = require('async')
+const { mail } = require('../config/mail')
+const mailTemplates = require('../config/mailTemplates.js')
 
 router.post('/register', function(req, res) {
   User.register(
@@ -17,13 +20,17 @@ router.post('/register', function(req, res) {
     req.body.password,
     function(err, account) {
       if (err) {
-        return res.status(500).send('An error occurred: ' + err)
+        return res.status(500).send({
+          message: 'An error occurred: ' + err
+        })
       }
 
       passport.authenticate('local', {
         session: false
       })(req, res, () => {
-        res.status(200).send('Successfully created new account')
+        res.status(200).send({
+          message: 'Successfully created new account'
+        })
       })
     }
   )
@@ -57,34 +64,66 @@ router.post('/login', function(req, res, next) {
 })
 
 router.post('/forgot-password', function(req, res) {
-  crypto.randomBytes(20, function(err, buf) {
-    var token = buf.toString('hex')
+  async.waterfall(
+    [
+      function(done) {
+        crypto.randomBytes(20, function(err, buf) {
+          var token = buf.toString('hex')
+          done(err, token)
+        })
+      },
+      function(token, done) {
+        User.findOneAndUpdate(
+          {
+            email: req.body.email
+          },
+          {
+            $set: {
+              resetPasswordToken: token,
+              resetPasswordExpires: Date.now() + 3600000 // 1 hour
+            }
+          },
+          {
+            new: true
+          }
+        )
+          .then(user => {
+            if (!user) {
+              return res.status(404).send({
+                message: 'User not found.'
+              })
+            }
 
-    User.findOneAndUpdate(
-      {
-        email: req.body.email
+            done(null, token, user)
+          })
+          .catch(e => {
+            done(e)
+          })
       },
-      {
-        $set: {
-          resetPasswordToken: token,
-          resetPasswordExpires: Date.now() + 3600000 // 1 hour
+      function(token, user, done) {
+        var mailOptions = {
+          to: user.email,
+          from: 'no-reply@eztrip.com',
+          subject: `Password Reset for ${user.email}`,
+          text: mailTemplates.forgotPassword(req.headers.host, token)
         }
-      },
-      {
-        new: true
+
+        mail.sendMail(mailOptions, function(err, info) {
+          done(err, user)
+        })
       }
-    )
-      .then(user => {
-        if (!user) {
-          return res.status(404).send()
-        }
+    ],
+    function(err, user) {
+      if (err) {
+        return res.status(400).send(err)
+      }
 
-        res.status(200).send({ token })
+      res.status(200).send({
+        email: user.email,
+        token: user.resetPasswordToken
       })
-      .catch(e => {
-        res.status(400).send(e)
-      })
-  })
+    }
+  )
 })
 
 router.post('/reset-password/:token', function(req, res) {
@@ -97,12 +136,16 @@ router.post('/reset-password/:token', function(req, res) {
         user.resetPasswordToken = undefined
         user.resetPasswordExpires = undefined
         user.save().then(() => {
-          res.status(200).send('Reset password successfully')
+          res.status(200).send({
+            message: 'Reset password successfully.'
+          })
         })
       })
     })
     .catch(e => {
-      res.status(400).send('Password reset token is invalid or has expired.')
+      res.status(400).send({
+        message: 'Password reset token is invalid or has expired.'
+      })
     })
 })
 
