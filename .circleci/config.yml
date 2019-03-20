@@ -14,7 +14,7 @@ jobs:
             git reset --hard origin/master && \
             yarn && \
             pm2 stop "server" && \
-            PORT=8080 pm2 start ./bin/www --name "server" && \
+            PORT=8080 pm2 start ./bin/www --name "server" --update-env && \
             echo Deploy end"
 workflows:
   version: 2
