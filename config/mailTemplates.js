@@ -1,9 +1,8 @@
-function forgotPassword(host, token) {
+function forgotPassword(token) {
   return (
     'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
     'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-    'http://' +
-    host +
+    process.env.APP_URI +
     '/reset-password/' +
     token +
     '\n\n' +
