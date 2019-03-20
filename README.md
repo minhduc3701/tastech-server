@@ -9,14 +9,16 @@ Add config/config.json with the content like below:
     "MONGODB_URI": "mongodb://localhost:27017/server-db-test",
     "JWT_SECRET": "sd9d9sd88sdd9s898sd89ds89",
     "SENDGRID_USERNAME": "sg-username",
-    "SENDGRID_PASSWORD": "sg-password"
+    "SENDGRID_PASSWORD": "sg-password",
+    "APP_URI": "http://localhost:3000"
   },
   "development": {
     "PORT": "8080",
     "MONGODB_URI": "mongodb://localhost:27017/server-db",
     "JWT_SECRET": "ds99s9ds9s9sd09ds90sd9d09",
     "SENDGRID_USERNAME": "sg-username",
-    "SENDGRID_PASSWORD": "sg-password"
+    "SENDGRID_PASSWORD": "sg-password",
+    "APP_URI": "http://localhost:3000"
   }
 }
 
@@ -47,17 +49,23 @@ PORT=8888 yarn start
 Create `prod.env` in home directory with the content
 
 ```
-MONGODB_URI=<production mongodb uri>
-JWT_SECRET=<production jwt secret>
-NODE_ENV=production
+export MONGODB_URI=<production mongodb uri>
+export JWT_SECRET=<production jwt secret>
+export NODE_ENV=production
+export SENDGRID_USERNAME=<production sendgrid username>
+export SENDGRID_PASSWORD=<production sendgrid username>
+export APP_URI=<frontend app uri>
 ```
 
 example:
 
 ```
-MONGODB_URI=mongodb://localhost:27017/tas-db
-JWT_SECRET=123ksdjf90u90sdf09sidf
-NODE_ENV=production
+export MONGODB_URI=mongodb://localhost:27017/tas-db
+export JWT_SECRET=123ksdjf90u90sdf09sidf
+export NODE_ENV=production
+export SENDGRID_USERNAME=johndoe
+export SENDGRID_PASSWORD=johndoe_password
+export APP_URI=eztrip.com
 ```
 
 Add the line in your `~/.bashrc`
