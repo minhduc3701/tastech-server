@@ -9,6 +9,7 @@ jobs:
           command: |
             ssh -o StrictHostKeyChecking=no ubuntu@3.17.139.99 \
             "echo Start deploy && \
+            source ~/prod.env
             cd ~/server && \
             git fetch --all && \
             git reset --hard origin/master && \
