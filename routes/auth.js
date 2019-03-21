@@ -23,7 +23,7 @@ router.post('/register', function(req, res) {
           req.body.password,
           function(err, account) {
             if (err) {
-              done(err)
+              return done(err)
             }
 
             passport.authenticate('local', {
@@ -43,13 +43,13 @@ router.post('/register', function(req, res) {
         }
 
         mail.sendMail(mailOptions, function(err, info) {
-          done(err, user)
+          return done(err, user)
         })
       }
     ],
     function(err) {
       if (err) {
-        res.status(500).send(err)
+        return res.status(500).send(err)
       }
 
       res.status(200).send({
