@@ -9,12 +9,13 @@ jobs:
           command: |
             ssh -o StrictHostKeyChecking=no ubuntu@3.17.139.99 \
             "echo Start deploy && \
+            source ~/prod.env
             cd ~/server && \
             git fetch --all && \
             git reset --hard origin/master && \
             yarn && \
             pm2 stop "server" && \
-            PORT=8080 pm2 start ./bin/www --name "server" && \
+            PORT=8080 pm2 start --update-env ./bin/www --name "server" && \
             echo Deploy end"
 workflows:
   version: 2

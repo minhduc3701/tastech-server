@@ -1,9 +1,13 @@
+require('./config/config')
 require('./config/mongoose')
+require('./config/mail')
+
 var createError = require('http-errors')
 var express = require('express')
 var path = require('path')
 var cookieParser = require('cookie-parser')
 var logger = require('morgan')
+var cors = require('cors')
 var passport = require('passport')
 var cors = require('cors')
 const requestRouter = require('./routes/request')
@@ -22,15 +26,17 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
+app.use(cors())
+
 app.use(passport.initialize())
 require('./config/passport')
 
 app.use('/auth', authRouter)
 app.use('/user', passport.authenticate('jwt', { session: false }), userRouter)
-app.use('/request', requestRouter)
+app.use('/requests', requestRouter)
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  console.log('wrong!!!')
   next(createError(404))
 })
 
@@ -41,8 +47,7 @@ app.use(function(err, req, res, next) {
   res.locals.error = req.app.get('env') === 'development' ? err : {}
 
   // render the error page
-  res.status(err.status || 500)
-  res.render('error')
+  res.status(err.status || 500).send({ error: 'Not Found' })
 })
 
 module.exports = app
