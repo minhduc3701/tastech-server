@@ -13,6 +13,10 @@ var UserSchema = new Schema({
     required: true,
     unique: true
   },
+  type: {
+    type: String,
+    required: true
+  },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
   firstName: String,

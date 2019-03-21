@@ -16,9 +16,7 @@ router.post('/register', function(req, res) {
         User.register(
           new User({
             username: req.body.email,
-            email: req.body.email,
-            firstName: req.body.firstName,
-            lastName: req.body.lastName
+            ...req.body
           }),
           req.body.password,
           function(err, account) {
@@ -81,7 +79,11 @@ router.post('/login', function(req, res, next) {
         { id: user.id, email: user.username },
         process.env.JWT_SECRET
       )
-      return res.json({ email: user.username, token })
+      return res.json({
+        email: user.email,
+        type: user.type,
+        token
+      })
     })
   })(req, res)
 })
