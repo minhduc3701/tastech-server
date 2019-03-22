@@ -10,9 +10,9 @@ var logger = require('morgan')
 var cors = require('cors')
 var passport = require('passport')
 var cors = require('cors')
-const requestRouter = require('./routes/request')
+const requestsRouter = require('./routes/requests')
 var authRouter = require('./routes/auth')
-var userRouter = require('./routes/user')
+var usersRouter = require('./routes/users')
 
 var app = express()
 app.use(cors())
@@ -32,8 +32,8 @@ app.use(passport.initialize())
 require('./config/passport')
 
 app.use('/auth', authRouter)
-app.use('/user', passport.authenticate('jwt', { session: false }), userRouter)
-app.use('/requests', requestRouter)
+app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
+app.use('/requests', requestsRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
