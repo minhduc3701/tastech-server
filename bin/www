@@ -5,7 +5,8 @@
  */
 
 var app = require('../app');
-var debug = require('debug')('tas-server-app:server');
+var {debugServer} = require('../config/debug')
+var debug = require('debug')(debugServer);
 var http = require('http');
 
 /**
