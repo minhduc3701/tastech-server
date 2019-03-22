@@ -45,13 +45,14 @@ router.post('/register', function(req, res) {
         })
       }
     ],
-    function(err) {
+    function(err, user) {
       if (err) {
         return res.status(500).send(err)
       }
 
       res.status(200).send({
-        message: 'Successfully created new account'
+        message: 'Successfully created new account',
+        user
       })
     }
   )
@@ -80,8 +81,7 @@ router.post('/login', function(req, res, next) {
         process.env.JWT_SECRET
       )
       return res.json({
-        email: user.email,
-        type: user.type,
+        user,
         token
       })
     })
@@ -145,10 +145,34 @@ router.post('/forgot-password', function(req, res) {
 
       res.status(200).send({
         email: user.email,
-        token: user.resetPasswordToken
+        resetPasswordToken: user.resetPasswordToken
       })
     }
   )
+})
+
+router.get('/reset-password/:token', function(req, res) {
+  User.findOne({
+    resetPasswordToken: req.params.token,
+    resetPasswordExpires: { $gt: Date.now() }
+  })
+    .then(user => {
+      if (!user) {
+        res.status(400).send({
+          message: 'Password reset token is invalid or has expired.'
+        })
+      }
+
+      res.status(200).send({
+        message: 'Password reset token is valid.',
+        user
+      })
+    })
+    .catch(e => {
+      res.status(400).send({
+        message: 'Password reset token is invalid or has expired.'
+      })
+    })
 })
 
 router.post('/reset-password/:token', function(req, res) {
