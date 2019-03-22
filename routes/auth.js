@@ -8,6 +8,8 @@ const crypto = require('crypto')
 const async = require('async')
 const { mail } = require('../config/mail')
 const mailTemplates = require('../config/mailTemplates.js')
+const { debugMail } = require('../config/debug')
+const debug = require('debug')(debugMail)
 
 router.post('/register', function(req, res) {
   async.waterfall(
@@ -21,13 +23,17 @@ router.post('/register', function(req, res) {
           req.body.password,
           function(err, account) {
             if (err) {
-              return done(err)
+              return res.status(500).send(err)
             }
 
             passport.authenticate('local', {
               session: false
             })(req, res, () => {
-              done(null, req.user)
+              res.status(200).send({
+                message: 'Successfully created new account',
+                user: req.user
+              })
+              return done(null, req.user)
             })
           }
         )
@@ -47,13 +53,8 @@ router.post('/register', function(req, res) {
     ],
     function(err, user) {
       if (err) {
-        return res.status(500).send(err)
+        debug(err)
       }
-
-      res.status(200).send({
-        message: 'Successfully created new account',
-        user
-      })
     }
   )
 })
@@ -121,6 +122,10 @@ router.post('/forgot-password', function(req, res) {
               })
             }
 
+            res.status(200).send({
+              email: user.email,
+              resetPasswordToken: user.resetPasswordToken
+            })
             done(null, token, user)
           })
           .catch(e => {
@@ -145,11 +150,6 @@ router.post('/forgot-password', function(req, res) {
         console.log(err)
         return res.status(400).send(err)
       }
-
-      res.status(200).send({
-        email: user.email,
-        resetPasswordToken: user.resetPasswordToken
-      })
     }
   )
 })
