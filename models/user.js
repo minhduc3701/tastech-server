@@ -16,7 +16,8 @@ var UserSchema = new Schema({
   },
   type: {
     type: String,
-    required: true
+    required: true,
+    default: 'employee' // admin|boss|employee
   },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
