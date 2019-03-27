@@ -18,7 +18,10 @@ Add config/config.json with the content like below:
     "JWT_SECRET": "ds99s9ds9s9sd09ds90sd9d09",
     "SENDGRID_USERNAME": "sg-username",
     "SENDGRID_PASSWORD": "sg-password",
-    "APP_URI": "http://localhost:3000"
+    "APP_URI": "http://localhost:3000",
+    "AWS_ACCESS_KEY_ID": <AWS_ACCESS_KEY_ID>,
+    "AWS_SECRET_ACCESS_KEY": <AWS_SECRET_ACCESS_KEY>,
+    "AWS_S3_BUCKET_URI": "https://eztrip-dev.s3.ap-southeast-1.amazonaws.com"
   }
 }
 
