@@ -13,6 +13,7 @@ var cors = require('cors')
 const requestsRouter = require('./routes/requests')
 var authRouter = require('./routes/auth')
 var usersRouter = require('./routes/users')
+var tripsRouter = require('./routes/trips')
 
 var app = express()
 app.use(cors())
@@ -33,6 +34,7 @@ require('./config/passport')
 
 app.use('/auth', authRouter)
 app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
+app.use('/trips', passport.authenticate('jwt', { session: false }), tripsRouter)
 app.use('/requests', requestsRouter)
 
 // catch 404 and forward to error handler
