@@ -41,7 +41,7 @@ UserSchema.methods.toJSON = function() {
     'resetPasswordToken',
     'avatar'
   ])
-  userObject.avatar = process.env.AWS_S3_BUCKET_URI + '/' + userObject.avatar
+  userObject.avatar = process.env.AWS_S3_URI + '/' + userObject.avatar
 
   return userObject
 }

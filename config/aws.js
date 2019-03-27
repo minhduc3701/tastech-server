@@ -7,7 +7,7 @@ aws.config.update({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   // Never share it!
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  region: 'us-east-2' // region of your bucket
+  region: process.env.AWS_S3_REGION // region of your bucket
 })
 
 const s3 = new aws.S3()
@@ -15,7 +15,7 @@ const s3 = new aws.S3()
 const upload = multer({
   storage: multerS3({
     s3: s3,
-    bucket: 'eztrip-dev',
+    bucket: process.env.AWS_S3_NAME,
     acl: 'public-read',
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: function(req, file, cb) {
