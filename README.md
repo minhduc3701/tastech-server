@@ -58,6 +58,9 @@ export NODE_ENV=production
 export SENDGRID_USERNAME=<production sendgrid username>
 export SENDGRID_PASSWORD=<production sendgrid username>
 export APP_URI=<frontend app uri>
+export AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
+export AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
+export AWS_S3_BUCKET_URI=<S3_BUCKET_URI>
 ```
 
 example:
@@ -69,6 +72,9 @@ export NODE_ENV=production
 export SENDGRID_USERNAME=johndoe
 export SENDGRID_PASSWORD=johndoe_password
 export APP_URI=eztrip.com
+export AWS_ACCESS_KEY_ID=123456
+export AWS_SECRET_ACCESS_KEY=123456
+export AWS_S3_BUCKET_URI=https://eztrip-dev.s3.ap-southeast-1.amazonaws.com
 ```
 
 Add the line in your `~/.bashrc`
