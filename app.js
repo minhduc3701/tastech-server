@@ -1,21 +1,25 @@
 require('./config/config')
 require('./config/mongoose')
 require('./config/mail')
+require('./config/aws')
 
-var createError = require('http-errors')
-var express = require('express')
-var path = require('path')
-var cookieParser = require('cookie-parser')
-var logger = require('morgan')
-var cors = require('cors')
-var passport = require('passport')
-var cors = require('cors')
+const createError = require('http-errors')
+const express = require('express')
+const path = require('path')
+const cookieParser = require('cookie-parser')
+const logger = require('morgan')
+const cors = require('cors')
+const passport = require('passport')
 const requestsRouter = require('./routes/requests')
-var authRouter = require('./routes/auth')
-var usersRouter = require('./routes/users')
-var tripsRouter = require('./routes/trips')
+const authRouter = require('./routes/auth')
+const usersRouter = require('./routes/users')
+const tripsRouter = require('./routes/trips')
+const tasAdminUsersRouter = require('./routes/tas-admin/users')
+const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
+const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
+const { authenticateTasAdmin } = require('./middleware/authenticate')
 
-var app = express()
+const app = express()
 app.use(cors())
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
@@ -36,6 +40,26 @@ app.use('/auth', authRouter)
 app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
 app.use('/trips', passport.authenticate('jwt', { session: false }), tripsRouter)
 app.use('/requests', requestsRouter)
+
+// tas-admin routes
+app.use(
+  '/tas-admin/requests',
+  passport.authenticate('jwt', { session: false }),
+  authenticateTasAdmin,
+  tasAdminRequestsRouter
+)
+app.use(
+  '/tas-admin/users',
+  passport.authenticate('jwt', { session: false }),
+  authenticateTasAdmin,
+  tasAdminUsersRouter
+)
+app.use(
+  '/tas-admin/companies',
+  passport.authenticate('jwt', { session: false }),
+  authenticateTasAdmin,
+  tasAdminCompaniesRouter
+)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
