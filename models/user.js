@@ -21,8 +21,13 @@ var UserSchema = new Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+  country: String,
+  title: String,
   firstName: String,
-  lastName: String
+  lastName: String,
+  phone: String,
+  role: String,
+  age: String
 })
 
 UserSchema.plugin(passportLocalMongoose)
@@ -35,8 +40,13 @@ UserSchema.methods.toJSON = function() {
     '_id',
     'email',
     'type',
+    'country',
+    'title',
     'firstName',
     'lastName',
+    'phone',
+    'role',
+    'age',
     'resetPasswordToken'
   ])
 }
