@@ -27,7 +27,8 @@ var UserSchema = new Schema({
   lastName: String,
   phone: String,
   role: String,
-  age: String
+  age: Number,
+  avatar: String
 })
 
 UserSchema.plugin(passportLocalMongoose)
@@ -36,7 +37,7 @@ UserSchema.methods.toJSON = function() {
   var user = this
   var userObject = user.toObject()
 
-  return _.pick(userObject, [
+  userObject = _.pick(userObject, [
     '_id',
     'email',
     'type',
@@ -47,8 +48,13 @@ UserSchema.methods.toJSON = function() {
     'phone',
     'role',
     'age',
-    'resetPasswordToken'
+    'resetPasswordToken',
+    'resetPasswordToken',
+    'avatar'
   ])
+  userObject.avatar = process.env.AWS_S3_URI + '/' + userObject.avatar
+
+  return userObject
 }
 
 module.exports = mongoose.model('User', UserSchema)

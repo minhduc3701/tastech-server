@@ -10,7 +10,12 @@ Add config/config.json with the content like below:
     "JWT_SECRET": "sd9d9sd88sdd9s898sd89ds89",
     "SENDGRID_USERNAME": "sg-username",
     "SENDGRID_PASSWORD": "sg-password",
-    "APP_URI": "http://localhost:3000"
+    "APP_URI": "http://localhost:3000",
+    "AWS_ACCESS_KEY_ID": <AWS_ACCESS_KEY_ID>,
+    "AWS_SECRET_ACCESS_KEY": <AWS_SECRET_ACCESS_KEY>,
+    "AWS_S3_NAME="eztrip-dev",
+    "AWS_S3_REGION": "us-east-2",
+    "AWS_S3_URI": "https://eztrip-dev.s3.ap-southeast-1.amazonaws.com"
   },
   "development": {
     "PORT": "8080",
@@ -18,7 +23,12 @@ Add config/config.json with the content like below:
     "JWT_SECRET": "ds99s9ds9s9sd09ds90sd9d09",
     "SENDGRID_USERNAME": "sg-username",
     "SENDGRID_PASSWORD": "sg-password",
-    "APP_URI": "http://localhost:3000"
+    "APP_URI": "http://localhost:3000",
+    "AWS_ACCESS_KEY_ID": <AWS_ACCESS_KEY_ID>,
+    "AWS_SECRET_ACCESS_KEY": <AWS_SECRET_ACCESS_KEY>,
+    "AWS_S3_NAME="eztrip-dev",
+    "AWS_S3_REGION": "us-east-2",
+    "AWS_S3_URI": "https://eztrip-dev.s3.ap-southeast-1.amazonaws.com"
   }
 }
 
@@ -55,17 +65,10 @@ export NODE_ENV=production
 export SENDGRID_USERNAME=<production sendgrid username>
 export SENDGRID_PASSWORD=<production sendgrid username>
 export APP_URI=<frontend app uri>
-```
-
-example:
-
-```
-export MONGODB_URI=mongodb://localhost:27017/tas-db
-export JWT_SECRET=123ksdjf90u90sdf09sidf
-export NODE_ENV=production
-export SENDGRID_USERNAME=johndoe
-export SENDGRID_PASSWORD=johndoe_password
-export APP_URI=eztrip.com
+export AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
+export AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
+export AWS_S3_REGION=<AWS_S3_REGION>
+export AWS_S3_URI=<S3_URI>
 ```
 
 Add the line in your `~/.bashrc`
