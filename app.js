@@ -16,6 +16,7 @@ var authRouter = require('./routes/auth')
 var usersRouter = require('./routes/users')
 const tasAdminUsersRouter = require('./routes/tas-admin/users')
 const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
+const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
 const { authenticateTasAdmin } = require('./middleware/authenticate')
 
 var app = express()
@@ -38,6 +39,14 @@ require('./config/passport')
 app.use('/auth', authRouter)
 app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
 app.use('/requests', requestsRouter)
+
+// tas-admin routes
+app.use(
+  '/tas-admin/requests',
+  passport.authenticate('jwt', { session: false }),
+  authenticateTasAdmin,
+  tasAdminRequestsRouter
+)
 app.use(
   '/tas-admin/users',
   passport.authenticate('jwt', { session: false }),
