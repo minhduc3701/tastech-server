@@ -14,7 +14,8 @@ var cors = require('cors')
 const requestsRouter = require('./routes/requests')
 var authRouter = require('./routes/auth')
 var usersRouter = require('./routes/users')
-const tasAdminUsersRouter = require('./routes/tasAdminUsers')
+const tasAdminUsersRouter = require('./routes/tas-admin/users')
+const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
 const { authenticateTasAdmin } = require('./middleware/authenticate')
 
 var app = express()
@@ -42,6 +43,12 @@ app.use(
   passport.authenticate('jwt', { session: false }),
   authenticateTasAdmin,
   tasAdminUsersRouter
+)
+app.use(
+  '/tas-admin/companies',
+  passport.authenticate('jwt', { session: false }),
+  authenticateTasAdmin,
+  tasAdminCompaniesRouter
 )
 
 // catch 404 and forward to error handler
