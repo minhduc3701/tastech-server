@@ -67,6 +67,7 @@ export SENDGRID_PASSWORD=<production sendgrid username>
 export APP_URI=<frontend app uri>
 export AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
 export AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
+export AWS_S3_NAME=<AWS_S3_NAME>
 export AWS_S3_REGION=<AWS_S3_REGION>
 export AWS_S3_URI=<S3_URI>
 ```
