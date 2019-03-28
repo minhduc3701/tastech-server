@@ -17,7 +17,7 @@ router.post('/', function(req, res) {
 
   company
     .save()
-    .then(company => res.send(company))
+    .then(company => res.send({ company }))
     .catch(e => res.status(400).send())
 })
 
