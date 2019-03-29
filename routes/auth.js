@@ -26,7 +26,6 @@ router.post('/login', function(req, res, next) {
     }
     req.login(user, { session: false }, err => {
       if (err) {
-        debug(err)
         res.send(err)
       }
       // generate a signed son web token with the contents of user object and return it in the response
@@ -98,7 +97,6 @@ router.post('/forgot-password', function(req, res) {
     ],
     function(err, user) {
       if (err) {
-        debug(err)
         return res.status(400).send(err)
       }
     }
