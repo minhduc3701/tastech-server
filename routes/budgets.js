@@ -4,6 +4,7 @@ var Budget = require('../models/budget')
 
 router.post('/', function(req, res, next) {
   const request = new Budget(req.body)
+  request._creator = req.user._id,
   console.log(request)
   request
     .save()
