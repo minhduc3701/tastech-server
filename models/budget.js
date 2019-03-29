@@ -1,7 +1,5 @@
 var mongoose = require('mongoose')
 var Schema = mongoose.Schema
-var passportLocalMongoose = require('passport-local-mongoose')
-const _ = require('lodash')
 
 var BudgetSchema = new Schema({
   _creator: {
@@ -42,11 +40,9 @@ var BudgetSchema = new Schema({
     }
   },
   totalPrice: Number,
-  NoP: Number,
+  numberOfPassengers: Number,
   note: String,
   classType: String
 })
-
-BudgetSchema.plugin(passportLocalMongoose)
 
 module.exports = mongoose.model('Budget', BudgetSchema)
