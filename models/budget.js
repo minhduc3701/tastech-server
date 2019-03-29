@@ -4,6 +4,11 @@ var passportLocalMongoose = require('passport-local-mongoose')
 const _ = require('lodash')
 
 var BudgetSchema = new Schema({
+  _creator: {
+    type: 'ObjectId',
+    refer: 'user',
+    required: true
+  },
   name: String,
   destinations: [
     {
