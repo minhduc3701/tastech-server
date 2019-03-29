@@ -21,8 +21,13 @@ var UserSchema = new Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+  country: String,
+  title: String,
   firstName: String,
   lastName: String,
+  phone: String,
+  role: String,
+  age: Number,
   avatar: String
 })
 
@@ -36,8 +41,14 @@ UserSchema.methods.toJSON = function() {
     '_id',
     'email',
     'type',
+    'country',
+    'title',
     'firstName',
     'lastName',
+    'phone',
+    'role',
+    'age',
+    'resetPasswordToken',
     'resetPasswordToken',
     'avatar'
   ])

@@ -3,23 +3,24 @@ require('./config/mongoose')
 require('./config/mail')
 require('./config/aws')
 
-var createError = require('http-errors')
-var express = require('express')
-var path = require('path')
-var cookieParser = require('cookie-parser')
-var logger = require('morgan')
-var cors = require('cors')
-var passport = require('passport')
-var cors = require('cors')
+const createError = require('http-errors')
+const express = require('express')
+const path = require('path')
+const cookieParser = require('cookie-parser')
+const logger = require('morgan')
+const cors = require('cors')
+const passport = require('passport')
 const requestsRouter = require('./routes/requests')
-var authRouter = require('./routes/auth')
-var usersRouter = require('./routes/users')
+const authRouter = require('./routes/auth')
+const budgetRouter = require('./routes/budgets')
+const usersRouter = require('./routes/users')
+const tripsRouter = require('./routes/trips')
 const tasAdminUsersRouter = require('./routes/tas-admin/users')
 const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
 const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
 const { authenticateTasAdmin } = require('./middleware/authenticate')
 
-var app = express()
+const app = express()
 app.use(cors())
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
@@ -37,8 +38,14 @@ app.use(passport.initialize())
 require('./config/passport')
 
 app.use('/auth', authRouter)
-app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
 app.use('/requests', requestsRouter)
+app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
+app.use('/trips', passport.authenticate('jwt', { session: false }), tripsRouter)
+app.use(
+  '/budgets',
+  passport.authenticate('jwt', { session: false }),
+  budgetRouter
+)
 
 // tas-admin routes
 app.use(
