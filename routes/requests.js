@@ -10,7 +10,7 @@ router.post('/', function(req, res, next) {
       res.status(200).json(request)
     })
     .catch(e => {
-      res.status(400).send()
+      res.status(400).send(e)
     })
 })
 

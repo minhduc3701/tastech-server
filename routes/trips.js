@@ -12,5 +12,16 @@ router.get('/', function(req, res, next) {
       res.send({ error: 'Not Found' })
     })
 })
+router.post('/', function(req, res, next) {
+  const trip = new Trip(req.body)
+  trip
+    .save()
+    .then(() => {
+      res.status(200).json(trip)
+    })
+    .catch(e => {
+      res.status(400).send(e)
+    })
+})
 
 module.exports = router
