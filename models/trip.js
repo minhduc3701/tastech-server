@@ -15,9 +15,10 @@ var TripSchema = new Schema({
   },
   checkout: {
     type: Boolean,
-    required: true
+    required: true,
+    default: false
   },
-  _passenger: [
+  _passengers: [
     {
       _id: {
         type: 'ObjectId',
