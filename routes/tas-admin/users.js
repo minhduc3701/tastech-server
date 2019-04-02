@@ -48,7 +48,10 @@ router.patch('/:id', function(req, res) {
     'phone',
     'role',
     'age',
-    'type'
+    'type',
+    '_company',
+    '_department',
+    '_admin'
   ])
 
   User.findByIdAndUpdate(id, { $set: body }, { new: true })
