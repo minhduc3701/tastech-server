@@ -48,8 +48,6 @@ UserSchema.methods.toJSON = function() {
     'phone',
     'role',
     'age',
-    'resetPasswordToken',
-    'resetPasswordToken',
     'avatar'
   ])
   userObject.avatar = userObject.avatar
