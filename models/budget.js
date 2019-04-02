@@ -7,6 +7,10 @@ var BudgetSchema = new Schema({
     refer: 'user',
     required: true
   },
+  status: {
+    type: String,
+    default: 'waiting'
+  },
   name: String,
   destinations: [
     {
