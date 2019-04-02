@@ -1,8 +1,5 @@
 var mongoose = require('mongoose')
 var Schema = mongoose.Schema
-var passportLocalMongoose = require('passport-local-mongoose')
-const _ = require('lodash')
-
 var TripSchema = new Schema({
   name: {
     type: String,
@@ -14,11 +11,25 @@ var TripSchema = new Schema({
   },
   _creator: {
     type: 'ObjectId',
-    refer: 'user',
+    required: true
+  },
+  checkout: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  _passengers: [
+    {
+      _id: {
+        type: 'ObjectId',
+        required: true
+      }
+    }
+  ],
+  start_location: {
+    type: String,
     required: true
   }
 })
-
-TripSchema.plugin(passportLocalMongoose)
 
 module.exports = mongoose.model('Trip', TripSchema)
