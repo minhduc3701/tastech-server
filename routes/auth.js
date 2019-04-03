@@ -110,7 +110,7 @@ router.get('/reset-password/:token', function(req, res) {
   })
     .then(user => {
       if (!user) {
-        res.status(400).send({
+        return res.status(400).send({
           message: 'Password reset token is invalid or has expired.'
         })
       }
