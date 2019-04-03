@@ -13,8 +13,8 @@ const passport = require('passport')
 const requestsRouter = require('./routes/requests')
 const authRouter = require('./routes/auth')
 const budgetRouter = require('./routes/budgets')
-const tripsRouter = require('./routes/trips')
 const usersRouter = require('./routes/users')
+const tripsRouter = require('./routes/trips')
 const tasAdminUsersRouter = require('./routes/tas-admin/users')
 const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
 const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
@@ -43,14 +43,13 @@ require('./config/passport')
 
 app.use('/auth', authRouter)
 app.use('/requests', requestsRouter)
+app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
 app.use('/trips', passport.authenticate('jwt', { session: false }), tripsRouter)
 app.use(
   '/budgets',
   passport.authenticate('jwt', { session: false }),
   budgetRouter
 )
-
-app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
 
 // tas-admin routes
 app.use(
@@ -74,7 +73,7 @@ app.use(
 
 // admin routes
 app.use(
-  '/company',
+  '/admin/company',
   passport.authenticate('jwt', { session: false }),
   authenticateAdmin,
   adminCompanyRouter

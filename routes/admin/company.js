@@ -5,7 +5,7 @@ const { upload } = require('../../config/aws')
 const singleUpload = upload.single('logo')
 const _ = require('lodash')
 
-router.get('/me', function(req, res) {
+router.get('/', function(req, res) {
   let companyId = req.user._company
 
   Company.findById(req.user._company)
@@ -21,7 +21,7 @@ router.get('/me', function(req, res) {
     })
 })
 
-router.patch('/me', async (req, res) => {
+router.patch('/', (req, res) => {
   const body = _.pick(req.body, [
     'name',
     'address',
@@ -54,7 +54,7 @@ router.patch('/me', async (req, res) => {
     .catch(e => res.status(400).send())
 })
 
-router.post('/me/logo', function(req, res) {
+router.post('/logo', function(req, res) {
   singleUpload(req, res, function(err, some) {
     if (err) {
       return res.status(422).send({
@@ -62,10 +62,8 @@ router.post('/me/logo', function(req, res) {
       })
     }
 
-    Company.findOneAndUpdate(
-      {
-        _owner: req.user._id
-      },
+    Company.findByIdAndUpdate(
+      req.user._company,
       {
         $set: {
           logo: req.file.key
