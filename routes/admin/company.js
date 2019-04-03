@@ -20,7 +20,16 @@ router.get('/me', function(req, res) {
 })
 
 router.patch('/me', async (req, res) => {
-  const body = _.pick(req.body, ['name'])
+  const body = _.pick(req.body, [
+    'name',
+    'address',
+    'website',
+    'country',
+    'city',
+    'companySize',
+    'timezone',
+    'industry'
+  ])
 
   Company.findOneAndUpdate(
     {

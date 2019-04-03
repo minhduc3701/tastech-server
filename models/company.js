@@ -8,7 +8,13 @@ const CompanySchema = new Schema({
   _admin: mongoose.Schema.Types.ObjectId,
   _creator: mongoose.Schema.Types.ObjectId,
   logo: String,
+  address: String,
   website: String,
+  country: String,
+  city: String,
+  companySize: Number,
+  timezone: String,
+  industry: String,
   departments: Array
 })
 
@@ -23,7 +29,13 @@ CompanySchema.methods.toJSON = function() {
     'name',
     '_owner',
     'logo',
-    'webiste'
+    'address',
+    'website',
+    'country',
+    'city',
+    'companySize',
+    'timezone',
+    'industry'
   ])
   companyObject.logo = companyObject.logo
     ? process.env.AWS_S3_URI + '/' + companyObject.logo
