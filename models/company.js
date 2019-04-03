@@ -5,7 +5,6 @@ const _ = require('lodash')
 
 const CompanySchema = new Schema({
   name: String,
-  _admin: mongoose.Schema.Types.ObjectId,
   _creator: mongoose.Schema.Types.ObjectId,
   logo: String,
   address: String,
