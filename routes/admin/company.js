@@ -6,7 +6,9 @@ const singleUpload = upload.single('logo')
 const _ = require('lodash')
 
 router.get('/me', function(req, res) {
-  Company.findOne({ _owner: req.user._id })
+  let companyId = req.user._company
+
+  Company.findById(req.user._company)
     .then(company => {
       if (!company) {
         return res.status(404).send()
@@ -31,10 +33,8 @@ router.patch('/me', async (req, res) => {
     'industry'
   ])
 
-  Company.findOneAndUpdate(
-    {
-      _owner: req.user._id
-    },
+  Company.findByIdAndUpdate(
+    req.user._company,
     {
       $set: body
     },

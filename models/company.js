@@ -26,7 +26,6 @@ CompanySchema.methods.toJSON = function() {
   companyObject = _.pick(companyObject, [
     '_id',
     'name',
-    '_owner',
     'logo',
     'address',
     'website',
