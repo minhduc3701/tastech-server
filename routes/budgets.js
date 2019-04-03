@@ -19,10 +19,10 @@ router.get('/', function(req, res, next) {
     _creator: req.user._id
   })
     .then(budgets => {
-      res.send({ budgets })
+      res.status(200).json({ budgets })
     })
     .catch(e => {
-      res.send({ error: 'Not Found' })
+      res.status(200).send({ budgets })
     })
 })
 

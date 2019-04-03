@@ -9,7 +9,7 @@ var BudgetSchema = new Schema({
   },
   status: {
     type: String,
-    default: 'waiting'
+    default: 'waiting' // waiting, approved, rejected
   },
   name: String,
   destinations: [
