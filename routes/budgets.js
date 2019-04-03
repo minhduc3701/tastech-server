@@ -1,52 +1,29 @@
-var mongoose = require('mongoose')
-var Schema = mongoose.Schema
+var express = require('express')
+var router = express.Router()
+var Budget = require('../models/budget')
 
-var BudgetSchema = new Schema({
-  _creator: {
-    type: 'ObjectId',
-    refer: 'user',
-    required: true
-  },
-  status: {
-    type: String,
-    default: 'waiting'
-  },
-  name: String,
-  destinations: [
-    {
-      from: String,
-      date: Date
-    }
-  ],
-  lastDestination: String,
-  lastDestinationDate: Date,
-  selectCategories: {
-    flight: {
-      selected: Boolean,
-      price: Number
-    },
-    lodging: {
-      selected: Boolean,
-      price: Number
-    },
-    transportation: {
-      selected: Boolean,
-      price: Number
-    },
-    meal: {
-      selected: Boolean,
-      price: Number
-    },
-    provision: {
-      selected: Boolean,
-      provisionPrice: Number,
-      rate: Number
-    }
-  },
-  totalPrice: Number,
-  numberOfPassengers: Number,
-  note: String,
-  classType: String
+router.post('/', function(req, res, next) {
+  const budget = new Budget(req.body)
+  ;(budget._creator = req.user._id),
+    budget
+      .save()
+      .then(() => {
+        res.status(200).json({ budget })
+      })
+      .catch(e => {
+        res.status(400).send()
+      })
+})
+router.get('/', function(req, res, next) {
+  Budget.find({
+    _creator: req.user._id
+  })
+    .then(budgets => {
+      res.send({ budgets })
+    })
+    .catch(e => {
+      res.send({ error: 'Not Found' })
+    })
 })
 
-module.exports = mongoose.model('Budget', BudgetSchema)
+module.exports = router
