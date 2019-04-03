@@ -13,12 +13,16 @@ const passport = require('passport')
 const requestsRouter = require('./routes/requests')
 const authRouter = require('./routes/auth')
 const budgetRouter = require('./routes/budgets')
-const usersRouter = require('./routes/users')
 const tripsRouter = require('./routes/trips')
+const usersRouter = require('./routes/users')
 const tasAdminUsersRouter = require('./routes/tas-admin/users')
 const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
 const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
-const { authenticateTasAdmin } = require('./middleware/authenticate')
+const adminCompanyRouter = require('./routes/admin/company')
+const {
+  authenticateTasAdmin,
+  authenticateAdmin
+} = require('./middleware/authenticate')
 
 const app = express()
 app.use(cors())
@@ -39,13 +43,14 @@ require('./config/passport')
 
 app.use('/auth', authRouter)
 app.use('/requests', requestsRouter)
-app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
 app.use('/trips', passport.authenticate('jwt', { session: false }), tripsRouter)
 app.use(
   '/budgets',
   passport.authenticate('jwt', { session: false }),
   budgetRouter
 )
+
+app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
 
 // tas-admin routes
 app.use(
@@ -65,6 +70,14 @@ app.use(
   passport.authenticate('jwt', { session: false }),
   authenticateTasAdmin,
   tasAdminCompaniesRouter
+)
+
+// admin routes
+app.use(
+  '/company',
+  passport.authenticate('jwt', { session: false }),
+  authenticateAdmin,
+  adminCompanyRouter
 )
 
 // catch 404 and forward to error handler
