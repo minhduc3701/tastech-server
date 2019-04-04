@@ -14,6 +14,7 @@ router.post('/', function(req, res, next) {
         res.status(400).send()
       })
 })
+
 router.get('/', function(req, res, next) {
   Budget.find({
     _creator: req.user._id
@@ -22,7 +23,7 @@ router.get('/', function(req, res, next) {
       res.status(200).json({ budgets })
     })
     .catch(e => {
-      res.status(200).send({ budgets })
+      res.status(400).send()
     })
 })
 
