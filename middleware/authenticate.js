@@ -8,6 +8,7 @@ const authenticateTasAdmin = (req, res, next) => {
 
 const authenticateAdmin = (req, res, next) => {
   if (req.user.type === 'admin') {
+    req.admin = req.user
     return next()
   }
 

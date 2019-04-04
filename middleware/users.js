@@ -6,7 +6,7 @@ const mailTemplates = require('../config/mailTemplates.js')
 const { debugMail } = require('../config/debug')
 const debug = require('debug')(debugMail)
 
-const createUser = function(req, res) {
+const createUser = function(req, res, next) {
   async.waterfall(
     [
       function(done) {
@@ -28,6 +28,7 @@ const createUser = function(req, res) {
                 message: 'Successfully created new account',
                 user: req.user
               })
+              next()
               return done(null, req.user)
             })
           }
