@@ -1,26 +1,47 @@
 version: 2
 jobs:
+  deploy_dev:
+    docker:
+      - image: circleci/node:10.15.0-jessie-browsers-legacy
+    steps:
+      - run:
+          name: AWS EC2 deploy (development)
+          command: |
+            ssh -o StrictHostKeyChecking=no ubuntu@3.19.3.0 \
+            "echo Start development deploy && \
+            cd ~/server && \
+            git fetch --all && \
+            git reset --hard origin/develop && \
+            yarn && \
+            pm2 stop "server" && \
+            PORT=8080 NODE_ENV=development pm2 start ./bin/www --name "server" && \
+            echo Deploy development end"
   deploy:
     docker:
       - image: circleci/node:10.15.0-jessie-browsers-legacy
     steps:
       - run:
-          name: AWS EC2 deploy
+          name: AWS EC2 deploy (production)
           command: |
             ssh -o StrictHostKeyChecking=no ubuntu@3.19.3.0 \
-            "echo Start deploy && \
+            "echo Start production deploy && \
             source ~/prod.env
-            cd ~/server && \
+            cd ~/prod/server && \
             git fetch --all && \
             git reset --hard origin/master && \
             yarn && \
-            pm2 stop "server" && \
-            PORT=8080 pm2 start --update-env ./bin/www --name "server" && \
-            echo Deploy end"
+            pm2 stop "prod-server" && \
+            PORT=8082 pm2 start --update-env ./bin/www --name "prod-server" && \
+            echo Deploy production end"
 workflows:
   version: 2
   test_and_deploy:
     jobs:
+      - deploy_dev:
+          filters:
+            branches:
+              only:
+                - develop
       - deploy:
           filters:
             branches:
