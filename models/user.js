@@ -30,7 +30,7 @@ var UserSchema = new Schema({
   age: Number,
   avatar: String,
   _company: mongoose.Schema.Types.ObjectId,
-  _deparment: mongoose.Schema.Types.ObjectId,
+  _department: mongoose.Schema.Types.ObjectId,
   _admin: mongoose.Schema.Types.ObjectId
 })
 
