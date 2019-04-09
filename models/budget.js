@@ -13,42 +13,30 @@ const BudgetSchema = new Schema({
     type: String,
     default: 'waiting' // waiting, approved, rejected
   },
-  name: String,
-  destinations: [
-    {
-      from: String,
-      date: Date
-    }
-  ],
-  lastDestination: String,
-  lastDestinationDate: Date,
-  selectCategories: {
-    flight: {
-      selected: Boolean,
-      price: Number
-    },
-    lodging: {
-      selected: Boolean,
-      price: Number
-    },
-    transportation: {
-      selected: Boolean,
-      price: Number
-    },
-    meal: {
-      selected: Boolean,
-      price: Number
-    },
-    provision: {
-      selected: Boolean,
-      provisionPrice: Number,
-      rate: Number
-    }
+  forCreator: Boolean,
+  _company: {
+    type: 'ObjectId'
   },
-  totalPrice: Number,
-  numberOfPassengers: Number,
-  note: String,
-  classType: String
+  name: String,
+  passengers: [
+    {
+      flight: Number,
+      lodging: Number,
+      transportation: Number,
+      meal: Number,
+      provision: Number,
+      note: String,
+      classType: String,
+      destinations: [
+        {
+          from: String,
+          date: Date
+        }
+      ],
+      lastDestination: String,
+      lastDestinationDate: Date
+    }
+  ]
 })
 
 module.exports = mongoose.model('Budget', BudgetSchema)
