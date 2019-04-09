@@ -70,4 +70,26 @@ router.get('/permissions', function(req, res) {
   res.status(200).send({ permissions })
 })
 
+router.put('/:id', function(req, res) {
+  let id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  let body = _.pick(req.body, ['permissions'])
+
+  Role.findByIdAndUpdate(id, { $set: body }, { new: true })
+    .then(role => {
+      if (!role) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ role })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 module.exports = router
