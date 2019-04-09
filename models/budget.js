@@ -1,12 +1,14 @@
-var mongoose = require('mongoose')
-var Schema = mongoose.Schema
+const mongoose = require('mongoose')
+mongoose.set('useFindAndModify', false)
+const Schema = mongoose.Schema
 
-var BudgetSchema = new Schema({
+const BudgetSchema = new Schema({
   _creator: {
     type: 'ObjectId',
     refer: 'user',
     required: true
   },
+  _company: mongoose.Schema.Types.ObjectId,
   status: {
     type: String,
     default: 'waiting' // waiting, approved, rejected
