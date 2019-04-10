@@ -54,6 +54,12 @@ Seed development DB
 yarn seed-dev-db
 ```
 
+or
+
+```
+yarn seed-db
+```
+
 ## Start server
 
 ```
