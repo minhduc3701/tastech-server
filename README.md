@@ -90,18 +90,6 @@ export AWS_S3_REGION=<AWS_S3_REGION>
 export AWS_S3_URI=<S3_URI>
 ```
 
-Add the line in your `~/.bashrc`
-
-```
-source /home/ubuntu/prod.env
-```
-
-After that run:
-
-```
-source ~/.bashrc
-```
-
 Now you ready to run your app
 
 Read more at: http://mrngoitall.net/blog/2013/10/13/best-practices-on-deploying-node-dot-js-to-aws-ec2/
