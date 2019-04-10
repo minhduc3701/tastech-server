@@ -310,7 +310,7 @@ const trips = [
 ]
 
 const populateUsers = done => {
-  User.deleteMany({})
+  return User.deleteMany({})
     .then(() => {
       let allUsers = users.map(user => new User(user))
       return Promise.all(allUsers.map(user => user.setPassword(password)))
@@ -318,43 +318,34 @@ const populateUsers = done => {
     .then(res => {
       return Promise.all(res.map(user => user.save()))
     })
-    .then(() => done())
 }
 
 const populateCompanies = done => {
-  Company.deleteMany({})
-    .then(() => {
-      let allCompanies = companies.map(company => new Company(company))
-      return Promise.all(allCompanies.map(company => company.save()))
-    })
-    .then(() => done())
+  return Company.deleteMany({}).then(() => {
+    let allCompanies = companies.map(company => new Company(company))
+    return Promise.all(allCompanies.map(company => company.save()))
+  })
 }
 
 const populateRequests = done => {
-  Request.deleteMany({})
-    .then(() => {
-      let allRequests = requests.map(request => new Request(request))
-      return Promise.all(allRequests.map(request => request.save()))
-    })
-    .then(() => done())
+  return Request.deleteMany({}).then(() => {
+    let allRequests = requests.map(request => new Request(request))
+    return Promise.all(allRequests.map(request => request.save()))
+  })
 }
 
-const populateBudgets = done => {
-  Budget.deleteMany({})
-    .then(() => {
-      let allBudgets = budgets.map(budget => new Budget(budget))
-      return Promise.all(allBudgets.map(budget => budget.save()))
-    })
-    .then(() => done())
+const populateBudgets = () => {
+  return Budget.deleteMany({}).then(() => {
+    let allBudgets = budgets.map(budget => new Budget(budget))
+    return Promise.all(allBudgets.map(budget => budget.save()))
+  })
 }
 
 const populateTrips = done => {
-  Trip.deleteMany({})
-    .then(() => {
-      let allTrips = trips.map(trip => new Trip(trip))
-      return Promise.all(allTrips.map(trip => trip.save()))
-    })
-    .then(() => done())
+  return Trip.deleteMany({}).then(() => {
+    let allTrips = trips.map(trip => new Trip(trip))
+    return Promise.all(allTrips.map(trip => trip.save()))
+  })
 }
 
 module.exports = {

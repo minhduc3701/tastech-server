@@ -40,6 +40,20 @@ Add config/config.json with the content like below:
 yarn
 ```
 
+## Seed database
+
+Seed test DB
+
+```
+yarn seed-test-db
+```
+
+Seed development DB
+
+```
+yarn seed-dev-db
+```
+
 ## Start server
 
 ```
