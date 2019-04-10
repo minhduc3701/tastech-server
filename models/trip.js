@@ -19,7 +19,7 @@ var TripSchema = new Schema({
   checkoutStatus: {
     type: String,
     required: true,
-    default: 'waiting'
+    default: 'pending'
   },
   hotelCode: String,
   rooms: [

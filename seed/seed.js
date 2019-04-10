@@ -163,7 +163,7 @@ const trips = [
     status: 'ongoing',
     _creator: employeeId,
     _budget: budgetId,
-    checkoutStatus: 'paid',
+    checkoutStatus: 'completed', // pending, completed, canceled
     hotelCode: 'AROMA',
     rooms: [
       {
