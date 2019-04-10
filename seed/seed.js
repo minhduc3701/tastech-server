@@ -10,6 +10,7 @@ const adminId = new ObjectID()
 const employeeId = new ObjectID()
 const companyId = new ObjectID()
 const budgetId = new ObjectID()
+const secondBudgetId = new ObjectID()
 const password = '12345678'
 
 const users = [
@@ -96,7 +97,7 @@ const budgets = [
     _id: budgetId,
     name: 'Budget to Sai Gon',
     _creator: employeeId,
-    status: 'waiting',
+    status: 'approved',
     forCreator: true,
     _company: companyId,
     passengers: [
@@ -120,6 +121,38 @@ const budgets = [
           }
         ],
         lastDestination: 'HO CHI MINH',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
+  },
+  {
+    _id: secondBudgetId,
+    name: 'Budget to Thai Land',
+    _creator: employeeId,
+    status: 'approved',
+    forCreator: true,
+    _company: companyId,
+    passengers: [
+      {
+        _passenger: employeeId,
+        flight: 5,
+        lodging: 10,
+        transportation: 15,
+        meal: 20,
+        provision: 25,
+        note: 'Small budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HANOI',
+            date: new Date('2019-03-13')
+          },
+          {
+            from: 'BANGKOK',
+            date: new Date('2019-03-16')
+          }
+        ],
+        lastDestination: 'HANOI',
         lastDestinationDate: new Date('2019-03-17')
       }
     ]
@@ -215,11 +248,69 @@ const trips = [
     departureDate: new Date('2019-03-20'),
     arrival: 'HO CHI MINH',
     returnDate: new Date('2019-03-25')
+  },
+  {
+    name: 'ThaiLand trip',
+    status: 'finished',
+    _creator: employeeId,
+    _budget: secondBudgetId,
+    checkoutStatus: 'completed', // pending, completed, canceled
+    hotelCode: 'BANGKOKHOTL',
+    rooms: [
+      {
+        price: 1000,
+        roomType: 'DOUBLE',
+        numberRooms: 1
+      },
+      {
+        price: 800,
+        roomType: 'SINGLE',
+        numberRooms: 3
+      }
+    ],
+    departFlights: [
+      {
+        price: 500,
+        departTime: new Date('2019-03-20 08:00'),
+        arrivalTime: new Date('2019-03-20 10:00'),
+        airline: 'VN',
+        flightCode: 'VNA29175',
+        ticketCode: 'JJQQKK'
+      }
+    ],
+    returnFlights: [
+      {
+        price: 500,
+        departTime: new Date('2019-03-25 15:00'),
+        arrivalTime: new Date('2019-03-25 17:00'),
+        airline: 'VN',
+        flightCode: 'VNA29185',
+        ticketCode: 'JJQQKK'
+      }
+    ],
+    passengers: [
+      {
+        firstName: 'John',
+        lastName: 'Doe'
+      },
+      {
+        firstName: 'Jane',
+        lastName: 'Doe'
+      }
+    ],
+    payment: 'card',
+    roundTrip: true,
+    numberPassengers: 5,
+    flightClass: 'economy',
+    departure: 'HANOI',
+    departureDate: new Date('2019-03-20'),
+    arrival: 'BANGKOK',
+    returnDate: new Date('2019-03-25')
   }
 ]
 
 const populateUsers = done => {
-  User.remove({})
+  User.deleteMany({})
     .then(() => {
       let allUsers = users.map(user => new User(user))
       return Promise.all(allUsers.map(user => user.setPassword(password)))
@@ -231,7 +322,7 @@ const populateUsers = done => {
 }
 
 const populateCompanies = done => {
-  Company.remove({})
+  Company.deleteMany({})
     .then(() => {
       let allCompanies = companies.map(company => new Company(company))
       return Promise.all(allCompanies.map(company => company.save()))
@@ -240,7 +331,7 @@ const populateCompanies = done => {
 }
 
 const populateRequests = done => {
-  Request.remove({})
+  Request.deleteMany({})
     .then(() => {
       let allRequests = requests.map(request => new Request(request))
       return Promise.all(allRequests.map(request => request.save()))
@@ -249,7 +340,7 @@ const populateRequests = done => {
 }
 
 const populateBudgets = done => {
-  Budget.remove({})
+  Budget.deleteMany({})
     .then(() => {
       let allBudgets = budgets.map(budget => new Budget(budget))
       return Promise.all(allBudgets.map(budget => budget.save()))
@@ -258,7 +349,7 @@ const populateBudgets = done => {
 }
 
 const populateTrips = done => {
-  Trip.remove({})
+  Trip.deleteMany({})
     .then(() => {
       let allTrips = trips.map(trip => new Trip(trip))
       return Promise.all(allTrips.map(trip => trip.save()))
