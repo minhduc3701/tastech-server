@@ -3,7 +3,8 @@ const Schema = mongoose.Schema
 
 const RoleSchema = new Schema({
   name: String,
-  permissions: Array
+  permissions: Array,
+  _company: mongoose.Schema.Types.ObjectId
 })
 
 module.exports = mongoose.model('Role', RoleSchema)

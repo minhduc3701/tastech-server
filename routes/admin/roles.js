@@ -3,56 +3,12 @@ const router = express.Router()
 const Role = require('../../models/role')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
-
-const permissions = [
-  {
-    permission: 'CAN_EDIT_SETTING',
-    category: 'setting'
-  },
-  {
-    permission: 'CAN_EDIT_SETTING',
-    category: 'setting'
-  },
-  {
-    permission: 'CAN_APPROVE_ESTIMATION_CREATION',
-    category: 'approval'
-  },
-  {
-    permission: 'CAN_APPROVE_EXPENSE',
-    category: 'approval'
-  },
-  {
-    permission: 'CAN_CREATE_TRIP',
-    category: 'booking'
-  },
-  {
-    permission: 'CAN_MANAGE_TRAVEL',
-    category: 'booking'
-  },
-  {
-    permission: 'CAN_CLAIM_EXPRENSE',
-    category: 'booking'
-  },
-  {
-    permission: 'CAN_VIEW_USER',
-    category: 'administration'
-  },
-  {
-    permission: 'CAN_EDIT_USER',
-    category: 'administration'
-  },
-  {
-    permission: 'CAN_EDIT_BOOKING',
-    category: 'administration'
-  }
-]
+const { permissions } = require('../../config/roles')
 
 router.post('/', function(req, res) {
   let body = _.pick(req.body, ['name', 'permissions'])
 
-  let role = new Role({
-    ...body
-  })
+  let role = new Role(body)
 
   role
     .save()
@@ -61,7 +17,9 @@ router.post('/', function(req, res) {
 })
 
 router.get('/', function(req, res) {
-  Role.find({})
+  Role.find({
+    _company: req.user._company
+  })
     .then(roles => res.status(200).send(roles))
     .catch(e => res.status(400).send())
 })
@@ -79,7 +37,14 @@ router.put('/:id', function(req, res) {
 
   let body = _.pick(req.body, ['permissions'])
 
-  Role.findByIdAndUpdate(id, { $set: body }, { new: true })
+  Role.findOneAndUpdate(
+    {
+      _id: id,
+      _company: req.user._company
+    },
+    { $set: body },
+    { new: true }
+  )
     .then(role => {
       if (!role) {
         return res.status(404).send()
