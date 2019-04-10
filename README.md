@@ -54,6 +54,10 @@ Open http://locahost:8080
 PORT=8888 yarn start
 ```
 
+## Deployment for development
+
+Create file `config/config.json` and fill dev credentials to it, see above section for file syntax
+
 ## Deployment on ec2
 
 Create `prod.env` in home directory with the content
