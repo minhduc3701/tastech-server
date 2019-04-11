@@ -40,6 +40,26 @@ Add config/config.json with the content like below:
 yarn
 ```
 
+## Seed database
+
+Seed test DB
+
+```
+yarn seed-test-db
+```
+
+Seed development DB
+
+```
+yarn seed-dev-db
+```
+
+or
+
+```
+yarn seed-db
+```
+
 ## Start server
 
 ```
@@ -74,18 +94,6 @@ export AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
 export AWS_S3_NAME=<AWS_S3_NAME>
 export AWS_S3_REGION=<AWS_S3_REGION>
 export AWS_S3_URI=<S3_URI>
-```
-
-Add the line in your `~/.bashrc`
-
-```
-source /home/ubuntu/prod.env
-```
-
-After that run:
-
-```
-source ~/.bashrc
 ```
 
 Now you ready to run your app

@@ -13,23 +13,50 @@ var TripSchema = new Schema({
     type: 'ObjectId',
     required: true
   },
-  checkout: {
-    type: Boolean,
-    required: true,
-    default: false
+  _budget: {
+    type: 'ObjectId'
   },
-  _passengers: [
+  checkoutStatus: {
+    type: String,
+    required: true,
+    default: 'pending' // pending, completed, canceled
+  },
+  hotelCode: String,
+  rooms: [
     {
-      _id: {
-        type: 'ObjectId',
-        required: true
-      }
+      price: Number,
+      roomType: String,
+      numberRooms: Number
     }
   ],
-  start_location: {
-    type: String,
-    required: true
-  }
+  departFlights: [
+    {
+      price: Number,
+      departTime: Date,
+      arrivalTime: Date,
+      airline: String,
+      flightCode: String,
+      ticketCode: String
+    }
+  ],
+  returnFlights: [
+    {
+      price: Number,
+      departTime: Date,
+      arrivalTime: Date,
+      airline: String,
+      flightCode: String,
+      ticketCode: String
+    }
+  ],
+  payment: String,
+  roundTrip: Boolean,
+  numberPassengers: Number,
+  flightClass: String,
+  departure: String,
+  departureDate: Date,
+  arrival: String,
+  returnDate: Date
 })
 
 module.exports = mongoose.model('Trip', TripSchema)

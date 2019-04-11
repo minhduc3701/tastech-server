@@ -10,8 +10,7 @@ router.post('/', createUser, (req, res) => {
     { _id: req.user._id },
     {
       $set: {
-        _company: req.admin._company,
-        _admin: req.admin._id
+        _company: req.admin._company
       }
     }
   )
@@ -32,8 +31,7 @@ router.get('/:id', function(req, res) {
 
   User.findOne({
     _id: req.params.id,
-    _company: req.user._company,
-    _admin: req.user._id
+    _company: req.user._company
   })
     .then(user => {
       if (!user) {
@@ -67,8 +65,7 @@ router.patch('/:id', function(req, res) {
   User.findOneAndUpdate(
     {
       _id: req.params.id,
-      _company: req.user._company,
-      _admin: req.user._id
+      _company: req.user._company
     },
     { $set: body },
     { new: true }
@@ -92,8 +89,7 @@ router.delete('/:id', function(req, res) {
 
   User.findOneAndDelete({
     _id: req.params.id,
-    _company: req.user._company,
-    _admin: req.user._id
+    _company: req.user._company
   })
     .then(user => {
       if (!user) {

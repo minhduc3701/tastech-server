@@ -10,7 +10,8 @@ const RequestSchema = new Schema({
   company: { type: String },
   role: { type: String },
   numberOfEmployees: { type: String },
-  country: { type: String }
+  country: { type: String },
+  status: String
 })
 
 module.exports = mongoose.model('Request', RequestSchema)
