@@ -18,7 +18,7 @@ router.patch('/:id', (req, res) => {
     return res.status(404).send()
   }
 
-  const body = _.pick(req.body, ['status'])
+  const body = _.pick(req.body, ['status', 'passengers'])
 
   Budget.findByIdAndUpdate(id, { $set: body }, { new: true })
     .then(budget => {
