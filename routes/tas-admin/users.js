@@ -6,8 +6,23 @@ const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
 router.get('/', function(req, res) {
-  User.find({})
-    .then(users => res.status(200).send({ users }))
+  let perPage = 50
+  let page = Math.max(0, req.query.page)
+  let data = {}
+
+  // @see https://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js
+  Promise.all([
+    User.find({})
+      .limit(perPage)
+      .skip(perPage * page)
+      .sort([['_id', -1]]),
+    User.count({})
+  ])
+    .then(results => {
+      let users = results[0]
+      let total = results[1]
+      res.status(200).send({ page, total, count: users.length, users })
+    })
     .catch(e => res.status(400).send())
 })
 
