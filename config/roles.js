@@ -1,6 +1,6 @@
 const permissions = [
   {
-    permission: 'CAN_EDIT_SETTING',
+    permission: 'CAN_VIEW_SETTING',
     category: 'setting'
   },
   {

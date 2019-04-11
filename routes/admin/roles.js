@@ -8,7 +8,7 @@ const { permissions } = require('../../config/roles')
 router.post('/', function(req, res) {
   let body = _.pick(req.body, ['name', 'permissions'])
 
-  let role = new Role(body)
+  let role = new Role({ ...body, _company: req.user._company })
 
   role
     .save()
@@ -46,6 +46,7 @@ router.put('/:id', function(req, res) {
     { new: true }
   )
     .then(role => {
+      console.log(role)
       if (!role) {
         return res.status(404).send()
       }
