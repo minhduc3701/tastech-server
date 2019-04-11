@@ -1,34 +1,24 @@
-const { app } = require('../app')
+require('../config/config')
+require('../config/mongoose')
 
 const {
-  users,
   populateUsers,
-  companies,
   populateCompanies,
-  requests,
   populateRequests,
-  budgets,
   populateBudgets,
-  trips,
   populateTrips
 } = require('./seed')
 
-populateUsers(() => {
-  console.log(`Imported ${users.length} users.`)
-})
-
-populateCompanies(() => {
-  console.log(`Imported ${companies.length} companies.`)
-})
-
-populateRequests(() => {
-  console.log(`Imported ${companies.length} requests.`)
-})
-
-populateBudgets(() => {
-  console.log(`Imported ${budgets.length} budgets.`)
-})
-
-populateTrips(() => {
-  console.log(`Imported ${trips.length} trips.`)
+Promise.all([
+  populateUsers(),
+  populateCompanies(),
+  populateRequests(),
+  populateBudgets(),
+  populateTrips()
+]).then(res => {
+  collections = ['users', 'companies', 'requests', 'budgets', 'trips']
+  collections.map((collection, index) => {
+    console.log(`Imported ${res[index].length} ${collection}.`)
+  })
+  process.exit(0)
 })
