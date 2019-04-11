@@ -20,7 +20,10 @@ router.post('/', createUser, (req, res) => {
 })
 
 router.get('/', function(req, res) {
-  User.find({ _company: req.user._company })
+  User.find({
+    _company: req.user._company,
+    _id: { $ne: req.user._id }
+  })
     .then(users => res.status(200).send({ users }))
     .catch(e => res.status(400).send())
 })
