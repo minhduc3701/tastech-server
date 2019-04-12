@@ -7,7 +7,8 @@ var TripSchema = new Schema({
   },
   status: {
     type: String,
-    required: true
+    required: true,
+    default: 'ongoing'
   },
   _creator: {
     type: 'ObjectId',
@@ -24,9 +25,11 @@ var TripSchema = new Schema({
   hotelCode: String,
   rooms: [
     {
-      price: Number,
       roomType: String,
-      numberRooms: Number
+      price: Number,
+      numberRooms: Number,
+      refundable: Boolean,
+      numberSeleted: Number
     }
   ],
   departFlights: [
@@ -36,7 +39,23 @@ var TripSchema = new Schema({
       arrivalTime: Date,
       airline: String,
       flightCode: String,
-      ticketCode: String
+      ticketCode: String,
+      duration: String
+    }
+  ],
+  passengers: [
+    {
+      businessEmail: String,
+      dateOfBirth: Date,
+      firstName: String,
+      frequentFlyerNumber: String,
+      frequentFlyerPropgram: String,
+      gender: String,
+      lastName: String,
+      nationality: String,
+      passportExpiryDate: Date,
+      passportNo: Number,
+      title: String
     }
   ],
   returnFlights: [
@@ -49,6 +68,16 @@ var TripSchema = new Schema({
       ticketCode: String
     }
   ],
+  conatactInfor: {
+    city: String,
+    country: String,
+    phone1: Number,
+    phone2: Number,
+    postalAddress: Number,
+    postalCode1: String,
+    postalCode2: String,
+    province: String
+  },
   payment: String,
   roundTrip: Boolean,
   numberPassengers: Number,
