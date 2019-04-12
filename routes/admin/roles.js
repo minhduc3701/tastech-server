@@ -29,13 +29,14 @@ router.get('/permissions', function(req, res) {
 })
 
 router.put('/:id', function(req, res) {
+  console.log(req.body)
   let id = req.params.id
 
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()
   }
 
-  let body = _.pick(req.body, ['permissions'])
+  let body = _.pick(req.body, ['permissions', 'users'])
 
   Role.findOneAndUpdate(
     {
@@ -46,7 +47,6 @@ router.put('/:id', function(req, res) {
     { new: true }
   )
     .then(role => {
-      console.log(role)
       if (!role) {
         return res.status(404).send()
       }
