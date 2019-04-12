@@ -68,7 +68,7 @@ var TripSchema = new Schema({
       ticketCode: String
     }
   ],
-  conatactInfor: {
+  contactInfor: {
     city: String,
     country: String,
     phone1: Number,
