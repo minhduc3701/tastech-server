@@ -1,7 +1,7 @@
 var express = require('express')
 var router = express.Router()
 var Budget = require('../models/budget')
-
+const { ObjectID } = require('mongodb')
 router.post('/', function(req, res, next) {
   const budget = new Budget(req.body)
   budget._creator = req.user._id
@@ -27,8 +27,12 @@ router.get('/', function(req, res, next) {
       res.status(400).send()
     })
 })
+
 router.get('/:id', function(req, res, next) {
-  Budget.find({
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+  Budget.findOne({
     _creator: req.user._id,
     _id: req.params.id
   })
