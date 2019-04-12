@@ -15,14 +15,12 @@ router.get('/', function(req, res, next) {
 router.post('/', function(req, res, next) {
   const trip = new Trip(req.body)
   trip._creator = req.user._id
-  console.log(trip)
   trip
     .save()
     .then(() => {
       res.status(200).json({ trip })
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })

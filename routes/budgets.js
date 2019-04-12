@@ -26,5 +26,17 @@ router.get('/', function(req, res, next) {
       res.status(400).send()
     })
 })
+router.get('/:id', function(req, res, next) {
+  Budget.find({
+    _creator: req.user._id,
+    _id: req.params.id
+  })
+    .then(budget => {
+      res.status(200).json({ budget })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
 
 module.exports = router
