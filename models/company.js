@@ -9,7 +9,7 @@ const CompanySchema = new Schema({
   website: String,
   country: String,
   city: String,
-  companySize: Number,
+  companySize: String,
   timezone: String,
   industry: String,
   departments: Array
