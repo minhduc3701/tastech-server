@@ -29,7 +29,6 @@ router.get('/permissions', function(req, res) {
 })
 
 router.put('/:id', function(req, res) {
-  console.log(req.body)
   let id = req.params.id
 
   if (!ObjectID.isValid(id)) {

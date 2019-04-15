@@ -44,19 +44,13 @@ const permissions = [
 const roles = [
   {
     name: 'Admin',
+    type: 'admin',
     permissions: ['CAN_EDIT_USER']
   },
   {
-    name: 'System',
-    permissions: ['CAN_MANAGE_TRAVEL']
-  },
-  {
     name: 'Employee',
+    type: 'employee',
     permissions: ['CAN_CLAIM_EXPRENSE']
-  },
-  {
-    name: 'Booker',
-    permissions: ['CAN_CREATE_TRIP']
   }
 ]
 
