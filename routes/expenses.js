@@ -3,6 +3,7 @@ var router = express.Router()
 var Expense = require('../models/expense')
 const { ObjectID } = require('mongodb')
 const { upload } = require('../config/aws')
+const _ = require('lodash')
 
 router.post('/', upload.array('receipts'), function(req, res, next) {
   const expense = new Expense(req.body)
@@ -43,6 +44,46 @@ router.get('/:id', function(req, res, next) {
   })
     .then(expense => {
       res.status(200).json({ expense })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
+router.patch('/:id', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+  console.log(req.params)
+  let body = _.pick(req.body, [
+    'attendee',
+    'name',
+    'amount',
+    'category',
+    'claimed',
+    'transactionDate',
+    'status',
+    '_trip',
+    'account',
+    'receipts',
+    'message',
+    'city',
+    'vender'
+  ])
+  console.log(body)
+  Expense.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      _creator: req.user.id
+    },
+    { $set: body },
+    { new: true }
+  )
+    .then(expense => {
+      if (!expense) {
+        return res.status(404).send()
+      }
+      res.status(200).send({ expense })
     })
     .catch(e => {
       res.status(400).send()
