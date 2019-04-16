@@ -24,6 +24,12 @@ router.post('/login', function(req, res, next) {
         user: user
       })
     }
+
+    // disabled user
+    if (user.disabled) {
+      return res.status(401).send()
+    }
+
     req.login(user, { session: false }, err => {
       if (err) {
         res.send(err)

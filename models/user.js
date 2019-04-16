@@ -31,7 +31,8 @@ var UserSchema = new Schema({
   avatar: String,
   _company: mongoose.Schema.Types.ObjectId,
   _deparment: mongoose.Schema.Types.ObjectId,
-  lastLoginDate: Date
+  lastLoginDate: Date,
+  disabled: Boolean
 })
 
 UserSchema.plugin(passportLocalMongoose)

@@ -15,7 +15,8 @@ const RequestSchema = new Schema({
   notes: Array({
     note: String,
     notedAt: Date
-  })
+  }),
+  disabled: Boolean
 })
 
 module.exports = mongoose.model('Request', RequestSchema)
