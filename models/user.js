@@ -55,7 +55,8 @@ UserSchema.methods.toJSON = function() {
     'avatar',
     '_company',
     '_department',
-    'lastLoginDate'
+    'lastLoginDate',
+    'disabled'
   ])
   userObject.avatar = userObject.avatar
     ? process.env.AWS_S3_URI + '/' + userObject.avatar
