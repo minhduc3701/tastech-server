@@ -4,17 +4,17 @@ const Request = require('../../models/request')
 const User = require('../../models/user')
 
 router.get('/', function(req, res) {
-  let allRequests = []
+  let requests = []
 
   Request.find({})
-    .then(requests => {
-      allRequests = requests
+    .then(results => {
+      requests = results
       return User.find({
         email: { $in: requests.map(request => request.email) }
       })
     })
     .then(users => {
-      res.status(200).send({ requests: allRequests, users })
+      res.status(200).send({ requests, users })
     })
     .catch(e => res.status(400).send())
 })
