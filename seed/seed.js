@@ -197,72 +197,54 @@ const policies = [
   {
     _id: policyId,
     name: 'Travel Policy for Manager',
-    _creator: adminId,
     _company: companyId,
-    flightPolicy: {
-      fareClass: 'business',
-      stops: '1 stop',
-      applyDueDate: true, // in day(s)
-      dueDateValue: 7,
-      applyCostLimit: true,
-      costLimitValue: 2000,
-      notifiOption: 'all', // no(no notifications), over(over budget), all(all bookings)
-      appovalOption: 'all' // no(no need approval), over(over budget), all(all bookings)
-    },
-    lodgingPolicy: {
-      hotelRating: 3, // in stars
-      distance: 10, // in kilometes/miles
-      applyDueDate: true, // in day(s)
-      dueDateValue: 7,
-      applyCostLimit: true,
-      costLimitValue: 5000,
-      notifiOption: 'all', // no(no notifications), over(over budget), all(all bookings)
-      appovalOption: 'all' // no(no need approval), over(over budget), all(all bookings)
-    },
-    transportation: {
-      applyCostLimit: true, // per day
-      costLimitValue: 100
-    },
-    meal: {
-      applyCostLimit: true, // per day
-      costLimitValue: 100
-    },
+    flightClass: 'business',
+    stops: '1 stop',
+    setDaysBeforeFlights: true, // in day(s)
+    daysBeforeFlights: 7,
+    setFlightLimit: true,
+    flightLimit: 2000,
+    flightNotification: 'all', // no(no notifications), over(over budget), all(all bookings)
+    flightApproval: 'all', // no(no need approval), over(over budget), all(all bookings)
+    hotelClass: 3, // in stars
+    hotelSearchDistance: 10, // in kilometes/miles
+    setDaysBeforeLodging: true, // in day(s)
+    daysBeforeLodging: 7,
+    setHotelLimit: true,
+    hotelLimit: 5000,
+    hotelNotification: 'all', // no(no notifications), over(over budget), all(all bookings)
+    hotelApproval: 'all', // no(no need approval), over(over budget), all(all bookings)
+    setTransportLimit: true, // per day
+    transportLimit: 100,
+    setMealLimit: true, // per day
+    mealLimit: 100,
     provision: 5, // in percent of (flight + lodging + (transportation + meal)*days )
     employees: [employeeId]
   },
   {
     _id: secondPolicyId,
     name: 'Travel Policy for Staff',
-    _creator: adminId,
     _company: companyId,
-    flightPolicy: {
-      fareClass: 'economy',
-      stops: '1+ stop',
-      applyDueDate: false, // in day(s)
-      dueDateValue: 0,
-      applyCostLimit: false,
-      costLimitValue: 0,
-      notifiOption: 'all', // no(no notifications), over(over budget), all(all bookings)
-      appovalOption: 'all' // no(no need approval), over(over budget), all(all bookings)
-    },
-    lodgingPolicy: {
-      hotelRating: 3, // in stars
-      distance: 10, // in kilometes/miles
-      applyDueDate: false, // in day(s)
-      dueDateValue: 0,
-      applyCostLimit: false,
-      costLimitValue: 0,
-      notifiOption: 'all', // no(no notifications), over(over budget), all(all bookings)
-      appovalOption: 'all' // no(no need approval), over(over budget), all(all bookings)
-    },
-    transportation: {
-      applyCostLimit: false, // per day
-      costLimitValue: 0
-    },
-    meal: {
-      applyCostLimit: false, // per day
-      costLimitValue: 0
-    },
+    flightClass: 'economy',
+    stops: '1+ stop',
+    setDaysBeforeFlights: false, // in day(s)
+    daysBeforeFlights: 0,
+    setFlightLimit: false,
+    flightLimit: 0,
+    flightNotification: 'all', // no(no notifications), over(over budget), all(all bookings)
+    flightApproval: 'all', // no(no need approval), over(over budget), all(all bookings)
+    hotelClass: 3, // in stars
+    hotelSearchDistance: 10, // in kilometes/miles
+    setDaysBeforeLodging: false, // in day(s)
+    daysBeforeLodging: 0,
+    setHotelLimit: false,
+    hotelLimit: 0,
+    hotelNotification: 'all', // no(no notifications), over(over budget), all(all bookings)
+    hotelApproval: 'all', // no(no need approval), over(over budget), all(all bookings)
+    setTransportLimit: false, // per day
+    transportLimit: 0,
+    setMealLimit: false, // per day
+    mealLimit: 0,
     provision: 10, // in percent of (flight + lodging + (transportation + meal)*days )
     employees: [employeeId]
   }
