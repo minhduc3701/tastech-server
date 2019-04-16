@@ -4,17 +4,18 @@ const Company = require('../models/company')
 const Request = require('../models/request')
 const Budget = require('../models/budget')
 const Trip = require('../models/trip')
+const Expense = require('../models/expense')
 
 const tasAdminId = new ObjectID()
 const adminId = new ObjectID()
 const employeeId = new ObjectID()
+const employeeId2 = new ObjectID()
 const companyId = new ObjectID()
 const budgetId = new ObjectID()
 const secondBudgetId = new ObjectID()
 const tripId = new ObjectID()
 const secondTripId = new ObjectID()
 const expenseId = new ObjectID()
-const secondExpenseIdId = new ObjectID()
 const password = '12345678'
 
 const users = [
@@ -39,7 +40,7 @@ const users = [
     _company: companyId
   },
   {
-    _id: new ObjectID(),
+    _id: employeeId2,
     username: 'employee2@tastech.asia',
     email: 'employee2@tastech.asia',
     type: 'employee',
@@ -321,17 +322,36 @@ const expenses = [
     _creator: employeeId,
     name: 'Flight receipt',
     amount: 1023,
-    category: flight,
+    category: 'flight',
     claimed: false,
     transactionDate: new Date('2019-03-16'),
     status: 'waiting',
     _trip: tripId,
     _company: companyId,
-    account: '',
-    receipts: ['https://picsum.photos/300/300'],
-    message: 'There are receipts for Fligt',
+    account: 'Credit card',
+    receipts: ['1555401250649', '1555401250655'],
+    message: 'There are receipts for Flight',
     city: 'BangKoK',
-    vender: 'VN airline'
+    vender: 'VN airline',
+    attendee: []
+  },
+  {
+    _id: expenseId,
+    _creator: employeeId,
+    name: 'Hotel receipt',
+    amount: 500,
+    category: 'lodging',
+    claimed: false,
+    transactionDate: new Date('2019-03-16'),
+    status: 'waiting',
+    _trip: tripId,
+    _company: companyId,
+    account: 'Cash',
+    receipts: ['1555401250655'],
+    message: 'There are receipts for Flight',
+    city: 'HCM',
+    vender: 'Aroma',
+    attendee: [employeeId2]
   }
 ]
 const populateUsers = done => {
@@ -349,6 +369,12 @@ const populateCompanies = done => {
   return Company.deleteMany({}).then(() => {
     let allCompanies = companies.map(company => new Company(company))
     return Promise.all(allCompanies.map(company => company.save()))
+  })
+}
+const populateExpenses = done => {
+  return Expense.deleteMany({}).then(() => {
+    let allCExpenses = expenses.map(expense => new Expense(expense))
+    return Promise.all(allCExpenses.map(expense => expense.save()))
   })
 }
 
@@ -383,5 +409,7 @@ module.exports = {
   budgets,
   populateBudgets,
   trips,
-  populateTrips
+  populateTrips,
+  expenses,
+  populateExpenses
 }
