@@ -11,7 +11,11 @@ const RequestSchema = new Schema({
   role: { type: String },
   numberOfEmployees: { type: String },
   country: { type: String },
-  status: String
+  status: String, // completed, pending, rejected
+  notes: Array({
+    note: String,
+    notedAt: Date
+  })
 })
 
 module.exports = mongoose.model('Request', RequestSchema)
