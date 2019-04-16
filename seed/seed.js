@@ -3,6 +3,7 @@ const User = require('../models/user')
 const Company = require('../models/company')
 const Request = require('../models/request')
 const Budget = require('../models/budget')
+const Policy = require('../models/policy')
 const Trip = require('../models/trip')
 
 const tasAdminId = new ObjectID()
@@ -11,6 +12,8 @@ const employeeId = new ObjectID()
 const companyId = new ObjectID()
 const budgetId = new ObjectID()
 const secondBudgetId = new ObjectID()
+const policyId = new ObjectID()
+const secondPolicyId = new ObjectID()
 const password = '12345678'
 
 const users = [
@@ -190,6 +193,81 @@ const budgets = [
   }
 ]
 
+const policies = [
+  {
+    _id: policyId,
+    name: 'Travel Policy for Manager',
+    _creator: adminId,
+    _company: companyId,
+    flightPolicy: {
+      fareClass: 'business',
+      stops: '1 stop',
+      applyDueDate: true, // in day(s)
+      dueDateValue: 7,
+      applyCostLimit: true,
+      costLimitValue: 2000,
+      notifiOption: 'all', // no(no notifications), over(over budget), all(all bookings)
+      appovalOption: 'all' // no(no need approval), over(over budget), all(all bookings)
+    },
+    lodgingPolicy: {
+      hotelRating: 3, // in stars
+      distance: 10, // in kilometes/miles
+      applyDueDate: true, // in day(s)
+      dueDateValue: 7,
+      applyCostLimit: true,
+      costLimitValue: 5000,
+      notifiOption: 'all', // no(no notifications), over(over budget), all(all bookings)
+      appovalOption: 'all' // no(no need approval), over(over budget), all(all bookings)
+    },
+    transportation: {
+      applyCostLimit: true, // per day
+      costLimitValue: 100
+    },
+    meal: {
+      applyCostLimit: true, // per day
+      costLimitValue: 100
+    },
+    provision: 5, // in percent of (flight + lodging + (transportation + meal)*days )
+    employees: [employeeId]
+  },
+  {
+    _id: secondPolicyId,
+    name: 'Travel Policy for Staff',
+    _creator: adminId,
+    _company: companyId,
+    flightPolicy: {
+      fareClass: 'economy',
+      stops: '1+ stop',
+      applyDueDate: false, // in day(s)
+      dueDateValue: 0,
+      applyCostLimit: false,
+      costLimitValue: 0,
+      notifiOption: 'all', // no(no notifications), over(over budget), all(all bookings)
+      appovalOption: 'all' // no(no need approval), over(over budget), all(all bookings)
+    },
+    lodgingPolicy: {
+      hotelRating: 3, // in stars
+      distance: 10, // in kilometes/miles
+      applyDueDate: false, // in day(s)
+      dueDateValue: 0,
+      applyCostLimit: false,
+      costLimitValue: 0,
+      notifiOption: 'all', // no(no notifications), over(over budget), all(all bookings)
+      appovalOption: 'all' // no(no need approval), over(over budget), all(all bookings)
+    },
+    transportation: {
+      applyCostLimit: false, // per day
+      costLimitValue: 0
+    },
+    meal: {
+      applyCostLimit: false, // per day
+      costLimitValue: 0
+    },
+    provision: 10, // in percent of (flight + lodging + (transportation + meal)*days )
+    employees: [employeeId]
+  }
+]
+
 const trips = [
   {
     name: 'HO CHI MINH trip',
@@ -341,6 +419,13 @@ const populateBudgets = () => {
   })
 }
 
+const populatePolicies = () => {
+  return Policy.deleteMany({}).then(() => {
+    let allPolicies = policies.map(policy => new Policy(policy))
+    return Promise.all(allPolicies.map(policy => policy.save()))
+  })
+}
+
 const populateTrips = done => {
   return Trip.deleteMany({}).then(() => {
     let allTrips = trips.map(trip => new Trip(trip))
@@ -357,6 +442,8 @@ module.exports = {
   populateRequests,
   budgets,
   populateBudgets,
+  policies,
+  populatePolicies,
   trips,
   populateTrips
 }
