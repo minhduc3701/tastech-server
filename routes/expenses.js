@@ -54,7 +54,6 @@ router.patch('/:id', function(req, res) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
-  console.log(req.params)
   let body = _.pick(req.body, [
     'attendee',
     'name',
@@ -70,7 +69,6 @@ router.patch('/:id', function(req, res) {
     'city',
     'vender'
   ])
-  console.log(body)
   Expense.findOneAndUpdate(
     {
       _id: req.params.id,
@@ -90,4 +88,22 @@ router.patch('/:id', function(req, res) {
     })
 })
 
+router.delete('/:id', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+  Expense.findOneAndDelete({
+    _id: req.params.id,
+    _creator: req.user.id
+  })
+    .then(expense => {
+      if (!expense) {
+        return res.status(404).send()
+      }
+      res.status(200).send({ expense })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
 module.exports = router
