@@ -11,6 +11,10 @@ const employeeId = new ObjectID()
 const companyId = new ObjectID()
 const budgetId = new ObjectID()
 const secondBudgetId = new ObjectID()
+const tripId = new ObjectID()
+const secondTripId = new ObjectID()
+const expenseId = new ObjectID()
+const secondExpenseIdId = new ObjectID()
 const password = '12345678'
 
 const users = [
@@ -192,6 +196,7 @@ const budgets = [
 
 const trips = [
   {
+    _id: tripId,
     name: 'HO CHI MINH trip',
     status: 'ongoing',
     _creator: employeeId,
@@ -250,6 +255,7 @@ const trips = [
     returnDate: new Date('2019-03-25')
   },
   {
+    _id: secondTripId,
     name: 'ThaiLand trip',
     status: 'finished',
     _creator: employeeId,
@@ -309,6 +315,25 @@ const trips = [
   }
 ]
 
+const expenses = [
+  {
+    _id: expenseId,
+    _creator: employeeId,
+    name: 'Flight receipt',
+    amount: 1023,
+    category: flight,
+    claimed: false,
+    transactionDate: new Date('2019-03-16'),
+    status: 'waiting',
+    _trip: tripId,
+    _company: companyId,
+    account: '',
+    receipts: ['https://picsum.photos/300/300'],
+    message: 'There are receipts for Fligt',
+    city: 'BangKoK',
+    vender: 'VN airline'
+  }
+]
 const populateUsers = done => {
   return User.deleteMany({})
     .then(() => {
