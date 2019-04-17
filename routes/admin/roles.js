@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Role = require('../../models/role')
+const User = require('../../models/user')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { permissions } = require('../../config/roles')
@@ -57,24 +58,16 @@ router.patch('/:id', function(req, res) {
 
   let body = _.pick(req.body, ['permissions', 'users'])
 
-  Role.findOneAndUpdate(
-    {
-      _id: id,
-      _company: req.user._company
-    },
-    { $set: { permissions: body.permissions } },
-    { new: true }
-  )
+  Role.findById(id)
     .then(role => {
-      if (!role) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ role })
+      return User.updateMany(
+        { _id: { $in: body.users } },
+        { $set: { type: role.type } },
+        { new: true }
+      )
     })
-    .catch(e => {
-      res.status(400).send()
-    })
+    .then(results => res.status(200).send(results))
+    .catch(e => res.status(400).send())
 })
 
 module.exports = router
