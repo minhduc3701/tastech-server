@@ -6,17 +6,24 @@ const _ = require('lodash')
 const { ObjectID } = require('mongodb')
 
 router.get('/', function(req, res) {
-  let requests = []
-
-  Request.find({})
-    .then(results => {
-      requests = results
-      return User.find({
-        email: { $in: requests.map(request => request.email) }
-      })
-    })
-    .then(users => {
-      res.status(200).send({ requests, users })
+  Request.aggregate([
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'email',
+        foreignField: 'email',
+        as: 'users'
+      }
+    },
+    {
+      $project: {
+        'users.salt': 0,
+        'users.hash': 0
+      }
+    }
+  ])
+    .then(requests => {
+      res.status(200).send({ requests })
     })
     .catch(e => res.status(400).send())
 })

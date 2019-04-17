@@ -66,7 +66,13 @@ const requests = [
     role: 'employer',
     numberOfEmployees: 100,
     country: 'US',
-    status: 'completed'
+    status: 'completed',
+    notes: [
+      {
+        _id: new ObjectID(),
+        note: 'Call via phone, customer accepted.'
+      }
+    ]
   },
   {
     email: 'steve@apple.com',
