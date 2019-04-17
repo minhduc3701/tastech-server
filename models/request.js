@@ -11,10 +11,9 @@ const RequestSchema = new Schema({
   role: { type: String },
   numberOfEmployees: { type: String },
   country: { type: String },
-  status: String, // completed, pending, rejected
+  status: String, // completed, pending, waiting, rejected
   notes: Array({
-    note: String,
-    notedAt: Date
+    note: String
   })
 })
 

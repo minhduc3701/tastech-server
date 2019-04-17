@@ -66,7 +66,7 @@ const requests = [
     role: 'employer',
     numberOfEmployees: 100,
     country: 'US',
-    status: 'processed'
+    status: 'completed'
   },
   {
     email: 'steve@apple.com',
@@ -77,7 +77,17 @@ const requests = [
     role: 'employer',
     numberOfEmployees: 100,
     country: 'US',
-    status: 'waiting'
+    status: 'pending',
+    notes: [
+      {
+        _id: new ObjectID(),
+        note: 'Call but no responses'
+      },
+      {
+        _id: new ObjectID(),
+        note: 'Call 2nd but customer delay'
+      }
+    ]
   },
   {
     email: 'bill@microsoft.com',
@@ -89,6 +99,23 @@ const requests = [
     numberOfEmployees: 100,
     country: 'US',
     status: 'waiting'
+  },
+  {
+    email: 'mark@facebook.com',
+    firstName: 'Mark',
+    lastName: 'Mark',
+    phone: '123456',
+    company: 'Facebook',
+    role: 'employer',
+    numberOfEmployees: 100,
+    country: 'US',
+    status: 'rejected',
+    notes: [
+      {
+        _id: new ObjectID(),
+        note: 'Customer rejected demo'
+      }
+    ]
   }
 ]
 

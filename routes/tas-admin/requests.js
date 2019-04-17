@@ -2,6 +2,8 @@ const express = require('express')
 const router = express.Router()
 const Request = require('../../models/request')
 const User = require('../../models/user')
+const _ = require('lodash')
+const { ObjectID } = require('mongodb')
 
 router.get('/', function(req, res) {
   let requests = []
@@ -15,6 +17,63 @@ router.get('/', function(req, res) {
     })
     .then(users => {
       res.status(200).send({ requests, users })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.patch('/:id', (req, res) => {
+  let id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  let body = _.pick(req.body, ['status'])
+
+  Request.findByIdAndUpdate(
+    id,
+    {
+      $set: { status: body.status }
+    },
+    { new: true }
+  )
+    .then(request => {
+      if (!request) {
+        res.status(404).send()
+      }
+
+      res.status(200).send(request)
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.post('/:id/notes', (req, res) => {
+  let id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  let body = _.pick(req.body, ['note'])
+
+  Request.findByIdAndUpdate(
+    id,
+    {
+      $push: {
+        notes: {
+          note: body.note,
+          notedAt: Date.now()
+        }
+      }
+    },
+    { new: true }
+  )
+    .then(request => {
+      if (!request) {
+        res.status(404).send()
+      }
+
+      res.status(200).send(request)
     })
     .catch(e => res.status(400).send())
 })
