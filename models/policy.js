@@ -7,6 +7,10 @@ const PolicySchema = new Schema({
     type: String,
     required: true
   },
+  status: {
+    type: String,
+    enum: ['default', 'enable', 'disable']
+  },
   flightClass: String,
   stops: String,
   setDaysBeforeFlights: false,
