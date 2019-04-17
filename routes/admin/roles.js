@@ -20,7 +20,7 @@ router.get('/', function(req, res) {
   Role.find({
     _company: req.user._company
   })
-    .then(roles => res.status(200).send(roles))
+    .then(roles => res.status(200).send({ roles }))
     .catch(e => res.status(400).send())
 })
 
@@ -28,7 +28,27 @@ router.get('/permissions', function(req, res) {
   res.status(200).send({ permissions })
 })
 
-router.put('/:id', function(req, res) {
+router.get('/:id', function(req, res) {
+  let id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  Role.findByIdAndUpdate(id)
+    .then(role => {
+      if (!role) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ role, permissions })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
+router.patch('/:id', function(req, res) {
   let id = req.params.id
 
   if (!ObjectID.isValid(id)) {
@@ -42,7 +62,7 @@ router.put('/:id', function(req, res) {
       _id: id,
       _company: req.user._company
     },
-    { $set: body },
+    { $set: { permissions: body.permissions } },
     { new: true }
   )
     .then(role => {
