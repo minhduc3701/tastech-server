@@ -4,6 +4,7 @@ require('../config/mongoose')
 const {
   populateUsers,
   populateCompanies,
+  populateRoles,
   populateRequests,
   populateBudgets,
   populateTrips
@@ -12,11 +13,12 @@ const {
 Promise.all([
   populateUsers(),
   populateCompanies(),
+  populateRoles(),
   populateRequests(),
   populateBudgets(),
   populateTrips()
 ]).then(res => {
-  collections = ['users', 'companies', 'requests', 'budgets', 'trips']
+  collections = ['users', 'companies', 'roles', 'requests', 'budgets', 'trips']
   collections.map((collection, index) => {
     console.log(`Imported ${res[index].length} ${collection}.`)
   })
