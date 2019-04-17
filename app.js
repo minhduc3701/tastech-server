@@ -21,6 +21,7 @@ const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
 const adminCompanyRouter = require('./routes/admin/company')
 const adminUsersRouter = require('./routes/admin/users')
 const adminBudgetsRouter = require('./routes/admin/budgets')
+const adminPolicyRouter = require('./routes/admin/policies')
 
 const {
   authenticateTasAdmin,
@@ -92,6 +93,12 @@ app.use(
   passport.authenticate('jwt', { session: false }),
   authenticateAdmin,
   adminBudgetsRouter
+)
+app.use(
+  '/admin/policies',
+  passport.authenticate('jwt', { session: false }),
+  authenticateAdmin,
+  adminPolicyRouter
 )
 
 // catch 404 and forward to error handler
