@@ -28,6 +28,26 @@ router.get('/', function(req, res) {
     .catch(e => res.status(400).send())
 })
 
+router.get('/:id', function(req, res) {
+  let id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  Request.findById(id)
+    .then(request => {
+      if (!request) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ request })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 router.patch('/:id', (req, res) => {
   let id = req.params.id
 
