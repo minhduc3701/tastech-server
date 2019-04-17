@@ -24,7 +24,7 @@ var ExpenseSchema = new Schema({
   transactionDate: Date,
   status: {
     type: String,
-    default: 'waiting' // waiting, approved, rejected
+    default: '' // waiting, approved, rejected, "",
   },
   _trip: {
     type: 'ObjectId',
