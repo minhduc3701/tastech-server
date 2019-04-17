@@ -323,9 +323,8 @@ const expenses = [
     name: 'Flight receipt',
     amount: 1023,
     category: 'flight',
-    claimed: false,
     transactionDate: new Date('2019-03-16'),
-    status: '',
+    status: 'claimed',
     _trip: tripId,
     _company: companyId,
     account: 'Credit card',
@@ -333,7 +332,7 @@ const expenses = [
     message: 'There are receipts for Flight',
     city: 'BangKoK',
     vender: 'VN airline',
-    attendee: []
+    attendees: []
   },
   {
     // _id: expenseId,
@@ -341,17 +340,16 @@ const expenses = [
     name: 'Hotel receipt',
     amount: 500,
     category: 'lodging',
-    claimed: true,
     transactionDate: new Date('2019-03-16'),
     status: 'waiting',
     _trip: tripId,
     _company: companyId,
     account: 'Cash',
     receipts: ['1555401250655'],
-    message: 'There are receipts for Flight',
+    message: 'There are receipts for Hotel',
     city: 'HCM',
     vender: 'Aroma',
-    attendee: [employeeId2]
+    attendees: [employeeId2]
   },
   {
     // _id: expenseId,
@@ -359,7 +357,6 @@ const expenses = [
     name: 'taxi receipt',
     amount: 500,
     category: 'transportation',
-    claimed: true,
     transactionDate: new Date('2019-03-19'),
     status: 'rejected',
     _trip: tripId,
@@ -369,7 +366,7 @@ const expenses = [
     message: 'There are receipts for taxi',
     city: 'HCM',
     vender: 'Grab',
-    attendee: [employeeId2]
+    attendees: [employeeId2]
   }
 ]
 const populateUsers = done => {

@@ -5,13 +5,11 @@ const _ = require('lodash')
 var ExpenseSchema = new Schema({
   _creator: {
     type: 'ObjectId',
-    refer: 'user',
     required: true
   },
-  attendee: [
+  attendees: [
     {
-      type: 'ObjectId',
-      refer: 'user'
+      type: 'ObjectId'
     }
   ],
   name: String,
@@ -24,7 +22,8 @@ var ExpenseSchema = new Schema({
   transactionDate: Date,
   status: {
     type: String,
-    default: '' // waiting, approved, rejected, "",
+    default: 'waiting',
+    enum: ['waiting', 'claimed', 'approved', 'rejected']
   },
   _trip: {
     type: 'ObjectId',

@@ -9,9 +9,7 @@ router.post('/', upload.array('receipts'), function(req, res, next) {
   const expense = new Expense(req.body)
   expense._creator = req.user._id
   expense._company = req.user._company
-  for (let index = 0; index < req.files.length; index++) {
-    expense.receipts.push(req.files[index].key)
-  }
+  expense.receipts = req.files.map(file => file.key)
   expense
     .save()
     .then(() => {
@@ -50,7 +48,7 @@ router.get('/:id', function(req, res, next) {
     })
 })
 
-router.patch('/:id', function(req, res) {
+router.patch('/:id', upload.array('receipts'), function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
@@ -64,15 +62,19 @@ router.patch('/:id', function(req, res) {
     'status',
     '_trip',
     'account',
-    'receipts',
     'message',
     'city',
     'vender'
   ])
+  body.receipts = req.files.map(file => file.key)
+
   Expense.findOneAndUpdate(
     {
       _id: req.params.id,
-      _creator: req.user.id
+      _creator: req.user.id,
+      status: {
+        $eq: 'waiting'
+      }
     },
     { $set: body },
     { new: true }
