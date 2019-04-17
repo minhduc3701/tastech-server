@@ -14,6 +14,7 @@ const budgetId = new ObjectID()
 const secondBudgetId = new ObjectID()
 const policyId = new ObjectID()
 const secondPolicyId = new ObjectID()
+const thirdPolicyId = new ObjectID()
 const password = '12345678'
 
 const users = [
@@ -200,25 +201,25 @@ const policies = [
     _company: companyId,
     flightClass: 'business',
     stops: '1 stop',
-    setDaysBeforeFlights: true, // in day(s)
+    setDaysBeforeFlights: true,
     daysBeforeFlights: 7,
     setFlightLimit: true,
     flightLimit: 2000,
-    flightNotification: 'all', // no(no notifications), over(over budget), all(all bookings)
-    flightApproval: 'all', // no(no need approval), over(over budget), all(all bookings)
-    hotelClass: 3, // in stars
-    hotelSearchDistance: 10, // in kilometes/miles
-    setDaysBeforeLodging: true, // in day(s)
+    flightNotification: 'no',
+    flightApproval: 'no',
+    hotelClass: 3,
+    hotelSearchDistance: 10,
+    setDaysBeforeLodging: true,
     daysBeforeLodging: 7,
     setHotelLimit: true,
     hotelLimit: 5000,
-    hotelNotification: 'all', // no(no notifications), over(over budget), all(all bookings)
-    hotelApproval: 'all', // no(no need approval), over(over budget), all(all bookings)
-    setTransportLimit: true, // per day
+    hotelNotification: 'no',
+    hotelApproval: 'no',
+    setTransportLimit: true,
     transportLimit: 100,
-    setMealLimit: true, // per day
+    setMealLimit: true,
     mealLimit: 100,
-    provision: 5, // in percent of (flight + lodging + (transportation + meal)*days )
+    provision: 5,
     employees: [employeeId]
   },
   {
@@ -227,25 +228,52 @@ const policies = [
     _company: companyId,
     flightClass: 'economy',
     stops: '1+ stop',
-    setDaysBeforeFlights: false, // in day(s)
+    setDaysBeforeFlights: false,
     daysBeforeFlights: 0,
     setFlightLimit: false,
     flightLimit: 0,
-    flightNotification: 'all', // no(no notifications), over(over budget), all(all bookings)
-    flightApproval: 'all', // no(no need approval), over(over budget), all(all bookings)
-    hotelClass: 3, // in stars
-    hotelSearchDistance: 10, // in kilometes/miles
-    setDaysBeforeLodging: false, // in day(s)
+    flightNotification: 'over',
+    flightApproval: 'over',
+    hotelClass: 3,
+    hotelSearchDistance: 10,
+    setDaysBeforeLodging: false,
     daysBeforeLodging: 0,
     setHotelLimit: false,
     hotelLimit: 0,
-    hotelNotification: 'all', // no(no notifications), over(over budget), all(all bookings)
-    hotelApproval: 'all', // no(no need approval), over(over budget), all(all bookings)
-    setTransportLimit: false, // per day
+    hotelNotification: 'over',
+    hotelApproval: 'over',
+    setTransportLimit: false,
     transportLimit: 0,
-    setMealLimit: false, // per day
+    setMealLimit: false,
     mealLimit: 0,
-    provision: 10, // in percent of (flight + lodging + (transportation + meal)*days )
+    provision: 10,
+    employees: [employeeId]
+  },
+  {
+    _id: thirdPolicyId,
+    name: 'Travel Policy for Director',
+    _company: companyId,
+    flightClass: 'economy',
+    stops: '1+ stop',
+    setDaysBeforeFlights: false,
+    daysBeforeFlights: 0,
+    setFlightLimit: false,
+    flightLimit: 0,
+    flightNotification: 'all',
+    flightApproval: 'all',
+    hotelClass: 3,
+    hotelSearchDistance: 10,
+    setDaysBeforeLodging: false,
+    daysBeforeLodging: 0,
+    setHotelLimit: false,
+    hotelLimit: 0,
+    hotelNotification: 'all',
+    hotelApproval: 'all',
+    setTransportLimit: false,
+    transportLimit: 0,
+    setMealLimit: false,
+    mealLimit: 0,
+    provision: 10,
     employees: [employeeId]
   }
 ]

@@ -13,16 +13,28 @@ const PolicySchema = new Schema({
   daysBeforeFlights: Number,
   setFlightLimit: false,
   flightLimit: Number,
-  flightNotification: String, // no(no notifications), over(over budget), all(all bookings)
-  flightApproval: String, // no(no need approval), over(over budget), all(all bookings)
+  flightNotification: {
+    type: String,
+    enum: ['no', 'over', 'all']
+  },
+  flightApproval: {
+    type: String,
+    enum: ['no', 'over', 'all']
+  },
   hotelClass: Number, // in stars
   hotelSearchDistance: Number, // in kilometes/miles
   setDaysBeforeLodging: false,
   daysBeforeLodging: Number,
   setHotelLimit: false,
   hotelLimit: Number,
-  hotelNotification: String, // no(no notifications), over(over budget), all(all bookings)
-  hotelApproval: String, // no(no need approval), over(over budget), all(all bookings)
+  hotelNotification: {
+    type: String,
+    enum: ['no', 'over', 'all']
+  },
+  hotelApproval: {
+    type: String,
+    enum: ['no', 'over', 'all']
+  },
   setTransportLimit: false,
   transportLimit: Number,
   setMealLimit: false,
