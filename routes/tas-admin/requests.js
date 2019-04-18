@@ -20,6 +20,11 @@ router.get('/', function(req, res) {
         'users.salt': 0,
         'users.hash': 0
       }
+    },
+    {
+      $sort: {
+        _id: -1
+      }
     }
   ])
     .then(requests => {

@@ -13,13 +13,14 @@ const RequestSchema = new Schema({
   country: { type: String },
   status: {
     type: String,
-    enum: ['completed', 'pending', 'waiting', 'rejected']
+    enum: ['completed', 'pending', 'waiting', 'rejected'],
+    default: 'waiting'
   },
   notes: Array({
     note: String,
     status: {
       type: String,
-      enum: ['completed', 'pending', 'waiting', 'rejected']
+      enum: ['completed', 'pending', 'rejected']
     }
   })
 })
