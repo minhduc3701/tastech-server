@@ -13,7 +13,6 @@ jobs:
             git fetch --all && \
             git reset --hard origin/develop && \
             yarn && \
-            yarn seed-db && \
             pm2 stop "server" && \
             PORT=8080 NODE_ENV=development pm2 start ./bin/www --name "server" && \
             echo Deploy development end"
