@@ -4,6 +4,8 @@ const Company = require('../models/company')
 const Request = require('../models/request')
 const Budget = require('../models/budget')
 const Trip = require('../models/trip')
+const Change = require('chance')
+const chance = new Change()
 
 const tasAdminId = new ObjectID()
 const adminId = new ObjectID()
@@ -12,6 +14,9 @@ const companyId = new ObjectID()
 const budgetId = new ObjectID()
 const secondBudgetId = new ObjectID()
 const password = '12345678'
+
+const randomItemInArray = items =>
+  items[Math.floor(Math.random() * items.length)]
 
 const users = [
   {
@@ -43,6 +48,24 @@ const users = [
   }
 ]
 
+const userTypes = ['employee', 'admin']
+
+for (let i = 0; i < 46; i++) {
+  let email = chance.email({ domain: 'tastech.asia' })
+  if (users.findIndex(user => user.email === email) >= 0) {
+    i -= 1
+  } else {
+    users.push({
+      username: email,
+      email,
+      type: randomItemInArray(userTypes),
+      _company: companyId,
+      firstName: chance.first(),
+      lastName: chance.last()
+    })
+  }
+}
+
 const companies = [
   {
     _id: companyId,
@@ -55,6 +78,12 @@ const companies = [
     name: 'Apple'
   }
 ]
+
+for (let i = 0; i < 47; i++) {
+  companies.push({
+    name: chance.company()
+  })
+}
 
 const requests = [
   {
@@ -128,6 +157,28 @@ const requests = [
     ]
   }
 ]
+
+const requestStatuses = ['completed', 'pending', 'rejected', 'waiting']
+
+for (let i = 0; i < 46; i++) {
+  let email = chance.email()
+  if (requests.findIndex(request => request.email === email) >= 0) {
+    i -= 1
+  } else {
+    requests.push({
+      email,
+      firstName: chance.first(),
+      lastName: chance.last(),
+      phone: chance.phone(),
+      company: chance.company(),
+      role: chance.profession(),
+      numberOfEmployees: chance.age(),
+      country: chance.country(),
+      status: randomItemInArray(requestStatuses),
+      notes: []
+    })
+  }
+}
 
 const budgets = [
   {
