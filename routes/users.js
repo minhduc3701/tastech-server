@@ -5,6 +5,17 @@ const { upload } = require('../config/aws')
 const singleUpload = upload.single('image')
 const _ = require('lodash')
 
+// get list user coworker
+router.get('/', function(req, res) {
+  User.find({
+    _company: req.user._company,
+    _id: { $ne: req.user._id },
+    type: { $eq: 'employee' }
+  })
+    .then(users => res.status(200).send({ users }))
+    .catch(e => res.status(400).send())
+})
+
 router.get('/me', function(req, res, next) {
   res.send(req.user)
 })
