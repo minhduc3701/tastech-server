@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb')
 const User = require('../models/user')
 const Company = require('../models/company')
+const Role = require('../models/role')
 const Request = require('../models/request')
 const Budget = require('../models/budget')
 const Policy = require('../models/policy')
@@ -57,6 +58,21 @@ const companies = [
   },
   {
     name: 'Apple'
+  }
+]
+
+const roles = [
+  {
+    name: 'Admin',
+    type: 'admin',
+    permissions: ['CAN_EDIT_USER'],
+    _company: companyId
+  },
+  {
+    name: 'Employee',
+    type: 'employee',
+    permissions: ['CAN_CLAIM_EXPRENSE'],
+    _company: companyId
   }
 ]
 
@@ -418,6 +434,13 @@ const populateCompanies = done => {
   })
 }
 
+const populateRoles = done => {
+  return Role.deleteMany({}).then(() => {
+    let allRoles = roles.map(role => new Role(role))
+    return Promise.all(allRoles.map(role => role.save()))
+  })
+}
+
 const populateRequests = done => {
   return Request.deleteMany({}).then(() => {
     let allRequests = requests.map(request => new Request(request))
@@ -458,5 +481,7 @@ module.exports = {
   policies,
   populatePolicies,
   trips,
-  populateTrips
+  populateTrips,
+  roles,
+  populateRoles
 }

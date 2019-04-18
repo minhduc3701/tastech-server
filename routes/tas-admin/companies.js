@@ -1,8 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const Company = require('../../models/company')
+const Role = require('../../models/role')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
+const { roles } = require('../../config/roles')
 
 router.get('/', function(req, res) {
   Company.find({})
@@ -20,7 +22,17 @@ router.post('/', function(req, res) {
 
   company
     .save()
-    .then(company => res.send({ company }))
+    .then(company => {
+      res.send({ company })
+
+      return Role.insertMany(
+        roles.map(role => ({
+          ...role,
+          _company: company._id
+        }))
+      )
+    })
+    .then(roles => {})
     .catch(e => res.status(400).send())
 })
 
@@ -80,7 +92,10 @@ router.delete('/:id', function(req, res) {
       }
 
       res.status(200).send({ company })
+
+      return Role.deleteMany({ _company: company._id })
     })
+    .then(roles => {})
     .catch(e => {
       res.status(400).send()
     })
