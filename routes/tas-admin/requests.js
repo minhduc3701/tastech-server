@@ -61,16 +61,13 @@ router.post('/:id/notes', (req, res) => {
     return res.status(404).send()
   }
 
-  let body = _.pick(req.body, ['note'])
+  let body = _.pick(req.body, ['note', 'status'])
 
   Request.findByIdAndUpdate(
     id,
     {
       $push: {
-        notes: {
-          note: body.note,
-          notedAt: Date.now()
-        }
+        notes: body
       }
     },
     { new: true }

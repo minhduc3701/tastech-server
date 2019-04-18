@@ -16,7 +16,11 @@ const RequestSchema = new Schema({
     enum: ['completed', 'pending', 'waiting', 'rejected']
   },
   notes: Array({
-    note: String
+    note: String,
+    status: {
+      type: String,
+      enum: ['completed', 'pending', 'waiting', 'rejected']
+    }
   })
 })
 
