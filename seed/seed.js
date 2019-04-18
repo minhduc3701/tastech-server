@@ -70,7 +70,8 @@ const requests = [
     notes: [
       {
         _id: new ObjectID(),
-        note: 'Call via phone, customer accepted.'
+        note: 'Call via phone, customer accepted.',
+        status: 'completed'
       }
     ]
   },
@@ -87,11 +88,13 @@ const requests = [
     notes: [
       {
         _id: new ObjectID(),
-        note: 'Call but no responses'
+        note: 'Call but no responses',
+        status: 'pending'
       },
       {
         _id: new ObjectID(),
-        note: 'Call 2nd but customer delay'
+        note: 'Call 2nd but customer delay',
+        status: 'pending'
       }
     ]
   },
@@ -119,7 +122,8 @@ const requests = [
     notes: [
       {
         _id: new ObjectID(),
-        note: 'Customer rejected demo'
+        note: 'Customer rejected demo',
+        status: 'rejected'
       }
     ]
   }
