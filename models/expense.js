@@ -12,14 +12,26 @@ var ExpenseSchema = new Schema({
       type: 'ObjectId'
     }
   ],
-  name: String,
-  amount: Number,
-  category: String,
+  name: {
+    type: String,
+    required: true
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  category: {
+    type: String,
+    required: true
+  },
   claimed: {
     type: Boolean,
     default: false
   },
-  transactionDate: Date,
+  transactionDate: {
+    type: Date,
+    required: true
+  },
   status: {
     type: String,
     default: 'waiting',
@@ -27,16 +39,22 @@ var ExpenseSchema = new Schema({
   },
   _trip: {
     type: 'ObjectId',
-    refer: 'trip',
     required: true
   },
   _company: {
     type: 'ObjectId',
-    refer: 'company',
     required: true
   },
-  account: String,
-  receipts: [String],
+  account: {
+    type: String,
+    required: true
+  },
+  receipts: [
+    {
+      type: String,
+      required: true
+    }
+  ],
   message: String,
   city: String,
   vender: String
