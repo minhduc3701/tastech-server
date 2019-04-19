@@ -13,9 +13,9 @@ const PolicySchema = new Schema({
   },
   flightClass: String,
   stops: String,
-  setDaysBeforeFlights: false,
+  setDaysBeforeFlights: Boolean,
   daysBeforeFlights: Number,
-  setFlightLimit: false,
+  setFlightLimit: Boolean,
   flightLimit: Number,
   flightNotification: {
     type: String,
@@ -27,9 +27,9 @@ const PolicySchema = new Schema({
   },
   hotelClass: Number, // in stars
   hotelSearchDistance: Number, // in kilometes/miles
-  setDaysBeforeLodging: false,
+  setDaysBeforeLodging: Boolean,
   daysBeforeLodging: Number,
-  setHotelLimit: false,
+  setHotelLimit: Boolean,
   hotelLimit: Number,
   hotelNotification: {
     type: String,
@@ -39,10 +39,11 @@ const PolicySchema = new Schema({
     type: String,
     enum: ['no', 'over', 'all']
   },
-  setTransportLimit: false,
+  setTransportLimit: Boolean,
   transportLimit: Number,
-  setMealLimit: false,
+  setMealLimit: Boolean,
   mealLimit: Number,
+  setProvision: Boolean,
   provision: Number, // in percent of (flight + lodging + (transportation + meal)*days )
   employees: []
 })

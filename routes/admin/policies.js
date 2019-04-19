@@ -51,6 +51,7 @@ router.patch('/:id', function(req, res) {
 
   let body = _.pick(req.body, [
     'name',
+    'status',
     'flightClass',
     'stops',
     'setDaysBeforeFlights',
@@ -71,6 +72,7 @@ router.patch('/:id', function(req, res) {
     'transportLimit',
     'setMealLimit',
     'mealLimit',
+    'setProvision',
     'provision',
     'employees'
   ])
