@@ -10,6 +10,7 @@ router.post('/', upload.array('receipts'), function(req, res, next) {
   expense._creator = req.user._id
   expense._company = req.user._company
   expense.receipts = req.files.map(file => file.key)
+  expense.attendees = req.body.attendees.split(',')
   expense
     .save()
     .then(() => {
