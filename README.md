@@ -63,6 +63,12 @@ yarn seed-db
 ## Start server
 
 ```
+yarn start
+```
+
+or with debug:
+
+```
 DEBUG=tas-server-app:* yarn start
 ```
 
