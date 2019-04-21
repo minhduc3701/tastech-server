@@ -3,15 +3,12 @@ const User = require('../models/user')
 const Company = require('../models/company')
 const Role = require('../models/role')
 const Request = require('../models/request')
-const Budget = require('../models/budget')
 const Trip = require('../models/trip')
 
 const tasAdminId = new ObjectID()
 const adminId = new ObjectID()
 const employeeId = new ObjectID()
 const companyId = new ObjectID()
-const budgetId = new ObjectID()
-const secondBudgetId = new ObjectID()
 const password = '12345678'
 
 const users = [
@@ -108,110 +105,93 @@ const requests = [
   }
 ]
 
-const budgets = [
+const trips = [
   {
-    _id: budgetId,
-    name: 'Budget to Sai Gon',
-    _creator: employeeId,
-    status: 'approved',
-    forCreator: true,
-    _company: companyId,
-    passengers: [
-      {
-        _passenger: employeeId,
-        flight: 5,
-        lodging: 10,
-        transportation: 15,
-        meal: 20,
-        provision: 25,
-        note: 'Small budget',
-        classType: 'economy',
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          },
-          {
-            from: 'DA NANG',
-            date: new Date('2019-03-16')
-          }
-        ],
-        lastDestination: 'HO CHI MINH',
-        lastDestinationDate: new Date('2019-03-17')
-      }
-    ]
-  },
-  {
-    _id: secondBudgetId,
-    name: 'Budget to Thai Land',
-    _creator: employeeId,
-    status: 'approved',
-    forCreator: true,
-    _company: companyId,
-    passengers: [
-      {
-        _passenger: employeeId,
-        flight: 5,
-        lodging: 10,
-        transportation: 15,
-        meal: 20,
-        provision: 25,
-        note: 'Small budget',
-        classType: 'economy',
-        destinations: [
-          {
-            from: 'HANOI',
-            date: new Date('2019-03-13')
-          },
-          {
-            from: 'BANGKOK',
-            date: new Date('2019-03-16')
-          }
-        ],
-        lastDestination: 'HANOI',
-        lastDestinationDate: new Date('2019-03-17')
-      }
-    ]
-  },
-  {
-    name: 'Budget to Japan',
+    name: 'New York trip',
     _creator: employeeId,
     status: 'waiting',
     forCreator: true,
     _company: companyId,
-    passengers: [
+    budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 3000,
-        lodging: 100,
-        transportation: 150,
-        meal: 2000,
-        provision: 0,
+        flight: 5,
+        lodging: 10,
+        transportation: 15,
+        meal: 20,
+        provision: 25,
         note: 'Large budget',
         classType: 'economy',
         destinations: [
           {
             from: 'HA NOI',
             date: new Date('2019-03-13')
-          },
-          {
-            from: 'HO CHI MINH',
-            date: new Date('2019-03-16')
           }
         ],
-        lastDestination: 'JAPAN',
+        lastDestination: 'New York',
         lastDestinationDate: new Date('2019-03-17')
       }
     ]
-  }
-]
-
-const trips = [
+  },
+  {
+    name: 'Seoul trip',
+    _creator: employeeId,
+    status: 'approved',
+    forCreator: true,
+    _company: companyId,
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 5,
+        lodging: 10,
+        transportation: 15,
+        meal: 20,
+        provision: 25,
+        note: 'Small budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        lastDestination: 'Seoul',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
+  },
+  {
+    name: 'Singapore trip',
+    _creator: employeeId,
+    status: 'rejected',
+    forCreator: true,
+    _company: companyId,
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 5,
+        lodging: 10,
+        transportation: 15,
+        meal: 20,
+        provision: 25,
+        note: 'Small budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        lastDestination: 'Singapore',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
+  },
   {
     name: 'HO CHI MINH trip',
     status: 'ongoing',
     _creator: employeeId,
-    _budget: budgetId,
+    _company: companyId,
     checkoutStatus: 'completed', // pending, completed, canceled
     hotelCode: 'AROMA',
     rooms: [
@@ -269,7 +249,7 @@ const trips = [
     name: 'ThaiLand trip',
     status: 'finished',
     _creator: employeeId,
-    _budget: secondBudgetId,
+    _company: companyId,
     checkoutStatus: 'completed', // pending, completed, canceled
     hotelCode: 'BANGKOKHOTL',
     rooms: [
@@ -357,13 +337,6 @@ const populateRequests = done => {
   })
 }
 
-const populateBudgets = () => {
-  return Budget.deleteMany({}).then(() => {
-    let allBudgets = budgets.map(budget => new Budget(budget))
-    return Promise.all(allBudgets.map(budget => budget.save()))
-  })
-}
-
 const populateTrips = done => {
   return Trip.deleteMany({}).then(() => {
     let allTrips = trips.map(trip => new Trip(trip))
@@ -378,8 +351,6 @@ module.exports = {
   populateCompanies,
   requests,
   populateRequests,
-  budgets,
-  populateBudgets,
   trips,
   populateTrips,
   roles,
