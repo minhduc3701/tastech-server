@@ -1,13 +1,12 @@
 const express = require('express')
 const router = express.Router()
-const User = require('../../models/user')
-const Budget = require('../../models/budget')
+const Trip = require('../../models/trip')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
 router.get('/', (req, res) => {
-  Budget.find({ _company: req.user._company })
-    .then(budgets => res.status(200).send({ budgets }))
+  Trip.find({ _company: req.user._company })
+    .then(trips => res.status(200).send({ trips }))
     .catch(e => res.status(400).send())
 })
 
@@ -18,15 +17,15 @@ router.patch('/:id', (req, res) => {
     return res.status(404).send()
   }
 
-  const body = _.pick(req.body, ['status', 'passengers'])
+  const body = _.pick(req.body, ['status', 'budgetPassengers'])
 
-  Budget.findByIdAndUpdate(id, { $set: body }, { new: true })
-    .then(budget => {
-      if (!budget) {
+  Trip.findByIdAndUpdate(id, { $set: body }, { new: true })
+    .then(trip => {
+      if (!trip) {
         return res.status(404).send()
       }
 
-      res.status(200).send({ budget })
+      res.status(200).send({ trip })
     })
     .catch(e => {
       res.status(400).send()
