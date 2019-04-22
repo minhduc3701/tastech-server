@@ -18,7 +18,7 @@ Promise.all([
   populateTrips(),
   populateExpenses()
 ]).then(res => {
-  collections = ['users', 'companies', 'requests', 'trips', 'expenses', 'roles']
+  collections = ['users', 'companies', 'roles', 'requests', 'trips', 'expenses']
   collections.map((collection, index) => {
     console.log(`Imported ${res[index].length} ${collection}.`)
   })

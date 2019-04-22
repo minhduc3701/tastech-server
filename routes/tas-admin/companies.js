@@ -8,6 +8,7 @@ const { roles } = require('../../config/roles')
 
 router.get('/', function(req, res) {
   Company.find({})
+    .sort([['_id', -1]])
     .then(companies => res.status(200).send({ companies }))
     .catch(e => res.status(400).send())
 })
