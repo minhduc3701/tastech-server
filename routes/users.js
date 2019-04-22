@@ -76,4 +76,34 @@ router.post('/me/avatar', function(req, res) {
   })
 })
 
+router.patch('/me/password', (req, res) => {
+  let oldPassword = req.body.oldPassword
+  let password = req.body.password
+  let confirmationPassword = req.body.confirmationPassword
+
+  if (password !== confirmationPassword) {
+    return res.status(400).send({
+      message: 'Password mismatch.'
+    })
+  }
+
+  req.user.authenticate(oldPassword, (err, user, passwordErr) => {
+    if (passwordErr) {
+      return res.status(400).send()
+    }
+
+    user
+      .setPassword(password)
+      .then(() => user.save())
+      .then(() =>
+        res.status(200).send({
+          message: 'Reset password successfully.'
+        })
+      )
+      .catch(e => {
+        res.status(400).send()
+      })
+  })
+})
+
 module.exports = router
