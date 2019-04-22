@@ -5,6 +5,8 @@ const Role = require('../models/role')
 const Request = require('../models/request')
 const Trip = require('../models/trip')
 const Expense = require('../models/expense')
+const Change = require('chance')
+const chance = new Change()
 
 const tasAdminId = new ObjectID()
 const adminId = new ObjectID()
@@ -15,6 +17,9 @@ const tripId = new ObjectID()
 const secondTripId = new ObjectID()
 const expenseId = new ObjectID()
 const password = '12345678'
+
+const randomItemInArray = items =>
+  items[Math.floor(Math.random() * items.length)]
 
 const users = [
   {
@@ -46,6 +51,24 @@ const users = [
   }
 ]
 
+const userTypes = ['employee', 'admin']
+
+for (let i = 0; i < 46; i++) {
+  let email = chance.email({ domain: 'tastech.asia' })
+  if (users.findIndex(user => user.email === email) >= 0) {
+    i -= 1
+  } else {
+    users.push({
+      username: email,
+      email,
+      type: randomItemInArray(userTypes),
+      _company: companyId,
+      firstName: chance.first(),
+      lastName: chance.last()
+    })
+  }
+}
+
 const companies = [
   {
     _id: companyId,
@@ -58,6 +81,12 @@ const companies = [
     name: 'Apple'
   }
 ]
+
+for (let i = 0; i < 47; i++) {
+  companies.push({
+    name: chance.company()
+  })
+}
 
 const roles = [
   {
@@ -84,7 +113,14 @@ const requests = [
     role: 'employer',
     numberOfEmployees: 100,
     country: 'US',
-    status: 'processed'
+    status: 'completed',
+    notes: [
+      {
+        _id: new ObjectID(),
+        note: 'Call via phone, customer accepted.',
+        status: 'completed'
+      }
+    ]
   },
   {
     email: 'steve@apple.com',
@@ -95,7 +131,19 @@ const requests = [
     role: 'employer',
     numberOfEmployees: 100,
     country: 'US',
-    status: 'waiting'
+    status: 'pending',
+    notes: [
+      {
+        _id: new ObjectID(),
+        note: 'Call but no responses',
+        status: 'pending'
+      },
+      {
+        _id: new ObjectID(),
+        note: 'Call 2nd but customer delay',
+        status: 'pending'
+      }
+    ]
   },
   {
     email: 'bill@microsoft.com',
@@ -107,8 +155,48 @@ const requests = [
     numberOfEmployees: 100,
     country: 'US',
     status: 'waiting'
+  },
+  {
+    email: 'mark@facebook.com',
+    firstName: 'Mark',
+    lastName: 'Mark',
+    phone: '123456',
+    company: 'Facebook',
+    role: 'employer',
+    numberOfEmployees: 100,
+    country: 'US',
+    status: 'rejected',
+    notes: [
+      {
+        _id: new ObjectID(),
+        note: 'Customer rejected demo',
+        status: 'rejected'
+      }
+    ]
   }
 ]
+
+const requestStatuses = ['completed', 'pending', 'rejected', 'waiting']
+
+for (let i = 0; i < 46; i++) {
+  let email = chance.email()
+  if (requests.findIndex(request => request.email === email) >= 0) {
+    i -= 1
+  } else {
+    requests.push({
+      email,
+      firstName: chance.first(),
+      lastName: chance.last(),
+      phone: chance.phone(),
+      company: chance.company(),
+      role: chance.profession(),
+      numberOfEmployees: chance.age(),
+      country: chance.country(),
+      status: randomItemInArray(requestStatuses),
+      notes: []
+    })
+  }
+}
 
 const trips = [
   {
