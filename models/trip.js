@@ -1,22 +1,42 @@
 var mongoose = require('mongoose')
 var Schema = mongoose.Schema
+
 var TripSchema = new Schema({
   name: {
     type: String,
     required: true
   },
+  _company: mongoose.Schema.Types.ObjectId,
   status: {
     type: String,
     required: true,
-    default: 'ongoing'
+    enum: ['waiting', 'approved', 'rejected', 'ongoing', 'finished'],
+    default: 'waiting'
   },
   _creator: {
     type: 'ObjectId',
     required: true
   },
-  _budget: {
-    type: 'ObjectId'
-  },
+  forCreator: Boolean,
+  budgetPassengers: [
+    {
+      flight: Number,
+      lodging: Number,
+      transportation: Number,
+      meal: Number,
+      provision: Number,
+      note: String,
+      classType: String,
+      destinations: [
+        {
+          from: String,
+          date: Date
+        }
+      ],
+      lastDestination: String,
+      lastDestinationDate: Date
+    }
+  ],
   checkoutStatus: {
     type: String,
     required: true,

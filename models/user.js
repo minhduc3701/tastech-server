@@ -30,7 +30,9 @@ var UserSchema = new Schema({
   age: Number,
   avatar: String,
   _company: mongoose.Schema.Types.ObjectId,
-  _deparment: mongoose.Schema.Types.ObjectId
+  _deparment: mongoose.Schema.Types.ObjectId,
+  lastLoginDate: Date,
+  disabled: Boolean
 })
 
 UserSchema.plugin(passportLocalMongoose)
@@ -52,7 +54,9 @@ UserSchema.methods.toJSON = function() {
     'age',
     'avatar',
     '_company',
-    '_department'
+    '_department',
+    'lastLoginDate',
+    'disabled'
   ])
   userObject.avatar = userObject.avatar
     ? process.env.AWS_S3_URI + '/' + userObject.avatar

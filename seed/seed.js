@@ -3,20 +3,27 @@ const User = require('../models/user')
 const Company = require('../models/company')
 const Role = require('../models/role')
 const Request = require('../models/request')
-const Budget = require('../models/budget')
 const Policy = require('../models/policy')
 const Trip = require('../models/trip')
+const Expense = require('../models/expense')
+const Change = require('chance')
+const chance = new Change()
 
 const tasAdminId = new ObjectID()
 const adminId = new ObjectID()
 const employeeId = new ObjectID()
+const employeeId2 = new ObjectID()
 const companyId = new ObjectID()
-const budgetId = new ObjectID()
-const secondBudgetId = new ObjectID()
 const policyId = new ObjectID()
 const secondPolicyId = new ObjectID()
 const thirdPolicyId = new ObjectID()
+const tripId = new ObjectID()
+const secondTripId = new ObjectID()
+const expenseId = new ObjectID()
 const password = '12345678'
+
+const randomItemInArray = items =>
+  items[Math.floor(Math.random() * items.length)]
 
 const users = [
   {
@@ -40,13 +47,31 @@ const users = [
     _company: companyId
   },
   {
-    _id: new ObjectID(),
+    _id: employeeId2,
     username: 'employee2@tastech.asia',
     email: 'employee2@tastech.asia',
     type: 'employee',
     _company: companyId
   }
 ]
+
+const userTypes = ['employee', 'admin']
+
+for (let i = 0; i < 46; i++) {
+  let email = chance.email({ domain: 'tastech.asia' })
+  if (users.findIndex(user => user.email === email) >= 0) {
+    i -= 1
+  } else {
+    users.push({
+      username: email,
+      email,
+      type: randomItemInArray(userTypes),
+      _company: companyId,
+      firstName: chance.first(),
+      lastName: chance.last()
+    })
+  }
+}
 
 const companies = [
   {
@@ -60,6 +85,12 @@ const companies = [
     name: 'Apple'
   }
 ]
+
+for (let i = 0; i < 47; i++) {
+  companies.push({
+    name: chance.company()
+  })
+}
 
 const roles = [
   {
@@ -86,7 +117,14 @@ const requests = [
     role: 'employer',
     numberOfEmployees: 100,
     country: 'US',
-    status: 'processed'
+    status: 'completed',
+    notes: [
+      {
+        _id: new ObjectID(),
+        note: 'Call via phone, customer accepted.',
+        status: 'completed'
+      }
+    ]
   },
   {
     email: 'steve@apple.com',
@@ -97,7 +135,19 @@ const requests = [
     role: 'employer',
     numberOfEmployees: 100,
     country: 'US',
-    status: 'waiting'
+    status: 'pending',
+    notes: [
+      {
+        _id: new ObjectID(),
+        note: 'Call but no responses',
+        status: 'pending'
+      },
+      {
+        _id: new ObjectID(),
+        note: 'Call 2nd but customer delay',
+        status: 'pending'
+      }
+    ]
   },
   {
     email: 'bill@microsoft.com',
@@ -109,106 +159,48 @@ const requests = [
     numberOfEmployees: 100,
     country: 'US',
     status: 'waiting'
+  },
+  {
+    email: 'mark@facebook.com',
+    firstName: 'Mark',
+    lastName: 'Mark',
+    phone: '123456',
+    company: 'Facebook',
+    role: 'employer',
+    numberOfEmployees: 100,
+    country: 'US',
+    status: 'rejected',
+    notes: [
+      {
+        _id: new ObjectID(),
+        note: 'Customer rejected demo',
+        status: 'rejected'
+      }
+    ]
   }
 ]
+
+const requestStatuses = ['completed', 'pending', 'rejected', 'waiting']
 
-const budgets = [
-  {
-    _id: budgetId,
-    name: 'Budget to Sai Gon',
-    _creator: employeeId,
-    status: 'approved',
-    forCreator: true,
-    _company: companyId,
-    passengers: [
-      {
-        _passenger: employeeId,
-        flight: 5,
-        lodging: 10,
-        transportation: 15,
-        meal: 20,
-        provision: 25,
-        note: 'Small budget',
-        classType: 'economy',
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          },
-          {
-            from: 'DA NANG',
-            date: new Date('2019-03-16')
-          }
-        ],
-        lastDestination: 'HO CHI MINH',
-        lastDestinationDate: new Date('2019-03-17')
-      }
-    ]
-  },
-  {
-    _id: secondBudgetId,
-    name: 'Budget to Thai Land',
-    _creator: employeeId,
-    status: 'approved',
-    forCreator: true,
-    _company: companyId,
-    passengers: [
-      {
-        _passenger: employeeId,
-        flight: 5,
-        lodging: 10,
-        transportation: 15,
-        meal: 20,
-        provision: 25,
-        note: 'Small budget',
-        classType: 'economy',
-        destinations: [
-          {
-            from: 'HANOI',
-            date: new Date('2019-03-13')
-          },
-          {
-            from: 'BANGKOK',
-            date: new Date('2019-03-16')
-          }
-        ],
-        lastDestination: 'HANOI',
-        lastDestinationDate: new Date('2019-03-17')
-      }
-    ]
-  },
-  {
-    name: 'Budget to Japan',
-    _creator: employeeId,
-    status: 'waiting',
-    forCreator: true,
-    _company: companyId,
-    passengers: [
-      {
-        _passenger: employeeId,
-        flight: 3000,
-        lodging: 100,
-        transportation: 150,
-        meal: 2000,
-        provision: 0,
-        note: 'Large budget',
-        classType: 'economy',
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          },
-          {
-            from: 'HO CHI MINH',
-            date: new Date('2019-03-16')
-          }
-        ],
-        lastDestination: 'JAPAN',
-        lastDestinationDate: new Date('2019-03-17')
-      }
-    ]
+for (let i = 0; i < 46; i++) {
+  let email = chance.email()
+  if (requests.findIndex(request => request.email === email) >= 0) {
+    i -= 1
+  } else {
+    requests.push({
+      email,
+      firstName: chance.first(),
+      lastName: chance.last(),
+      phone: chance.phone(),
+      company: chance.company(),
+      role: chance.profession(),
+      numberOfEmployees: chance.age(),
+      country: chance.country(),
+      status: randomItemInArray(requestStatuses),
+      notes: []
+    })
   }
-]
+}
 
 const policies = [
   {
@@ -302,10 +294,92 @@ const policies = [
 
 const trips = [
   {
+    name: 'New York trip',
+    _creator: employeeId,
+    status: 'waiting',
+    forCreator: true,
+    _company: companyId,
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 5,
+        lodging: 10,
+        transportation: 15,
+        meal: 20,
+        provision: 25,
+        note: 'Large budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        lastDestination: 'New York',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
+  },
+  {
+    name: 'Seoul trip',
+    _creator: employeeId,
+    status: 'approved',
+    forCreator: true,
+    _company: companyId,
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 5,
+        lodging: 10,
+        transportation: 15,
+        meal: 20,
+        provision: 25,
+        note: 'Small budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        lastDestination: 'Seoul',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
+  },
+  {
+    name: 'Singapore trip',
+    _creator: employeeId,
+    status: 'rejected',
+    forCreator: true,
+    _company: companyId,
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 5,
+        lodging: 10,
+        transportation: 15,
+        meal: 20,
+        provision: 25,
+        note: 'Small budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        lastDestination: 'Singapore',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
+  },
+  {
+    _id: tripId,
     name: 'HO CHI MINH trip',
     status: 'ongoing',
     _creator: employeeId,
-    _budget: budgetId,
+    _company: companyId,
     checkoutStatus: 'completed', // pending, completed, canceled
     hotelCode: 'AROMA',
     rooms: [
@@ -360,10 +434,11 @@ const trips = [
     returnDate: new Date('2019-03-25')
   },
   {
+    _id: secondTripId,
     name: 'ThaiLand trip',
     status: 'finished',
     _creator: employeeId,
-    _budget: secondBudgetId,
+    _company: companyId,
     checkoutStatus: 'completed', // pending, completed, canceled
     hotelCode: 'BANGKOKHOTL',
     rooms: [
@@ -419,6 +494,59 @@ const trips = [
   }
 ]
 
+const expenses = [
+  {
+    _id: expenseId,
+    _creator: employeeId,
+    name: 'Flight receipt',
+    amount: 1023,
+    category: 'flight',
+    transactionDate: new Date('2019-03-16'),
+    status: 'claimed',
+    _trip: tripId,
+    _company: companyId,
+    account: 'Credit card',
+    receipts: ['1555401250649', '1555401250655'],
+    message: 'There are receipts for Flight',
+    city: 'BangKoK',
+    vender: 'VN airline',
+    attendees: []
+  },
+  {
+    // _id: expenseId,
+    _creator: employeeId,
+    name: 'Hotel receipt',
+    amount: 500,
+    category: 'lodging',
+    transactionDate: new Date('2019-03-16'),
+    status: 'waiting',
+    _trip: tripId,
+    _company: companyId,
+    account: 'Cash',
+    receipts: ['1555401250655'],
+    message: 'There are receipts for Hotel',
+    city: 'HCM',
+    vender: 'Aroma',
+    attendees: [employeeId2]
+  },
+  {
+    // _id: expenseId,
+    _creator: employeeId,
+    name: 'taxi receipt',
+    amount: 500,
+    category: 'transportation',
+    transactionDate: new Date('2019-03-19'),
+    status: 'rejected',
+    _trip: tripId,
+    _company: companyId,
+    account: 'Cash',
+    receipts: ['1555401250655'],
+    message: 'There are receipts for taxi',
+    city: 'HCM',
+    vender: 'Grab',
+    attendees: [employeeId2]
+  }
+]
 const populateUsers = done => {
   return User.deleteMany({})
     .then(() => {
@@ -436,6 +564,12 @@ const populateCompanies = done => {
     return Promise.all(allCompanies.map(company => company.save()))
   })
 }
+const populateExpenses = done => {
+  return Expense.deleteMany({}).then(() => {
+    let allCExpenses = expenses.map(expense => new Expense(expense))
+    return Promise.all(allCExpenses.map(expense => expense.save()))
+  })
+}
 
 const populateRoles = done => {
   return Role.deleteMany({}).then(() => {
@@ -448,13 +582,6 @@ const populateRequests = done => {
   return Request.deleteMany({}).then(() => {
     let allRequests = requests.map(request => new Request(request))
     return Promise.all(allRequests.map(request => request.save()))
-  })
-}
-
-const populateBudgets = () => {
-  return Budget.deleteMany({}).then(() => {
-    let allBudgets = budgets.map(budget => new Budget(budget))
-    return Promise.all(allBudgets.map(budget => budget.save()))
   })
 }
 
@@ -479,12 +606,12 @@ module.exports = {
   populateCompanies,
   requests,
   populateRequests,
-  budgets,
-  populateBudgets,
   policies,
   populatePolicies,
   trips,
   populateTrips,
+  expenses,
+  populateExpenses,
   roles,
   populateRoles
 }

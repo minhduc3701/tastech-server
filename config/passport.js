@@ -28,6 +28,10 @@ passport.use(
       //find the user in db if needed. This functionality may be omitted if you store everything you'll need in JWT payload.
       return User.findById(jwtPayload.id)
         .then(user => {
+          // disabled user
+          if (user.disabled) {
+            throw new Error('Disabled user')
+          }
           return cb(null, user)
         })
         .catch(err => {
