@@ -12,7 +12,6 @@ const cors = require('cors')
 const passport = require('passport')
 const requestsRouter = require('./routes/requests')
 const authRouter = require('./routes/auth')
-const budgetRouter = require('./routes/budgets')
 const usersRouter = require('./routes/users')
 const tripsRouter = require('./routes/trips')
 const expensesRouter = require('./routes/expenses')
@@ -21,7 +20,8 @@ const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
 const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
 const adminCompanyRouter = require('./routes/admin/company')
 const adminUsersRouter = require('./routes/admin/users')
-const adminBudgetsRouter = require('./routes/admin/budgets')
+const adminRolesRouter = require('./routes/admin/roles')
+const adminTripsRouter = require('./routes/admin/trips')
 
 const {
   authenticateTasAdmin,
@@ -54,13 +54,6 @@ app.use(
   passport.authenticate('jwt', { session: false }),
   expensesRouter
 )
-
-app.use(
-  '/budgets',
-  passport.authenticate('jwt', { session: false }),
-  budgetRouter
-)
-
 // tas-admin routes
 app.use(
   '/tas-admin/requests',
@@ -95,10 +88,16 @@ app.use(
   adminUsersRouter
 )
 app.use(
-  '/admin/budgets',
+  '/admin/roles',
   passport.authenticate('jwt', { session: false }),
   authenticateAdmin,
-  adminBudgetsRouter
+  adminRolesRouter
+)
+app.use(
+  '/admin/trips',
+  passport.authenticate('jwt', { session: false }),
+  authenticateAdmin,
+  adminTripsRouter
 )
 
 // catch 404 and forward to error handler
