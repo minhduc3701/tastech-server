@@ -205,7 +205,7 @@ for (let i = 0; i < 46; i++) {
 const policies = [
   {
     _id: policyId,
-    name: 'Travel Policy for Manager',
+    name: 'Default Policy',
     _company: companyId,
     status: 'default',
     flightClass: 'business',
