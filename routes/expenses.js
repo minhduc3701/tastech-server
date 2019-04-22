@@ -25,6 +25,7 @@ router.get('/', function(req, res, next) {
   Expense.find({
     _creator: req.user._id
   })
+    .populate('_trip')
     .then(expenses => {
       res.status(200).json({ expenses })
     })

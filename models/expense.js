@@ -39,7 +39,8 @@ var ExpenseSchema = new Schema({
   },
   _trip: {
     type: 'ObjectId',
-    required: true
+    required: true,
+    ref: 'Trip'
   },
   _company: {
     type: 'ObjectId',
