@@ -4,13 +4,18 @@ const Company = require('../models/company')
 const Role = require('../models/role')
 const Request = require('../models/request')
 const Trip = require('../models/trip')
+const Expense = require('../models/expense')
 const Change = require('chance')
 const chance = new Change()
 
 const tasAdminId = new ObjectID()
 const adminId = new ObjectID()
 const employeeId = new ObjectID()
+const employeeId2 = new ObjectID()
 const companyId = new ObjectID()
+const tripId = new ObjectID()
+const secondTripId = new ObjectID()
+const expenseId = new ObjectID()
 const password = '12345678'
 
 const randomItemInArray = items =>
@@ -38,7 +43,7 @@ const users = [
     _company: companyId
   },
   {
-    _id: new ObjectID(),
+    _id: employeeId2,
     username: 'employee2@tastech.asia',
     email: 'employee2@tastech.asia',
     type: 'employee',
@@ -276,6 +281,7 @@ const trips = [
     ]
   },
   {
+    _id: tripId,
     name: 'HO CHI MINH trip',
     status: 'ongoing',
     _creator: employeeId,
@@ -334,6 +340,7 @@ const trips = [
     returnDate: new Date('2019-03-25')
   },
   {
+    _id: secondTripId,
     name: 'ThaiLand trip',
     status: 'finished',
     _creator: employeeId,
@@ -393,6 +400,59 @@ const trips = [
   }
 ]
 
+const expenses = [
+  {
+    _id: expenseId,
+    _creator: employeeId,
+    name: 'Flight receipt',
+    amount: 1023,
+    category: 'flight',
+    transactionDate: new Date('2019-03-16'),
+    status: 'claimed',
+    _trip: tripId,
+    _company: companyId,
+    account: 'Credit card',
+    receipts: ['1555401250649', '1555401250655'],
+    message: 'There are receipts for Flight',
+    city: 'BangKoK',
+    vender: 'VN airline',
+    attendees: []
+  },
+  {
+    // _id: expenseId,
+    _creator: employeeId,
+    name: 'Hotel receipt',
+    amount: 500,
+    category: 'lodging',
+    transactionDate: new Date('2019-03-16'),
+    status: 'waiting',
+    _trip: tripId,
+    _company: companyId,
+    account: 'Cash',
+    receipts: ['1555401250655'],
+    message: 'There are receipts for Hotel',
+    city: 'HCM',
+    vender: 'Aroma',
+    attendees: [employeeId2]
+  },
+  {
+    // _id: expenseId,
+    _creator: employeeId,
+    name: 'taxi receipt',
+    amount: 500,
+    category: 'transportation',
+    transactionDate: new Date('2019-03-19'),
+    status: 'rejected',
+    _trip: tripId,
+    _company: companyId,
+    account: 'Cash',
+    receipts: ['1555401250655'],
+    message: 'There are receipts for taxi',
+    city: 'HCM',
+    vender: 'Grab',
+    attendees: [employeeId2]
+  }
+]
 const populateUsers = done => {
   return User.deleteMany({})
     .then(() => {
@@ -408,6 +468,12 @@ const populateCompanies = done => {
   return Company.deleteMany({}).then(() => {
     let allCompanies = companies.map(company => new Company(company))
     return Promise.all(allCompanies.map(company => company.save()))
+  })
+}
+const populateExpenses = done => {
+  return Expense.deleteMany({}).then(() => {
+    let allCExpenses = expenses.map(expense => new Expense(expense))
+    return Promise.all(allCExpenses.map(expense => expense.save()))
   })
 }
 
@@ -441,6 +507,8 @@ module.exports = {
   populateRequests,
   trips,
   populateTrips,
+  expenses,
+  populateExpenses,
   roles,
   populateRoles
 }
