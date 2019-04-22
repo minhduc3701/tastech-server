@@ -11,7 +11,18 @@ const RequestSchema = new Schema({
   role: { type: String },
   numberOfEmployees: { type: String },
   country: { type: String },
-  status: String
+  status: {
+    type: String,
+    enum: ['completed', 'pending', 'waiting', 'rejected'],
+    default: 'waiting'
+  },
+  notes: Array({
+    note: String,
+    status: {
+      type: String,
+      enum: ['completed', 'pending', 'rejected']
+    }
+  })
 })
 
 module.exports = mongoose.model('Request', RequestSchema)
