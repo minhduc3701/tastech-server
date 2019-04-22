@@ -3,6 +3,7 @@ const User = require('../models/user')
 const Company = require('../models/company')
 const Role = require('../models/role')
 const Request = require('../models/request')
+const Policy = require('../models/policy')
 const Trip = require('../models/trip')
 const Expense = require('../models/expense')
 const Change = require('chance')
@@ -13,6 +14,9 @@ const adminId = new ObjectID()
 const employeeId = new ObjectID()
 const employeeId2 = new ObjectID()
 const companyId = new ObjectID()
+const policyId = new ObjectID()
+const secondPolicyId = new ObjectID()
+const thirdPolicyId = new ObjectID()
 const tripId = new ObjectID()
 const secondTripId = new ObjectID()
 const expenseId = new ObjectID()
@@ -197,6 +201,96 @@ for (let i = 0; i < 46; i++) {
     })
   }
 }
+
+const policies = [
+  {
+    _id: policyId,
+    name: 'Travel Policy for Manager',
+    _company: companyId,
+    status: 'default',
+    flightClass: 'business',
+    stops: '0',
+    setDaysBeforeFlights: true,
+    daysBeforeFlights: 7,
+    setFlightLimit: true,
+    flightLimit: 2000,
+    flightNotification: 'no',
+    flightApproval: 'no',
+    hotelClass: 3,
+    hotelSearchDistance: 10,
+    setDaysBeforeLodging: true,
+    daysBeforeLodging: 7,
+    setHotelLimit: true,
+    hotelLimit: 5000,
+    hotelNotification: 'no',
+    hotelApproval: 'no',
+    setTransportLimit: true,
+    transportLimit: 100,
+    setMealLimit: true,
+    mealLimit: 100,
+    setProvision: true,
+    provision: 5,
+    employees: [employeeId]
+  },
+  {
+    _id: secondPolicyId,
+    name: 'Travel Policy for Staff',
+    _company: companyId,
+    status: 'enable',
+    flightClass: 'economy',
+    stops: '1',
+    setDaysBeforeFlights: false,
+    daysBeforeFlights: 7,
+    setFlightLimit: false,
+    flightLimit: 0,
+    flightNotification: 'over',
+    flightApproval: 'over',
+    hotelClass: 3,
+    hotelSearchDistance: 10,
+    setDaysBeforeLodging: false,
+    daysBeforeLodging: 7,
+    setHotelLimit: false,
+    hotelLimit: 0,
+    hotelNotification: 'over',
+    hotelApproval: 'over',
+    setTransportLimit: false,
+    transportLimit: 0,
+    setMealLimit: false,
+    mealLimit: 0,
+    setProvision: false,
+    provision: 10,
+    employees: [employeeId]
+  },
+  {
+    _id: thirdPolicyId,
+    name: 'Travel Policy for Director',
+    _company: companyId,
+    status: 'disable',
+    flightClass: 'economy',
+    stops: '1+',
+    setDaysBeforeFlights: true,
+    daysBeforeFlights: 14,
+    setFlightLimit: false,
+    flightLimit: 0,
+    flightNotification: 'all',
+    flightApproval: 'all',
+    hotelClass: 3,
+    hotelSearchDistance: 10,
+    setDaysBeforeLodging: true,
+    daysBeforeLodging: 14,
+    setHotelLimit: false,
+    hotelLimit: 0,
+    hotelNotification: 'all',
+    hotelApproval: 'all',
+    setTransportLimit: false,
+    transportLimit: 0,
+    setMealLimit: false,
+    mealLimit: 0,
+    setProvision: true,
+    provision: 10,
+    employees: [employeeId]
+  }
+]
 
 const trips = [
   {
@@ -491,6 +585,13 @@ const populateRequests = done => {
   })
 }
 
+const populatePolicies = () => {
+  return Policy.deleteMany({}).then(() => {
+    let allPolicies = policies.map(policy => new Policy(policy))
+    return Promise.all(allPolicies.map(policy => policy.save()))
+  })
+}
+
 const populateTrips = done => {
   return Trip.deleteMany({}).then(() => {
     let allTrips = trips.map(trip => new Trip(trip))
@@ -505,6 +606,8 @@ module.exports = {
   populateCompanies,
   requests,
   populateRequests,
+  policies,
+  populatePolicies,
   trips,
   populateTrips,
   expenses,
