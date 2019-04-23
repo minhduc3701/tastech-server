@@ -76,7 +76,7 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
     return res.status(404).send()
   }
   let body = _.pick(req.body, [
-    'attendee',
+    '_attendees',
     'name',
     'amount',
     'category',
@@ -87,17 +87,26 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
     'account',
     'message',
     'city',
-    'vender'
+    'vendor',
+    'oldReceipts'
   ])
-  body.receipts = req.files.map(file => file.key)
-  body._attendees = req.body._attendees.split(',')
+  body.receipts = []
+  if (!_.isEmpty(body.oldReceipts)) {
+    body.receipts = body.oldReceipts.split(',')
+  }
+  if (!_.isEmpty(req.files)) {
+    body.receipts = body.receipts.concat(req.files.map(file => file.key))
+  }
+  if (!_.isEmpty(body._attendees)) {
+    body._attendees = req.body._attendees.split(',')
+  }
   Expense.findOneAndUpdate(
     {
       _id: req.params.id,
-      _creator: req.user.id,
-      status: {
-        $eq: 'waiting'
-      }
+      _creator: req.user.id
+      // status: {
+      //   $eq: 'waiting'
+      // }
     },
     { $set: body },
     { new: true }
@@ -109,7 +118,6 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
       res.status(200).send({ expense })
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })
