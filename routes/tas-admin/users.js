@@ -21,7 +21,7 @@ router.get('/', function(req, res) {
     .then(results => {
       let users = results[0]
       let total = results[1]
-      res.status(200).send({ page, total, count: users.length, users })
+      res.status(200).send({ page, total, count: users.length, perPage, users })
     })
     .catch(e => res.status(400).send())
 })
