@@ -451,6 +451,23 @@ const expenses = [
     city: 'HCM',
     vender: 'Grab',
     attendees: [employeeId2]
+  },
+  {
+    _id: secondTripId,
+    _creator: employeeId,
+    name: 'taxi receipt',
+    amount: 500,
+    category: 'transportation',
+    transactionDate: new Date('2019-03-19'),
+    status: 'rejected',
+    _trip: tripId,
+    _company: companyId,
+    account: 'Cash',
+    receipts: ['1555401250655'],
+    message: 'There are receipts for taxi',
+    city: 'HCM',
+    vender: 'Grab',
+    attendees: [employeeId2]
   }
 ]
 const populateUsers = done => {
