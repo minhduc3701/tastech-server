@@ -496,7 +496,6 @@ const trips = [
 
 const expenses = [
   {
-    _id: expenseId,
     _creator: employeeId,
     name: 'Flight receipt',
     amount: 1023,
@@ -509,11 +508,15 @@ const expenses = [
     receipts: ['1555401250649', '1555401250655'],
     message: 'There are receipts for Flight',
     city: 'BangKoK',
-    vender: 'VN airline',
-    attendees: []
+    vendor: 'VN airline',
+    _attendees: [],
+    createdTime: Date.now(),
+    lastmodifiedTime: Date.now()
   },
   {
     // _id: expenseId,
+    lastmodifiedTime: Date.now(),
+    createdTime: Date.now(),
     _creator: employeeId,
     name: 'Hotel receipt',
     amount: 500,
@@ -526,10 +529,12 @@ const expenses = [
     receipts: ['1555401250655'],
     message: 'There are receipts for Hotel',
     city: 'HCM',
-    vender: 'Aroma',
-    attendees: [employeeId2]
+    vendor: 'Aroma',
+    _attendees: [employeeId2]
   },
   {
+    lastmodifiedTime: Date.now(),
+    createdTime: Date.now(),
     // _id: expenseId,
     _creator: employeeId,
     name: 'taxi receipt',
@@ -543,25 +548,26 @@ const expenses = [
     receipts: ['1555401250655'],
     message: 'There are receipts for taxi',
     city: 'HCM',
-    vender: 'Grab',
-    attendees: [employeeId2]
+    vendor: 'Grab',
+    _attendees: [employeeId2]
   },
   {
-    _id: secondTripId,
+    lastmodifiedTime: Date.now(),
+    createdTime: Date.now(),
     _creator: employeeId,
     name: 'taxi receipt',
     amount: 500,
     category: 'transportation',
     transactionDate: new Date('2019-03-19'),
     status: 'rejected',
-    _trip: tripId,
+    _trip: secondTripId,
     _company: companyId,
     account: 'Cash',
     receipts: ['1555401250655'],
     message: 'There are receipts for taxi',
     city: 'HCM',
-    vender: 'Grab',
-    attendees: [employeeId2]
+    vendor: 'Grab',
+    _attendees: [employeeId2]
   }
 ]
 const populateUsers = done => {

@@ -7,9 +7,10 @@ var ExpenseSchema = new Schema({
     type: 'ObjectId',
     required: true
   },
-  attendees: [
+  _attendees: [
     {
-      type: 'ObjectId'
+      type: 'ObjectId',
+      ref: 'User'
     }
   ],
   name: {
@@ -50,6 +51,14 @@ var ExpenseSchema = new Schema({
     type: String,
     required: true
   },
+  createdTime: {
+    type: Date,
+    required: true
+  },
+  lastmodifiedTime: {
+    type: Date,
+    required: true
+  },
   receipts: [
     {
       type: String,
@@ -58,7 +67,7 @@ var ExpenseSchema = new Schema({
   ],
   message: String,
   city: String,
-  vender: String
+  vendor: String
 })
 
 ExpenseSchema.methods.toJSON = function() {
