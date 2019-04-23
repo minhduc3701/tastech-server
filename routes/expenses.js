@@ -11,8 +11,14 @@ router.post('/', upload.array('receipts'), function(req, res, next) {
   expense._company = req.user._company
   expense.createdTime = Date.now()
   expense.lastmodifiedTime = Date.now()
-  expense.receipts = req.files.map(file => file.key)
-  expense._attendees = req.body._attendees.split(',')
+  if (!_.isEmpty(req.files)) {
+    expense.receipts = req.files.map(file => file.key)
+  }
+  if (!_.isEmpty(req.body._attendees)) {
+    expense._attendees = req.body._attendees.split(',')
+  } else {
+    expense._attendees = []
+  }
   expense
     .save()
     .then(() => {
@@ -99,6 +105,8 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
   }
   if (!_.isEmpty(body._attendees)) {
     body._attendees = req.body._attendees.split(',')
+  } else {
+    body._attendees = []
   }
   Expense.findOneAndUpdate(
     {
