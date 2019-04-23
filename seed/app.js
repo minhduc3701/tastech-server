@@ -6,6 +6,7 @@ const {
   populateCompanies,
   populateRoles,
   populateRequests,
+  populatePolicies,
   populateTrips,
   populateExpenses
 } = require('./seed')
@@ -15,10 +16,19 @@ Promise.all([
   populateCompanies(),
   populateRoles(),
   populateRequests(),
+  populatePolicies(),
   populateTrips(),
   populateExpenses()
 ]).then(res => {
-  collections = ['users', 'companies', 'requests', 'trips', 'expenses', 'roles']
+  collections = [
+    'users',
+    'companies',
+    'roles',
+    'requests',
+    'policies',
+    'trips',
+    'expenses'
+  ]
   collections.map((collection, index) => {
     console.log(`Imported ${res[index].length} ${collection}.`)
   })
