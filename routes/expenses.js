@@ -33,6 +33,7 @@ router.get('/', function(req, res, next) {
   Expense.find({
     _creator: req.user._id
   })
+    .sort({ lastmodifiedTime: -1 })
     .populate('_trip', 'name')
     .populate('_attendees', 'email')
     .then(expenses => {
@@ -108,17 +109,22 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
   } else {
     body._attendees = []
   }
+  body.lastmodifiedTime = Date.now()
+  if (body.status === 'rejected') {
+    body.status = 'waiting'
+  }
   Expense.findOneAndUpdate(
     {
       _id: req.params.id,
-      _creator: req.user.id
-      // status: {
-      //   $eq: 'waiting'
-      // }
+      _creator: req.user.id,
+      status: {
+        $in: ['waiting', 'rejected']
+      }
     },
     { $set: body },
     { new: true }
   )
+
     .then(expense => {
       if (!expense) {
         return res.status(404).send()

@@ -559,7 +559,7 @@ const expenses = [
     amount: 500,
     category: 'transportation',
     transactionDate: new Date('2019-03-19'),
-    status: 'rejected',
+    status: 'approved',
     _trip: secondTripId,
     _company: companyId,
     account: 'Cash',
