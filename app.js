@@ -24,6 +24,9 @@ const adminRolesRouter = require('./routes/admin/roles')
 const adminPolicyRouter = require('./routes/admin/policies')
 const adminTripsRouter = require('./routes/admin/trips')
 const flightsPkfareRouter = require('./routes/flights/pkfare')
+const countriesRouter = require('./routes/countries')
+const airportsRouter = require('./routes/airports')
+const citiesRouter = require('./routes/cities')
 
 const {
   authenticateTasAdmin,
@@ -110,6 +113,19 @@ app.use(
 
 // flights
 app.use('/flights/pkfare', flightsPkfareRouter)
+
+// content api
+app.use('/countries', countriesRouter)
+app.use(
+  '/airports',
+  passport.authenticate('jwt', { session: false }),
+  airportsRouter
+)
+app.use(
+  '/cities',
+  passport.authenticate('jwt', { session: false }),
+  citiesRouter
+)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
