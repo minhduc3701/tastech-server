@@ -5,7 +5,8 @@ const _ = require('lodash')
 var ExpenseSchema = new Schema({
   _creator: {
     type: 'ObjectId',
-    required: true
+    required: true,
+    ref: 'User'
   },
   attendees: [
     {
@@ -58,7 +59,7 @@ var ExpenseSchema = new Schema({
   ],
   message: String,
   city: String,
-  vender: String
+  vendor: String
 })
 
 ExpenseSchema.methods.toJSON = function() {

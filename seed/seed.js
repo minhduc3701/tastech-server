@@ -509,7 +509,7 @@ const expenses = [
     receipts: ['1555401250649', '1555401250655'],
     message: 'There are receipts for Flight',
     city: 'BangKoK',
-    vender: 'VN airline',
+    vendor: 'VN airline',
     attendees: []
   },
   {
@@ -526,7 +526,7 @@ const expenses = [
     receipts: ['1555401250655'],
     message: 'There are receipts for Hotel',
     city: 'HCM',
-    vender: 'Aroma',
+    vendor: 'Aroma',
     attendees: [employeeId2]
   },
   {
@@ -543,7 +543,7 @@ const expenses = [
     receipts: ['1555401250655'],
     message: 'There are receipts for taxi',
     city: 'HCM',
-    vender: 'Grab',
+    vendor: 'Grab',
     attendees: [employeeId2]
   }
 ]
