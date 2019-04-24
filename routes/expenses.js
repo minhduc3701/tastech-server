@@ -66,7 +66,7 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
     'account',
     'message',
     'city',
-    'vender'
+    'vendor'
   ])
   body.receipts = req.files.map(file => file.key)
 
