@@ -121,4 +121,27 @@ router.put('/disabled', (req, res) => {
     .catch(e => res.status(400).send())
 })
 
+router.delete('/:id', function(req, res) {
+  let id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  Request.findByIdAndDelete(id)
+    .then(request => {
+      if (!request) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ request })
+
+      return Role.deleteMany({ _request: request._id })
+    })
+    .then(roles => {})
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 module.exports = router
