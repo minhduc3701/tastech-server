@@ -7,7 +7,7 @@ const _ = require('lodash')
 const { roles } = require('../../config/roles')
 
 router.get('/', function(req, res) {
-  let perPage = 20
+  let perPage = 50
   let page = Math.max(0, req.query.page)
 
   Promise.all([
