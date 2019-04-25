@@ -45,8 +45,12 @@ router.post(
       `${process.env.PKFARE_URI}/shoppingV2?param=${base64}`,
       { encoding: null },
       function(err, response, body) {
+        if (err) {
+          return res.status(400).send()
+        }
+
         zlib.gunzip(body, function(err, dezipped) {
-          res.send(JSON.parse(dezipped.toString()))
+          res.status(200).send(JSON.parse(dezipped.toString()))
         })
       }
     )
@@ -66,7 +70,11 @@ router.post(
     request(
       `${process.env.PKFARE_URI}/precisePricing_V2?param=${base64}`,
       function(err, response, body) {
-        res.send(JSON.parse(body))
+        if (err) {
+          return res.status(400).send()
+        }
+
+        res.status(200).send(JSON.parse(body))
       }
     )
   }
@@ -87,7 +95,11 @@ router.post(
       response,
       body
     ) {
-      res.send(JSON.parse(body))
+      if (err) {
+        return res.status(400).send()
+      }
+
+      res.status(200).send(JSON.parse(body))
     })
   }
 )
@@ -105,7 +117,11 @@ router.post(
     request(
       `${process.env.PKFARE_URI}/preciseBooking?param=${base64}`,
       function(err, response, body) {
-        res.send(JSON.parse(body))
+        if (err) {
+          return res.status(400).send()
+        }
+
+        res.status(200).send(JSON.parse(body))
       }
     )
   }
@@ -126,7 +142,11 @@ router.post(
       response,
       body
     ) {
-      res.send(JSON.parse(body))
+      if (err) {
+        return res.status(400).send()
+      }
+
+      res.status(200).send(JSON.parse(body))
     })
   }
 )
@@ -146,7 +166,11 @@ router.post(
       response,
       body
     ) {
-      res.send(JSON.parse(body))
+      if (err) {
+        return res.status(400).send()
+      }
+
+      res.status(200).send(JSON.parse(body))
     })
   }
 )
@@ -166,7 +190,11 @@ router.post(
       response,
       body
     ) {
-      res.send(JSON.parse(body))
+      if (err) {
+        return res.status(400).send()
+      }
+
+      res.status(200).send(JSON.parse(body))
     })
   }
 )
