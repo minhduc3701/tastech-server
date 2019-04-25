@@ -32,7 +32,7 @@ const authentication = {
 }
 
 router.post(
-  '/shoppingV2',
+  '/shopping',
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
     let base64 = Buffer.from(
@@ -64,7 +64,7 @@ router.post(
       })
     ).toString('base64')
     request(
-      `${process.env.PKFARE_URI}/precisePricing?param=${base64}`,
+      `${process.env.PKFARE_URI}/precisePricing_V2?param=${base64}`,
       function(err, response, body) {
         res.send(JSON.parse(body))
       }
