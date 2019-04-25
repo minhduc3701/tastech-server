@@ -5,17 +5,7 @@ Add config/config.json with the content like below:
 ```
 {
   "test": {
-    "PORT": "8081",
-    "MONGODB_URI": "mongodb://localhost:27017/server-db-test",
-    "JWT_SECRET": "sd9d9sd88sdd9s898sd89ds89",
-    "SENDGRID_USERNAME": "sg-username",
-    "SENDGRID_PASSWORD": "sg-password",
-    "APP_URI": "http://localhost:3000",
-    "AWS_ACCESS_KEY_ID": <AWS_ACCESS_KEY_ID>,
-    "AWS_SECRET_ACCESS_KEY": <AWS_SECRET_ACCESS_KEY>,
-    "AWS_S3_NAME="eztrip-dev",
-    "AWS_S3_REGION": "us-east-2",
-    "AWS_S3_URI": "https://eztrip-dev.s3.ap-southeast-1.amazonaws.com"
+    ...<test config like development>
   },
   "development": {
     "PORT": "8080",
@@ -28,7 +18,10 @@ Add config/config.json with the content like below:
     "AWS_SECRET_ACCESS_KEY": <AWS_SECRET_ACCESS_KEY>,
     "AWS_S3_NAME="eztrip-dev",
     "AWS_S3_REGION": "us-east-2",
-    "AWS_S3_URI": "https://eztrip-dev.s3.ap-southeast-1.amazonaws.com"
+    "AWS_S3_URI": "https://eztrip-dev.s3.ap-southeast-1.amazonaws.com",
+    "PKFARE_URI": "https://open.pkfare.com/apitest",
+    "PKFARE_PARTNER_ID": <PKFARE_PARTNER_ID>,
+    "PKFARE_SIGN": <PKFARE_SIGN>
   }
 }
 
@@ -100,6 +93,9 @@ export AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
 export AWS_S3_NAME=<AWS_S3_NAME>
 export AWS_S3_REGION=<AWS_S3_REGION>
 export AWS_S3_URI=<S3_URI>
+export PKFARE_URI=https://pending.com
+export PKFARE_PARTNER_ID=<PKFARE_PARTNER_ID>
+export PKFARE_SIGN=<PKFARE_SIGN>
 ```
 
 Now you ready to run your app
