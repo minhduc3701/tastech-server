@@ -68,6 +68,7 @@ router.get('/trip/:id', function(req, res, next) {
     _creator: req.user._id,
     _trip: req.params.id
   })
+    .sort({ updatedAt: -1 })
     .then(expenses => {
       res.status(200).json({ expenses })
     })
