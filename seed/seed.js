@@ -498,6 +498,7 @@ const expenses = []
 const expenseStatuses = ['waiting', 'claiming', 'rejected', 'approved']
 const expenseCategories = ['flight', 'lodging', 'transportation', 'meal']
 const expenseAccounts = ['credit-card', 'cash']
+const expenseTrips = [tripId, secondTripId]
 
 for (let i = 0; i < 50; i++) {
   expenses.push({
@@ -508,7 +509,7 @@ for (let i = 0; i < 50; i++) {
     category: randomItemInArray(expenseCategories),
     transactionDate: new Date(chance.date({ year: 2019 })),
     status: randomItemInArray(expenseStatuses),
-    _trip: tripId,
+    _trip: randomItemInArray(expenseTrips),
     _company: companyId,
     account: randomItemInArray(expenseAccounts),
     receipts: ['1556164218511', '1556164218512'],
