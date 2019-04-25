@@ -23,7 +23,8 @@ var ExpenseSchema = new Schema({
   },
   category: {
     type: String,
-    required: true
+    required: true,
+    enum: ['flight', 'lodging', 'transportation', 'meal']
   },
   claimed: {
     type: Boolean,
@@ -36,7 +37,7 @@ var ExpenseSchema = new Schema({
   status: {
     type: String,
     default: 'waiting',
-    enum: ['waiting', 'claimed', 'approved', 'rejected']
+    enum: ['waiting', 'claiming', 'approved', 'rejected']
   },
   _trip: {
     type: 'ObjectId',
@@ -49,7 +50,8 @@ var ExpenseSchema = new Schema({
   },
   account: {
     type: String,
-    required: true
+    required: true,
+    enum: ['credit-card', 'cash']
   },
   receipts: [
     {
