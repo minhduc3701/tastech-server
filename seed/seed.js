@@ -57,7 +57,7 @@ const users = [
 
 const userTypes = ['employee', 'admin']
 
-for (let i = 0; i < 46; i++) {
+for (let i = 0; i < 120; i++) {
   let email = chance.email({ domain: 'tastech.asia' })
   if (users.findIndex(user => user.email === email) >= 0) {
     i -= 1
