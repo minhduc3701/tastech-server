@@ -21,7 +21,7 @@ router.patch('/:id', (req, res) => {
     return res.status(404).send()
   }
 
-  const body = _.pick(req.body, ['status'])
+  const body = _.pick(req.body, ['status', 'adminMessage'])
 
   Expense.findByIdAndUpdate(id, { $set: body }, { new: true })
     .then(expense => {

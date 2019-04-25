@@ -58,6 +58,7 @@ var ExpenseSchema = new Schema({
     }
   ],
   message: String,
+  adminMessage: String,
   city: String,
   vendor: String
 })
