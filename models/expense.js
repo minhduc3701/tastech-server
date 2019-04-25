@@ -2,73 +2,66 @@ var mongoose = require('mongoose')
 var Schema = mongoose.Schema
 const _ = require('lodash')
 
-var ExpenseSchema = new Schema({
-  _creator: {
-    type: 'ObjectId',
-    required: true
-  },
-  _attendees: [
-    {
+var ExpenseSchema = new Schema(
+  {
+    _creator: {
       type: 'ObjectId',
-      ref: 'User'
-    }
-  ],
-  name: {
-    type: String,
-    required: true
-  },
-  amount: {
-    type: Number,
-    required: true
-  },
-  category: {
-    type: String,
-    required: true
-  },
-  claimed: {
-    type: Boolean,
-    default: false
-  },
-  transactionDate: {
-    type: Date,
-    required: true
-  },
-  status: {
-    type: String,
-    default: 'waiting',
-    enum: ['waiting', 'claimed', 'approved', 'rejected']
-  },
-  _trip: {
-    type: 'ObjectId',
-    required: true,
-    ref: 'Trip'
-  },
-  _company: {
-    type: 'ObjectId',
-    required: true
-  },
-  account: {
-    type: String,
-    required: true
-  },
-  createdTime: {
-    type: Date,
-    required: true
-  },
-  lastmodifiedTime: {
-    type: Date,
-    required: true
-  },
-  receipts: [
-    {
+      required: true
+    },
+    _attendees: [
+      {
+        type: 'ObjectId',
+        ref: 'User'
+      }
+    ],
+    name: {
       type: String,
       required: true
-    }
-  ],
-  message: String,
-  city: String,
-  vendor: String
-})
+    },
+    amount: {
+      type: Number,
+      required: true
+    },
+    category: {
+      type: String,
+      required: true
+    },
+    transactionDate: {
+      type: Date,
+      required: true
+    },
+    status: {
+      type: String,
+      default: 'waiting',
+      enum: ['waiting', 'claiming', 'approved', 'rejected']
+    },
+    _trip: {
+      type: 'ObjectId',
+      required: true,
+      ref: 'Trip'
+    },
+    _company: {
+      type: 'ObjectId',
+      required: true
+    },
+    account: {
+      type: String,
+      required: true
+    },
+    receipts: [
+      {
+        type: String,
+        required: true
+      }
+    ],
+    message: String,
+    city: String,
+    vendor: String
+  },
+  {
+    timestamps: true
+  }
+)
 
 ExpenseSchema.methods.toJSON = function() {
   let expense = this

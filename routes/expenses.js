@@ -9,8 +9,6 @@ router.post('/', upload.array('receipts'), function(req, res, next) {
   const expense = new Expense(req.body)
   expense._creator = req.user._id
   expense._company = req.user._company
-  expense.createdTime = Date.now()
-  expense.lastmodifiedTime = Date.now()
   if (!_.isEmpty(req.files)) {
     expense.receipts = req.files.map(file => file.key)
   }
@@ -33,7 +31,7 @@ router.get('/', function(req, res, next) {
   Expense.find({
     _creator: req.user._id
   })
-    .sort({ lastmodifiedTime: -1 })
+    .sort({ updatedAt: -1 })
     .populate('_trip', 'name')
     .populate('_attendees', 'email')
     .then(expenses => {
@@ -109,7 +107,6 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
   } else {
     body._attendees = []
   }
-  body.lastmodifiedTime = Date.now()
   if (body.status === 'rejected') {
     body.status = 'waiting'
   }
@@ -129,11 +126,49 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
       if (!expense) {
         return res.status(404).send()
       }
+
       res.status(200).send({ expense })
     })
     .catch(e => {
       res.status(400).send()
     })
+})
+
+router.patch('/', function(req, res, next) {
+  let { arrId } = req.body
+  try {
+    Expense.updateMany(
+      {
+        _creator: req.user.id,
+        _id: { $in: arrId }
+      },
+      { $set: { status: 'claiming' } },
+      function(err, result) {
+        if (err) return res.status(400).send()
+        res.status(200).json({ result })
+      }
+    )
+  } catch (error) {
+    res.status(400).send()
+  }
+})
+
+router.delete('/', function(req, res) {
+  let { arrId } = req.body
+  try {
+    Expense.deleteMany(
+      {
+        _creator: req.user.id,
+        _id: { $in: arrId }
+      },
+      function(err, result) {
+        if (err) return res.status(400).send()
+        res.status(200).json({ result })
+      }
+    )
+  } catch (error) {
+    res.status(400).send()
+  }
 })
 
 router.delete('/:id', function(req, res) {
