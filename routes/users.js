@@ -117,4 +117,24 @@ router.patch('/me/password', (req, res) => {
   })
 })
 
+router.post('/search', (req, res) => {
+  let email = _.trim(req.body.email)
+
+  if (_.isEmpty(email)) {
+    return res.status(400).send()
+  }
+
+  User.find({
+    email: new RegExp(email),
+    _company: req.user._company
+  })
+    .limit(50)
+    .then(users => {
+      res.status(200).send({ users })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 module.exports = router
