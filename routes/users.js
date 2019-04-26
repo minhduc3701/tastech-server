@@ -124,6 +124,8 @@ router.post('/search', (req, res) => {
     return res.status(400).send()
   }
 
+  // @see https://stackoverflow.com/questions/3305561/how-to-query-mongodb-with-like
+  // @see https://stackoverflow.com/questions/26699885/how-can-i-use-a-regex-variable-in-a-query-for-mongodb
   User.find({
     email: new RegExp(email),
     _company: req.user._company
