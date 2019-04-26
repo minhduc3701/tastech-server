@@ -6,12 +6,12 @@ var ExpenseSchema = new Schema(
   {
     _creator: {
       type: 'ObjectId',
-      required: true,
-      ref: 'User'
+      required: true
     },
-    attendees: [
+    _attendees: [
       {
-        type: 'ObjectId'
+        type: 'ObjectId',
+        ref: 'User'
       }
     ],
     name: {
