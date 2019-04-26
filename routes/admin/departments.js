@@ -22,4 +22,25 @@ router.get('/', (req, res) => {
     .catch(e => res.status(400).send())
 })
 
+router.get('/:id', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  Department.findOne({
+    _id: req.params.id,
+    _company: req.user._company
+  })
+    .then(department => {
+      if (!department) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ department })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 module.exports = router
