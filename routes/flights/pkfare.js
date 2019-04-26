@@ -3,12 +3,25 @@ const router = express.Router()
 const _ = require('lodash')
 const passport = require('passport')
 const Ticket = require('../../models/ticket')
+const bodyParser = require('body-parser')
 const zlib = require('zlib')
 const request = require('request')
 
 // @see http://open.pkfare.com/documents/show?id=2352d3737b0442d6a402fea86ed8bda2uk
-router.post('/', (req, res) => {
-  let ticket = new Ticket(req.body)
+// @see https://stackoverflow.com/a/30099608
+router.post('/', bodyParser.text({ type: '*/*' }), (req, res) => {
+  let body
+
+  try {
+    body = JSON.parse(req.body)
+  } catch (e) {
+    return res.status(400).send({
+      errorCode: 1,
+      errorMsg: 'Failure. Wrong format.'
+    })
+  }
+
+  let ticket = new Ticket(body)
 
   ticket
     .save()
