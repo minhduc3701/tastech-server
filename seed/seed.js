@@ -516,7 +516,7 @@ for (let i = 0; i < 50; i++) {
     message: chance.paragraph({ sentences: 1 }),
     city: chance.city(),
     vendor: chance.company(),
-    attendees: [employeeId2]
+    _attendees: [employeeId2]
   })
 }
 
