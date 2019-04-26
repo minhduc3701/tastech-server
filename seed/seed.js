@@ -4,6 +4,7 @@ const Company = require('../models/company')
 const Role = require('../models/role')
 const Request = require('../models/request')
 const Policy = require('../models/policy')
+const Department = require('../models/department')
 const Trip = require('../models/trip')
 const Expense = require('../models/expense')
 const Change = require('chance')
@@ -520,6 +521,15 @@ for (let i = 0; i < 50; i++) {
   })
 }
 
+const departments = []
+for (let i = 0; i < 10; i++) {
+  departments.push({
+    _company: companyId,
+    name: chance.sentence({ words: 2 }),
+    employees: [employeeId, employeeId2]
+  })
+}
+
 const populateUsers = done => {
   return User.deleteMany({})
     .then(() => {
@@ -572,6 +582,15 @@ const populateTrips = done => {
   })
 }
 
+const populateDepartments = () => {
+  return Department.deleteMany({}).then(() => {
+    let allDepartments = departments.map(
+      department => new Department(department)
+    )
+    return Promise.all(allDepartments.map(department => department.save()))
+  })
+}
+
 module.exports = {
   users,
   populateUsers,
@@ -586,5 +605,7 @@ module.exports = {
   expenses,
   populateExpenses,
   roles,
-  populateRoles
+  populateRoles,
+  departments,
+  populateDepartments
 }

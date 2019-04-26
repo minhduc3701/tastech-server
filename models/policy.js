@@ -45,7 +45,11 @@ const PolicySchema = new Schema({
   mealLimit: Number,
   setProvision: Boolean,
   provision: Number, // in percent of (flight + lodging + (transportation + meal)*days )
-  employees: []
+  employees: [
+    {
+      type: 'ObjectId'
+    }
+  ]
 })
 
 module.exports = mongoose.model('Policy', PolicySchema)
