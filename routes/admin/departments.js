@@ -71,4 +71,25 @@ router.patch('/:id', function(req, res) {
     })
 })
 
+router.delete('/:id', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  Department.findOneAndDelete({
+    _id: req.params.id,
+    _company: req.user._company
+  })
+    .then(department => {
+      if (!department) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ department })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 module.exports = router
