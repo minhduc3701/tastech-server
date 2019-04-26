@@ -106,4 +106,18 @@ router.delete('/:id', function(req, res) {
     })
 })
 
+router.put('/disabled', (req, res) => {
+  let email = req.body.email
+  let disabled = req.body.disabled
+
+  User.findOneAndUpdate({ email }, { $set: { disabled } }, { new: true })
+    .then(user => {
+      if (!user) {
+        return res.status(404).send()
+      }
+      res.status(200).send({ user })
+    })
+    .catch(e => res.status(400).send())
+})
+
 module.exports = router
