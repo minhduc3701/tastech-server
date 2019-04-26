@@ -23,7 +23,7 @@ router.post('/', upload.array('receipts'), function(req, res, next) {
       res.status(200).json({ expense })
     })
     .catch(e => {
-      res.status(400).send(e)
+      res.status(400).send()
     })
 })
 
@@ -136,17 +136,17 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
 })
 
 router.patch('/', function(req, res, next) {
-  let { arrId } = req.body
+  let { expenseIds } = req.body
   try {
     Expense.updateMany(
       {
         _creator: req.user.id,
-        _id: { $in: arrId }
+        _id: { $in: expenseIds }
       },
       { $set: { status: 'claiming' } },
       function(err, result) {
         if (err) return res.status(400).send()
-        res.status(200).json({ result })
+        res.status(200).json({ expenseIds, status: 'claiming' })
       }
     )
   } catch (error) {
@@ -155,16 +155,16 @@ router.patch('/', function(req, res, next) {
 })
 
 router.delete('/', function(req, res) {
-  let { arrId } = req.body
+  let { expenseIds } = req.body
   try {
     Expense.deleteMany(
       {
         _creator: req.user.id,
-        _id: { $in: arrId }
+        _id: { $in: expenseIds }
       },
       function(err, result) {
         if (err) return res.status(400).send()
-        res.status(200).json({ result })
+        res.status(200).json({ expenseIds })
       }
     )
   } catch (error) {
