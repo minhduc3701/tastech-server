@@ -24,7 +24,12 @@ var ExpenseSchema = new Schema(
     },
     category: {
       type: String,
-      required: true
+      required: true,
+      enum: ['flight', 'lodging', 'transportation', 'meal']
+    },
+    claimed: {
+      type: Boolean,
+      default: false
     },
     transactionDate: {
       type: Date,
@@ -46,7 +51,8 @@ var ExpenseSchema = new Schema(
     },
     account: {
       type: String,
-      required: true
+      required: true,
+      enum: ['credit-card', 'cash']
     },
     receipts: [
       {
@@ -55,6 +61,7 @@ var ExpenseSchema = new Schema(
       }
     ],
     message: String,
+    adminMessage: String,
     city: String,
     vendor: String
   },

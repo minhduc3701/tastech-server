@@ -494,159 +494,32 @@ const trips = [
   }
 ]
 
-const expenses = [
-  {
+const expenses = []
+const expenseStatuses = ['waiting', 'claiming', 'rejected', 'approved']
+const expenseCategories = ['flight', 'lodging', 'transportation', 'meal']
+const expenseAccounts = ['credit-card', 'cash']
+const expenseTrips = [tripId, secondTripId]
+
+for (let i = 0; i < 50; i++) {
+  expenses.push({
     _creator: employeeId,
-    name: 'Flight receipt',
-    amount: 1023,
-    category: 'flight',
-    transactionDate: new Date('2019-03-16'),
-    status: 'claiming',
-    _trip: tripId,
+    name: chance.sentence({ words: 2 }),
+    status: randomItemInArray(expenseStatuses),
+    amount: chance.integer({ min: 0, max: 500 }),
+    category: randomItemInArray(expenseCategories),
+    transactionDate: new Date(chance.date({ year: 2019 })),
+    status: randomItemInArray(expenseStatuses),
+    _trip: randomItemInArray(expenseTrips),
     _company: companyId,
-    account: 'credit-card',
-    receipts: ['1555401250649', '1555401250655'],
-    message: 'There are receipts for Flight',
-    city: 'BangKoK',
-    vendor: 'VN airline',
-    _attendees: []
-  },
-  {
-    // _id: expenseId,
-    _creator: employeeId,
-    name: 'Hotel receipt',
-    amount: 500,
-    category: 'lodging',
-    transactionDate: new Date('2019-03-16'),
-    status: 'waiting',
-    _trip: tripId,
-    _company: companyId,
-    account: 'cash',
-    receipts: ['1555401250655'],
-    message: 'There are receipts for Hotel',
-    city: 'HCM',
-    vendor: 'Aroma',
-    _attendees: [employeeId2]
-  },
-  {
-    // _id: expenseId,
-    _creator: employeeId,
-    name: 'taxi receipt',
-    amount: 500,
-    category: 'transportation',
-    transactionDate: new Date('2019-03-19'),
-    status: 'waiting',
-    _trip: tripId,
-    _company: companyId,
-    account: 'Cash',
-    receipts: ['1555401250655'],
-    message: 'There are receipts for taxi',
-    city: 'HCM',
-    vendor: 'Grab',
-    _attendees: [employeeId2]
-  },
-  {
-    // _id: expenseId,
-    _creator: employeeId,
-    name: 'taxi receipt 222',
-    amount: 500,
-    category: 'transportation',
-    transactionDate: new Date('2019-03-19'),
-    status: 'waiting',
-    _trip: tripId,
-    _company: companyId,
-    account: 'cash',
-    receipts: ['1555401250655'],
-    message: 'There are receipts for taxi',
-    city: 'HCM',
-    vendor: 'Grab',
-    _attendees: [employeeId2]
-  },
-  {
-    // _id: expenseId,
-    _creator: employeeId,
-    name: 'taxi receipt 2',
-    amount: 500,
-    category: 'transportation',
-    transactionDate: new Date('2019-03-19'),
-    status: 'waiting',
-    _trip: tripId,
-    _company: companyId,
-    account: 'cash',
-    receipts: ['1555401250655'],
-    message: 'There are receipts for taxi',
-    city: 'HCM',
-    vendor: 'Grab',
-    _attendees: [employeeId2]
-  },
-  {
-    // _id: expenseId,
-    _creator: employeeId,
-    name: 'taxi receipt 2',
-    amount: 500,
-    category: 'transportation',
-    transactionDate: new Date('2019-03-19'),
-    status: 'waiting',
-    _trip: tripId,
-    _company: companyId,
-    account: 'cash',
-    receipts: ['1555401250655'],
-    message: 'There are receipts for taxi',
-    city: 'HCM',
-    vendor: 'Grab',
-    _attendees: [employeeId2]
-  },
-  {
-    // _id: expenseId,
-    _creator: employeeId,
-    name: 'taxi receipt 2',
-    amount: 500,
-    category: 'transportation',
-    transactionDate: new Date('2019-03-19'),
-    status: 'waiting',
-    _trip: tripId,
-    _company: companyId,
-    account: 'cash',
-    receipts: ['1555401250655'],
-    message: 'There are receipts for taxi',
-    city: 'HCM',
-    vendor: 'Grab',
-    _attendees: [employeeId2]
-  },
-  {
-    // _id: expenseId,
-    _creator: employeeId,
-    name: 'taxi receipt 2',
-    amount: 500,
-    category: 'transportation',
-    transactionDate: new Date('2019-03-19'),
-    status: 'rejected',
-    _trip: tripId,
-    _company: companyId,
-    account: 'cash',
-    receipts: ['1555401250655'],
-    message: 'There are receipts for taxi',
-    city: 'HCM',
-    vendor: 'Grab',
-    _attendees: [employeeId2]
-  },
-  {
-    _creator: employeeId,
-    name: 'taxi receipt',
-    amount: 500,
-    category: 'transportation',
-    transactionDate: new Date('2019-03-19'),
-    status: 'approved',
-    _trip: secondTripId,
-    _company: companyId,
-    account: 'cash',
-    receipts: ['1555401250655'],
-    message: 'There are receipts for taxi',
-    city: 'HCM',
-    vendor: 'Grab',
-    _attendees: [employeeId2]
-  }
-]
+    account: randomItemInArray(expenseAccounts),
+    receipts: ['1556164218511', '1556164218512'],
+    message: chance.paragraph({ sentences: 1 }),
+    city: chance.city(),
+    vendor: chance.company(),
+    attendees: [employeeId2]
+  })
+}
+
 const populateUsers = done => {
   return User.deleteMany({})
     .then(() => {
