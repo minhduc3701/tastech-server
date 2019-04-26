@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Department = require('../../models/department')
 const { ObjectID } = require('mongodb')
+const _ = require('lodash')
 
 router.post('/', function(req, res, next) {
   const department = new Department(req.body)
@@ -31,6 +32,33 @@ router.get('/:id', function(req, res) {
     _id: req.params.id,
     _company: req.user._company
   })
+    .then(department => {
+      if (!department) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ department })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
+router.patch('/:id', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  let body = _.pick(req.body, ['name', 'employees'])
+
+  Department.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      _company: req.user._company
+    },
+    { $set: body },
+    { new: true }
+  )
     .then(department => {
       if (!department) {
         return res.status(404).send()
