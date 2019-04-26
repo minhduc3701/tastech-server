@@ -11,6 +11,7 @@
   "dependencies": {
     "async": "^2.6.2",
     "aws-sdk": "^2.429.0",
+    "body-parser": "^1.19.0",
     "cookie-parser": "~1.4.3",
     "cors": "^2.8.5",
     "debug": "~2.6.9",
