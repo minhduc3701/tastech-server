@@ -17,7 +17,7 @@ router.post('/', bodyParser.text({ type: '*/*' }), (req, res) => {
   } catch (e) {
     return res.status(400).send({
       errorCode: 1,
-      errorMsg: 'Failure'
+      errorMsg: 'Failure. Wrong format.'
     })
   }
 
