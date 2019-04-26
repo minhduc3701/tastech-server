@@ -107,10 +107,10 @@ router.delete('/:id', function(req, res) {
 })
 
 router.put('/disabled', (req, res) => {
-  let email = req.body.email
+  let id = req.body.id
   let disabled = req.body.disabled
 
-  User.findOneAndUpdate({ email }, { $set: { disabled } }, { new: true })
+  User.findByIdAndUpdate(id, { $set: { disabled } }, { new: true })
     .then(user => {
       if (!user) {
         return res.status(404).send()
