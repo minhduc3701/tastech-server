@@ -13,7 +13,11 @@ router.post('/', bodyParser.text({ type: '*/*' }), (req, res) => {
   let body
 
   try {
-    body = JSON.parse(req.body)
+    if (_.isObject(req.body)) {
+      body = req.body
+    } else {
+      body = JSON.parse(req.body)
+    }
   } catch (e) {
     return res.status(400).send({
       errorCode: 1,
