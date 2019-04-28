@@ -3,61 +3,47 @@ const Schema = mongoose.Schema
 
 const TicketSchema = new Schema({
   orderNum: {
-    type: String,
-    required: true
+    type: String
   },
   airPnr: {
-    type: String,
-    required: true
+    type: String
   },
   paymentGate: {
-    type: String,
-    required: true
+    type: String
   },
   serialNum: {
-    type: String,
-    required: true
+    type: String
   },
   merchantOrder: {
-    type: String,
-    required: true
+    type: String
   },
   permitVoid: {
-    type: Number,
-    required: true
+    type: Number
   },
   lastVoidTime: {
-    type: String,
-    required: true
+    type: String
   },
   voidServiceFee: {
-    type: Number,
-    required: true
+    type: Number
   },
   currency: {
-    type: String,
-    required: true
+    type: String
   },
   ticketNums: Array({
     ticketNum: {
-      type: String,
-      required: true
+      type: String
     },
     lastName: {
-      type: String,
-      required: true
+      type: String
     },
     firstName: {
-      type: String,
-      required: true
+      type: String
     },
     cardType: {
-      type: String,
-      required: true
+      type: String
     },
     cardNum: {
-      type: String,
-      required: true
+      type: String
     }
   })
 })
