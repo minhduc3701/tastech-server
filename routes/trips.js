@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Trip = require('../models/trip')
+const Expense = require('../models/expense')
 const { ObjectID } = require('mongodb')
 
 router.get('/', function(req, res, next) {
@@ -63,6 +64,30 @@ router.patch('/:id', function(req, res, next) {
     .catch(e => {
       res.status(400).send()
     })
+})
+
+// get expenses by trip id
+router.get('/:id/expenses', function(req, res, next) {
+  let id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  Promise.all([
+    Trip.findById(id),
+    Expense.find({
+      _creator: req.user._id,
+      _trip: id
+    }).sort({ updatedAt: -1 })
+  ])
+    .then(results => {
+      let trip = results[0]
+      let expenses = results[1]
+
+      res.status(200).send({ trip, expenses })
+    })
+    .catch(e => res.status(400).send())
 })
 
 module.exports = router
