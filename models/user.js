@@ -60,7 +60,7 @@ UserSchema.methods.toJSON = function() {
     'disabled'
   ])
 
-  if (!validator.isUrl(userObject.avatar)) {
+  if (!validator.isURL(_.toString(userObject.avatar))) {
     userObject.avatar = userObject.avatar
       ? process.env.AWS_S3_URI + '/' + userObject.avatar
       : null
