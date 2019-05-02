@@ -1,6 +1,7 @@
 var mongoose = require('mongoose')
 var Schema = mongoose.Schema
 var passportLocalMongoose = require('passport-local-mongoose')
+var validator = require('validator')
 const _ = require('lodash')
 
 var UserSchema = new Schema({
@@ -58,9 +59,12 @@ UserSchema.methods.toJSON = function() {
     'lastLoginDate',
     'disabled'
   ])
-  userObject.avatar = userObject.avatar
-    ? process.env.AWS_S3_URI + '/' + userObject.avatar
-    : null
+
+  if (!validator.isUrl(userObject.avatar)) {
+    userObject.avatar = userObject.avatar
+      ? process.env.AWS_S3_URI + '/' + userObject.avatar
+      : null
+  }
 
   return userObject
 }
