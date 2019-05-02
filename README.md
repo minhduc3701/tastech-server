@@ -53,6 +53,28 @@ or
 yarn seed-db
 ```
 
+Options:
+
+Seed all collections:
+
+```
+yarn seed-db
+```
+
+Seed only `expenses` collection:
+
+```
+yarn seed-db -c expenses
+yarn seed-db --collections expenses
+```
+
+Seed 2 collections or more:
+
+```
+yarn seed-db -c expenses departments
+yarn seed-db --collections expenses departments
+```
+
 ## Start server
 
 ```
