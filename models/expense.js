@@ -6,7 +6,8 @@ var ExpenseSchema = new Schema(
   {
     _creator: {
       type: 'ObjectId',
-      required: true
+      required: true,
+      ref: 'User'
     },
     _attendees: [
       {

@@ -4,22 +4,19 @@ const Company = require('../models/company')
 const Role = require('../models/role')
 const Request = require('../models/request')
 const Policy = require('../models/policy')
+const Department = require('../models/department')
 const Trip = require('../models/trip')
 const Expense = require('../models/expense')
 const Change = require('chance')
 const chance = new Change()
 
-const tasAdminId = new ObjectID()
-const adminId = new ObjectID()
-const employeeId = new ObjectID()
-const employeeId2 = new ObjectID()
-const companyId = new ObjectID()
-const policyId = new ObjectID()
-const secondPolicyId = new ObjectID()
-const thirdPolicyId = new ObjectID()
-const tripId = new ObjectID()
-const secondTripId = new ObjectID()
-const expenseId = new ObjectID()
+const tasAdminId = new ObjectID('5cc2d7a24c72b61214af0049')
+const adminId = new ObjectID('5cc2d7a24c72b61214af004a')
+const employeeId = new ObjectID('5cc2d7a24c72b61214af004b')
+const employeeId2 = new ObjectID('5cc2d7a24c72b61214af004c')
+const companyId = new ObjectID('5cc2d7a24c72b61214af004d')
+const tripId = new ObjectID('5cc2d7a24c72b61214af0051')
+const secondTripId = new ObjectID('5cc2d7a24c72b61214af0052')
 const password = '12345678'
 
 const randomItemInArray = items =>
@@ -57,7 +54,7 @@ const users = [
 
 const userTypes = ['employee', 'admin']
 
-for (let i = 0; i < 120; i++) {
+for (let i = 0; i < 46; i++) {
   let email = chance.email({ domain: 'tastech.asia' })
   if (users.findIndex(user => user.email === email) >= 0) {
     i -= 1
@@ -204,7 +201,6 @@ for (let i = 0; i < 46; i++) {
 
 const policies = [
   {
-    _id: policyId,
     name: 'Default Policy',
     _company: companyId,
     status: 'default',
@@ -233,7 +229,6 @@ const policies = [
     employees: [employeeId]
   },
   {
-    _id: secondPolicyId,
     name: 'Travel Policy for Staff',
     _company: companyId,
     status: 'enable',
@@ -262,7 +257,6 @@ const policies = [
     employees: [employeeId]
   },
   {
-    _id: thirdPolicyId,
     name: 'Travel Policy for Director',
     _company: companyId,
     status: 'disable',
@@ -623,7 +617,7 @@ const expenseTrips = [tripId, secondTripId]
 for (let i = 0; i < 50; i++) {
   expenses.push({
     _creator: employeeId,
-    name: chance.sentence({ words: 2 }),
+    name: `Expense ${i + 1}`,
     status: randomItemInArray(expenseStatuses),
     amount: chance.integer({ min: 0, max: 500 }),
     category: randomItemInArray(expenseCategories),
@@ -637,6 +631,15 @@ for (let i = 0; i < 50; i++) {
     city: chance.city(),
     vendor: chance.company(),
     _attendees: [employeeId2]
+  })
+}
+
+const departments = []
+for (let i = 0; i < 10; i++) {
+  departments.push({
+    _company: companyId,
+    name: `Department ${i + 1}`,
+    employees: [employeeId, employeeId2]
   })
 }
 
@@ -657,6 +660,7 @@ const populateCompanies = done => {
     return Promise.all(allCompanies.map(company => company.save()))
   })
 }
+
 const populateExpenses = done => {
   return Expense.deleteMany({}).then(() => {
     let allCExpenses = expenses.map(expense => new Expense(expense))
@@ -692,6 +696,15 @@ const populateTrips = done => {
   })
 }
 
+const populateDepartments = () => {
+  return Department.deleteMany({}).then(() => {
+    let allDepartments = departments.map(
+      department => new Department(department)
+    )
+    return Promise.all(allDepartments.map(department => department.save()))
+  })
+}
+
 module.exports = {
   users,
   populateUsers,
@@ -706,5 +719,7 @@ module.exports = {
   expenses,
   populateExpenses,
   roles,
-  populateRoles
+  populateRoles,
+  departments,
+  populateDepartments
 }
