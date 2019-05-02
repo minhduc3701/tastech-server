@@ -7,6 +7,7 @@ router.get('/', function(req, res, next) {
   Trip.find({
     _creator: req.user._id
   })
+    .sort({ updatedAt: -1 })
     .then(trips => {
       res.send({ trips })
     })
