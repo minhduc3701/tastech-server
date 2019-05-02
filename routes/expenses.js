@@ -59,23 +59,6 @@ router.get('/:id', function(req, res, next) {
       res.status(400).send()
     })
 })
-// get expenses by trip id
-router.get('/trip/:id', function(req, res, next) {
-  if (!ObjectID.isValid(req.params.id)) {
-    return res.status(404).send()
-  }
-  Expense.find({
-    _creator: req.user._id,
-    _trip: req.params.id
-  })
-    .sort({ updatedAt: -1 })
-    .then(expenses => {
-      res.status(200).json({ expenses })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
-})
 
 router.patch('/:id', upload.array('receipts'), function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
