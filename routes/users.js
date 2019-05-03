@@ -120,16 +120,14 @@ router.patch('/me/password', (req, res) => {
 router.post('/search', (req, res) => {
   let email = _.trim(req.body.email)
 
-  if (_.isEmpty(email)) {
-    return res.status(400).send()
-  }
-
   // @see https://stackoverflow.com/questions/3305561/how-to-query-mongodb-with-like
   // @see https://stackoverflow.com/questions/26699885/how-can-i-use-a-regex-variable-in-a-query-for-mongodb
-  User.find({
-    email: new RegExp(email),
-    _company: req.user._company
-  })
+  let searchCondition = { _company: req.user._company }
+  if (!_.isEmpty(email)) {
+    searchCondition.email = new RegExp(email)
+  }
+
+  User.find(searchCondition)
     .limit(50)
     .then(users => {
       res.status(200).send({ users })
