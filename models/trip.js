@@ -40,7 +40,8 @@ var TripSchema = new Schema({
   checkoutStatus: {
     type: String,
     required: true,
-    default: 'pending' // pending, completed, canceled
+    default: 'pending',
+    enum: ['pending', 'completed', 'cancelled']
   },
   hotelCode: String,
   rooms: [
@@ -52,17 +53,8 @@ var TripSchema = new Schema({
       numberSeleted: Number
     }
   ],
-  departFlights: [
-    {
-      price: Number,
-      departTime: Date,
-      arrivalTime: Date,
-      airline: String,
-      flightCode: String,
-      ticketCode: String,
-      duration: String
-    }
-  ],
+  departureFlight: {},
+  returnFlight: {},
   passengers: [
     {
       businessEmail: String,
@@ -78,17 +70,7 @@ var TripSchema = new Schema({
       title: String
     }
   ],
-  returnFlights: [
-    {
-      price: Number,
-      departTime: Date,
-      arrivalTime: Date,
-      airline: String,
-      flightCode: String,
-      ticketCode: String
-    }
-  ],
-  contactInfor: {
+  contactInfo: {
     city: String,
     country: String,
     phone1: Number,
@@ -105,7 +87,15 @@ var TripSchema = new Schema({
   departure: String,
   departureDate: Date,
   arrival: String,
-  returnDate: Date
+  returnDate: Date,
+  pnr: {
+    type: String,
+    unique: true
+  },
+  orderNum: {
+    type: String,
+    unique: true
+  }
 })
 
 module.exports = mongoose.model('Trip', TripSchema)
