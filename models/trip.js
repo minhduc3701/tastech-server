@@ -88,14 +88,8 @@ var TripSchema = new Schema({
   departureDate: Date,
   arrival: String,
   returnDate: Date,
-  pnr: {
-    type: String,
-    unique: true
-  },
-  orderNum: {
-    type: String,
-    unique: true
-  }
+  pnr: String,
+  orderNum: String
 })
 
 module.exports = mongoose.model('Trip', TripSchema)
