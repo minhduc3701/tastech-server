@@ -10,7 +10,14 @@ var TripSchema = new Schema({
   status: {
     type: String,
     required: true,
-    enum: ['waiting', 'approved', 'rejected', 'ongoing', 'finished'],
+    enum: [
+      'waiting',
+      'approved',
+      'rejected',
+      'ongoing',
+      'finished',
+      'completed'
+    ],
     default: 'waiting'
   },
   _creator: {
@@ -34,13 +41,14 @@ var TripSchema = new Schema({
         }
       ],
       lastDestination: String,
-      lastDestinationDate: Date
+      lastDestinationDate: Date,
+      totalPrice: Number
     }
   ],
   checkoutStatus: {
     type: String,
     required: true,
-    default: 'pending',
+    default: 'pending', // pending, completed, canceled
     enum: ['pending', 'completed', 'cancelled']
   },
   hotelCode: String,
@@ -90,6 +98,8 @@ var TripSchema = new Schema({
   returnDate: Date,
   pnr: String,
   orderNum: String
+}, {
+  timestamps: true
 })
 
 module.exports = mongoose.model('Trip', TripSchema)

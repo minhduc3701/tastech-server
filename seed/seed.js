@@ -298,9 +298,9 @@ const trips = [
       {
         _passenger: employeeId,
         flight: 5,
-        lodging: 10,
+        lodging: 11,
         transportation: 15,
-        meal: 20,
+        meal: 22,
         provision: 25,
         note: 'Large budget',
         classType: 'economy',
@@ -310,6 +310,7 @@ const trips = [
             date: new Date('2019-03-13')
           }
         ],
+        totalPrice: 78,
         lastDestination: 'New York',
         lastDestinationDate: new Date('2019-03-17')
       }
@@ -324,7 +325,7 @@ const trips = [
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 5,
+        flight: 50,
         lodging: 10,
         transportation: 15,
         meal: 20,
@@ -337,6 +338,7 @@ const trips = [
             date: new Date('2019-03-13')
           }
         ],
+        totalPrice: 120,
         lastDestination: 'Seoul',
         lastDestinationDate: new Date('2019-03-17')
       }
@@ -351,10 +353,10 @@ const trips = [
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 5,
+        flight: 500,
         lodging: 10,
         transportation: 15,
-        meal: 20,
+        meal: 200,
         provision: 25,
         note: 'Small budget',
         classType: 'economy',
@@ -364,6 +366,7 @@ const trips = [
             date: new Date('2019-03-13')
           }
         ],
+        totalPrice: 750,
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
@@ -389,26 +392,8 @@ const trips = [
         numberRooms: 3
       }
     ],
-    departFlights: [
-      {
-        price: 500,
-        departTime: new Date('2019-03-20 08:00'),
-        arrivalTime: new Date('2019-03-20 10:00'),
-        airline: 'VN',
-        flightCode: 'VNA29175',
-        ticketCode: 'JJQQKK'
-      }
-    ],
-    returnFlights: [
-      {
-        price: 500,
-        departTime: new Date('2019-03-25 15:00'),
-        arrivalTime: new Date('2019-03-25 17:00'),
-        airline: 'VN',
-        flightCode: 'VNA29185',
-        ticketCode: 'JJQQKK'
-      }
-    ],
+    departureFlight: {},
+    returnFlight: {},
     passengers: [
       {
         firstName: 'John',
@@ -426,7 +411,90 @@ const trips = [
     departure: 'HANOI',
     departureDate: new Date('2019-03-20'),
     arrival: 'HO CHI MINH',
-    returnDate: new Date('2019-03-25')
+    returnDate: new Date('2019-03-25'),
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 15,
+        lodging: 10,
+        transportation: 150,
+        meal: 210,
+        provision: 25,
+        note: 'Small budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        totalPrice: 510,
+        lastDestination: 'Singapore',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
+  },
+  {
+    // _id: tripId,
+    name: 'Ha Longtrip',
+    status: 'completed',
+    _creator: employeeId,
+    _company: companyId,
+    checkoutStatus: 'completed', // pending, completed, canceled
+    hotelCode: 'AROMA',
+    rooms: [
+      {
+        price: 1000,
+        roomType: 'DOUBLE',
+        numberRooms: 1
+      },
+      {
+        price: 800,
+        roomType: 'SINGLE',
+        numberRooms: 3
+      }
+    ],
+    departureFlight: {},
+    returnFlight: {},
+    passengers: [
+      {
+        firstName: 'John',
+        lastName: 'Doe'
+      },
+      {
+        firstName: 'Jane',
+        lastName: 'Doe'
+      }
+    ],
+    payment: 'card',
+    roundTrip: true,
+    numberPassengers: 5,
+    flightClass: 'economy',
+    departure: 'HANOI',
+    departureDate: new Date('2019-03-20'),
+    arrival: 'HO CHI MINH',
+    returnDate: new Date('2019-03-25'),
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 5,
+        lodging: 10,
+        transportation: 15,
+        meal: 20,
+        provision: 5,
+        note: 'Small budget',
+        classType: 'economy',
+        totalPrice: 55,
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        lastDestination: 'Singapore',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
   },
   {
     _id: secondTripId,
@@ -448,26 +516,8 @@ const trips = [
         numberRooms: 3
       }
     ],
-    departFlights: [
-      {
-        price: 500,
-        departTime: new Date('2019-03-20 08:00'),
-        arrivalTime: new Date('2019-03-20 10:00'),
-        airline: 'VN',
-        flightCode: 'VNA29175',
-        ticketCode: 'JJQQKK'
-      }
-    ],
-    returnFlights: [
-      {
-        price: 500,
-        departTime: new Date('2019-03-25 15:00'),
-        arrivalTime: new Date('2019-03-25 17:00'),
-        airline: 'VN',
-        flightCode: 'VNA29185',
-        ticketCode: 'JJQQKK'
-      }
-    ],
+    departureFlight: {},
+    returnFlight: {},
     passengers: [
       {
         firstName: 'John',
@@ -485,7 +535,28 @@ const trips = [
     departure: 'HANOI',
     departureDate: new Date('2019-03-20'),
     arrival: 'BANGKOK',
-    returnDate: new Date('2019-03-25')
+    returnDate: new Date('2019-03-25'),
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 500,
+        lodging: 100,
+        transportation: 150,
+        meal: 200,
+        provision: 250,
+        note: 'Small budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        totalPrice: 1200,
+        lastDestination: 'Singapore',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
   }
 ]
 
