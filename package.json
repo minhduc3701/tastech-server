@@ -40,5 +40,10 @@
     "prettier": "^1.16.4",
     "pretty-quick": "^1.10.0",
     "yargs": "^13.2.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
   }
 }
