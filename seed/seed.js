@@ -375,7 +375,7 @@ const trips = [
   {
     _id: tripId,
     name: 'HO CHI MINH trip',
-    status: 'booked',
+    status: 'ongoing',
     _creator: employeeId,
     _company: companyId,
     checkoutStatus: 'completed', // pending, completed, canceled
@@ -392,26 +392,8 @@ const trips = [
         numberRooms: 3
       }
     ],
-    departFlights: [
-      {
-        price: 500,
-        departTime: new Date('2019-03-20 08:00'),
-        arrivalTime: new Date('2019-03-20 10:00'),
-        airline: 'VN',
-        flightCode: 'VNA29175',
-        ticketCode: 'JJQQKK'
-      }
-    ],
-    returnFlights: [
-      {
-        price: 500,
-        departTime: new Date('2019-03-25 15:00'),
-        arrivalTime: new Date('2019-03-25 17:00'),
-        airline: 'VN',
-        flightCode: 'VNA29185',
-        ticketCode: 'JJQQKK'
-      }
-    ],
+    departureFlight: {},
+    returnFlight: {},
     passengers: [
       {
         firstName: 'John',
@@ -472,26 +454,8 @@ const trips = [
         numberRooms: 3
       }
     ],
-    departFlights: [
-      {
-        price: 500,
-        departTime: new Date('2019-03-20 08:00'),
-        arrivalTime: new Date('2019-03-20 10:00'),
-        airline: 'VN',
-        flightCode: 'VNA29175',
-        ticketCode: 'JJQQKK'
-      }
-    ],
-    returnFlights: [
-      {
-        price: 500,
-        departTime: new Date('2019-03-25 15:00'),
-        arrivalTime: new Date('2019-03-25 17:00'),
-        airline: 'VN',
-        flightCode: 'VNA29185',
-        ticketCode: 'JJQQKK'
-      }
-    ],
+    departureFlight: {},
+    returnFlight: {},
     passengers: [
       {
         firstName: 'John',
@@ -552,26 +516,8 @@ const trips = [
         numberRooms: 3
       }
     ],
-    departFlights: [
-      {
-        price: 500,
-        departTime: new Date('2019-03-20 08:00'),
-        arrivalTime: new Date('2019-03-20 10:00'),
-        airline: 'VN',
-        flightCode: 'VNA29175',
-        ticketCode: 'JJQQKK'
-      }
-    ],
-    returnFlights: [
-      {
-        price: 500,
-        departTime: new Date('2019-03-25 15:00'),
-        arrivalTime: new Date('2019-03-25 17:00'),
-        airline: 'VN',
-        flightCode: 'VNA29185',
-        ticketCode: 'JJQQKK'
-      }
-    ],
+    departureFlight: {},
+    returnFlight: {},
     passengers: [
       {
         firstName: 'John',
