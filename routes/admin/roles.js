@@ -21,6 +21,7 @@ router.get('/', function(req, res) {
   Role.find({
     _company: req.user._company
   })
+    .populate('users')
     .then(roles => res.status(200).send({ roles }))
     .catch(e => res.status(400).send())
 })
@@ -36,7 +37,7 @@ router.get('/:id', function(req, res) {
     return res.status(404).send()
   }
 
-  Role.findByIdAndUpdate(id)
+  Role.findById(id)
     .then(role => {
       if (!role) {
         return res.status(404).send()
@@ -58,7 +59,15 @@ router.patch('/:id', function(req, res) {
 
   let body = _.pick(req.body, ['permissions', 'users'])
 
-  Role.findById(id)
+  Role.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        users: body.users
+      }
+    },
+    { new: true }
+  )
     .then(role => {
       return User.updateMany(
         { _id: { $in: body.users } },

@@ -65,7 +65,8 @@ for (let i = 0; i < 46; i++) {
       type: randomItemInArray(userTypes),
       _company: companyId,
       firstName: chance.first(),
-      lastName: chance.last()
+      lastName: chance.last(),
+      avatar: `http://i.pravatar.cc/150?img=${i}`
     })
   }
 }
