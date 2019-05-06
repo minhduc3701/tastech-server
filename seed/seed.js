@@ -309,6 +309,7 @@ const trips = [
             date: new Date('2019-03-13')
           }
         ],
+        totalPrice: 78,
         lastDestination: 'New York',
         lastDestinationDate: new Date('2019-03-17')
       }
@@ -336,6 +337,7 @@ const trips = [
             date: new Date('2019-03-13')
           }
         ],
+        totalPrice: 120,
         lastDestination: 'Seoul',
         lastDestinationDate: new Date('2019-03-17')
       }
@@ -363,6 +365,7 @@ const trips = [
             date: new Date('2019-03-13')
           }
         ],
+        totalPrice: 750,
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
@@ -442,6 +445,7 @@ const trips = [
             date: new Date('2019-03-13')
           }
         ],
+        totalPrice: 510,
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
@@ -601,6 +605,7 @@ const trips = [
             date: new Date('2019-03-13')
           }
         ],
+        totalPrice: 1200,
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
