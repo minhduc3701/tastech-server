@@ -9,7 +9,8 @@ const DepartmentSchema = new Schema({
   },
   employees: [
     {
-      type: 'ObjectId'
+      type: 'ObjectId',
+      ref: 'User'
     }
   ]
 })

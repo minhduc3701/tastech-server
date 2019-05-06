@@ -57,6 +57,7 @@ router.post('/', function(req, res, next) {
 
 router.get('/', (req, res) => {
   Department.find({ _company: req.user._company })
+    .populate('employees', 'firstName avatar')
     .sort([['_id', -1]])
     .then(departments => res.status(200).send({ departments }))
     .catch(e => res.status(400).send())
@@ -71,6 +72,7 @@ router.get('/:id', function(req, res) {
     _id: req.params.id,
     _company: req.user._company
   })
+    .populate('employees', 'firstName avatar email')
     .then(department => {
       if (!department) {
         return res.status(404).send()
