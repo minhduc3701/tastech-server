@@ -24,6 +24,7 @@ router.get('/', function(req, res) {
     _id: { $ne: req.user._id }
   })
     .sort([['_id', -1]])
+    .populate('_department')
     .then(users => res.status(200).send({ users }))
     .catch(e => res.status(400).send())
 })

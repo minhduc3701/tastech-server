@@ -520,7 +520,7 @@ for (let i = 0; i < 10; i++) {
   departments.push({
     _company: companyId,
     name: `Department ${i + 1}`,
-    employees: [employeeId, employeeId2]
+    employees: []
   })
 }
 

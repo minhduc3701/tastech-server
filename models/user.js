@@ -31,7 +31,10 @@ var UserSchema = new Schema({
   age: Number,
   avatar: String,
   _company: mongoose.Schema.Types.ObjectId,
-  _deparment: mongoose.Schema.Types.ObjectId,
+  _department: {
+    type: 'ObjectId',
+    ref: 'Department'
+  },
   lastLoginDate: Date,
   disabled: Boolean
 })
