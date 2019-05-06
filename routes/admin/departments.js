@@ -8,10 +8,47 @@ const _ = require('lodash')
 router.post('/', function(req, res, next) {
   const department = new Department(req.body)
   department._company = req.user._company
+
+  let employees = req.body.employees
+  let newDepartment
+
   department
     .save()
-    .then(() => {
-      res.status(200).json({ department })
+    .then(department => {
+      newDepartment = department
+
+      return Department.updateMany(
+        {
+          _company: req.user._company,
+          _id: {
+            $ne: newDepartment._id
+          }
+        },
+        {
+          $pull: {
+            employees: {
+              $in: employees
+            }
+          }
+        }
+      )
+    })
+    .then(results => {
+      return User.updateMany(
+        {
+          _id: {
+            $in: employees
+          }
+        },
+        {
+          $set: {
+            _department: newDepartment._id
+          }
+        }
+      )
+    })
+    .then(results => {
+      res.status(200).json({ department: newDepartment })
     })
     .catch(e => {
       res.status(400).send()
@@ -53,12 +90,13 @@ router.patch('/:id', function(req, res) {
 
   let body = _.pick(req.body, ['name', 'employees'])
 
-  body.employees = body.employees.map(id => new ObjectID(id))
-
   Promise.all([
     Department.updateMany(
       {
-        _company: req.user._company
+        _company: req.user._company,
+        _id: {
+          $ne: req.params.id
+        }
       },
       {
         $pull: {
