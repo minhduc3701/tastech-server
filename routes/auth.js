@@ -94,12 +94,7 @@ router.post('/forgot-password', function(req, res) {
           })
       },
       function(token, user, done) {
-        let mailOptions = {
-          to: user.email,
-          from: 'no-reply@eztrip.com',
-          subject: `Password Reset for ${user.email}`,
-          text: mailTemplates.forgotPassword(token)
-        }
+        let mailOptions = mailTemplates.forgotPassword(user, token)
 
         mail.sendMail(mailOptions, function(err, info) {
           done(err, user)
