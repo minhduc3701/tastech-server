@@ -17,6 +17,8 @@ const employeeId2 = new ObjectID('5cc2d7a24c72b61214af004c')
 const companyId = new ObjectID('5cc2d7a24c72b61214af004d')
 const tripId = new ObjectID('5cc2d7a24c72b61214af0051')
 const secondTripId = new ObjectID('5cc2d7a24c72b61214af0052')
+const departmentId = new ObjectID('5cd03b1571811c06ad420d36')
+const secondDepartmentId = new ObjectID('5cd03b1571811c06ad420d35')
 const password = '12345678'
 
 const randomItemInArray = items =>
@@ -27,48 +29,51 @@ const users = [
     _id: tasAdminId,
     username: 'tas-admin@tastech.asia',
     email: 'tas-admin@tastech.asia',
-    type: 'tas-admin'
+    type: 'tas-admin',
+    avatar: `http://i.pravatar.cc/150?img=1`
   },
   {
     _id: adminId,
     username: 'admin@tastech.asia',
     email: 'admin@tastech.asia',
     type: 'admin',
-    _company: companyId
+    _company: companyId,
+    avatar: `http://i.pravatar.cc/150?img=2`
   },
   {
     _id: employeeId,
     username: 'employee@tastech.asia',
     email: 'employee@tastech.asia',
     type: 'employee',
-    _company: companyId
+    _company: companyId,
+    avatar: `http://i.pravatar.cc/150?img=3`
   },
   {
     _id: employeeId2,
     username: 'employee2@tastech.asia',
     email: 'employee2@tastech.asia',
     type: 'employee',
-    _company: companyId
+    _company: companyId,
+    avatar: `http://i.pravatar.cc/150?img=4`
   }
 ]
 
 const userTypes = ['employee', 'admin']
 
-for (let i = 0; i < 46; i++) {
-  let email = chance.email({ domain: 'tastech.asia' })
-  if (users.findIndex(user => user.email === email) >= 0) {
-    i -= 1
-  } else {
-    users.push({
-      username: email,
-      email,
-      type: randomItemInArray(userTypes),
-      _company: companyId,
-      firstName: chance.first(),
-      lastName: chance.last(),
-      avatar: `http://i.pravatar.cc/150?img=${i}`
-    })
-  }
+for (let i = 4; i < 50; i++) {
+  let email = `employee${i - 1}@tastech.asia`
+
+  users.push({
+    _id: new ObjectID(),
+    username: email,
+    email,
+    type: randomItemInArray(userTypes),
+    _company: companyId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    avatar: `http://i.pravatar.cc/150?img=${i + 1}`,
+    _department: randomItemInArray([departmentId, secondDepartmentId])
+  })
 }
 
 const companies = [
@@ -586,8 +591,24 @@ for (let i = 0; i < 50; i++) {
   })
 }
 
-const departments = []
-for (let i = 0; i < 10; i++) {
+const departments = [
+  {
+    _id: departmentId,
+    _company: companyId,
+    name: `Department 1`,
+    employees: users.filter(u => u._department === departmentId).map(u => u._id)
+  },
+  {
+    _id: secondDepartmentId,
+    _company: companyId,
+    name: `Department 2`,
+    employees: users
+      .filter(u => u._department === secondDepartmentId)
+      .map(u => u._id)
+  }
+]
+
+for (let i = 2; i < 10; i++) {
   departments.push({
     _company: companyId,
     name: `Department ${i + 1}`,
