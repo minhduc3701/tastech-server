@@ -44,10 +44,15 @@ router.post('/login', function(req, res, next) {
         { id: user.id, email: user.username },
         process.env.JWT_SECRET
       )
-      return res.json({
-        user,
-        token
-      })
+
+      User.findById(user.id)
+        .populate('_role', 'type')
+        .then(user => {
+          return res.json({
+            user,
+            token
+          })
+        })
     })
   })(req, res)
 })

@@ -27,7 +27,6 @@ router.patch('/me', async (req, res) => {
     'firstName',
     'lastName',
     'phone',
-    'role',
     'age'
   ])
 
