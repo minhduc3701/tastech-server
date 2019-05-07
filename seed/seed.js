@@ -79,7 +79,8 @@ for (let i = 4; i < 50; i++) {
 const companies = [
   {
     _id: companyId,
-    name: 'TAS'
+    name: 'TAS',
+    exchangedRate: 10
   },
   {
     name: 'Microsoft'
@@ -91,7 +92,8 @@ const companies = [
 
 for (let i = 0; i < 47; i++) {
   companies.push({
-    name: chance.company()
+    name: chance.company(),
+    exchangedRate: 10
   })
 }
 
