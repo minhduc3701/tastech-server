@@ -25,6 +25,7 @@ router.get('/', function(req, res) {
   })
     .sort([['_id', -1]])
     .populate('_department')
+    .populate('_role')
     .then(users => res.status(200).send({ users }))
     .catch(e => res.status(400).send())
 })

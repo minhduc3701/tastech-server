@@ -9,8 +9,7 @@ function register(user) {
       /^https?:\/\//,
       ''
     )}`,
-    text: `Your new account is created successfully.\n
-      Login at: ${appUrl}/login`
+    text: `Your new account is created successfully.\nLogin at: ${appUrl}/login`
   }
 }
 

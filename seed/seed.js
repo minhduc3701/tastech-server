@@ -19,6 +19,9 @@ const tripId = new ObjectID('5cc2d7a24c72b61214af0051')
 const secondTripId = new ObjectID('5cc2d7a24c72b61214af0052')
 const departmentId = new ObjectID('5cd03b1571811c06ad420d36')
 const secondDepartmentId = new ObjectID('5cd03b1571811c06ad420d35')
+const tasAdminRoleId = new ObjectID()
+const adminRoleId = new ObjectID()
+const employeeRoleId = new ObjectID()
 const password = '12345678'
 
 const randomItemInArray = items =>
@@ -30,7 +33,8 @@ const users = [
     username: 'tas-admin@tastech.asia',
     email: 'tas-admin@tastech.asia',
     type: 'tas-admin',
-    avatar: `http://i.pravatar.cc/150?img=1`
+    avatar: `http://i.pravatar.cc/150?img=1`,
+    _role: tasAdminRoleId
   },
   {
     _id: adminId,
@@ -38,7 +42,8 @@ const users = [
     email: 'admin@tastech.asia',
     type: 'admin',
     _company: companyId,
-    avatar: `http://i.pravatar.cc/150?img=2`
+    avatar: `http://i.pravatar.cc/150?img=2`,
+    _role: adminRoleId
   },
   {
     _id: employeeId,
@@ -46,7 +51,8 @@ const users = [
     email: 'employee@tastech.asia',
     type: 'employee',
     _company: companyId,
-    avatar: `http://i.pravatar.cc/150?img=3`
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: employeeRoleId
   },
   {
     _id: employeeId2,
@@ -54,7 +60,8 @@ const users = [
     email: 'employee2@tastech.asia',
     type: 'employee',
     _company: companyId,
-    avatar: `http://i.pravatar.cc/150?img=4`
+    avatar: `http://i.pravatar.cc/150?img=4`,
+    _role: employeeRoleId
   }
 ]
 
@@ -72,7 +79,8 @@ for (let i = 4; i < 50; i++) {
     firstName: chance.first(),
     lastName: chance.last(),
     avatar: `http://i.pravatar.cc/150?img=${i + 1}`,
-    _department: randomItemInArray([departmentId, secondDepartmentId])
+    _department: randomItemInArray([departmentId, secondDepartmentId]),
+    _role: randomItemInArray([adminRoleId, employeeRoleId])
   })
 }
 
@@ -89,7 +97,7 @@ const companies = [
   }
 ]
 
-for (let i = 0; i < 47; i++) {
+for (let i = 3; i < 50; i++) {
   companies.push({
     name: chance.company()
   })
@@ -97,12 +105,20 @@ for (let i = 0; i < 47; i++) {
 
 const roles = [
   {
+    _id: tasAdminRoleId,
+    name: 'Tas Admin',
+    type: 'tas-admin',
+    permissions: []
+  },
+  {
+    _id: adminRoleId,
     name: 'Admin',
     type: 'admin',
     permissions: ['CAN_EDIT_USER'],
     _company: companyId
   },
   {
+    _id: employeeRoleId,
     name: 'Employee',
     type: 'employee',
     permissions: ['CAN_CLAIM_EXPRENSE'],

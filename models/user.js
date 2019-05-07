@@ -35,6 +35,10 @@ var UserSchema = new Schema({
     type: 'ObjectId',
     ref: 'Department'
   },
+  _role: {
+    type: 'ObjectId',
+    ref: 'Role'
+  },
   lastLoginDate: Date,
   disabled: Boolean
 })
@@ -59,6 +63,7 @@ UserSchema.methods.toJSON = function() {
     'avatar',
     '_company',
     '_department',
+    '_role',
     'lastLoginDate',
     'disabled'
   ])
