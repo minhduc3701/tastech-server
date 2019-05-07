@@ -32,7 +32,6 @@ const users = [
     _id: tasAdminId,
     username: 'tas-admin@tastech.asia',
     email: 'tas-admin@tastech.asia',
-    type: 'tas-admin',
     avatar: `http://i.pravatar.cc/150?img=1`,
     _role: tasAdminRoleId
   },
@@ -40,7 +39,6 @@ const users = [
     _id: adminId,
     username: 'admin@tastech.asia',
     email: 'admin@tastech.asia',
-    type: 'admin',
     _company: companyId,
     avatar: `http://i.pravatar.cc/150?img=2`,
     _role: adminRoleId
@@ -49,7 +47,6 @@ const users = [
     _id: employeeId,
     username: 'employee@tastech.asia',
     email: 'employee@tastech.asia',
-    type: 'employee',
     _company: companyId,
     avatar: `http://i.pravatar.cc/150?img=3`,
     _role: employeeRoleId
@@ -58,14 +55,11 @@ const users = [
     _id: employeeId2,
     username: 'employee2@tastech.asia',
     email: 'employee2@tastech.asia',
-    type: 'employee',
     _company: companyId,
     avatar: `http://i.pravatar.cc/150?img=4`,
     _role: employeeRoleId
   }
 ]
-
-const userTypes = ['employee', 'admin']
 
 for (let i = 4; i < 50; i++) {
   let email = `employee${i - 1}@tastech.asia`
@@ -74,7 +68,6 @@ for (let i = 4; i < 50; i++) {
     _id: new ObjectID(),
     username: email,
     email,
-    type: randomItemInArray(userTypes),
     _company: companyId,
     firstName: chance.first(),
     lastName: chance.last(),
