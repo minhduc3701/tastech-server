@@ -59,23 +59,48 @@ router.patch('/:id', function(req, res) {
 
   let body = _.pick(req.body, ['permissions', 'users'])
 
-  Role.findByIdAndUpdate(
-    id,
-    {
-      $set: {
-        users: body.users
+  Promise.all([
+    Role.updateMany(
+      {
+        _id: {
+          $ne: id
+        }
+      },
+      {
+        $pull: {
+          users: {
+            $in: body.users
+          }
+        }
       }
-    },
-    { new: true }
-  )
-    .then(role => {
-      return User.updateMany(
-        { _id: { $in: body.users } },
-        { $set: { type: role.type } },
-        { new: true }
-      )
-    })
-    .then(results => res.status(200).send(results))
+    ),
+    User.updateMany(
+      {
+        _id: {
+          $in: body.users
+        }
+      },
+      {
+        $set: {
+          _role: id
+        }
+      }
+    ),
+    Role.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          users: body.users
+        }
+      },
+      { new: true }
+    )
+  ])
+    .then(results =>
+      res.status(200).send({
+        role: results[2]
+      })
+    )
     .catch(e => res.status(400).send())
 })
 
