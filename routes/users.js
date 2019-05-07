@@ -108,7 +108,7 @@ router.patch('/me/password', (req, res) => {
       .then(() => user.save())
       .then(() =>
         res.status(200).send({
-          message: 'Reset password successfully.'
+          message: 'Changed password successfully.'
         })
       )
       .catch(e => {
