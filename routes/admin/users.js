@@ -65,7 +65,8 @@ router.patch('/:id', function(req, res) {
     'role',
     'age',
     'type',
-    '_department'
+    '_department',
+    '_role'
   ])
 
   User.findOneAndUpdate(
