@@ -122,4 +122,20 @@ router.put('/disabled', (req, res) => {
     .catch(e => res.status(400).send())
 })
 
+router.post('/emails', (req, res) => {
+  let emails = req.body.emails
+
+  User.find({
+    email: {
+      $in: emails
+    }
+  })
+    .then(users => {
+      res.status(200).send({ users })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 module.exports = router
