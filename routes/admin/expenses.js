@@ -24,6 +24,7 @@ router.get('/:id', function(req, res) {
     _company: req.user._company
   })
     .populate('_creator')
+    .populate('_attendees')
     .populate('_trip')
     .then(expense => {
       if (!expense) {

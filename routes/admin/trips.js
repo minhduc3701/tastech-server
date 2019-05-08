@@ -10,6 +10,29 @@ router.get('/', (req, res) => {
     .catch(e => res.status(400).send())
 })
 
+router.get('/:id', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  Trip.findOne({
+    _id: req.params.id,
+    _company: req.user._company
+  })
+    .populate('_creator')
+    .populate('_trip')
+    .then(trip => {
+      if (!trip) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ trip })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 router.patch('/:id', (req, res) => {
   let id = req.params.id
 
