@@ -336,7 +336,8 @@ const trips = [
         lastDestination: 'New York',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ]
+    ],
+    price: 50
   },
   {
     name: 'Seoul trip',
@@ -364,7 +365,8 @@ const trips = [
         lastDestination: 'Seoul',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ]
+    ],
+    price: 100
   },
   {
     name: 'Singapore trip',
@@ -392,7 +394,8 @@ const trips = [
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ]
+    ],
+    price: 800
   },
   {
     _id: tripId,
@@ -454,7 +457,8 @@ const trips = [
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ]
+    ],
+    price: 600
   },
   {
     // _id: tripId,
@@ -516,7 +520,8 @@ const trips = [
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ]
+    ],
+    price: 40
   },
   {
     _id: secondTripId,
@@ -578,7 +583,8 @@ const trips = [
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ]
+    ],
+    price: 1000
   }
 ]
 
