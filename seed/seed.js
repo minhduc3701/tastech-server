@@ -254,7 +254,7 @@ const policies = [
   {
     name: 'Travel Policy for Staff',
     _company: companyId,
-    status: 'enable',
+    status: 'enabled',
     flightClass: 'economy',
     stops: '1',
     setDaysBeforeFlights: false,
@@ -282,7 +282,7 @@ const policies = [
   {
     name: 'Travel Policy for Director',
     _company: companyId,
-    status: 'disable',
+    status: 'disabled',
     flightClass: 'economy',
     stops: '1+',
     setDaysBeforeFlights: true,

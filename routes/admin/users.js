@@ -26,6 +26,7 @@ router.get('/', function(req, res) {
     .sort([['_id', -1]])
     .populate('_department')
     .populate('_role')
+    .populate('_policy')
     .then(users => res.status(200).send({ users }))
     .catch(e => res.status(400).send())
 })
@@ -65,7 +66,8 @@ router.patch('/:id', function(req, res) {
     'role',
     'age',
     '_department',
-    '_role'
+    '_role',
+    '_policy'
   ])
 
   User.findOneAndUpdate(
