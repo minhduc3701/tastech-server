@@ -51,7 +51,9 @@ const users = [
     email: 'employee@tastech.asia',
     _company: companyId,
     avatar: `http://i.pravatar.cc/150?img=3`,
-    _role: employeeRoleId
+    _role: employeeRoleId,
+    firstName: chance.first(),
+    lastName: chance.last()
   },
   {
     _id: employeeId2,
@@ -59,7 +61,9 @@ const users = [
     email: 'employee2@tastech.asia',
     _company: companyId,
     avatar: `http://i.pravatar.cc/150?img=4`,
-    _role: employeeRoleId
+    _role: employeeRoleId,
+    firstName: chance.first(),
+    lastName: chance.last()
   }
 ]
 
