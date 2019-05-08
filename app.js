@@ -25,6 +25,7 @@ const adminPolicyRouter = require('./routes/admin/policies')
 const adminDepartmentRouter = require('./routes/admin/departments')
 const adminTripsRouter = require('./routes/admin/trips')
 const adminExpensesRouter = require('./routes/admin/expenses')
+const adminReportsRouter = require('./routes/admin/reports')
 const flightsPkfareRouter = require('./routes/flights/pkfare')
 const countriesRouter = require('./routes/countries')
 const airportsRouter = require('./routes/airports')
@@ -123,6 +124,13 @@ app.use(
   passport.authenticate('jwt', { session: false }),
   authenticateAdmin,
   adminDepartmentRouter
+)
+
+app.use(
+  '/admin/reports',
+  passport.authenticate('jwt', { session: false }),
+  authenticateAdmin,
+  adminReportsRouter
 )
 
 // flights

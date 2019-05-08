@@ -336,8 +336,7 @@ const trips = [
         lastDestination: 'New York',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ],
-    price: 50
+    ]
   },
   {
     name: 'Seoul trip',
@@ -365,8 +364,7 @@ const trips = [
         lastDestination: 'Seoul',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ],
-    price: 100
+    ]
   },
   {
     name: 'Singapore trip',
@@ -394,8 +392,7 @@ const trips = [
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ],
-    price: 800
+    ]
   },
   {
     _id: tripId,
@@ -457,12 +454,10 @@ const trips = [
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ],
-    price: 600
+    ]
   },
   {
-    // _id: tripId,
-    name: 'Ha Longtrip',
+    name: 'Ha Long trip',
     status: 'completed',
     _creator: employeeId,
     _company: companyId,
@@ -520,8 +515,7 @@ const trips = [
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ],
-    price: 40
+    ]
   },
   {
     _id: secondTripId,
@@ -583,8 +577,131 @@ const trips = [
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
+    ]
+  },
+
+  // second user trips
+  {
+    name: 'Ha Long trip 2',
+    status: 'completed',
+    _creator: employeeId2,
+    _company: companyId,
+    checkoutStatus: 'completed', // pending, completed, canceled
+    hotelCode: 'AROMA',
+    rooms: [
+      {
+        price: 1000,
+        roomType: 'DOUBLE',
+        numberRooms: 1
+      },
+      {
+        price: 800,
+        roomType: 'SINGLE',
+        numberRooms: 3
+      }
     ],
-    price: 1000
+    departureFlight: {},
+    returnFlight: {},
+    passengers: [
+      {
+        firstName: 'John',
+        lastName: 'Doe'
+      },
+      {
+        firstName: 'Jane',
+        lastName: 'Doe'
+      }
+    ],
+    payment: 'card',
+    roundTrip: true,
+    numberPassengers: 5,
+    flightClass: 'economy',
+    departure: 'HANOI',
+    departureDate: new Date('2019-03-20'),
+    arrival: 'HO CHI MINH',
+    returnDate: new Date('2019-03-25'),
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 5,
+        lodging: 10,
+        transportation: 15,
+        meal: 20,
+        provision: 5,
+        note: 'Small budget',
+        classType: 'economy',
+        totalPrice: 55,
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        lastDestination: 'Singapore',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
+  },
+  {
+    name: 'Ha Long trip 3',
+    status: 'completed',
+    _creator: employeeId2,
+    _company: companyId,
+    checkoutStatus: 'completed', // pending, completed, canceled
+    hotelCode: 'AROMA',
+    rooms: [
+      {
+        price: 1000,
+        roomType: 'DOUBLE',
+        numberRooms: 1
+      },
+      {
+        price: 800,
+        roomType: 'SINGLE',
+        numberRooms: 3
+      }
+    ],
+    departureFlight: {},
+    returnFlight: {},
+    passengers: [
+      {
+        firstName: 'John',
+        lastName: 'Doe'
+      },
+      {
+        firstName: 'Jane',
+        lastName: 'Doe'
+      }
+    ],
+    payment: 'card',
+    roundTrip: true,
+    numberPassengers: 5,
+    flightClass: 'economy',
+    departure: 'HANOI',
+    departureDate: new Date('2019-03-20'),
+    arrival: 'HO CHI MINH',
+    returnDate: new Date('2019-03-25'),
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 5,
+        lodging: 10,
+        transportation: 15,
+        meal: 20,
+        provision: 5,
+        note: 'Small budget',
+        classType: 'economy',
+        totalPrice: 55,
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        lastDestination: 'Singapore',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
   }
 ]
 
@@ -596,7 +713,7 @@ const expenseTrips = [tripId, secondTripId]
 
 for (let i = 0; i < 50; i++) {
   expenses.push({
-    _creator: employeeId,
+    _creator: randomItemInArray([employeeId, employeeId2]),
     name: `Expense ${i + 1}`,
     status: randomItemInArray(expenseStatuses),
     amount: chance.integer({ min: 0, max: 500 }),
