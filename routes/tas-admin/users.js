@@ -69,7 +69,6 @@ router.patch('/:id', function(req, res) {
     'phone',
     'role',
     'age',
-    'type',
     '_company',
     '_department',
     '_admin',

@@ -64,7 +64,6 @@ router.patch('/:id', function(req, res) {
     'phone',
     'role',
     'age',
-    'type',
     '_department',
     '_role'
   ])
