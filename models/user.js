@@ -15,11 +15,6 @@ var UserSchema = new Schema({
     required: true,
     unique: true
   },
-  type: {
-    type: String,
-    required: true,
-    default: 'employee' // admin|boss|employee
-  },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
   country: String,
@@ -27,13 +22,16 @@ var UserSchema = new Schema({
   firstName: String,
   lastName: String,
   phone: String,
-  role: String,
   age: Number,
   avatar: String,
   _company: mongoose.Schema.Types.ObjectId,
   _department: {
     type: 'ObjectId',
     ref: 'Department'
+  },
+  _role: {
+    type: 'ObjectId',
+    ref: 'Role'
   },
   lastLoginDate: Date,
   disabled: Boolean
@@ -54,11 +52,11 @@ UserSchema.methods.toJSON = function() {
     'firstName',
     'lastName',
     'phone',
-    'role',
     'age',
     'avatar',
     '_company',
     '_department',
+    '_role',
     'lastLoginDate',
     'disabled'
   ])
