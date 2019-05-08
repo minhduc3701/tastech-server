@@ -35,13 +35,7 @@ const createUser = function(req, res, next) {
         )
       },
       function(user, done) {
-        let mailOptions = {
-          to: user.email,
-          from: 'no-reply@eztrip.com',
-          subject: `New account ${user.email}`,
-          text: mailTemplates.register()
-        }
-
+        let mailOptions = mailTemplates.register(user)
         mail.sendMail(mailOptions, function(err, info) {
           return done(err, user)
         })
