@@ -110,14 +110,20 @@ const roles = [
     name: 'Admin',
     type: 'admin',
     permissions: ['CAN_EDIT_USER'],
-    _company: companyId
+    _company: companyId,
+    users: users
+      .filter(user => user._role === adminRoleId)
+      .map(user => user._id)
   },
   {
     _id: employeeRoleId,
     name: 'Employee',
     type: 'employee',
     permissions: ['CAN_CLAIM_EXPRENSE'],
-    _company: companyId
+    _company: companyId,
+    users: users
+      .filter(user => user._role === employeeRoleId)
+      .map(user => user._id)
   }
 ]
 
