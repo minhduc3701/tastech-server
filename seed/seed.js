@@ -17,6 +17,8 @@ const employeeId2 = new ObjectID('5cc2d7a24c72b61214af004c')
 const companyId = new ObjectID('5cc2d7a24c72b61214af004d')
 const tripId = new ObjectID('5cc2d7a24c72b61214af0051')
 const secondTripId = new ObjectID('5cc2d7a24c72b61214af0052')
+const tripId3 = new ObjectID()
+const tripId4 = new ObjectID()
 const departmentId = new ObjectID('5cd03b1571811c06ad420d36')
 const secondDepartmentId = new ObjectID('5cd03b1571811c06ad420d35')
 const tasAdminRoleId = new ObjectID()
@@ -582,6 +584,7 @@ const trips = [
 
   // second user trips
   {
+    _id: tripId3,
     name: 'Ha Long trip 2',
     status: 'completed',
     _creator: employeeId2,
@@ -643,6 +646,7 @@ const trips = [
     ]
   },
   {
+    _id: tripId4,
     name: 'Ha Long trip 3',
     status: 'completed',
     _creator: employeeId2,
@@ -709,7 +713,7 @@ const expenses = []
 const expenseStatuses = ['waiting', 'claiming', 'rejected', 'approved']
 const expenseCategories = ['flight', 'lodging', 'transportation', 'meal']
 const expenseAccounts = ['credit-card', 'cash']
-const expenseTrips = [tripId, secondTripId]
+const expenseTrips = [tripId, secondTripId, tripId3, tripId4]
 
 for (let i = 0; i < 50; i++) {
   expenses.push({
