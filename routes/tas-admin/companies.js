@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Company = require('../../models/company')
 const Role = require('../../models/role')
+const Policy = require('../../models/policy')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { roles } = require('../../config/roles')
@@ -38,8 +39,6 @@ router.post('/', function(req, res) {
   company
     .save()
     .then(company => {
-      res.send({ company })
-
       return Role.insertMany(
         roles.map(role => ({
           ...role,
@@ -47,7 +46,42 @@ router.post('/', function(req, res) {
         }))
       )
     })
-    .then(roles => {})
+    .then(roles => {
+      let policy = new Policy({
+        name: 'Default Policy',
+        _company: company._id,
+        status: 'default',
+        flightClass: 'business',
+        stops: '0',
+        setDaysBeforeFlights: true,
+        daysBeforeFlights: 7,
+        setFlightLimit: true,
+        flightLimit: 2000,
+        flightNotification: 'no',
+        flightApproval: 'no',
+        hotelClass: 3,
+        hotelSearchDistance: 10,
+        setDaysBeforeLodging: true,
+        daysBeforeLodging: 7,
+        setHotelLimit: true,
+        hotelLimit: 5000,
+        hotelNotification: 'no',
+        hotelApproval: 'no',
+        setTransportLimit: true,
+        transportLimit: 100,
+        setMealLimit: true,
+        mealLimit: 100,
+        setProvision: true,
+        provision: 5
+      })
+
+      return policy.save()
+    })
+    .then(policy => {
+      company._policy = policy._id
+      return company.save()
+    })
+    .then(company => res.status(200).send({ company }))
     .catch(e => res.status(400).send())
 })
 

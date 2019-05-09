@@ -13,7 +13,11 @@ const CompanySchema = new Schema({
   timezone: String,
   industry: String,
   departments: Array,
-  exchangedRate: Number
+  exchangedRate: Number,
+  _policy: {
+    type: 'ObjectId',
+    ref: 'Policy'
+  }
 })
 
 CompanySchema.methods.toJSON = function() {
