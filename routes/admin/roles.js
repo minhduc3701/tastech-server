@@ -21,7 +21,7 @@ router.get('/', function(req, res) {
   Role.find({
     _company: req.user._company
   })
-    .populate('users')
+    .populate('users', 'avatar')
     .then(roles => res.status(200).send({ roles }))
     .catch(e => res.status(400).send())
 })
@@ -38,6 +38,7 @@ router.get('/:id', function(req, res) {
   }
 
   Role.findById(id)
+    .populate('users', 'email avatar')
     .then(role => {
       if (!role) {
         return res.status(404).send()
