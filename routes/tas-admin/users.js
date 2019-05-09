@@ -7,7 +7,7 @@ const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
 router.get('/', function(req, res) {
-  let perPage = 50
+  let perPage = 20
   let page = Math.max(0, req.query.page)
 
   // @see https://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js
