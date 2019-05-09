@@ -160,7 +160,7 @@ router.get('/trips/:id', (req, res) => {
   Expense.aggregate([
     {
       $match: {
-        _trip: id,
+        _trip: new ObjectID(id),
         _company: req.user._company,
         status: 'approved'
       }
