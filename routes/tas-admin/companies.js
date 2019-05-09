@@ -7,22 +7,11 @@ const _ = require('lodash')
 const { roles } = require('../../config/roles')
 
 router.get('/', function(req, res) {
-  let perPage = 50
-  let page = Math.max(0, req.query.page)
-
-  Promise.all([
-    Company.find({})
-      .limit(perPage)
-      .skip(perPage * page)
-      .sort([['_id', -1]]),
-    Company.count({})
-  ])
+  Promise.all([Company.find({}).sort([['_id', -1]]), Company.count({})])
     .then(results => {
       let companies = results[0]
       let total = results[1]
-      res
-        .status(200)
-        .send({ page, total, count: companies.length, perPage, companies })
+      res.status(200).send({ total, companies })
     })
     .catch(e => res.status(400).send())
 })
