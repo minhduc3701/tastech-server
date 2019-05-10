@@ -56,7 +56,8 @@ const users = [
     avatar: `http://i.pravatar.cc/150?img=3`,
     _role: employeeRoleId,
     firstName: chance.first(),
-    lastName: chance.last()
+    lastName: chance.last(),
+    _department: departmentId
   },
   {
     _id: employeeId2,
@@ -66,7 +67,8 @@ const users = [
     avatar: `http://i.pravatar.cc/150?img=4`,
     _role: employeeRoleId,
     firstName: chance.first(),
-    lastName: chance.last()
+    lastName: chance.last(),
+    _department: departmentId
   }
 ]
 
