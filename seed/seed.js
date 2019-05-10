@@ -717,7 +717,7 @@ const expenses = []
 const expenseStatuses = ['waiting', 'claiming', 'rejected', 'approved']
 const expenseCategories = ['flight', 'lodging', 'transportation', 'meal']
 const expenseAccounts = ['credit-card', 'cash']
-const expenseTrips = [tripId, secondTripId, tripId3, tripId4]
+const expenseTrips = [tripId, secondTripId]
 
 for (let i = 0; i < 50; i++) {
   expenses.push({
