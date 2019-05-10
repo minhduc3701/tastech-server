@@ -723,7 +723,7 @@ for (let i = 0; i < 50; i++) {
   expenses.push({
     _creator: randomItemInArray([employeeId, employeeId2]),
     name: `Expense ${i + 1}`,
-    status: 'approved',
+    status: randomItemInArray(expenseStatuses),
     amount: chance.integer({ min: 0, max: 500 }),
     category: randomItemInArray(expenseCategories),
     transactionDate: new Date(chance.date({ year: 2019 })),
