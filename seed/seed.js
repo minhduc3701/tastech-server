@@ -25,6 +25,9 @@ const tasAdminRoleId = new ObjectID()
 const adminRoleId = new ObjectID()
 const employeeRoleId = new ObjectID()
 const password = '12345678'
+const defaultPolicyId = new ObjectID()
+const policyId1 = new ObjectID()
+const policyId2 = new ObjectID()
 
 const randomItemInArray = items =>
   items[Math.floor(Math.random() * items.length)]
@@ -79,7 +82,8 @@ for (let i = 4; i < 50; i++) {
     lastName: chance.last(),
     avatar: `http://i.pravatar.cc/150?img=${i + 1}`,
     _department: randomItemInArray([departmentId, secondDepartmentId]),
-    _role: randomItemInArray([adminRoleId, employeeRoleId])
+    _role: randomItemInArray([adminRoleId, employeeRoleId]),
+    _policy: randomItemInArray([policyId1, policyId2])
   })
 }
 
@@ -87,7 +91,8 @@ const companies = [
   {
     _id: companyId,
     name: 'TAS',
-    exchangedRate: 10
+    exchangedRate: 10,
+    _policy: defaultPolicyId
   },
   {
     name: 'Microsoft'
@@ -230,6 +235,7 @@ for (let i = 0; i < 46; i++) {
 
 const policies = [
   {
+    _id: defaultPolicyId,
     name: 'Default Policy',
     _company: companyId,
     status: 'default',
@@ -255,9 +261,10 @@ const policies = [
     mealLimit: 100,
     setProvision: true,
     provision: 5,
-    employees: [employeeId]
+    employees: []
   },
   {
+    _id: policyId1,
     name: 'Travel Policy for Staff',
     _company: companyId,
     status: 'enabled',
@@ -283,9 +290,12 @@ const policies = [
     mealLimit: 0,
     setProvision: false,
     provision: 10,
-    employees: [employeeId]
+    employees: users
+      .filter(user => user._policy === policyId1)
+      .map(user => user._id)
   },
   {
+    _id: policyId2,
     name: 'Travel Policy for Director',
     _company: companyId,
     status: 'disabled',
@@ -311,7 +321,9 @@ const policies = [
     mealLimit: 0,
     setProvision: true,
     provision: 10,
-    employees: [employeeId]
+    employees: users
+      .filter(user => user._policy === policyId2)
+      .map(user => user._id)
   }
 ]
 
