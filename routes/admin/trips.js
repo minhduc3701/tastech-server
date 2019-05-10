@@ -6,6 +6,13 @@ const _ = require('lodash')
 
 router.get('/', (req, res) => {
   Trip.find({ _company: req.user._company })
+    .populate({
+      path: '_creator',
+      populate: {
+        path: '_department',
+        select: 'name'
+      }
+    })
     .then(trips => res.status(200).send({ trips }))
     .catch(e => res.status(400).send())
 })
@@ -40,7 +47,7 @@ router.patch('/:id', (req, res) => {
     return res.status(404).send()
   }
 
-  const body = _.pick(req.body, ['status', 'budgetPassengers'])
+  const body = _.pick(req.body, ['status', 'budgetPassengers', 'adminMessage'])
 
   Trip.findByIdAndUpdate(id, { $set: body }, { new: true })
     .then(trip => {
