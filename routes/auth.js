@@ -44,10 +44,15 @@ router.post('/login', function(req, res, next) {
         { id: user.id, email: user.username },
         process.env.JWT_SECRET
       )
-      return res.json({
-        user,
-        token
-      })
+
+      User.findById(user.id)
+        .populate('_role', 'type')
+        .then(user => {
+          return res.json({
+            user,
+            token
+          })
+        })
     })
   })(req, res)
 })
@@ -94,12 +99,7 @@ router.post('/forgot-password', function(req, res) {
           })
       },
       function(token, user, done) {
-        let mailOptions = {
-          to: user.email,
-          from: 'no-reply@eztrip.com',
-          subject: `Password Reset for ${user.email}`,
-          text: mailTemplates.forgotPassword(token)
-        }
+        let mailOptions = mailTemplates.forgotPassword(user, token)
 
         mail.sendMail(mailOptions, function(err, info) {
           done(err, user)

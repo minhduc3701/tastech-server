@@ -9,7 +9,7 @@ const PolicySchema = new Schema({
   },
   status: {
     type: String,
-    enum: ['default', 'enable', 'disable']
+    enum: ['default', 'enabled', 'disabled']
   },
   flightClass: String,
   stops: String,
@@ -47,7 +47,8 @@ const PolicySchema = new Schema({
   provision: Number, // in percent of (flight + lodging + (transportation + meal)*days )
   employees: [
     {
-      type: 'ObjectId'
+      type: 'ObjectId',
+      ref: 'User'
     }
   ]
 })
