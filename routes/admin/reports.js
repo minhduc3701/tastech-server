@@ -157,36 +157,51 @@ router.get('/trips/:id', (req, res) => {
     return res.status(404).send()
   }
 
-  Expense.aggregate([
-    {
-      $match: {
-        _trip: new ObjectID(id),
-        _company: req.user._company,
-        status: 'approved'
+  Promise.all([
+    // expenses belong to the trip id
+    Expense.find({
+      _company: req.user._company,
+      _trip: id,
+      status: 'approved'
+    }).populate('_trip'),
+    // trip statistic by category
+    Expense.aggregate([
+      {
+        $match: {
+          _trip: new ObjectID(id),
+          _company: req.user._company,
+          status: 'approved'
+        }
+      },
+      {
+        $group: {
+          _id: '$category',
+          category: { $first: '$category' },
+          amount: { $sum: '$amount' }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          category: '$category',
+          amount: '$amount'
+        }
+      },
+      {
+        $sort: {
+          amount: -1 // larger amount first
+        }
       }
-    },
-    {
-      $group: {
-        _id: '$category',
-        category: { $first: '$category' },
-        amount: { $sum: '$amount' }
-      }
-    },
-    {
-      $project: {
-        _id: 0,
-        category: '$category',
-        amount: '$amount'
-      }
-    },
-    {
-      $sort: {
-        amount: -1 // larger amount first
-      }
-    }
+    ])
   ])
     .then(results => {
-      res.status(200).send(results)
+      let expenses = results[0]
+      let statistics = results[1]
+
+      res.status(200).send({
+        expenses,
+        statistics
+      })
     })
     .catch(e => {
       res.status(400).send()
