@@ -165,14 +165,23 @@ router.patch('/:id', function(req, res) {
 })
 
 router.delete('/:id', function(req, res) {
-  if (!ObjectID.isValid(req.params.id)) {
+  let id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
     return res.status(404).send()
   }
 
-  Policy.findOneAndDelete({
-    _id: req.params.id,
-    _company: req.user._company
-  })
+  Policy.findById(id)
+    .then(policy => {
+      if (policy.status === 'default') {
+        return res.status(400).send()
+      }
+
+      return Policy.findOneAndDelete({
+        _id: req.params.id,
+        _company: req.user._company
+      })
+    })
     .then(policy => {
       if (!policy) {
         return res.status(404).send()

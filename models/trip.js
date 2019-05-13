@@ -23,6 +23,7 @@ var TripSchema = new Schema(
     },
     _creator: {
       type: 'ObjectId',
+      ref: 'User',
       required: true
     },
     forCreator: Boolean,
@@ -100,7 +101,8 @@ var TripSchema = new Schema(
     arrival: String,
     returnDate: Date,
     pnr: String,
-    orderNum: String
+    orderNum: String,
+    adminMessage: String
   },
   {
     timestamps: true

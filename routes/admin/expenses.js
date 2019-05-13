@@ -8,7 +8,13 @@ router.get('/', (req, res) => {
   Expense.find({
     _company: req.user._company
   })
-    .populate('_creator')
+    .populate({
+      path: '_creator',
+      populate: {
+        path: '_department',
+        select: 'name'
+      }
+    })
     .populate('_trip')
     .then(expenses => res.status(200).send({ expenses }))
     .catch(e => res.status(400).send())
@@ -24,6 +30,7 @@ router.get('/:id', function(req, res) {
     _company: req.user._company
   })
     .populate('_creator')
+    .populate('_attendees')
     .populate('_trip')
     .then(expense => {
       if (!expense) {
