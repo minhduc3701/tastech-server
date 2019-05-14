@@ -63,8 +63,6 @@ var TripSchema = new Schema(
         numberSeleted: Number
       }
     ],
-    departureFlight: {},
-    returnFlight: {},
     flight: {},
     passengers: [
       {
