@@ -30,6 +30,7 @@ const flightsPkfareRouter = require('./routes/flights/pkfare')
 const countriesRouter = require('./routes/countries')
 const airportsRouter = require('./routes/airports')
 const citiesRouter = require('./routes/cities')
+const checkoutRouter = require('./routes/checkout')
 
 const {
   authenticateTasAdmin,
@@ -147,6 +148,13 @@ app.use(
   '/cities',
   passport.authenticate('jwt', { session: false }),
   citiesRouter
+)
+
+// checkout
+app.use(
+  '/checkout',
+  passport.authenticate('jwt', { session: false }),
+  checkoutRouter
 )
 
 // catch 404 and forward to error handler
