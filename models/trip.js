@@ -65,6 +65,7 @@ var TripSchema = new Schema(
     ],
     departureFlight: {},
     returnFlight: {},
+    flight: {},
     passengers: [
       {
         businessEmail: String,

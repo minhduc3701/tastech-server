@@ -109,19 +109,19 @@ router.post(
           ])
             .then(results => {
               let arrAirline = results[0]
-              let objAirline = {}
+              let airlines = {}
               arrAirline.forEach(airline => {
-                objAirline[airline._doc.iata] = airline
+                airlines[airline._doc.iata] = airline
               })
               let arrAirport = results[1]
-              let objAirport = {}
+              let airports = {}
               arrAirport.forEach(airport => {
-                objAirport[airport._doc.airport_code] = airport
+                airports[airport._doc.airport_code] = airport
               })
               res.status(200).send({
                 flights,
-                objAirline,
-                objAirport
+                airlines,
+                airports
               })
             })
             .catch(e => {
