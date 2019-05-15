@@ -30,6 +30,7 @@ const flightsPkfareRouter = require('./routes/flights/pkfare')
 const countriesRouter = require('./routes/countries')
 const airportsRouter = require('./routes/airports')
 const citiesRouter = require('./routes/cities')
+const cardsRouter = require('./routes/cards')
 const checkoutRouter = require('./routes/checkout')
 
 const {
@@ -151,6 +152,8 @@ app.use(
 )
 
 // checkout
+app.use('/cards', passport.authenticate('jwt', { session: false }), cardsRouter)
+
 app.use(
   '/checkout',
   passport.authenticate('jwt', { session: false }),
