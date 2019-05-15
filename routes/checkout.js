@@ -35,7 +35,7 @@ router.post('/card', function(req, res, next) {
         0
       )
 
-      const amount = adultPrice + serviceFee
+      let amount = Math.floor((adultPrice + serviceFee) * 100)
 
       // find the card
       let foundCard = await Card.findOne({
@@ -49,7 +49,7 @@ router.post('/card', function(req, res, next) {
 
       // When it's time to charge the customer again, retrieve the customer ID.
       const charge = await stripe.charges.create({
-        amount: amount * 100,
+        amount,
         currency: 'usd',
         customer: foundCard.customer.id // Previously stored, then retrieved
       })
@@ -57,7 +57,7 @@ router.post('/card', function(req, res, next) {
       // YOUR CODE: Save the customer ID and other info in a database for later.
       res.status(200).send({ status: charge.status })
     } catch (e) {
-      res.status(400).send()
+      res.status(400).send(e)
     }
   })()
 })
