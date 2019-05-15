@@ -25,7 +25,13 @@ router.post('/', function(req, res, next) {
     card
       .save()
       .then(card => {
-        res.status(200).send({ _id: card._id })
+        res.status(200).send({
+          card: {
+            id: card._id,
+            brand: card.info.brand,
+            last4: card.info.last4
+          }
+        })
       })
       .catch(e => {
         res.status(400).send()
