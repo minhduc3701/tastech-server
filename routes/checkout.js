@@ -57,7 +57,7 @@ router.post('/card', function(req, res, next) {
       // YOUR CODE: Save the customer ID and other info in a database for later.
       res.status(200).send({ status: charge.status })
     } catch (e) {
-      res.status(400).send(e)
+      res.status(400).send()
     }
   })()
 })
