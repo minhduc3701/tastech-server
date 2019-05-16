@@ -53,17 +53,8 @@ var TripSchema = new Schema(
       default: 'pending', // pending, completed, canceled
       enum: ['pending', 'completed', 'cancelled']
     },
-    hotelCode: String,
-    rooms: [
-      {
-        roomType: String,
-        price: Number,
-        numberRooms: Number,
-        refundable: Boolean,
-        numberSeleted: Number
-      }
-    ],
     flight: {},
+    hotel: {},
     passengers: [
       {
         businessEmail: String,
