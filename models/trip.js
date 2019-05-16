@@ -87,8 +87,8 @@ var TripSchema = new Schema(
       phone1: Number,
       phone2: Number,
       postalAddress: Number,
-      postalCode1: String,
-      postalCode2: String,
+      areaCode1: String,
+      areaCode2: String,
       province: String
     },
     payment: String,
