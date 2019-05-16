@@ -25,17 +25,22 @@ router.post('/card', function(req, res, next) {
 
       let serviceFeeBreadkdown = ['platformServiceFee', 'merchantFee']
 
-      let adultPrice = adultPriceBreakdown.reduce(
-        (acc, fee) => foundTrip.flight[fee] + acc,
-        0
-      )
-      adultPrice *= foundTrip.passengers.length
-      let serviceFee = serviceFeeBreadkdown.reduce(
-        (acc, fee) => foundTrip.flight[fee] + acc,
-        0
-      )
+      let amount = 0
 
-      let amount = Math.floor((adultPrice + serviceFee) * 100)
+      // if have flight
+      if (foundTrip.flight) {
+        let adultPrice = adultPriceBreakdown.reduce(
+          (acc, fee) => foundTrip.flight[fee] + acc,
+          0
+        )
+        adultPrice *= foundTrip.passengers.length
+        let serviceFee = serviceFeeBreadkdown.reduce(
+          (acc, fee) => foundTrip.flight[fee] + acc,
+          0
+        )
+
+        amount += Math.floor((adultPrice + serviceFee) * 100)
+      } // end flight
 
       // find the card
       let foundCard = await Card.findOne({
@@ -47,15 +52,20 @@ router.post('/card', function(req, res, next) {
         return res.status(400).send()
       }
 
-      // When it's time to charge the customer again, retrieve the customer ID.
-      const charge = await stripe.charges.create({
-        amount,
-        currency: 'usd',
-        customer: foundCard.customer.id // Previously stored, then retrieved
-      })
+      // if positive amount
+      if (amount > 0) {
+        // When it's time to charge the customer again, retrieve the customer ID.
+        const charge = await stripe.charges.create({
+          amount,
+          currency: 'usd',
+          customer: foundCard.customer.id // Previously stored, then retrieved
+        })
 
-      // YOUR CODE: Save the customer ID and other info in a database for later.
-      res.status(200).send({ status: charge.status })
+        // YOUR CODE: Save the customer ID and other info in a database for later.
+        return res.status(200).send({ status: charge.status })
+      }
+
+      res.status(400).send()
     } catch (e) {
       res.status(400).send()
     }
