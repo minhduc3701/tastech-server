@@ -20,6 +20,7 @@ Add config/config.json with the content like below:
     "AWS_S3_REGION": "us-east-2",
     "AWS_S3_URI": "https://eztrip-dev.s3.ap-southeast-1.amazonaws.com",
     "PKFARE_URI": "https://open.pkfare.com/apitest",
+    "PKFARE_HOTEL_URI": "http://testhotelapi.pkfare.com",
     "PKFARE_PARTNER_ID": <PKFARE_PARTNER_ID>,
     "PKFARE_SIGN": <PKFARE_SIGN>,
     "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>
