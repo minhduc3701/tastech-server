@@ -39,14 +39,17 @@ router.post(
         let hotelList = results[0]
         let hotels = results[1]
 
-        hotels.forEach(hotelDetail => {
-          hotelList.forEach(hotel => {
-            if (hotelDetail._id === Number(hotel.hotelId)) {
-              hotelDetail['lowestPrice'] = hotel.lowestPrice
-            }
-          })
+        let newHotels = hotels.map(hotel => {
+          let matchingHotel = hotelList.find(
+            hotelApi => parseInt(hotelApi.hotelId) === hotel._id
+          )
+          return {
+            ...hotel.toObject(),
+            currency: matchingHotel.currency,
+            lowestPrice: matchingHotel.lowestPrice
+          }
         })
-        res.status(200).send({ hotels })
+        res.status(200).send({ hotels: newHotels })
       })
       .catch(error => res.status(400).send())
   }
