@@ -16,7 +16,7 @@ router.post(
   (req, res) => {
     axios({
       method: 'post',
-      url: `${process.env.PKFARE_URI}/hotel/queryHotelList`,
+      url: `${process.env.PKFARE_HOTEL_URI}/hotel/queryHotelList`,
       data: {
         authentication,
         request: req.body.request
@@ -58,7 +58,7 @@ router.post(
   (req, res) => {
     axios({
       method: 'post',
-      url: `${process.env.PKFARE_URI}/hotel/queryHotelRatePlan`,
+      url: `${process.env.PKFARE_HOTEL_URI}/hotel/queryHotelRatePlan`,
       data: {
         authentication,
         request: req.body.request
@@ -83,7 +83,7 @@ router.post(
   (req, res) => {
     axios({
       method: 'post',
-      url: `${process.env.PKFARE_URI}/hotel/preBooking`,
+      url: `${process.env.PKFARE_HOTEL_URI}/hotel/preBooking`,
       data: {
         authentication,
         request: req.body.request
@@ -106,18 +106,15 @@ router.post(
   '/createOrder',
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
-    console.log(`${process.env.PKFARE_URI}/hotel/createOrder`)
-    console.log(req.body.request)
     axios({
       method: 'post',
-      url: `${process.env.PKFARE_URI}/hotel/createOrder`,
+      url: `${process.env.PKFARE_HOTEL_URI}/hotel/createOrder`,
       data: {
         authentication,
         request: req.body.request
       }
     })
       .then(response => {
-        console.log('ok', response.data)
         if (response.data) {
           return res.status(200).send({
             data: response.data
@@ -127,7 +124,6 @@ router.post(
         return Promise.reject()
       })
       .catch(error => {
-        console.log('error')
         res.status(400).send(error)
       })
   }
