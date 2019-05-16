@@ -4,11 +4,19 @@ const _ = require('lodash')
 const passport = require('passport')
 const axios = require('axios')
 const Hotel = require('../../models/hotel')
+const HotelImage = require('../../models/hotelImages')
+const { ObjectID } = require('mongodb')
 
 const authentication = {
   partnerId: process.env.PKFARE_PARTNER_ID,
   sign: process.env.PKFARE_SIGN
 }
+
+router.get('/test', (req, res) => {
+  HotelImage.find({})
+    .then(images => res.status(200).send({ images }))
+    .catch(e => res.status(400).send())
+})
 
 router.post(
   '/hotelList',
@@ -29,9 +37,23 @@ router.post(
 
           return Promise.all([
             hotelList,
-            Hotel.find({
-              _id: { $in: hotelIds }
-            })
+            Hotel.aggregate([
+              {
+                $match: {
+                  _id: {
+                    $in: hotelIds
+                  }
+                }
+              },
+              {
+                $lookup: {
+                  from: 'hotelImages',
+                  localField: '_id',
+                  foreignField: 'hotelId',
+                  as: 'images'
+                }
+              }
+            ])
           ])
         }
       })
@@ -44,14 +66,16 @@ router.post(
             hotelApi => parseInt(hotelApi.hotelId) === hotel._id
           )
           return {
-            ...hotel.toObject(),
+            ...hotel,
             currency: matchingHotel.currency,
             lowestPrice: matchingHotel.lowestPrice
           }
         })
         res.status(200).send({ hotels: newHotels })
       })
-      .catch(error => res.status(400).send())
+      .catch(error => {
+        res.status(400).send()
+      })
   }
 )
 
