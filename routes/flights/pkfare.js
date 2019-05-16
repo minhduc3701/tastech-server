@@ -337,7 +337,8 @@ const makeFlightsData = (data, isRoundTrip) => {
         departureFlight,
         departureSegments,
         returnFlight,
-        returnSegments
+        returnSegments,
+        supplier: 'pkfare'
       })
     })
   }
