@@ -101,8 +101,7 @@ var TripSchema = new Schema(
     returnDate: Date,
     pnr: String,
     orderNum: String,
-    adminMessage: String,
-    supplier: String
+    adminMessage: String
   },
   {
     timestamps: true
