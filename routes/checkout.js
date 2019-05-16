@@ -62,4 +62,22 @@ router.post('/card', function(req, res, next) {
   })()
 })
 
+router.post('/password', (req, res) => {
+  let password = req.body.password
+
+  if (!password) {
+    return res.status(400).send()
+  }
+
+  req.user.authenticate(password, (err, user, passwordErr) => {
+    if (passwordErr) {
+      return res.status(400).send()
+    }
+
+    res.status(200).send({
+      message: 'Verify successfully'
+    })
+  })
+})
+
 module.exports = router
