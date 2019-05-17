@@ -42,6 +42,13 @@ router.post('/card', function(req, res, next) {
         amount += Math.floor((adultPrice + serviceFee) * 100)
       } // end flight
 
+      // if have hotel
+      if (foundTrip.hotel) {
+        amount += Math.floor(
+          foundTrip.hotel.latestRatePlanDetail.totalPrice * 100
+        )
+      }
+
       // find the card
       let foundCard = await Card.findOne({
         _id: cardId,

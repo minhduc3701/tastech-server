@@ -90,9 +90,11 @@ var TripSchema = new Schema(
     departureDate: Date,
     arrival: String,
     returnDate: Date,
-    pnr: String,
-    orderNum: String,
-    adminMessage: String
+    flightPnr: String,
+    flightOrderNumber: String,
+    adminMessage: String,
+    hotelCustomerOrderCode: String,
+    hotelOrderNumber: String
   },
   {
     timestamps: true
