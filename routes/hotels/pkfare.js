@@ -4,6 +4,7 @@ const _ = require('lodash')
 const passport = require('passport')
 const axios = require('axios')
 const Hotel = require('../../models/hotel')
+const { ObjectID } = require('mongodb')
 
 const authentication = {
   partnerId: process.env.PKFARE_PARTNER_ID,
@@ -29,9 +30,55 @@ router.post(
 
           return Promise.all([
             hotelList,
-            Hotel.find({
-              _id: { $in: hotelIds }
-            })
+            Hotel.aggregate([
+              {
+                $match: {
+                  _id: {
+                    $in: hotelIds
+                  }
+                }
+              },
+              {
+                $lookup: {
+                  from: 'hotelImages',
+                  localField: '_id',
+                  foreignField: 'hotelId',
+                  as: 'images'
+                }
+              },
+              {
+                $lookup: {
+                  from: 'hotelDescriptions',
+                  localField: '_id',
+                  foreignField: 'hotelId',
+                  as: 'description'
+                }
+              },
+              {
+                $lookup: {
+                  from: 'hotelAmenities',
+                  localField: '_id',
+                  foreignField: 'hotelId',
+                  as: 'amenities'
+                }
+              },
+              {
+                $lookup: {
+                  from: 'hotelPolicies',
+                  localField: '_id',
+                  foreignField: 'hotelId',
+                  as: 'policies'
+                }
+              },
+              {
+                $lookup: {
+                  from: 'hotelTransportations',
+                  localField: '_id',
+                  foreignField: 'hotelId',
+                  as: 'transportations'
+                }
+              }
+            ])
           ])
         }
       })
@@ -44,14 +91,16 @@ router.post(
             hotelApi => parseInt(hotelApi.hotelId) === hotel._id
           )
           return {
-            ...hotel.toObject(),
+            ...hotel,
             currency: matchingHotel.currency,
             lowestPrice: matchingHotel.lowestPrice
           }
         })
         res.status(200).send({ hotels: newHotels })
       })
-      .catch(error => res.status(400).send())
+      .catch(error => {
+        res.status(400).send()
+      })
   }
 )
 
