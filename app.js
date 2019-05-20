@@ -31,6 +31,7 @@ const hotelsPkfareRouter = require('./routes/hotels/pkfare')
 const countriesRouter = require('./routes/countries')
 const airportsRouter = require('./routes/airports')
 const citiesRouter = require('./routes/cities')
+const regionsRouter = require('./routes/regions')
 const cardsRouter = require('./routes/cards')
 const checkoutRouter = require('./routes/checkout')
 
@@ -153,6 +154,11 @@ app.use(
   '/cities',
   passport.authenticate('jwt', { session: false }),
   citiesRouter
+)
+app.use(
+  '/regions',
+  passport.authenticate('jwt', { session: false }),
+  regionsRouter
 )
 
 // checkout
