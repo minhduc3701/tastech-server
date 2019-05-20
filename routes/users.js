@@ -5,6 +5,17 @@ const { upload } = require('../config/aws')
 const singleUpload = upload.single('image')
 const _ = require('lodash')
 
+// get list user coworker
+router.get('/', function(req, res) {
+  User.find({
+    _company: req.user._company,
+    _id: { $ne: req.user._id },
+    type: { $eq: 'employee' }
+  })
+    .then(users => res.status(200).send({ users }))
+    .catch(e => res.status(400).send())
+})
+
 router.get('/me', function(req, res, next) {
   res.send(req.user)
 })
@@ -16,7 +27,6 @@ router.patch('/me', async (req, res) => {
     'firstName',
     'lastName',
     'phone',
-    'role',
     'age'
   ])
 
@@ -74,6 +84,56 @@ router.post('/me/avatar', function(req, res) {
         return res.status(400).send()
       })
   })
+})
+
+router.patch('/me/password', (req, res) => {
+  let oldPassword = req.body.oldPassword
+  let password = req.body.password
+  let confirmationPassword = req.body.confirmationPassword
+
+  if (password !== confirmationPassword) {
+    return res.status(400).send({
+      message: 'Password mismatch.'
+    })
+  }
+
+  req.user.authenticate(oldPassword, (err, user, passwordErr) => {
+    if (passwordErr) {
+      return res.status(400).send()
+    }
+
+    user
+      .setPassword(password)
+      .then(() => user.save())
+      .then(() =>
+        res.status(200).send({
+          message: 'Changed password successfully.'
+        })
+      )
+      .catch(e => {
+        res.status(400).send()
+      })
+  })
+})
+
+router.post('/search', (req, res) => {
+  let email = _.trim(req.body.email)
+
+  // @see https://stackoverflow.com/questions/3305561/how-to-query-mongodb-with-like
+  // @see https://stackoverflow.com/questions/26699885/how-can-i-use-a-regex-variable-in-a-query-for-mongodb
+  let searchCondition = { _company: req.user._company }
+  if (!_.isEmpty(email)) {
+    searchCondition.email = new RegExp(email)
+  }
+
+  User.find(searchCondition)
+    .limit(50)
+    .then(users => {
+      res.status(200).send({ users })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 module.exports = router

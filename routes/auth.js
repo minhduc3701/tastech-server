@@ -24,19 +24,35 @@ router.post('/login', function(req, res, next) {
         user: user
       })
     }
+
+    // disabled user
+    if (user.disabled) {
+      return res.status(401).send()
+    }
+
     req.login(user, { session: false }, err => {
       if (err) {
         res.send(err)
       }
+
+      // store last login date
+      user.lastLoginDate = Date.now()
+      user.save()
+
       // generate a signed son web token with the contents of user object and return it in the response
       const token = jwt.sign(
         { id: user.id, email: user.username },
         process.env.JWT_SECRET
       )
-      return res.json({
-        user,
-        token
-      })
+
+      User.findById(user.id)
+        .populate('_role', 'type')
+        .then(user => {
+          return res.json({
+            user,
+            token
+          })
+        })
     })
   })(req, res)
 })
@@ -83,12 +99,7 @@ router.post('/forgot-password', function(req, res) {
           })
       },
       function(token, user, done) {
-        let mailOptions = {
-          to: user.email,
-          from: 'no-reply@eztrip.com',
-          subject: `Password Reset for ${user.email}`,
-          text: mailTemplates.forgotPassword(token)
-        }
+        let mailOptions = mailTemplates.forgotPassword(user, token)
 
         mail.sendMail(mailOptions, function(err, info) {
           done(err, user)
@@ -110,7 +121,7 @@ router.get('/reset-password/:token', function(req, res) {
   })
     .then(user => {
       if (!user) {
-        res.status(400).send({
+        return res.status(400).send({
           message: 'Password reset token is invalid or has expired.'
         })
       }

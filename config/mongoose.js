@@ -1,5 +1,6 @@
 var mongoose = require('mongoose')
 mongoose.Promise = global.Promise
+mongoose.set('useFindAndModify', false)
 
 const { debugDb } = require('./debug')
 const debug = require('debug')(debugDb)

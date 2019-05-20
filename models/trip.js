@@ -1,35 +1,104 @@
 var mongoose = require('mongoose')
 var Schema = mongoose.Schema
-var TripSchema = new Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  status: {
-    type: String,
-    required: true
-  },
-  _creator: {
-    type: 'ObjectId',
-    required: true
-  },
-  checkout: {
-    type: Boolean,
-    required: true,
-    default: false
-  },
-  _passengers: [
-    {
-      _id: {
-        type: 'ObjectId',
-        required: true
+
+var TripSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: true
+    },
+    _company: mongoose.Schema.Types.ObjectId,
+    status: {
+      type: String,
+      required: true,
+      enum: [
+        'waiting',
+        'approved',
+        'rejected',
+        'ongoing',
+        'finished',
+        'completed'
+      ],
+      default: 'waiting'
+    },
+    _creator: {
+      type: 'ObjectId',
+      ref: 'User',
+      required: true
+    },
+    forCreator: Boolean,
+    budgetPassengers: [
+      {
+        flight: Number,
+        lodging: Number,
+        transportation: Number,
+        meal: Number,
+        provision: Number,
+        note: String,
+        classType: String,
+        destinations: [
+          {
+            from: String,
+            date: Date
+          }
+        ],
+        lastDestination: String,
+        lastDestinationDate: Date,
+        totalPrice: Number
       }
-    }
-  ],
-  start_location: {
-    type: String,
-    required: true
+    ],
+    checkoutStatus: {
+      type: String,
+      required: true,
+      default: 'pending', // pending, completed, canceled
+      enum: ['pending', 'completed', 'cancelled']
+    },
+    flight: {},
+    hotel: {},
+    passengers: [
+      {
+        businessEmail: String,
+        dateOfBirth: Date,
+        firstName: String,
+        frequentFlyerNumber: String,
+        frequentFlyerPropgram: String,
+        gender: String,
+        lastName: String,
+        nationality: String,
+        passportExpiryDate: Date,
+        passportNo: String,
+        title: String
+      }
+    ],
+    contactInfo: {
+      name: String,
+      email: String,
+      city: String,
+      country: String,
+      phone1: String,
+      phone2: String,
+      postalAddress: String,
+      areaCode1: String,
+      areaCode2: String,
+      province: String
+    },
+    payment: String,
+    roundTrip: Boolean,
+    numberPassengers: String,
+    flightClass: String,
+    departure: String,
+    departureDate: Date,
+    arrival: String,
+    returnDate: Date,
+    flightPnr: String,
+    flightOrderNumber: String,
+    adminMessage: String,
+    hotelCustomerOrderCode: String,
+    hotelOrderNumber: String
+  },
+  {
+    timestamps: true
   }
-})
+)
 
 module.exports = mongoose.model('Trip', TripSchema)

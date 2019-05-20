@@ -6,7 +6,7 @@ const mailTemplates = require('../config/mailTemplates.js')
 const { debugMail } = require('../config/debug')
 const debug = require('debug')(debugMail)
 
-const createUser = function(req, res) {
+const createUser = function(req, res, next) {
   async.waterfall(
     [
       function(done) {
@@ -28,19 +28,14 @@ const createUser = function(req, res) {
                 message: 'Successfully created new account',
                 user: req.user
               })
+              next()
               return done(null, req.user)
             })
           }
         )
       },
       function(user, done) {
-        let mailOptions = {
-          to: user.email,
-          from: 'no-reply@eztrip.com',
-          subject: `New account ${user.email}`,
-          text: mailTemplates.register()
-        }
-
+        let mailOptions = mailTemplates.register(user)
         mail.sendMail(mailOptions, function(err, info) {
           return done(err, user)
         })
