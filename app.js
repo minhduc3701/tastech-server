@@ -52,7 +52,12 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.use(cors())
+// limit cors for 1 origin (client app uri)
+app.use(
+  cors({
+    origin: process.env.APP_URI
+  })
+)
 
 app.use(passport.initialize())
 require('./config/passport')
