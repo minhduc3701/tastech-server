@@ -125,7 +125,32 @@ router.post(
 
         return Promise.reject()
       })
-      .catch(error => res.status(400).send(error))
+      .catch(error => res.status(400).send())
+  }
+)
+
+router.post(
+  '/hotelsRatePlan',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    axios({
+      method: 'post',
+      url: `${process.env.PKFARE_HOTEL_URI}/hotel/queryMultipleHotelRatePlan`,
+      data: {
+        authentication,
+        request: req.body.request
+      }
+    })
+      .then(response => {
+        if (response.data.body) {
+          return res.status(200).send({
+            ratePlans: response.data.body
+          })
+        }
+
+        return Promise.reject()
+      })
+      .catch(error => res.status(400).send())
   }
 )
 
@@ -150,7 +175,9 @@ router.post(
 
         return Promise.reject()
       })
-      .catch(error => res.status(400).send(error))
+      .catch(error => {
+        res.status(400).send()
+      })
   }
 )
 
@@ -176,7 +203,7 @@ router.post(
         return Promise.reject()
       })
       .catch(error => {
-        res.status(400).send(error)
+        res.status(400).send()
       })
   }
 )
