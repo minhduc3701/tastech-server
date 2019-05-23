@@ -10,8 +10,23 @@ const Department = require('../models/department')
 const Trip = require('../models/trip')
 const Expense = require('../models/expense')
 
-if (process.env.NODE_ENV === 'production') {
-  console.log("Don't wipe your production")
+const yargs = require('yargs')
+
+const argv = yargs
+  .options({
+    m: {
+      alias: 'message',
+      describe: 'Collections to seed',
+      required: true
+    }
+  })
+  .help()
+  .alias('help', 'h').argv
+
+let message = argv.m
+
+if (message !== 'I am ready to wipe all data') {
+  console.log("You're not ready my friend, you're not ready!")
   process.exit(1)
 }
 
