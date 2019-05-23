@@ -1,18 +1,20 @@
 require('../config/config')
 require('../config/mongoose')
 
-const { populateTasAdmin } = require('./production')
+const { populateTasAdmin } = require('./data/prod')
 const yargs = require('yargs')
 
 const argv = yargs
   .options({
     e: {
       alias: 'email',
-      describe: 'Email of user need to seed'
+      describe: 'Email of user need to seed',
+      required: true
     },
     p: {
       alias: 'password',
-      describe: 'Password of user need to seed'
+      describe: 'Password of user need to seed',
+      required: true
     }
   })
   .help()
