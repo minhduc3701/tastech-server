@@ -25,7 +25,7 @@ const argv = yargs
 
 let message = argv.m
 
-if (message !== 'I am ready to wipe all data') {
+if (message !== 'I am Chan. I am ready to wipe all data') {
   console.log("You're not ready my friend, you're not ready!")
   process.exit(1)
 }
