@@ -10,7 +10,7 @@ const {
   populateTrips,
   populateExpenses,
   populateDepartments
-} = require('./seed')
+} = require('./data/dev')
 
 const yargs = require('yargs')
 
