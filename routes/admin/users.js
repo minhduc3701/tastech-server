@@ -40,6 +40,7 @@ router.get('/:id', function(req, res) {
     _id: req.params.id,
     _company: req.user._company
   })
+    .populate('_department')
     .then(user => {
       if (!user) {
         return res.status(404).send()
