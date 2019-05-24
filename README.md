@@ -22,7 +22,7 @@ Add config/config.json with the content like below:
     "PKFARE_URI": "https://open.pkfare.com/apitest",
     "PKFARE_HOTEL_URI": "http://testhotelapi.pkfare.com",
     "PKFARE_PARTNER_ID": <PKFARE_PARTNER_ID>,
-    "PKFARE_SIGN": <PKFARE_SIGN>,
+    "PKFARE_PARTNER_KEY": <PKFARE_PARTNER_KEY>,
     "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>
   }
 }
@@ -119,7 +119,8 @@ export AWS_S3_REGION=<AWS_S3_REGION>
 export AWS_S3_URI=<S3_URI>
 export PKFARE_URI=https://pending.com
 export PKFARE_PARTNER_ID=<PKFARE_PARTNER_ID>
-export PKFARE_SIGN=<PKFARE_SIGN>
+export PKFARE_PARTNER_KEY=<PKFARE_PARTNER_KEY>
+export STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY>
 ```
 
 Now you ready to run your app
