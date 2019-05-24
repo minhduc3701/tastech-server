@@ -84,7 +84,7 @@ router.get('/:id', function(req, res) {
     {
       $match: {
         _id: new ObjectID(req.params.id),
-        _company: new ObjectID(req.user._company)
+        _company: req.user._company
       }
     },
     {
