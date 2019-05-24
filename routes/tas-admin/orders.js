@@ -22,6 +22,10 @@ router.get('/:id', function(req, res, next) {
     _id: req.params.id
   })
     .then(order => {
+      if (!order) {
+        return res.status(404).send()
+      }
+
       res.status(200).send({ order })
     })
     .catch(e => {

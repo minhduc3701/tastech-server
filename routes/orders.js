@@ -25,6 +25,10 @@ router.get('/:id', function(req, res, next) {
     _customer: req.user._id
   })
     .then(order => {
+      if (!order) {
+        return res.status(404).send()
+      }
+
       res.status(200).json({ order })
     })
     .catch(e => {
