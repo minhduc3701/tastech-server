@@ -34,7 +34,26 @@ router.post('/roles', (req, res) => {
     .catch(e => res.status(400).send())
 })
 
-router.post('/', createUser)
+router.post('/', createUser, (req, res) => {
+  let isTasAdmin = req.body.isTasAdmin
+
+  if (isTasAdmin) {
+    Role.findOne({
+      type: 'tas-admin'
+    })
+      .then(role => {
+        if (!role) {
+          return
+        }
+
+        req.user._role = role._id
+
+        return req.user.save()
+      })
+      .then(user => {})
+      .catch(e => {})
+  } // end if
+})
 
 router.get('/:id', function(req, res) {
   let id = req.params.id
