@@ -8,6 +8,10 @@ const OrderSchema = new Schema(
       type: 'ObjectId',
       required: true
     },
+    _trip: {
+      type: 'ObjectId',
+      required: true
+    },
     status: {
       type: String,
       required: true,
