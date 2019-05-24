@@ -3,7 +3,6 @@ const Schema = mongoose.Schema
 
 const OrderSchema = new Schema(
   {
-    name: String,
     _customer: {
       type: 'ObjectId',
       required: true
@@ -20,8 +19,6 @@ const OrderSchema = new Schema(
     },
     code: String,
     orderNumber: String,
-    flight: {},
-    hotel: {},
     currency: String,
     total: Number
   },
