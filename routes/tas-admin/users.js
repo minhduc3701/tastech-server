@@ -27,13 +27,8 @@ router.get('/', function(req, res) {
 })
 
 router.post('/roles', (req, res) => {
-  let conditions = [{ type: 'tas-admin' }]
-  if (req.body.company) {
-    conditions.push({ _company: req.body.company })
-  }
-
   Role.find({
-    $or: conditions // [{},{}]
+    _company: req.body.company
   })
     .then(roles => res.status(200).send({ roles }))
     .catch(e => res.status(400).send())
