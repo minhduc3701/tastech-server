@@ -1,9 +1,22 @@
 const express = require('express')
 const router = express.Router()
 const Department = require('../../models/department')
+const Trip = require('../../models/trip')
 const User = require('../../models/user')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
+
+let projectEmployeesFields = {
+  'employees.hash': 0,
+  'employees.salt': 0,
+  'employees.username': 0,
+  'employees.lastName': 0,
+  'employees._company': 0,
+  'employees._policy': 0,
+  'employees._role': 0,
+  'employees._department': 0,
+  'employees.__v': 0
+}
 
 router.post('/', function(req, res, next) {
   const department = new Department(req.body)
@@ -17,23 +30,6 @@ router.post('/', function(req, res, next) {
     .then(department => {
       newDepartment = department
 
-      return Department.updateMany(
-        {
-          _company: req.user._company,
-          _id: {
-            $ne: newDepartment._id
-          }
-        },
-        {
-          $pull: {
-            employees: {
-              $in: employees
-            }
-          }
-        }
-      )
-    })
-    .then(results => {
       return User.updateMany(
         {
           _id: {
@@ -56,10 +52,27 @@ router.post('/', function(req, res, next) {
 })
 
 router.get('/', (req, res) => {
-  Department.find({ _company: req.user._company })
-    .populate('employees', 'firstName avatar')
-    .sort([['_id', -1]])
-    .then(departments => res.status(200).send({ departments }))
+  Department.aggregate([
+    {
+      $match: {
+        _company: req.user._company
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_department',
+        as: 'employees'
+      }
+    },
+    {
+      $project: projectEmployeesFields
+    }
+  ])
+    .then(departments => {
+      res.status(200).send({ departments })
+    })
     .catch(e => res.status(400).send())
 })
 
@@ -68,21 +81,29 @@ router.get('/:id', function(req, res) {
     return res.status(404).send()
   }
 
-  Department.findOne({
-    _id: req.params.id,
-    _company: req.user._company
-  })
-    .populate('employees', 'firstName avatar email')
-    .then(department => {
-      if (!department) {
-        return res.status(404).send()
+  Department.aggregate([
+    {
+      $match: {
+        _id: new ObjectID(req.params.id),
+        _company: new ObjectID(req.user._company)
       }
-
-      res.status(200).send({ department })
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_department',
+        as: 'employees'
+      }
+    },
+    {
+      $project: projectEmployeesFields
+    }
+  ])
+    .then(departments => {
+      res.status(200).send({ department: departments[0] })
     })
-    .catch(e => {
-      res.status(400).send()
-    })
+    .catch(e => res.status(400).send())
 })
 
 router.patch('/:id', function(req, res) {
@@ -93,21 +114,6 @@ router.patch('/:id', function(req, res) {
   let body = _.pick(req.body, ['name', 'employees'])
 
   Promise.all([
-    Department.updateMany(
-      {
-        _company: req.user._company,
-        _id: {
-          $ne: req.params.id
-        }
-      },
-      {
-        $pull: {
-          employees: {
-            $in: body.employees
-          }
-        }
-      }
-    ),
     User.updateMany(
       {
         _id: {
@@ -125,12 +131,14 @@ router.patch('/:id', function(req, res) {
         _id: req.params.id,
         _company: req.user._company
       },
-      { $set: body },
+      {
+        $set: { name: body.name }
+      },
       { new: true }
     )
   ])
     .then(results => {
-      let department = results[2]
+      let department = results[1]
       if (!department) {
         return res.status(404).send()
       }

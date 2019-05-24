@@ -756,24 +756,19 @@ const departments = [
   {
     _id: departmentId,
     _company: companyId,
-    name: `Department 1`,
-    employees: users.filter(u => u._department === departmentId).map(u => u._id)
+    name: `Department 1`
   },
   {
     _id: secondDepartmentId,
     _company: companyId,
-    name: `Department 2`,
-    employees: users
-      .filter(u => u._department === secondDepartmentId)
-      .map(u => u._id)
+    name: `Department 2`
   }
 ]
 
 for (let i = 2; i < 10; i++) {
   departments.push({
     _company: companyId,
-    name: `Department ${i + 1}`,
-    employees: []
+    name: `Department ${i + 1}`
   })
 }
 

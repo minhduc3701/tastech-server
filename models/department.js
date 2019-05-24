@@ -6,13 +6,7 @@ const DepartmentSchema = new Schema({
   name: {
     type: String,
     required: true
-  },
-  employees: [
-    {
-      type: 'ObjectId',
-      ref: 'User'
-    }
-  ]
+  }
 })
 
 module.exports = mongoose.model('Department', DepartmentSchema)
