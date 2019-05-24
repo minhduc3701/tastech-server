@@ -5,11 +5,7 @@ const passport = require('passport')
 const axios = require('axios')
 const Hotel = require('../../models/hotel')
 const { ObjectID } = require('mongodb')
-
-const authentication = {
-  partnerId: process.env.PKFARE_PARTNER_ID,
-  sign: process.env.PKFARE_SIGN
-}
+const { authentication } = require('../../config/pkfare')
 
 router.post(
   '/hotelList',
