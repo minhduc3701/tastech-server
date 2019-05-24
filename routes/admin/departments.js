@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const Department = require('../../models/department')
-const Trip = require('../../models/trip')
 const User = require('../../models/user')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
