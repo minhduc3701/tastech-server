@@ -11,6 +11,11 @@ const OrderSchema = new Schema(
       type: 'ObjectId',
       required: true
     },
+    type: {
+      type: String,
+      enum: ['flight', 'hotel'],
+      required: true
+    },
     status: {
       type: String,
       required: true,
