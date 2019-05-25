@@ -89,7 +89,8 @@ router.patch('/:id', function(req, res) {
   User.updateMany(
     {
       _id: {
-        $in: body.users
+        $in: body.users,
+        $ne: req.user._id // don't allow user change their own role
       },
       _company: req.user._company
     },
