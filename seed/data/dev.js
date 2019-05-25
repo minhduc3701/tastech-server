@@ -123,20 +123,14 @@ const roles = [
     name: 'Admin',
     type: 'admin',
     permissions: ['CAN_EDIT_USER'],
-    _company: companyId,
-    users: users
-      .filter(user => user._role === adminRoleId)
-      .map(user => user._id)
+    _company: companyId
   },
   {
     _id: employeeRoleId,
     name: 'Employee',
     type: 'employee',
     permissions: ['CAN_CLAIM_EXPRENSE'],
-    _company: companyId,
-    users: users
-      .filter(user => user._role === employeeRoleId)
-      .map(user => user._id)
+    _company: companyId
   }
 ]
 
@@ -262,8 +256,7 @@ const policies = [
     setMealLimit: true,
     mealLimit: 100,
     setProvision: true,
-    provision: 5,
-    employees: []
+    provision: 5
   },
   {
     _id: policyId1,
@@ -291,10 +284,7 @@ const policies = [
     setMealLimit: false,
     mealLimit: 0,
     setProvision: false,
-    provision: 10,
-    employees: users
-      .filter(user => user._policy === policyId1)
-      .map(user => user._id)
+    provision: 10
   },
   {
     _id: policyId2,
@@ -322,10 +312,7 @@ const policies = [
     setMealLimit: false,
     mealLimit: 0,
     setProvision: true,
-    provision: 10,
-    employees: users
-      .filter(user => user._policy === policyId2)
-      .map(user => user._id)
+    provision: 10
   }
 ]
 
@@ -756,24 +743,19 @@ const departments = [
   {
     _id: departmentId,
     _company: companyId,
-    name: `Department 1`,
-    employees: users.filter(u => u._department === departmentId).map(u => u._id)
+    name: `Department 1`
   },
   {
     _id: secondDepartmentId,
     _company: companyId,
-    name: `Department 2`,
-    employees: users
-      .filter(u => u._department === secondDepartmentId)
-      .map(u => u._id)
+    name: `Department 2`
   }
 ]
 
 for (let i = 2; i < 10; i++) {
   departments.push({
     _company: companyId,
-    name: `Department ${i + 1}`,
-    employees: []
+    name: `Department ${i + 1}`
   })
 }
 

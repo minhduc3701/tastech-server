@@ -53,7 +53,14 @@ router.patch('/:id', (req, res) => {
 
   const body = _.pick(req.body, ['status', 'adminMessage'])
 
-  Expense.findByIdAndUpdate(id, { $set: body }, { new: true })
+  Expense.findOneAndUpdate(
+    {
+      _id: id,
+      _company: req.user._company
+    },
+    { $set: body },
+    { new: true }
+  )
     .then(expense => {
       if (!expense) {
         return res.status(404).send()
