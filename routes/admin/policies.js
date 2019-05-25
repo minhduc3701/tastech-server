@@ -5,13 +5,45 @@ const User = require('../../models/user')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
+let projectUsersFields = {
+  'employees.hash': 0,
+  'employees.salt': 0,
+  'employees.username': 0,
+  'employees.lastName': 0,
+  'employees._company': 0,
+  'employees._policy': 0,
+  'employees._role': 0,
+  'employees._department': 0,
+  'employees.__v': 0
+}
+
 router.post('/', function(req, res, next) {
   const policy = new Policy(req.body)
   policy._company = req.user._company
+
+  let employees = req.body.employees
+  let newPolicy
+
   policy
     .save()
-    .then(() => {
-      res.status(200).json({ policy })
+    .then(policy => {
+      newPolicy = policy
+
+      return User.updateMany(
+        {
+          _id: {
+            $in: employees
+          }
+        },
+        {
+          $set: {
+            _policy: newPolicy._id
+          }
+        }
+      )
+    })
+    .then(results => {
+      res.status(200).json({ policy: newPolicy })
     })
     .catch(e => {
       res.status(400).send()
@@ -19,9 +51,27 @@ router.post('/', function(req, res, next) {
 })
 
 router.get('/', (req, res) => {
-  Policy.find({ _company: req.user._company })
-    .populate('employees')
-    .then(policies => res.status(200).send({ policies }))
+  Policy.aggregate([
+    {
+      $match: {
+        _company: req.user._company
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_policy',
+        as: 'employees'
+      }
+    },
+    {
+      $project: projectUsersFields
+    }
+  ])
+    .then(policies => {
+      res.status(200).send({ policies })
+    })
     .catch(e => res.status(400).send())
 })
 
@@ -30,27 +80,33 @@ router.get('/:id', function(req, res) {
     return res.status(404).send()
   }
 
-  Policy.findOne({
-    _id: req.params.id,
-    _company: req.user._company
-  })
-    .populate('employees')
-    .then(policy => {
-      if (!policy) {
-        return res.status(404).send()
+  Policy.aggregate([
+    {
+      $match: {
+        _id: new ObjectID(req.params.id),
+        _company: req.user._company
       }
-
-      res.status(200).send({ policy })
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_policy',
+        as: 'employees'
+      }
+    },
+    {
+      $project: projectUsersFields
+    }
+  ])
+    .then(policies => {
+      res.status(200).send({ policy: policies[0] })
     })
-    .catch(e => {
-      res.status(400).send()
-    })
+    .catch(e => res.status(400).send())
 })
 
 router.patch('/:id/status', function(req, res) {
-  let id = req.params.id
-
-  if (!ObjectID.isValid(id)) {
+  if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
 
@@ -58,7 +114,7 @@ router.patch('/:id/status', function(req, res) {
 
   Policy.findOneAndUpdate(
     {
-      _id: id,
+      _id: req.params.id,
       _company: req.user._company
     },
     { $set: body },
@@ -72,7 +128,6 @@ router.patch('/:id/status', function(req, res) {
       res.status(200).send({ policy })
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })
@@ -86,7 +141,6 @@ router.patch('/:id', function(req, res) {
 
   let body = _.pick(req.body, [
     'name',
-    'status',
     'flightClass',
     'stops',
     'setDaysBeforeFlights',
@@ -113,21 +167,6 @@ router.patch('/:id', function(req, res) {
   ])
 
   Promise.all([
-    Policy.updateMany(
-      {
-        _id: {
-          $ne: id
-        },
-        _company: req.user._company
-      },
-      {
-        $pull: {
-          employees: {
-            $in: body.employees
-          }
-        }
-      }
-    ),
     User.updateMany(
       {
         _id: {
@@ -138,6 +177,19 @@ router.patch('/:id', function(req, res) {
       {
         $set: {
           _policy: id
+        }
+      }
+    ),
+    User.updateMany(
+      {
+        _policy: req.params.id,
+        _id: {
+          $nin: body.employees
+        }
+      },
+      {
+        $set: {
+          _policy: null
         }
       }
     ),
@@ -159,7 +211,6 @@ router.patch('/:id', function(req, res) {
       res.status(200).send({ policy })
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })

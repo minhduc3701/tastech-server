@@ -6,6 +6,18 @@ const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { permissions } = require('../../config/roles')
 
+let projectUsersFields = {
+  'users.hash': 0,
+  'users.salt': 0,
+  'users.username': 0,
+  'users.lastName': 0,
+  'users._company': 0,
+  'users._policy': 0,
+  'users._role': 0,
+  'users._department': 0,
+  'users.__v': 0
+}
+
 router.post('/', function(req, res) {
   let body = _.pick(req.body, ['name', 'permissions'])
 
@@ -18,11 +30,27 @@ router.post('/', function(req, res) {
 })
 
 router.get('/', function(req, res) {
-  Role.find({
-    _company: req.user._company
-  })
-    .populate('users', 'avatar')
-    .then(roles => res.status(200).send({ roles }))
+  Role.aggregate([
+    {
+      $match: {
+        _company: req.user._company
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_role',
+        as: 'users'
+      }
+    },
+    {
+      $project: projectUsersFields
+    }
+  ])
+    .then(roles => {
+      res.status(200).send({ roles })
+    })
     .catch(e => res.status(400).send())
 })
 
@@ -31,50 +59,42 @@ router.get('/permissions', function(req, res) {
 })
 
 router.get('/:id', function(req, res) {
-  let id = req.params.id
-
-  if (!ObjectID.isValid(id)) {
+  if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
 
-  Role.findById(id)
-    .populate('users', 'email avatar')
-    .then(role => {
-      if (!role) {
-        return res.status(404).send()
+  Role.aggregate([
+    {
+      $match: {
+        _id: new ObjectID(req.params.id)
       }
-
-      res.status(200).send({ role, permissions })
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_role',
+        as: 'users'
+      }
+    },
+    {
+      $project: projectUsersFields
+    }
+  ])
+    .then(roles => {
+      res.status(200).send({ role: roles[0], permissions })
     })
-    .catch(e => {
-      res.status(400).send()
-    })
+    .catch(e => res.status(400).send())
 })
 
 router.patch('/:id', function(req, res) {
-  let id = req.params.id
-
-  if (!ObjectID.isValid(id)) {
+  if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
 
   let body = _.pick(req.body, ['permissions', 'users'])
 
   Promise.all([
-    Role.updateMany(
-      {
-        _id: {
-          $ne: id
-        }
-      },
-      {
-        $pull: {
-          users: {
-            $in: body.users
-          }
-        }
-      }
-    ),
     User.updateMany(
       {
         _id: {
@@ -83,15 +103,28 @@ router.patch('/:id', function(req, res) {
       },
       {
         $set: {
-          _role: id
+          _role: req.params.id
+        }
+      }
+    ),
+    User.updateMany(
+      {
+        _role: req.params.id,
+        _id: {
+          $nin: body.users
+        }
+      },
+      {
+        $set: {
+          _role: null
         }
       }
     ),
     Role.findByIdAndUpdate(
-      id,
+      req.params.id,
       {
         $set: {
-          users: body.users
+          permissions: body.permissions
         }
       },
       { new: true }

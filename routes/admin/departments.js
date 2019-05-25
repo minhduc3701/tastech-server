@@ -125,6 +125,19 @@ router.patch('/:id', function(req, res) {
         }
       }
     ),
+    User.updateMany(
+      {
+        _department: req.params.id,
+        _id: {
+          $nin: body.employees
+        }
+      },
+      {
+        $set: {
+          _department: null
+        }
+      }
+    ),
     Department.findOneAndUpdate(
       {
         _id: req.params.id,
@@ -137,7 +150,7 @@ router.patch('/:id', function(req, res) {
     )
   ])
     .then(results => {
-      let department = results[1]
+      let department = results[2]
       if (!department) {
         return res.status(404).send()
       }
