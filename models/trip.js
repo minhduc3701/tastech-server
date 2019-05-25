@@ -83,7 +83,11 @@ var TripSchema = new Schema(
     departureDate: Date,
     arrival: String,
     returnDate: Date,
-    adminMessage: String
+    adminMessage: String,
+    _order: {
+      type: 'ObjectId',
+      ref: 'Order'
+    }
   },
   {
     timestamps: true
