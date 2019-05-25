@@ -26,13 +26,34 @@ router.get('/', function(req, res) {
     .catch(e => res.status(400).send())
 })
 
-router.get('/roles', (req, res) => {
-  Role.find({})
+router.post('/roles', (req, res) => {
+  Role.find({
+    _company: req.body.company
+  })
     .then(roles => res.status(200).send({ roles }))
     .catch(e => res.status(400).send())
 })
 
-router.post('/', createUser)
+router.post('/', createUser, (req, res) => {
+  let isTasAdmin = req.body.isTasAdmin
+
+  if (isTasAdmin) {
+    Role.findOne({
+      type: 'tas-admin'
+    })
+      .then(role => {
+        if (!role) {
+          return
+        }
+
+        req.user._role = role._id
+
+        return req.user.save()
+      })
+      .then(user => {})
+      .catch(e => {})
+  } // end if
+})
 
 router.get('/:id', function(req, res) {
   let id = req.params.id

@@ -12,7 +12,6 @@ const CompanySchema = new Schema({
   companySize: String,
   timezone: String,
   industry: String,
-  departments: Array,
   exchangedRate: Number,
   _policy: {
     type: 'ObjectId',

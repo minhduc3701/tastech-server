@@ -18,6 +18,7 @@ const expensesRouter = require('./routes/expenses')
 const tasAdminUsersRouter = require('./routes/tas-admin/users')
 const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
 const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
+const tasAdminOrdersRouter = require('./routes/tas-admin/orders')
 const adminCompanyRouter = require('./routes/admin/company')
 const adminUsersRouter = require('./routes/admin/users')
 const adminRolesRouter = require('./routes/admin/roles')
@@ -34,6 +35,7 @@ const citiesRouter = require('./routes/cities')
 const regionsRouter = require('./routes/regions')
 const cardsRouter = require('./routes/cards')
 const checkoutRouter = require('./routes/checkout')
+const ordersRouter = require('./routes/orders')
 
 const {
   authenticateTasAdmin,
@@ -71,6 +73,12 @@ app.use(
   passport.authenticate('jwt', { session: false }),
   expensesRouter
 )
+app.use(
+  '/orders',
+  passport.authenticate('jwt', { session: false }),
+  ordersRouter
+)
+
 // tas-admin routes
 app.use(
   '/tas-admin/requests',
@@ -89,6 +97,13 @@ app.use(
   passport.authenticate('jwt', { session: false }),
   authenticateTasAdmin,
   tasAdminCompaniesRouter
+)
+
+app.use(
+  '/tas-admin/orders',
+  passport.authenticate('jwt', { session: false }),
+  authenticateTasAdmin,
+  tasAdminOrdersRouter
 )
 
 // admin routes

@@ -47,12 +47,6 @@ var TripSchema = new Schema(
         totalPrice: Number
       }
     ],
-    checkoutStatus: {
-      type: String,
-      required: true,
-      default: 'pending', // pending, completed, canceled
-      enum: ['pending', 'completed', 'cancelled']
-    },
     flight: {},
     hotel: {},
     passengers: [
@@ -82,7 +76,6 @@ var TripSchema = new Schema(
       areaCode2: String,
       province: String
     },
-    payment: String,
     roundTrip: Boolean,
     numberPassengers: String,
     flightClass: String,
@@ -90,11 +83,7 @@ var TripSchema = new Schema(
     departureDate: Date,
     arrival: String,
     returnDate: Date,
-    flightPnr: String,
-    flightOrderNumber: String,
-    adminMessage: String,
-    hotelCustomerOrderCode: String,
-    hotelOrderNumber: String
+    adminMessage: String
   },
   {
     timestamps: true

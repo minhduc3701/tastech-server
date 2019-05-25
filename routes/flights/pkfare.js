@@ -8,6 +8,7 @@ const Airport = require('../../models/airport')
 const bodyParser = require('body-parser')
 const zlib = require('zlib')
 const request = require('request')
+const { authentication } = require('../../config/pkfare')
 
 // @see http://open.pkfare.com/documents/show?id=2352d3737b0442d6a402fea86ed8bda2uk
 // @see https://stackoverflow.com/a/30099608
@@ -44,11 +45,6 @@ router.post('/', bodyParser.text({ type: '*/*' }), (req, res) => {
       })
     })
 })
-
-const authentication = {
-  partnerId: process.env.PKFARE_PARTNER_ID,
-  sign: process.env.PKFARE_SIGN
-}
 
 router.post(
   '/shopping',
@@ -329,7 +325,7 @@ const makeFlightsData = (data, isRoundTrip) => {
       ]
 
       let price = priceBreakdown.reduce((acc, fee) => solution[fee] + acc, 0)
-      price = Math.round(price)
+      price = price.toFixed(2)
 
       flightsData.push({
         ...solution,
