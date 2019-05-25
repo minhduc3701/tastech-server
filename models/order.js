@@ -20,7 +20,7 @@ const OrderSchema = new Schema(
       type: String,
       required: true,
       default: 'pending',
-      enum: ['pending', 'completed', 'cancelling', 'cancelled']
+      enum: ['pending', 'completed', 'failed', 'cancelling', 'cancelled']
     },
     code: String,
     orderNumber: String,
