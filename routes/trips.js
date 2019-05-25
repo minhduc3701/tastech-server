@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Trip = require('../models/trip')
 const Expense = require('../models/expense')
+const Order = require('../models/order')
 const { ObjectID } = require('mongodb')
 
 router.get('/', function(req, res, next) {
@@ -87,6 +88,24 @@ router.get('/:id/expenses', function(req, res, next) {
       let expenses = results[1]
 
       res.status(200).send({ trip, expenses })
+    })
+    .catch(e => res.status(400).send())
+})
+
+// get orders by trip
+router.get('/:id/orders', function(req, res, next) {
+  let id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  Order.find({
+    _customer: req.user._id,
+    _trip: id
+  })
+    .then(orders => {
+      res.status(200).send({ orders })
     })
     .catch(e => res.status(400).send())
 })

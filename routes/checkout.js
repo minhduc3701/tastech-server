@@ -16,6 +16,7 @@ router.post('/card', function(req, res, next) {
     try {
       // calculate the trip price here
       let foundTrip = await Trip.findById(tripId)
+      let currency = ''
 
       if (!foundTrip) {
         return res.status(400).send()
@@ -40,11 +41,15 @@ router.post('/card', function(req, res, next) {
         )
 
         amount += Math.floor((adultPrice + serviceFee) * 100)
+
+        currency = foundTrip.flight.currency
       } // end flight
 
       // if have hotel
       if (foundTrip.hotel) {
         amount += Math.floor(foundTrip.hotel.room.totalPrice * 100)
+
+        currency = foundTrip.hotel.detail.currency
       }
 
       // find the card
@@ -58,11 +63,11 @@ router.post('/card', function(req, res, next) {
       }
 
       // if positive amount
-      if (amount > 0) {
+      if (amount > 0 && currency) {
         // When it's time to charge the customer again, retrieve the customer ID.
         const charge = await stripe.charges.create({
           amount,
-          currency: 'usd',
+          currency,
           customer: foundCard.customer.id // Previously stored, then retrieved
         })
 
