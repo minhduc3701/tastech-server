@@ -18,17 +18,6 @@ let projectUsersFields = {
   'users.__v': 0
 }
 
-router.post('/', function(req, res) {
-  let body = _.pick(req.body, ['name', 'permissions'])
-
-  let role = new Role({ ...body, _company: req.user._company })
-
-  role
-    .save()
-    .then(role => res.send({ role }))
-    .catch(e => res.status(400).send())
-})
-
 router.get('/', function(req, res) {
   Role.aggregate([
     {
@@ -66,7 +55,8 @@ router.get('/:id', function(req, res) {
   Role.aggregate([
     {
       $match: {
-        _id: new ObjectID(req.params.id)
+        _id: new ObjectID(req.params.id),
+        _company: req.user._company
       }
     },
     {
@@ -92,49 +82,24 @@ router.patch('/:id', function(req, res) {
     return res.status(404).send()
   }
 
-  let body = _.pick(req.body, ['permissions', 'users'])
+  let body = _.pick(req.body, ['users'])
 
-  Promise.all([
-    User.updateMany(
-      {
-        _id: {
-          $in: body.users
-        }
+  // because user must have role,
+  // so don't need to set to null like department and policy
+  User.updateMany(
+    {
+      _id: {
+        $in: body.users
       },
-      {
-        $set: {
-          _role: req.params.id
-        }
+      _company: req.user._company
+    },
+    {
+      $set: {
+        _role: req.params.id
       }
-    ),
-    User.updateMany(
-      {
-        _role: req.params.id,
-        _id: {
-          $nin: body.users
-        }
-      },
-      {
-        $set: {
-          _role: null
-        }
-      }
-    ),
-    Role.findByIdAndUpdate(
-      req.params.id,
-      {
-        $set: {
-          permissions: body.permissions
-        }
-      },
-      { new: true }
-    )
-  ])
-    .then(results =>
-      res.status(200).send({
-        role: results[2]
-      })
-    )
+    }
+  )
+    .then(results => res.status(200).send())
     .catch(e => res.status(400).send())
 })
 

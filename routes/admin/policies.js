@@ -33,7 +33,8 @@ router.post('/', function(req, res, next) {
         {
           _id: {
             $in: employees
-          }
+          },
+          _company: req.user._company
         },
         {
           $set: {
@@ -185,7 +186,8 @@ router.patch('/:id', function(req, res) {
         _policy: req.params.id,
         _id: {
           $nin: body.employees
-        }
+        },
+        _company: req.user._company
       },
       {
         $set: {
