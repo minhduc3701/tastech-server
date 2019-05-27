@@ -14,6 +14,7 @@ Add config/config.json with the content like below:
     "SENDGRID_USERNAME": "sg-username",
     "SENDGRID_PASSWORD": "sg-password",
     "APP_URI": "http://localhost:3000",
+    "ALLOW_ORIGIN": "http://localhost:3000",
     "AWS_ACCESS_KEY_ID": <AWS_ACCESS_KEY_ID>,
     "AWS_SECRET_ACCESS_KEY": <AWS_SECRET_ACCESS_KEY>,
     "AWS_S3_NAME="eztrip-dev",
@@ -112,6 +113,7 @@ export NODE_ENV=production
 export SENDGRID_USERNAME=<production sendgrid username>
 export SENDGRID_PASSWORD=<production sendgrid username>
 export APP_URI=<frontend app uri>
+export ALLOW_ORIGIN=<frontend app uri>
 export AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
 export AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
 export AWS_S3_NAME=<AWS_S3_NAME>

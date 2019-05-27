@@ -57,7 +57,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 // limit cors for 1 origin (client app uri)
 app.use(
   cors({
-    origin: process.env.APP_URI
+    origin: process.env.ALLOW_ORIGIN
   })
 )
 
