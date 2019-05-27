@@ -20,12 +20,21 @@ const OrderSchema = new Schema(
       type: String,
       required: true,
       default: 'pending',
-      enum: ['pending', 'completed', 'failed', 'cancelling', 'cancelled']
+      enum: [
+        'pending',
+        'processing',
+        'completed',
+        'failed',
+        'cancelling',
+        'cancelled'
+      ]
     },
     customerCode: String,
     number: String,
     currency: String,
-    total: Number
+    total: Number,
+    flight: {},
+    hotel: {}
   },
   {
     timestamps: true
