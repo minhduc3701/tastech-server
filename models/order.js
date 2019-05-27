@@ -9,7 +9,8 @@ const OrderSchema = new Schema(
     },
     _trip: {
       type: 'ObjectId',
-      required: true
+      required: true,
+      ref: 'Trip'
     },
     type: {
       type: String,
