@@ -5,7 +5,8 @@ const OrderSchema = new Schema(
   {
     _customer: {
       type: 'ObjectId',
-      required: true
+      required: true,
+      ref: 'User'
     },
     _trip: {
       type: 'ObjectId',
