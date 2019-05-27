@@ -55,9 +55,9 @@ router.post('/card', function(req, res, next) {
 
       // if have hotel
       if (hotelOrder && hotelOrder.hotel) {
-        amount += Math.floor(hotelOrder.hotel.room.totalPrice * 100)
+        amount += Math.floor(hotelOrder.hotel.totalPrice * 100)
 
-        currency = hotelOrder.hotel.detail.currency
+        currency = hotelOrder.hotel.currency
       }
 
       // find the card
