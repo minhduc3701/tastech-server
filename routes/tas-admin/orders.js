@@ -6,6 +6,7 @@ const { ObjectID } = require('mongodb')
 router.get('/', function(req, res, next) {
   Order.find({})
     .populate('_trip', ['type', 'name', 'contactInfo'])
+    .populate('_customer', ['email'])
     .sort({ createdAt: -1 })
     .then(orders => {
       res.status(200).send({ orders })
