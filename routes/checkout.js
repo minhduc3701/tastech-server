@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Card = require('../models/card')
 const Trip = require('../models/trip')
+const Order = require('../models/order')
 
 router.post('/card', function(req, res, next) {
   const { card, trip } = req.body
@@ -15,12 +16,19 @@ router.post('/card', function(req, res, next) {
   ;(async () => {
     try {
       // calculate the trip price here
-      let foundTrip = await Trip.findById(tripId)
+      let orders = await Order.find({
+        _trip: tripId,
+        _customer: req.user._id
+      }).populate('_trip')
+
       let currency = ''
 
-      if (!foundTrip) {
+      if (orders.length === 0) {
         return res.status(400).send()
       }
+
+      let flightOrder = orders.find(order => order.type === 'flight')
+      let hotelOrder = orders.find(order => order.type === 'hotel')
 
       let adultPriceBreakdown = ['adtFare', 'adtTax', 'tktFee']
 
@@ -29,27 +37,27 @@ router.post('/card', function(req, res, next) {
       let amount = 0
 
       // if have flight
-      if (foundTrip.flight) {
+      if (flightOrder && flightOrder.flight) {
         let adultPrice = adultPriceBreakdown.reduce(
-          (acc, fee) => foundTrip.flight[fee] + acc,
+          (acc, fee) => flightOrder.flight[fee] + acc,
           0
         )
-        adultPrice *= foundTrip.passengers.length
+        adultPrice *= flightOrder._trip.passengers.length
         let serviceFee = serviceFeeBreadkdown.reduce(
-          (acc, fee) => foundTrip.flight[fee] + acc,
+          (acc, fee) => flightOrder.flight[fee] + acc,
           0
         )
 
         amount += Math.floor((adultPrice + serviceFee) * 100)
 
-        currency = foundTrip.flight.currency
+        currency = flightOrder.flight.currency
       } // end flight
 
       // if have hotel
-      if (foundTrip.hotel) {
-        amount += Math.floor(foundTrip.hotel.room.totalPrice * 100)
+      if (hotelOrder && hotelOrder.hotel) {
+        amount += Math.floor(hotelOrder.hotel.room.totalPrice * 100)
 
-        currency = foundTrip.hotel.detail.currency
+        currency = hotelOrder.hotel.detail.currency
       }
 
       // find the card

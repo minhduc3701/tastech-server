@@ -89,7 +89,8 @@ router.post(
           return {
             ...hotel,
             currency: matchingHotel.currency,
-            lowestPrice: matchingHotel.lowestPrice
+            lowestPrice: matchingHotel.lowestPrice,
+            supplier: 'pkfare'
           }
         })
         res.status(200).send({ hotels: newHotels })
