@@ -21,7 +21,7 @@ Add config/config.json with the content like below:
     "AWS_S3_REGION": "us-east-2",
     "AWS_S3_URI": "https://eztrip-dev.s3.ap-southeast-1.amazonaws.com",
     "PKFARE_URI": "https://open.pkfare.com/apitest",
-    "PKFARE_HOTEL_URI": "http://testhotelapi.pkfare.com",
+    "PKFARE_HOTEL_URI": "https://hotelapi.pkfare.com/hotel",
     "PKFARE_PARTNER_ID": <PKFARE_PARTNER_ID>,
     "PKFARE_PARTNER_KEY": <PKFARE_PARTNER_KEY>,
     "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>
@@ -120,6 +120,7 @@ export AWS_S3_NAME=<AWS_S3_NAME>
 export AWS_S3_REGION=<AWS_S3_REGION>
 export AWS_S3_URI=<S3_URI>
 export PKFARE_URI=https://pending.com
+export PKFARE_HOTEL_URI=https://hotelapi.pkfare.com/hotel
 export PKFARE_PARTNER_ID=<PKFARE_PARTNER_ID>
 export PKFARE_PARTNER_KEY=<PKFARE_PARTNER_KEY>
 export STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY>
