@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Expense = require('../models/expense')
+const Trip = require('../models/trip')
 const { ObjectID } = require('mongodb')
 const { upload } = require('../config/aws')
 const _ = require('lodash')
@@ -17,6 +18,16 @@ router.post('/', upload.array('receipts'), function(req, res, next) {
   } else {
     expense._attendees = []
   }
+  // check trip's status
+  Trip.findById(expense._trip)
+    .then(trip => {
+      if (!['approved', 'ongoing', 'finished'].includes(trip.status)) {
+        res.status(400).send()
+      }
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
   expense
     .save()
     .then(() => {
