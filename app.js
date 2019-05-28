@@ -29,6 +29,7 @@ const adminExpensesRouter = require('./routes/admin/expenses')
 const adminReportsRouter = require('./routes/admin/reports')
 const flightsPkfareRouter = require('./routes/flights/pkfare')
 const hotelsPkfareRouter = require('./routes/hotels/pkfare')
+const ticketsPkfareRouter = require('./routes/tickets/pkfare')
 const countriesRouter = require('./routes/countries')
 const airportsRouter = require('./routes/airports')
 const citiesRouter = require('./routes/cities')
@@ -162,6 +163,9 @@ app.use('/flights/pkfare', flightsPkfareRouter)
 
 // hotels
 app.use('/hotels/pkfare', hotelsPkfareRouter)
+
+// tickets
+app.use('/tickets/pkfare', ticketsPkfareRouter)
 
 // content api
 app.use('/countries', countriesRouter)

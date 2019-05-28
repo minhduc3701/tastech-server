@@ -13,7 +13,7 @@ router.post(
   (req, res) => {
     axios({
       method: 'post',
-      url: `${process.env.PKFARE_HOTEL_URI}/hotel/queryHotelList`,
+      url: `${process.env.PKFARE_HOTEL_URI}/queryHotelList`,
       data: {
         authentication,
         request: req.body.request
@@ -107,7 +107,7 @@ router.post(
   (req, res) => {
     axios({
       method: 'post',
-      url: `${process.env.PKFARE_HOTEL_URI}/hotel/queryHotelRatePlan`,
+      url: `${process.env.PKFARE_HOTEL_URI}/queryHotelRatePlan`,
       data: {
         authentication,
         request: req.body.request
@@ -132,7 +132,7 @@ router.post(
   (req, res) => {
     axios({
       method: 'post',
-      url: `${process.env.PKFARE_HOTEL_URI}/hotel/queryMultipleHotelRatePlan`,
+      url: `${process.env.PKFARE_HOTEL_URI}/queryMultipleHotelRatePlan`,
       data: {
         authentication,
         request: req.body.request
@@ -157,7 +157,7 @@ router.post(
   (req, res) => {
     axios({
       method: 'post',
-      url: `${process.env.PKFARE_HOTEL_URI}/hotel/preBooking`,
+      url: `${process.env.PKFARE_HOTEL_URI}/preBooking`,
       data: {
         authentication,
         request: req.body.request
@@ -184,7 +184,7 @@ router.post(
   (req, res) => {
     axios({
       method: 'post',
-      url: `${process.env.PKFARE_HOTEL_URI}/hotel/createOrder`,
+      url: `${process.env.PKFARE_HOTEL_URI}/createOrder`,
       data: {
         authentication,
         request: req.body.request
