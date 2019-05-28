@@ -5,6 +5,42 @@ const Expense = require('../models/expense')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
+router.get('/trips', (req, res) => {
+  Trip.aggregate([
+    {
+      $match: {
+        _company: req.user._company
+      }
+    },
+    {
+      $lookup: {
+        from: 'expenses',
+        localField: '_id',
+        foreignField: '_trip',
+        as: 'expenses'
+      }
+    }
+  ])
+    .then(trips => {
+      res.status(200).send({ trips })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.get('/trips', function(req, res, next) {
+  Trip.find({
+    _company: req.user._company,
+    _creator: req.user._id
+  })
+    .sort({ updatedAt: -1 })
+    .then(trips => {
+      res.send({ trips })
+    })
+    .catch(e => {
+      res.send({ error: 'Not Found' })
+    })
+})
+
 router.get('/', (req, res) => {
   Promise.all([
     // total budget
@@ -41,7 +77,6 @@ router.get('/', (req, res) => {
       {
         $match: {
           _company: req.user._company,
-          _creator: req.user._id,
           status: 'approved'
         }
       },
