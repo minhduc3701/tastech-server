@@ -26,6 +26,7 @@ router.get('/:id', function(req, res, next) {
     _creator: req.user._id,
     _id: req.params.id
   })
+    .populate('updatedByAdmin')
     .then(trip => {
       res.status(200).json({ trip })
     })

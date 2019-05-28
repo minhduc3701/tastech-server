@@ -47,7 +47,13 @@ router.patch('/:id', (req, res) => {
     return res.status(404).send()
   }
 
-  const body = _.pick(req.body, ['status', 'budgetPassengers', 'adminMessage'])
+  const body = _.pick(req.body, [
+    'status',
+    'budgetPassengers',
+    'adminMessage',
+    'updatedByAdmin',
+    'updatedByAdminAt'
+  ])
 
   Trip.findOneAndUpdate(
     {

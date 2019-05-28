@@ -399,7 +399,11 @@ const trips = [
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
-    ]
+    ],
+    adminMessage:
+      'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful.',
+    updatedByAdmin: adminId,
+    updatedByAdminAt: new Date()
   },
   {
     _id: tripId,
@@ -505,14 +509,14 @@ const trips = [
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 5,
-        lodging: 10,
-        transportation: 15,
-        meal: 20,
+        flight: 500,
+        lodging: 1000,
+        transportation: 1500,
+        meal: 2000,
         provision: 5,
         note: 'Small budget',
         classType: 'economy',
-        totalPrice: 55,
+        totalPrice: 5500,
         destinations: [
           {
             from: 'HA NOI',
@@ -567,11 +571,11 @@ const trips = [
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 500,
-        lodging: 100,
-        transportation: 150,
-        meal: 200,
-        provision: 250,
+        flight: 50000,
+        lodging: 10000,
+        transportation: 15000,
+        meal: 20000,
+        provision: 25,
         note: 'Small budget',
         classType: 'economy',
         destinations: [
@@ -580,7 +584,7 @@ const trips = [
             date: new Date('2019-03-13')
           }
         ],
-        totalPrice: 1200,
+        totalPrice: 120000,
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }

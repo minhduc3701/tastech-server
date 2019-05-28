@@ -1,6 +1,7 @@
 var express = require('express')
 var router = express.Router()
 const User = require('../models/user')
+const Company = require('../models/company')
 const { upload } = require('../config/aws')
 const singleUpload = upload.single('image')
 const _ = require('lodash')
@@ -17,7 +18,20 @@ router.get('/', function(req, res) {
 })
 
 router.get('/me', function(req, res, next) {
-  res.send(req.user)
+  // res.send(req.user)
+  User.findById({
+    _id: req.user._id
+  })
+    .then(users => res.status(200).send({ users }))
+    .catch(e => res.status(400).send())
+})
+router.get('/me/company', function(req, res, next) {
+  // res.send(req.user)
+  Company.findById({
+    _id: req.user._company
+  })
+    .then(company => res.status(200).send({ company }))
+    .catch(e => res.status(400).send())
 })
 
 router.patch('/me', async (req, res) => {
