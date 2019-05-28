@@ -143,7 +143,8 @@ router.delete('/', function(req, res) {
     Expense.deleteMany(
       {
         _creator: req.user.id,
-        _id: { $in: expenseIds }
+        _id: { $in: expenseIds },
+        status: { $ne: 'approved' }
       },
       function(err, result) {
         if (err) return res.status(400).send()
@@ -151,7 +152,7 @@ router.delete('/', function(req, res) {
       }
     )
   } catch (error) {
-    res.status(400).send()
+    res.status(400).send(error)
   }
 })
 
@@ -161,7 +162,8 @@ router.delete('/:id', function(req, res) {
   }
   Expense.findOneAndDelete({
     _id: req.params.id,
-    _creator: req.user.id
+    _creator: req.user.id,
+    status: { $ne: 'approved' }
   })
     .then(expense => {
       if (!expense) {
