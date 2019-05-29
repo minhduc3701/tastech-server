@@ -2,6 +2,7 @@ var express = require('express')
 var router = express.Router()
 const User = require('../models/user')
 const Company = require('../models/company')
+const Policy = require('../models/policy')
 const { upload } = require('../config/aws')
 const singleUpload = upload.single('image')
 const _ = require('lodash')
@@ -32,6 +33,49 @@ router.get('/me/company', function(req, res, next) {
   })
     .then(company => res.status(200).send({ company }))
     .catch(e => res.status(400).send())
+})
+router.get('/me/policy', function(req, res, next) {
+  let policy = {}
+  if (_.isEmpty(req.user._policy)) {
+    Policy.find({
+      _company: req.user._company
+    })
+      .then(policies => {
+        for (let index = 0; index < policies.length; index++) {
+          if (policies[index]._doc.status === 'default') {
+            policy = policies[index]
+            break
+          }
+        }
+        res.status(200).send({ policy })
+      })
+      .catch(e => {
+        res.status(400).send(policy)
+      })
+  } else {
+    Policy.findById(req.user._policy)
+      .then(policy => {
+        if (policy.status !== 'disabled') {
+          res.status(200).send({ policy })
+        } else {
+          return Policy.find({
+            _company: req.user._company
+          })
+        }
+      })
+      .then(policies => {
+        for (let index = 0; index < policies.length; index++) {
+          if (policies[index]._doc.status === 'default') {
+            policy = policies[index]
+            break
+          }
+        }
+        res.status(200).send({ policy })
+      })
+      .catch(e => {
+        res.status(400).send()
+      })
+  }
 })
 
 router.patch('/me', async (req, res) => {
