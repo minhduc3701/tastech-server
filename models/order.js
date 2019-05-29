@@ -33,10 +33,14 @@ const OrderSchema = new Schema(
     },
     customerCode: String,
     number: String,
+    cancelNumber: String,
     currency: String,
     total: Number,
     flight: {},
-    hotel: {}
+    hotel: {},
+    rejectedReason: String, // rejected reason for cancellation
+    pnr: String,
+    canCancel: Boolean
   },
   {
     timestamps: true
