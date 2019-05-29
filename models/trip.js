@@ -47,8 +47,6 @@ var TripSchema = new Schema(
         totalPrice: Number
       }
     ],
-    flight: {},
-    hotel: {},
     passengers: [
       {
         businessEmail: String,

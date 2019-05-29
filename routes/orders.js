@@ -2,6 +2,8 @@ const express = require('express')
 const router = express.Router()
 const Order = require('../models/order')
 const { ObjectID } = require('mongodb')
+const axios = require('axios')
+const { authentication } = require('../config/pkfare')
 
 router.get('/', function(req, res, next) {
   Order.find({
@@ -75,6 +77,86 @@ router.patch('/:id', function(req, res, next) {
     .catch(e => {
       res.status(400).send()
     })
+})
+
+router.post('/cancel', async (req, res) => {
+  let id = req.body.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  try {
+    let order = await Order.findOne({
+      _id: id,
+      _customer: req.user._id,
+      status: { $eq: 'completed' },
+      canCancel: { $eq: true }
+    }).populate('_trip')
+
+    if (!order) {
+      return res.status(404).send()
+    }
+
+    switch (order.type) {
+      case 'hotel':
+        switch (order[order.type].supplier) {
+          case 'pkfare':
+            let cancelRes = await axios.post(
+              `${process.env.PKFARE_HOTEL_URI}/cancelOrder`,
+              {
+                authentication,
+                request: {
+                  orderCode: order.number
+                }
+              }
+            )
+
+            if (cancelRes.data.header.code === 'S00000') {
+              order.status = 'cancelled'
+              order.canCancel = false
+              await order.save()
+              return res.status(200).send({ order, result: cancelRes.data })
+            }
+            break
+        }
+        break
+
+      case 'flight':
+        switch (order[order.type].supplier) {
+          case 'pkfare':
+            let data = {
+              authentication,
+              voidRequest: {
+                orderNum: order.number,
+                passengers: order._trip.passengers.map(passenger => ({
+                  cardType: 'P',
+                  cardNum: passenger.passportNo,
+                  lastName: passenger.lastName,
+                  firstName: passenger.firstName
+                }))
+              }
+            }
+            let cancelRes = await axios.post(
+              `${process.env.PKFARE_URI}/voiding`,
+              // `http://localhost:5050/voiding`,
+              data
+            )
+
+            if (cancelRes.data.errorCode === '0') {
+              let voidOrderNum = cancelRes.data.data.voidOrderNum
+              order.status = 'cancelling'
+              order.cancelNumber = voidOrderNum
+              await order.save()
+              return res.status(200).send({ order, result: cancelRes.data })
+            }
+            break
+        }
+        break
+    }
+  } catch (e) {}
+
+  res.status(400).send()
 })
 
 module.exports = router
