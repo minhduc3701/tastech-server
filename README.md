@@ -24,6 +24,7 @@ Add config/config.json with the content like below:
     "PKFARE_HOTEL_URI": "https://hotelapi.pkfare.com/hotel",
     "PKFARE_PARTNER_ID": <PKFARE_PARTNER_ID>,
     "PKFARE_PARTNER_KEY": <PKFARE_PARTNER_KEY>,
+    "PKFARE_HOTEL_ORDER_PREFIX": <dev.ezbiztrip or local.thanh>,
     "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>
   }
 }
@@ -123,6 +124,7 @@ export PKFARE_URI=https://pending.com
 export PKFARE_HOTEL_URI=https://hotelapi.pkfare.com/hotel
 export PKFARE_PARTNER_ID=<PKFARE_PARTNER_ID>
 export PKFARE_PARTNER_KEY=<PKFARE_PARTNER_KEY>
+export PKFARE_HOTEL_ORDER_PREFIX=ezbiztrip
 export STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY>
 ```
 
