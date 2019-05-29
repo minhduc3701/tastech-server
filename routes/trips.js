@@ -7,7 +7,8 @@ const { ObjectID } = require('mongodb')
 
 router.get('/', function(req, res, next) {
   Trip.find({
-    _creator: req.user._id
+    _creator: req.user._id,
+    archived: { $ne: true }
   })
     .sort({ updatedAt: -1 })
     .then(trips => {
@@ -26,6 +27,7 @@ router.get('/:id', function(req, res, next) {
     _creator: req.user._id,
     _id: req.params.id
   })
+    .populate('updatedByAdmin')
     .then(trip => {
       res.status(200).json({ trip })
     })

@@ -81,7 +81,16 @@ var TripSchema = new Schema(
     departureDate: Date,
     arrival: String,
     returnDate: Date,
-    adminMessage: String
+    adminMessage: String,
+    updatedByAdmin: {
+      type: 'ObjectId',
+      ref: 'User'
+    },
+    updatedByAdminAt: Date,
+    archived: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     timestamps: true
