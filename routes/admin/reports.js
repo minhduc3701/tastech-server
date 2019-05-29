@@ -5,6 +5,18 @@ const Expense = require('../../models/expense')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
+let projectUsersFields = {
+  'user.hash': 0,
+  'user.salt': 0,
+  'user.username': 0,
+  'user.avatar': 0,
+  'user._company': 0,
+  'user._policy': 0,
+  'user._role': 0,
+  'user.lastLoginDate': 0,
+  'user.__v': 0
+}
+
 router.get('/trips', (req, res) => {
   Trip.aggregate([
     {
@@ -18,6 +30,30 @@ router.get('/trips', (req, res) => {
         localField: '_id',
         foreignField: '_trip',
         as: 'expenses'
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_creator',
+        foreignField: '_id',
+        as: 'user'
+      }
+    },
+    {
+      $project: projectUsersFields
+    },
+    {
+      $lookup: {
+        from: 'departments',
+        localField: 'user._department',
+        foreignField: '_id',
+        as: 'department'
+      }
+    },
+    {
+      $project: {
+        'department.employees': 0
       }
     }
   ])
