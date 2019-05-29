@@ -22,12 +22,25 @@ const OrderSchema = new Schema(
       type: String,
       required: true,
       default: 'pending',
-      enum: ['pending', 'completed', 'failed', 'cancelling', 'cancelled']
+      enum: [
+        'pending',
+        'processing',
+        'completed',
+        'failed',
+        'cancelling',
+        'cancelled'
+      ]
     },
     customerCode: String,
     number: String,
+    cancelNumber: String,
     currency: String,
-    total: Number
+    total: Number,
+    flight: {},
+    hotel: {},
+    rejectedReason: String, // rejected reason for cancellation
+    pnr: String,
+    canCancel: Boolean
   },
   {
     timestamps: true

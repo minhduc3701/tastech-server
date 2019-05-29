@@ -20,6 +20,39 @@ router.get('/trips', (req, res) => {
         foreignField: '_trip',
         as: 'expenses'
       }
+    },
+    {
+      $unwind: '$expenses'
+    },
+    {
+      $group: {
+        _id: '$_id',
+        id: { $first: '$_id' },
+        name: { $first: '$name' },
+        departureDate: { $first: '$departureDate' },
+        returnDate: { $first: '$returnDate' },
+        budgetPassengers: { $first: '$budgetPassengers' },
+        totalExpense: {
+          $sum: {
+            $cond: {
+              if: { $eq: ['$expenses.status', 'approved'] },
+              then: '$expenses.amount',
+              else: 0
+            }
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        name: '$name',
+        id: '$_id',
+        departureDate: '$departureDate',
+        returnDate: '$returnDate',
+        budgetPassengers: '$budgetPassengers',
+        totalExpense: '$totalExpense'
+      }
     }
   ])
     .then(trips => {
@@ -64,6 +97,7 @@ router.get('/', (req, res) => {
       {
         $match: {
           _company: req.user._company,
+          _creator: req.user._id,
           status: 'approved'
         }
       },
@@ -178,15 +212,46 @@ router.get('/:id', (req, res) => {
           amount: -1 // larger amount first
         }
       }
+    ]),
+    // trip statistic by account
+    Expense.aggregate([
+      {
+        $match: {
+          _trip: new ObjectID(id),
+          _company: req.user._company,
+          status: 'approved'
+        }
+      },
+      {
+        $group: {
+          _id: '$account',
+          account: { $first: '$account' },
+          amount: { $sum: '$amount' }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          account: '$account',
+          amount: '$amount'
+        }
+      },
+      {
+        $sort: {
+          amount: -1 // larger amount first
+        }
+      }
     ])
   ])
     .then(results => {
       let expenses = results[0]
-      let statistics = results[1]
+      let categoryStatistics = results[1]
+      let accountStatistics = results[2]
 
       res.status(200).send({
         expenses,
-        statistics
+        categoryStatistics,
+        accountStatistics
       })
     })
     .catch(e => {

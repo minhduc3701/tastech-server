@@ -33,30 +33,53 @@ router.get('/trips', (req, res) => {
       }
     },
     {
-      $lookup: {
-        from: 'users',
-        localField: '_creator',
-        foreignField: '_id',
-        as: 'user'
-      }
+      $unwind: '$expenses'
     },
     {
-      $project: projectUsersFields
-    },
-    {
-      $lookup: {
-        from: 'departments',
-        localField: 'user._department',
-        foreignField: '_id',
-        as: 'department'
+      $group: {
+        _id: '$_id',
+        id: { $first: '$_id' },
+        name: { $first: '$name' },
+        _creator: { $first: '$_creator' },
+        departureDate: { $first: '$departureDate' },
+        returnDate: { $first: '$returnDate' },
+        budgetPassengers: { $first: '$budgetPassengers' },
+        totalExpense: {
+          $sum: {
+            $cond: {
+              if: { $eq: ['$expenses.status', 'approved'] },
+              then: '$expenses.amount',
+              else: 0
+            }
+          }
+        }
       }
     },
     {
       $project: {
-        'department.employees': 0
+        _id: 0,
+        name: '$name',
+        id: '$_id',
+        _creator: '$_creator',
+        departureDate: '$departureDate',
+        returnDate: '$returnDate',
+        budgetPassengers: '$budgetPassengers',
+        totalExpense: '$totalExpense'
       }
     }
   ])
+    .then(trips => {
+      return Trip.populate(trips, [
+        {
+          path: '_creator',
+          select: 'firstName lastName',
+          populate: {
+            path: '_department',
+            select: 'name'
+          }
+        }
+      ])
+    })
     .then(trips => {
       res.status(200).send({ trips })
     })
@@ -250,15 +273,46 @@ router.get('/trips/:id', (req, res) => {
           amount: -1 // larger amount first
         }
       }
+    ]),
+    // trip statistic by account
+    Expense.aggregate([
+      {
+        $match: {
+          _trip: new ObjectID(id),
+          _company: req.user._company,
+          status: 'approved'
+        }
+      },
+      {
+        $group: {
+          _id: '$account',
+          account: { $first: '$account' },
+          amount: { $sum: '$amount' }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          account: '$account',
+          amount: '$amount'
+        }
+      },
+      {
+        $sort: {
+          amount: -1 // larger amount first
+        }
+      }
     ])
   ])
     .then(results => {
       let expenses = results[0]
-      let statistics = results[1]
+      let categoryStatistics = results[1]
+      let accountStatistics = results[2]
 
       res.status(200).send({
         expenses,
-        statistics
+        categoryStatistics,
+        accountStatistics
       })
     })
     .catch(e => {
