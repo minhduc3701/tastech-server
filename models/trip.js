@@ -88,7 +88,11 @@ var TripSchema = new Schema(
       type: 'ObjectId',
       ref: 'User'
     },
-    updatedByAdminAt: Date
+    updatedByAdminAt: Date,
+    archived: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     timestamps: true

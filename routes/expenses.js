@@ -39,12 +39,23 @@ router.post('/', upload.array('receipts'), function(req, res, next) {
 })
 
 router.get('/', function(req, res, next) {
-  Expense.find({
-    _creator: req.user._id
+  let availableTripIds = []
+  Trip.find({
+    _creator: req.user._id,
+    archived: { $ne: true }
   })
-    .sort({ updatedAt: -1 })
-    .populate('_trip', 'name')
-    .populate('_attendees', 'email')
+    .then(trips => {
+      trips.map(trip => {
+        availableTripIds.push(trip._id)
+      })
+      return Expense.find({
+        _creator: req.user._id,
+        _trip: { $in: availableTripIds }
+      })
+        .sort({ updatedAt: -1 })
+        .populate('_trip')
+        .populate('_attendees', 'email')
+    })
     .then(expenses => {
       res.status(200).json({ expenses })
     })
