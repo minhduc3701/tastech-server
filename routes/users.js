@@ -19,7 +19,6 @@ router.get('/', function(req, res) {
 })
 
 router.get('/me', function(req, res, next) {
-  // res.send(req.user)
   User.findById({
     _id: req.user._id
   })
@@ -27,55 +26,39 @@ router.get('/me', function(req, res, next) {
     .catch(e => res.status(400).send())
 })
 router.get('/me/company', function(req, res, next) {
-  // res.send(req.user)
+  res.send(req.user)
   Company.findById({
     _id: req.user._company
   })
     .then(company => res.status(200).send({ company }))
     .catch(e => res.status(400).send())
 })
+
 router.get('/me/policy', function(req, res, next) {
-  let policy = {}
-  if (_.isEmpty(req.user._policy)) {
+  Promise.all([
     Policy.find({
       _company: req.user._company
-    })
-      .then(policies => {
-        for (let index = 0; index < policies.length; index++) {
-          if (policies[index]._doc.status === 'default') {
-            policy = policies[index]
-            break
-          }
-        }
-        res.status(200).send({ policy })
-      })
-      .catch(e => {
-        res.status(400).send(policy)
-      })
-  } else {
+    }),
     Policy.findById(req.user._policy)
-      .then(policy => {
-        if (policy.status !== 'disabled') {
-          res.status(200).send({ policy })
-        } else {
-          return Policy.find({
-            _company: req.user._company
-          })
-        }
-      })
-      .then(policies => {
-        for (let index = 0; index < policies.length; index++) {
-          if (policies[index]._doc.status === 'default') {
-            policy = policies[index]
+  ])
+    .then(result => {
+      let companyPolicies = result[0]
+      let policy = result[1]
+      if (policy.status !== 'disabled') {
+        res.status(200).send({ policy })
+      } else {
+        for (let index = 0; index < companyPolicies.length; index++) {
+          if (companyPolicies[index]._doc.status === 'default') {
+            policy = companyPolicies[index]
             break
           }
         }
         res.status(200).send({ policy })
-      })
-      .catch(e => {
-        res.status(400).send()
-      })
-  }
+      }
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 router.patch('/me', async (req, res) => {
