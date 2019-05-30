@@ -40,6 +40,10 @@ var UserSchema = new Schema({
     type: 'ObjectId',
     ref: 'Policy'
   },
+  point: {
+    type: Number,
+    default: 0
+  },
   lastLoginDate: Date,
   disabled: Boolean
 })

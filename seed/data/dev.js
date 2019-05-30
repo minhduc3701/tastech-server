@@ -40,6 +40,8 @@ const users = [
     _id: tasAdminId,
     username: 'tas-admin@tastech.asia',
     email: 'tas-admin@tastech.asia',
+    firstName: chance.first(),
+    lastName: chance.last(),
     avatar: `http://i.pravatar.cc/150?img=1`,
     _role: tasAdminRoleId
   },

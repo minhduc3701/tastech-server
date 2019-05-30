@@ -33,6 +33,13 @@ router.get('/me/company', function(req, res, next) {
     .then(company => res.status(200).send({ company }))
     .catch(e => res.status(400).send())
 })
+router.get('/me/point', function(req, res, next) {
+  User.findById({
+    _id: req.user._id
+  })
+    .then(users => res.status(200).send({ point: users.point }))
+    .catch(e => res.status(400).send())
+})
 
 router.patch('/me', async (req, res) => {
   const body = _.pick(req.body, [

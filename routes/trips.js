@@ -52,17 +52,39 @@ router.post('/', function(req, res, next) {
 
 router.patch('/:id', function(req, res, next) {
   let id = req.params.id
-
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()
   }
-
   Trip.findByIdAndUpdate(id, { $set: req.body }, { new: true })
     .then(trip => {
       if (!trip) {
         return res.status(404).send()
       }
 
+      res.status(200).send({ trip })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
+router.patch('/:id/exchange', function(req, res, next) {
+  let id = req.params.id
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+  Trip.findOneAndUpdate(
+    {
+      _id: id,
+      _creator: req.user._id
+    },
+    { $set: { status: 'completed' } },
+    { new: true }
+  )
+    .then(trip => {
+      if (!trip) {
+        return res.status(404).send()
+      }
       res.status(200).send({ trip })
     })
     .catch(e => {
