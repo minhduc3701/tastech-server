@@ -37,6 +37,7 @@ const regionsRouter = require('./routes/regions')
 const cardsRouter = require('./routes/cards')
 const checkoutRouter = require('./routes/checkout')
 const ordersRouter = require('./routes/orders')
+const reportsRouter = require('./routes/reports')
 
 const {
   authenticateTasAdmin,
@@ -78,6 +79,11 @@ app.use(
   '/orders',
   passport.authenticate('jwt', { session: false }),
   ordersRouter
+)
+app.use(
+  '/reports',
+  passport.authenticate('jwt', { session: false }),
+  reportsRouter
 )
 
 // tas-admin routes

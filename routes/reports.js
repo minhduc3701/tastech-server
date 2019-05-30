@@ -1,27 +1,16 @@
 const express = require('express')
 const router = express.Router()
-const Trip = require('../../models/trip')
-const Expense = require('../../models/expense')
+const Trip = require('../models/trip')
+const Expense = require('../models/expense')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
-
-let projectUsersFields = {
-  'user.hash': 0,
-  'user.salt': 0,
-  'user.username': 0,
-  'user.avatar': 0,
-  'user._company': 0,
-  'user._policy': 0,
-  'user._role': 0,
-  'user.lastLoginDate': 0,
-  'user.__v': 0
-}
 
 router.get('/trips', (req, res) => {
   Trip.aggregate([
     {
       $match: {
-        _company: req.user._company
+        _company: req.user._company,
+        _creator: req.user._id
       }
     },
     {
@@ -40,7 +29,6 @@ router.get('/trips', (req, res) => {
         _id: '$_id',
         id: { $first: '$_id' },
         name: { $first: '$name' },
-        _creator: { $first: '$_creator' },
         departureDate: { $first: '$departureDate' },
         returnDate: { $first: '$returnDate' },
         budgetPassengers: { $first: '$budgetPassengers' },
@@ -60,7 +48,6 @@ router.get('/trips', (req, res) => {
         _id: 0,
         name: '$name',
         id: '$_id',
-        _creator: '$_creator',
         departureDate: '$departureDate',
         returnDate: '$returnDate',
         budgetPassengers: '$budgetPassengers',
@@ -68,18 +55,6 @@ router.get('/trips', (req, res) => {
       }
     }
   ])
-    .then(trips => {
-      return Trip.populate(trips, [
-        {
-          path: '_creator',
-          select: 'firstName lastName',
-          populate: {
-            path: '_department',
-            select: 'name'
-          }
-        }
-      ])
-    })
     .then(trips => {
       res.status(200).send({ trips })
     })
@@ -92,6 +67,7 @@ router.get('/', (req, res) => {
     Trip.aggregate([
       {
         $match: {
+          _creator: req.user._id,
           _company: req.user._company
         }
       },
@@ -113,45 +89,15 @@ router.get('/', (req, res) => {
     ]),
     // total trip
     Trip.countDocuments({
+      _creator: req.user._id,
       _company: req.user._company
     }),
-    // total travel employees
-    Trip.countDocuments({
-      _company: req.user._company
-    }),
-    // approved spending by user
-    Expense.aggregate([
-      {
-        $match: {
-          _company: req.user._company,
-          status: 'approved'
-        }
-      },
-      {
-        $group: {
-          _id: '$_creator',
-          _creator: { $first: '$_creator' },
-          amount: { $sum: '$amount' }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          _creator: '$_creator',
-          amount: '$amount'
-        }
-      },
-      {
-        $sort: {
-          amount: -1 // larger amount first
-        }
-      }
-    ]),
     // approved spending by trip
     Expense.aggregate([
       {
         $match: {
           _company: req.user._company,
+          _creator: req.user._id,
           status: 'approved'
         }
       },
@@ -180,6 +126,7 @@ router.get('/', (req, res) => {
       {
         $match: {
           _company: req.user._company,
+          _creator: req.user._id,
           status: 'approved'
         }
       },
@@ -201,21 +148,15 @@ router.get('/', (req, res) => {
       return Promise.all([
         results[0],
         results[1],
-        results[2],
-        Expense.populate(results[3], [
-          { path: '_creator', select: 'firstName lastName' }
-        ]),
-        Expense.populate(results[4], [{ path: '_trip', select: 'name' }]),
-        results[5]
+        Expense.populate(results[2], [{ path: '_trip', select: 'name' }]),
+        results[3]
       ])
     })
     .then(results => {
       let totalBudgetResults = results[0]
       let totalTrips = results[1]
-      let totalTravelEmployees = results[2]
-      let spendingByUsers = results[3]
-      let spendingByTrips = results[4]
-      let totalSpendingResults = results[5]
+      let spendingByTrips = results[2]
+      let totalSpendingResults = results[3]
       let totalBudget = totalBudgetResults[0].totalBudget
       let totalSpending = totalSpendingResults[0].totalSpending
 
@@ -223,15 +164,13 @@ router.get('/', (req, res) => {
         totalBudget,
         totalSpending,
         totalTrips,
-        totalTravelEmployees,
-        spendingByUsers,
         spendingByTrips
       })
     })
     .catch(e => res.status(400).send())
 })
 
-router.get('/trips/:id', (req, res) => {
+router.get('/:id', (req, res) => {
   let id = req.params.id
 
   if (!ObjectID.isValid(id)) {
