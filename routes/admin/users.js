@@ -40,6 +40,7 @@ router.get('/:id', function(req, res) {
     _id: req.params.id,
     _company: req.user._company
   })
+    .populate('_department')
     .then(user => {
       if (!user) {
         return res.status(404).send()
@@ -115,7 +116,14 @@ router.put('/disabled', (req, res) => {
   let id = req.body.id
   let disabled = req.body.disabled
 
-  User.findByIdAndUpdate(id, { $set: { disabled } }, { new: true })
+  User.findOneAndUpdate(
+    {
+      _id: id,
+      _company: req.user._company
+    },
+    { $set: { disabled } },
+    { new: true }
+  )
     .then(user => {
       if (!user) {
         return res.status(404).send()
@@ -131,7 +139,8 @@ router.post('/emails', (req, res) => {
   User.find({
     email: {
       $in: emails
-    }
+    },
+    _company: req.user._company
   })
     .then(users => {
       res.status(200).send({ users })

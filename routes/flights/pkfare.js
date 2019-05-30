@@ -8,271 +8,204 @@ const Airport = require('../../models/airport')
 const bodyParser = require('body-parser')
 const zlib = require('zlib')
 const request = require('request')
+const { authentication } = require('../../config/pkfare')
 
-// @see http://open.pkfare.com/documents/show?id=2352d3737b0442d6a402fea86ed8bda2uk
-// @see https://stackoverflow.com/a/30099608
-router.post('/', bodyParser.text({ type: '*/*' }), (req, res) => {
-  let body
-
-  try {
-    if (_.isObject(req.body)) {
-      body = req.body
-    } else {
-      body = JSON.parse(req.body)
-    }
-  } catch (e) {
-    return res.status(400).send({
-      errorCode: 1,
-      errorMsg: 'Failure. Wrong format.'
+router.post('/shopping', (req, res) => {
+  let base64 = Buffer.from(
+    JSON.stringify({
+      search: req.body.search,
+      authentication
     })
-  }
+  ).toString('base64')
+  request(
+    `${process.env.PKFARE_URI}/shoppingV2?param=${base64}`,
+    { encoding: null },
+    function(err, response, body) {
+      if (err) {
+        return res.status(400).send()
+      }
 
-  let ticket = new Ticket(body)
+      zlib.gunzip(body, function(err, dezipped) {
+        // res.status(200).send(JSON.parse(dezipped.toString()))
+        let flights = JSON.parse(dezipped.toString())
+        flights = flights.data
+        let isRoundTrip = req.body.search.searchAirLegs.length === 2
+        flights = makeFlightsData(flights, isRoundTrip)
 
-  ticket
-    .save()
-    .then(() => {
-      res.status(200).send({
-        errorCode: 0,
-        errorMsg: 'ok'
-      })
-    })
-    .catch(e => {
-      res.status(400).send({
-        errorCode: 1,
-        errorMsg: 'Failure'
-      })
-    })
-})
-
-const authentication = {
-  partnerId: process.env.PKFARE_PARTNER_ID,
-  sign: process.env.PKFARE_SIGN
-}
-
-router.post(
-  '/shopping',
-  passport.authenticate('jwt', { session: false }),
-  (req, res) => {
-    let base64 = Buffer.from(
-      JSON.stringify({
-        search: req.body.search,
-        authentication
-      })
-    ).toString('base64')
-    request(
-      `${process.env.PKFARE_URI}/shoppingV2?param=${base64}`,
-      { encoding: null },
-      function(err, response, body) {
-        if (err) {
-          return res.status(400).send()
-        }
-
-        zlib.gunzip(body, function(err, dezipped) {
-          // res.status(200).send(JSON.parse(dezipped.toString()))
-          let flights = JSON.parse(dezipped.toString())
-          flights = flights.data
-          let isRoundTrip = req.body.search.searchAirLegs.length === 2
-          flights = makeFlightsData(flights, isRoundTrip)
-
-          let airlines = []
-          let airports = []
-          flights.forEach(flight => {
-            flight.departureSegments.forEach(segment => {
+        let airlines = []
+        let airports = []
+        flights.forEach(flight => {
+          flight.departureSegments.forEach(segment => {
+            airlines.push(segment.airline)
+            airports.push(segment.departure)
+            airports.push(segment.arrival)
+          })
+          if (isRoundTrip) {
+            flight.returnSegments.forEach(segment => {
               airlines.push(segment.airline)
               airports.push(segment.departure)
               airports.push(segment.arrival)
             })
-            if (isRoundTrip) {
-              flight.returnSegments.forEach(segment => {
-                airlines.push(segment.airline)
-                airports.push(segment.departure)
-                airports.push(segment.arrival)
-              })
+          }
+        })
+
+        airlines = _.uniq(airlines)
+        airports = _.uniq(airports)
+
+        Promise.all([
+          Airline.find({
+            iata: {
+              $in: airlines
+            }
+          }),
+          Airport.find({
+            airport_code: {
+              $in: airports
             }
           })
-
-          airlines = _.uniq(airlines)
-          airports = _.uniq(airports)
-
-          Promise.all([
-            Airline.find({
-              iata: {
-                $in: airlines
-              }
-            }),
-            Airport.find({
-              airport_code: {
-                $in: airports
-              }
+        ])
+          .then(results => {
+            let arrAirline = results[0]
+            let airlines = {}
+            arrAirline.forEach(airline => {
+              airlines[airline._doc.iata] = airline
             })
-          ])
-            .then(results => {
-              let arrAirline = results[0]
-              let airlines = {}
-              arrAirline.forEach(airline => {
-                airlines[airline._doc.iata] = airline
-              })
-              let arrAirport = results[1]
-              let airports = {}
-              arrAirport.forEach(airport => {
-                airports[airport._doc.airport_code] = airport
-              })
-              res.status(200).send({
-                flights,
-                airlines,
-                airports
-              })
+            let arrAirport = results[1]
+            let airports = {}
+            arrAirport.forEach(airport => {
+              airports[airport._doc.airport_code] = airport
             })
-            .catch(e => {
-              res.status(400).send()
+            res.status(200).send({
+              flights,
+              airlines,
+              airports
             })
-        })
-      }
-    )
-  }
-)
-
-router.post(
-  '/precisePricing',
-  passport.authenticate('jwt', { session: false }),
-  (req, res) => {
-    let base64 = Buffer.from(
-      JSON.stringify({
-        pricing: req.body.pricing,
-        authentication
+          })
+          .catch(e => {
+            res.status(400).send()
+          })
       })
-    ).toString('base64')
-    request(
-      `${process.env.PKFARE_URI}/precisePricing_V2?param=${base64}`,
-      function(err, response, body) {
-        if (err) {
-          return res.status(400).send()
-        }
+    }
+  )
+})
 
-        res.status(200).send(JSON.parse(body))
-      }
-    )
-  }
-)
-
-router.post(
-  '/penalty',
-  passport.authenticate('jwt', { session: false }),
-  (req, res) => {
-    let base64 = Buffer.from(
-      JSON.stringify({
-        penalty: req.body.penalty,
-        authentication
-      })
-    ).toString('base64')
-    request(`${process.env.PKFARE_URI}/penalty?param=${base64}`, function(
-      err,
-      response,
-      body
-    ) {
+router.post('/precisePricing', (req, res) => {
+  let base64 = Buffer.from(
+    JSON.stringify({
+      pricing: req.body.pricing,
+      authentication
+    })
+  ).toString('base64')
+  request(
+    `${process.env.PKFARE_URI}/precisePricing_V2?param=${base64}`,
+    function(err, response, body) {
       if (err) {
         return res.status(400).send()
       }
 
       res.status(200).send(JSON.parse(body))
+    }
+  )
+})
+
+router.post('/penalty', (req, res) => {
+  let base64 = Buffer.from(
+    JSON.stringify({
+      penalty: req.body.penalty,
+      authentication
     })
-  }
-)
+  ).toString('base64')
+  request(`${process.env.PKFARE_URI}/penalty?param=${base64}`, function(
+    err,
+    response,
+    body
+  ) {
+    if (err) {
+      return res.status(400).send()
+    }
 
-router.post(
-  '/preciseBooking',
-  passport.authenticate('jwt', { session: false }),
-  (req, res) => {
-    let base64 = Buffer.from(
-      JSON.stringify({
-        booking: req.body.booking,
-        authentication
-      })
-    ).toString('base64')
-    request(
-      `${process.env.PKFARE_URI}/preciseBooking?param=${base64}`,
-      function(err, response, body) {
-        if (err) {
-          return res.status(400).send()
-        }
+    res.status(200).send(JSON.parse(body))
+  })
+})
 
-        res.status(200).send(JSON.parse(body))
-      }
-    )
-  }
-)
-
-router.post(
-  '/cancel',
-  passport.authenticate('jwt', { session: false }),
-  (req, res) => {
-    let base64 = Buffer.from(
-      JSON.stringify({
-        cancel: req.body.cancel,
-        authentication
-      })
-    ).toString('base64')
-    request(`${process.env.PKFARE_URI}/cancel?param=${base64}`, function(
-      err,
-      response,
-      body
-    ) {
-      if (err) {
-        return res.status(400).send()
-      }
-
-      res.status(200).send(JSON.parse(body))
+router.post('/preciseBooking', (req, res) => {
+  let base64 = Buffer.from(
+    JSON.stringify({
+      booking: req.body.booking,
+      authentication
     })
-  }
-)
+  ).toString('base64')
+  request(`${process.env.PKFARE_URI}/preciseBooking?param=${base64}`, function(
+    err,
+    response,
+    body
+  ) {
+    if (err) {
+      return res.status(400).send()
+    }
 
-router.post(
-  '/orderPricing',
-  passport.authenticate('jwt', { session: false }),
-  (req, res) => {
-    let base64 = Buffer.from(
-      JSON.stringify({
-        orderPricing: req.body.orderPricing,
-        authentication
-      })
-    ).toString('base64')
-    request(`${process.env.PKFARE_URI}/orderPricing?param=${base64}`, function(
-      err,
-      response,
-      body
-    ) {
-      if (err) {
-        return res.status(400).send()
-      }
-      res.status(200).send(JSON.parse(body))
+    res.status(200).send(JSON.parse(body))
+  })
+})
+
+router.post('/cancel', (req, res) => {
+  let base64 = Buffer.from(
+    JSON.stringify({
+      cancel: req.body.cancel,
+      authentication
     })
-  }
-)
+  ).toString('base64')
+  request(`${process.env.PKFARE_URI}/cancel?param=${base64}`, function(
+    err,
+    response,
+    body
+  ) {
+    if (err) {
+      return res.status(400).send()
+    }
 
-router.post(
-  '/ticketing',
-  passport.authenticate('jwt', { session: false }),
-  (req, res) => {
-    let base64 = Buffer.from(
-      JSON.stringify({
-        ticketing: req.body.ticketing,
-        authentication
-      })
-    ).toString('base64')
-    request(`${process.env.PKFARE_URI}/ticketing?param=${base64}`, function(
-      err,
-      response,
-      body
-    ) {
-      if (err) {
-        return res.status(400).send()
-      }
+    res.status(200).send(JSON.parse(body))
+  })
+})
 
-      res.status(200).send(JSON.parse(body))
+router.post('/orderPricing', (req, res) => {
+  let base64 = Buffer.from(
+    JSON.stringify({
+      orderPricing: req.body.orderPricing,
+      authentication
     })
-  }
-)
+  ).toString('base64')
+  request(`${process.env.PKFARE_URI}/orderPricing?param=${base64}`, function(
+    err,
+    response,
+    body
+  ) {
+    if (err) {
+      return res.status(400).send()
+    }
+    res.status(200).send(JSON.parse(body))
+  })
+})
+
+router.post('/ticketing', (req, res) => {
+  let base64 = Buffer.from(
+    JSON.stringify({
+      ticketing: req.body.ticketing,
+      authentication
+    })
+  ).toString('base64')
+  request(`${process.env.PKFARE_URI}/ticketing?param=${base64}`, function(
+    err,
+    response,
+    body
+  ) {
+    if (err) {
+      return res.status(400).send()
+    }
+
+    res.status(200).send(JSON.parse(body))
+  })
+})
 const makeFlightsData = (data, isRoundTrip) => {
   let flightsData = []
   if (data) {
@@ -329,7 +262,7 @@ const makeFlightsData = (data, isRoundTrip) => {
       ]
 
       let price = priceBreakdown.reduce((acc, fee) => solution[fee] + acc, 0)
-      price = Math.round(price)
+      price = price.toFixed(2)
 
       flightsData.push({
         ...solution,

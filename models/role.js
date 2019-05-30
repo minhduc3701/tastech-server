@@ -5,12 +5,6 @@ const RoleSchema = new Schema({
   name: String,
   type: String,
   permissions: Array,
-  users: [
-    {
-      type: 'ObjectId',
-      ref: 'User'
-    }
-  ],
   _company: mongoose.Schema.Types.ObjectId
 })
 

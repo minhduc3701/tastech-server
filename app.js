@@ -18,6 +18,7 @@ const expensesRouter = require('./routes/expenses')
 const tasAdminUsersRouter = require('./routes/tas-admin/users')
 const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
 const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
+const tasAdminOrdersRouter = require('./routes/tas-admin/orders')
 const adminCompanyRouter = require('./routes/admin/company')
 const adminUsersRouter = require('./routes/admin/users')
 const adminRolesRouter = require('./routes/admin/roles')
@@ -28,12 +29,15 @@ const adminExpensesRouter = require('./routes/admin/expenses')
 const adminReportsRouter = require('./routes/admin/reports')
 const flightsPkfareRouter = require('./routes/flights/pkfare')
 const hotelsPkfareRouter = require('./routes/hotels/pkfare')
+const ticketsPkfareRouter = require('./routes/tickets/pkfare')
 const countriesRouter = require('./routes/countries')
 const airportsRouter = require('./routes/airports')
 const citiesRouter = require('./routes/cities')
 const regionsRouter = require('./routes/regions')
 const cardsRouter = require('./routes/cards')
 const checkoutRouter = require('./routes/checkout')
+const ordersRouter = require('./routes/orders')
+const reportsRouter = require('./routes/reports')
 
 const {
   authenticateTasAdmin,
@@ -55,7 +59,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 // limit cors for 1 origin (client app uri)
 app.use(
   cors({
-    origin: process.env.APP_URI
+    origin: process.env.ALLOW_ORIGIN
   })
 )
 
@@ -71,6 +75,17 @@ app.use(
   passport.authenticate('jwt', { session: false }),
   expensesRouter
 )
+app.use(
+  '/orders',
+  passport.authenticate('jwt', { session: false }),
+  ordersRouter
+)
+app.use(
+  '/reports',
+  passport.authenticate('jwt', { session: false }),
+  reportsRouter
+)
+
 // tas-admin routes
 app.use(
   '/tas-admin/requests',
@@ -89,6 +104,13 @@ app.use(
   passport.authenticate('jwt', { session: false }),
   authenticateTasAdmin,
   tasAdminCompaniesRouter
+)
+
+app.use(
+  '/tas-admin/orders',
+  passport.authenticate('jwt', { session: false }),
+  authenticateTasAdmin,
+  tasAdminOrdersRouter
 )
 
 // admin routes
@@ -143,10 +165,21 @@ app.use(
 )
 
 // flights
-app.use('/flights/pkfare', flightsPkfareRouter)
+app.use(
+  '/flights/pkfare',
+  passport.authenticate('jwt', { session: false }),
+  flightsPkfareRouter
+)
 
 // hotels
-app.use('/hotels/pkfare', hotelsPkfareRouter)
+app.use(
+  '/hotels/pkfare',
+  passport.authenticate('jwt', { session: false }),
+  hotelsPkfareRouter
+)
+
+// tickets
+app.use('/tickets/pkfare', ticketsPkfareRouter)
 
 // content api
 app.use('/countries', countriesRouter)

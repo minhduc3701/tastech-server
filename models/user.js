@@ -24,7 +24,10 @@ var UserSchema = new Schema({
   phone: String,
   age: Number,
   avatar: String,
-  _company: mongoose.Schema.Types.ObjectId,
+  _company: {
+    type: 'ObjectId',
+    ref: 'Company'
+  },
   _department: {
     type: 'ObjectId',
     ref: 'Department'

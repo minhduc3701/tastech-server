@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Expense = require('../models/expense')
+const Trip = require('../models/trip')
 const { ObjectID } = require('mongodb')
 const { upload } = require('../config/aws')
 const _ = require('lodash')
@@ -17,6 +18,16 @@ router.post('/', upload.array('receipts'), function(req, res, next) {
   } else {
     expense._attendees = []
   }
+  // check trip's status
+  Trip.findById(expense._trip)
+    .then(trip => {
+      if (!['approved', 'ongoing', 'finished'].includes(trip.status)) {
+        res.status(400).send()
+      }
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
   expense
     .save()
     .then(() => {
@@ -28,12 +39,23 @@ router.post('/', upload.array('receipts'), function(req, res, next) {
 })
 
 router.get('/', function(req, res, next) {
-  Expense.find({
-    _creator: req.user._id
+  let availableTripIds = []
+  Trip.find({
+    _creator: req.user._id,
+    archived: { $ne: true }
   })
-    .sort({ updatedAt: -1 })
-    .populate('_trip', 'name')
-    .populate('_attendees', 'email')
+    .then(trips => {
+      trips.map(trip => {
+        availableTripIds.push(trip._id)
+      })
+      return Expense.find({
+        _creator: req.user._id,
+        _trip: { $in: availableTripIds }
+      })
+        .sort({ updatedAt: -1 })
+        .populate('_trip')
+        .populate('_attendees', 'email')
+    })
     .then(expenses => {
       res.status(200).json({ expenses })
     })
@@ -143,7 +165,8 @@ router.delete('/', function(req, res) {
     Expense.deleteMany(
       {
         _creator: req.user.id,
-        _id: { $in: expenseIds }
+        _id: { $in: expenseIds },
+        status: { $ne: 'approved' }
       },
       function(err, result) {
         if (err) return res.status(400).send()
@@ -151,7 +174,7 @@ router.delete('/', function(req, res) {
       }
     )
   } catch (error) {
-    res.status(400).send()
+    res.status(400).send(error)
   }
 })
 
@@ -161,7 +184,8 @@ router.delete('/:id', function(req, res) {
   }
   Expense.findOneAndDelete({
     _id: req.params.id,
-    _creator: req.user.id
+    _creator: req.user.id,
+    status: { $ne: 'approved' }
   })
     .then(expense => {
       if (!expense) {

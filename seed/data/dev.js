@@ -16,9 +16,12 @@ const employeeId = new ObjectID('5cc2d7a24c72b61214af004b')
 const employeeId2 = new ObjectID('5cc2d7a24c72b61214af004c')
 const companyId = new ObjectID('5cc2d7a24c72b61214af004d')
 const tripId = new ObjectID('5cc2d7a24c72b61214af0051')
-const secondTripId = new ObjectID('5cc2d7a24c72b61214af0052')
-const tripId3 = new ObjectID()
-const tripId4 = new ObjectID()
+const tripId2 = new ObjectID('5cc2d7a24c72b61214af0052')
+const tripId3 = new ObjectID('5cc2d7a24c72b61214af0053')
+const tripId4 = new ObjectID('5cc2d7a24c72b61214af0054')
+const tripId5 = new ObjectID('5cc2d7a24c72b61214af0055')
+const tripId6 = new ObjectID('5cc2d7a24c72b61214af0056')
+const tripId7 = new ObjectID('5cc2d7a24c72b61214af0057')
 const departmentId = new ObjectID('5cd03b1571811c06ad420d36')
 const secondDepartmentId = new ObjectID('5cd03b1571811c06ad420d35')
 const tasAdminRoleId = new ObjectID()
@@ -123,20 +126,14 @@ const roles = [
     name: 'Admin',
     type: 'admin',
     permissions: ['CAN_EDIT_USER'],
-    _company: companyId,
-    users: users
-      .filter(user => user._role === adminRoleId)
-      .map(user => user._id)
+    _company: companyId
   },
   {
     _id: employeeRoleId,
     name: 'Employee',
     type: 'employee',
     permissions: ['CAN_CLAIM_EXPRENSE'],
-    _company: companyId,
-    users: users
-      .filter(user => user._role === employeeRoleId)
-      .map(user => user._id)
+    _company: companyId
   }
 ]
 
@@ -262,8 +259,7 @@ const policies = [
     setMealLimit: true,
     mealLimit: 100,
     setProvision: true,
-    provision: 5,
-    employees: []
+    provision: 5
   },
   {
     _id: policyId1,
@@ -291,10 +287,7 @@ const policies = [
     setMealLimit: false,
     mealLimit: 0,
     setProvision: false,
-    provision: 10,
-    employees: users
-      .filter(user => user._policy === policyId1)
-      .map(user => user._id)
+    provision: 10
   },
   {
     _id: policyId2,
@@ -322,98 +315,11 @@ const policies = [
     setMealLimit: false,
     mealLimit: 0,
     setProvision: true,
-    provision: 10,
-    employees: users
-      .filter(user => user._policy === policyId2)
-      .map(user => user._id)
+    provision: 10
   }
 ]
 
 const trips = [
-  {
-    name: 'New York trip',
-    _creator: employeeId,
-    status: 'waiting',
-    forCreator: true,
-    _company: companyId,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: 5,
-        lodging: 11,
-        transportation: 15,
-        meal: 22,
-        provision: 25,
-        note: 'Large budget',
-        classType: 'economy',
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
-        totalPrice: 78,
-        lastDestination: 'New York',
-        lastDestinationDate: new Date('2019-03-17')
-      }
-    ]
-  },
-  {
-    name: 'Seoul trip',
-    _creator: employeeId,
-    status: 'approved',
-    forCreator: true,
-    _company: companyId,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: 50,
-        lodging: 10,
-        transportation: 15,
-        meal: 20,
-        provision: 25,
-        note: 'Small budget',
-        classType: 'economy',
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
-        totalPrice: 120,
-        lastDestination: 'Seoul',
-        lastDestinationDate: new Date('2019-03-17')
-      }
-    ]
-  },
-  {
-    name: 'Singapore trip',
-    _creator: employeeId,
-    status: 'rejected',
-    forCreator: true,
-    _company: companyId,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: 500,
-        lodging: 10,
-        transportation: 15,
-        meal: 200,
-        provision: 25,
-        note: 'Small budget',
-        classType: 'economy',
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
-        totalPrice: 750,
-        lastDestination: 'Singapore',
-        lastDestinationDate: new Date('2019-03-17')
-      }
-    ]
-  },
   {
     _id: tripId,
     name: 'HO CHI MINH trip',
@@ -477,6 +383,7 @@ const trips = [
     ]
   },
   {
+    _id: tripId2,
     name: 'Ha Long trip',
     status: 'completed',
     _creator: employeeId,
@@ -518,14 +425,14 @@ const trips = [
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 5,
-        lodging: 10,
-        transportation: 15,
-        meal: 20,
+        flight: 500,
+        lodging: 1000,
+        transportation: 1500,
+        meal: 2000,
         provision: 5,
         note: 'Small budget',
         classType: 'economy',
-        totalPrice: 55,
+        totalPrice: 5500,
         destinations: [
           {
             from: 'HA NOI',
@@ -538,7 +445,7 @@ const trips = [
     ]
   },
   {
-    _id: secondTripId,
+    _id: tripId3,
     name: 'ThaiLand trip',
     status: 'finished',
     _creator: employeeId,
@@ -580,11 +487,11 @@ const trips = [
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 500,
-        lodging: 100,
-        transportation: 150,
-        meal: 200,
-        provision: 250,
+        flight: 50000,
+        lodging: 10000,
+        transportation: 15000,
+        meal: 20000,
+        provision: 25,
         note: 'Small budget',
         classType: 'economy',
         destinations: [
@@ -593,7 +500,7 @@ const trips = [
             date: new Date('2019-03-13')
           }
         ],
-        totalPrice: 1200,
+        totalPrice: 120000,
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
       }
@@ -602,7 +509,7 @@ const trips = [
 
   // second user trips
   {
-    _id: tripId3,
+    _id: tripId4,
     name: 'Ha Long trip 2',
     status: 'completed',
     _creator: employeeId2,
@@ -664,7 +571,7 @@ const trips = [
     ]
   },
   {
-    _id: tripId4,
+    _id: tripId5,
     name: 'Ha Long trip 3',
     status: 'completed',
     _creator: employeeId2,
@@ -724,6 +631,96 @@ const trips = [
         lastDestinationDate: new Date('2019-03-17')
       }
     ]
+  },
+  {
+    name: 'New York trip',
+    _creator: employeeId,
+    status: 'waiting',
+    forCreator: true,
+    _company: companyId,
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 5,
+        lodging: 11,
+        transportation: 15,
+        meal: 22,
+        provision: 25,
+        note: 'Large budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        totalPrice: 78,
+        lastDestination: 'New York',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
+  },
+  {
+    _id: tripId6,
+    name: 'Seoul trip',
+    _creator: employeeId,
+    status: 'approved',
+    forCreator: true,
+    _company: companyId,
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 50,
+        lodging: 10,
+        transportation: 15,
+        meal: 20,
+        provision: 25,
+        note: 'Small budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        totalPrice: 120,
+        lastDestination: 'Seoul',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ]
+  },
+  {
+    _id: tripId7,
+    name: 'Singapore trip',
+    _creator: employeeId,
+    status: 'rejected',
+    forCreator: true,
+    _company: companyId,
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 500,
+        lodging: 10,
+        transportation: 15,
+        meal: 200,
+        provision: 25,
+        note: 'Small budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        totalPrice: 750,
+        lastDestination: 'Singapore',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ],
+    adminMessage:
+      'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful.',
+    updatedByAdmin: adminId,
+    updatedByAdminAt: new Date()
   }
 ]
 
@@ -731,9 +728,17 @@ const expenses = []
 const expenseStatuses = ['waiting', 'claiming', 'rejected', 'approved']
 const expenseCategories = ['flight', 'lodging', 'transportation', 'meal']
 const expenseAccounts = ['credit-card', 'cash']
-const expenseTrips = [tripId, secondTripId]
+const expenseTrips = [
+  tripId,
+  tripId2,
+  tripId3,
+  tripId4,
+  tripId5,
+  tripId6,
+  tripId7
+]
 
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 150; i++) {
   expenses.push({
     _creator: randomItemInArray([employeeId, employeeId2]),
     name: `Expense ${i + 1}`,
@@ -756,24 +761,19 @@ const departments = [
   {
     _id: departmentId,
     _company: companyId,
-    name: `Department 1`,
-    employees: users.filter(u => u._department === departmentId).map(u => u._id)
+    name: `Department 1`
   },
   {
     _id: secondDepartmentId,
     _company: companyId,
-    name: `Department 2`,
-    employees: users
-      .filter(u => u._department === secondDepartmentId)
-      .map(u => u._id)
+    name: `Department 2`
   }
 ]
 
 for (let i = 2; i < 10; i++) {
   departments.push({
     _company: companyId,
-    name: `Department ${i + 1}`,
-    employees: []
+    name: `Department ${i + 1}`
   })
 }
 
