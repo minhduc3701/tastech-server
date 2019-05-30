@@ -25,6 +25,30 @@ router.post('/card', async (req, res, next) => {
         _creator: req.user._id
       })
       await processingTrip.save()
+      trip._id = processingTrip._id
+
+      // update existing trip
+    } else {
+      let foundTrip = await Trip.findOneAndUpdate(
+        {
+          _creator: req.user._id,
+          _id: trip._id,
+          status: 'approved'
+        },
+        {
+          $set: {
+            ..._.omit(trip, ['_id']),
+            status: 'ongoing'
+          }
+        },
+        {
+          new: true
+        }
+      )
+
+      if (!foundTrip) {
+        throw { message: 'Trip not found' }
+      }
     }
 
     // flight order
@@ -32,7 +56,7 @@ router.post('/card', async (req, res, next) => {
       flightOrder = new Order({
         currency: trip.flight.currency,
         type: 'flight',
-        _trip: processingTrip._id,
+        _trip: trip._id,
         flight: trip.flight,
         _customer: req.user._id
       })
@@ -45,7 +69,7 @@ router.post('/card', async (req, res, next) => {
       hotelOrder = new Order({
         currency: trip.hotel.currency,
         type: 'hotel',
-        _trip: processingTrip._id,
+        _trip: trip._id,
         hotel: trip.hotel,
         _customer: req.user._id
       })
@@ -176,7 +200,7 @@ router.post('/card', async (req, res, next) => {
     // create hotel order
     if (trip.hotel) {
       let customerOrderCode = `${process.env.PKFARE_HOTEL_ORDER_PREFIX}.${
-        processingTrip._id
+        trip._id
       }`
 
       let request = {
@@ -236,23 +260,27 @@ router.post('/card', async (req, res, next) => {
 
     res.status(200).send({
       status: charge.status,
-      trip: _.pick(processingTrip, ['_id'])
+      trip: _.pick(trip, ['_id']),
+      flightOrder,
+      hotelOrder
     })
   } catch (error) {
     // update order status to failed if something went wrong
-    if (trip.flight) {
+    if (trip.flight && flightOrder) {
       flightOrder.status = 'failed'
       await flightOrder.save()
     }
 
-    if (trip.hotel) {
+    if (trip.hotel && hotelOrder) {
       hotelOrder.status = 'failed'
       await hotelOrder.save()
     }
 
     res.status(400).send({
       ...error,
-      trip: _.pick(processingTrip, ['_id'])
+      trip: _.pick(trip, ['_id']),
+      flightOrder,
+      hotelOrder
     })
   }
 })
