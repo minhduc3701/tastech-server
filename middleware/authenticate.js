@@ -17,6 +17,7 @@ const authenticateAdmin = (req, res, next) => {
   Role.findById(req.user._role)
     .then(role => {
       if (role.type === 'admin') {
+        req.admin = req.user
         return next()
       }
       res.status(401).send('Unauthorized')
