@@ -9,7 +9,7 @@ const moment = require('moment')
 const _ = require('lodash')
 
 router.post('/card', async (req, res, next) => {
-  const { card, trip } = req.body
+  const { card, trip, recheckout } = req.body
   let cardId = card.id
   let processingTrip, flightOrder, hotelOrder, bookingResponse
   let { contactInfo } = trip
@@ -26,6 +26,17 @@ router.post('/card', async (req, res, next) => {
       })
       await processingTrip.save()
       trip._id = processingTrip._id
+
+      // recheckout trip
+    } else if (recheckout && trip._id) {
+      let foundTrip = await Trip.findOne({
+        _creator: req.user._id,
+        _id: trip._id
+      })
+
+      if (!foundTrip) {
+        throw { message: 'Trip not found' }
+      }
 
       // update existing trip
     } else {
@@ -62,6 +73,8 @@ router.post('/card', async (req, res, next) => {
       })
 
       await flightOrder.save()
+    } else {
+      // find the order the assign trip.flight = flightOrder.flight
     }
 
     // hotel order
@@ -75,6 +88,8 @@ router.post('/card', async (req, res, next) => {
       })
 
       await hotelOrder.save()
+    } else {
+      // find the order the assign trip.hotel = hotelOrder.hotel
     }
 
     // booking
