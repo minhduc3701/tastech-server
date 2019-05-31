@@ -239,9 +239,9 @@ router.post('/card', async (req, res, next) => {
 
     // create hotel order
     if (trip.hotel) {
-      let customerOrderCode = `${process.env.PKFARE_HOTEL_ORDER_PREFIX}.${
-        hotelOrder._id
-      }`
+      // https://www.drzon.net/posts/generate-random-order-number/
+      const orderid = require('order-id')(process.env.PKFARE_HOTEL_ORDER_SECRET)
+      const customerOrderCode = orderid.generate()
 
       let request = {
         checkInDate: trip.hotel.checkInDate,
