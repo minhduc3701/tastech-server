@@ -19,6 +19,17 @@ router.get('/', function(req, res, next) {
     })
 })
 
+// response approved trips for booking
+router.get('/booking', (req, res) => {
+  Trip.find({
+    _company: req.user._company,
+    _creator: req.user._id,
+    status: 'approved'
+  })
+    .then(trips => res.status(200).send({ trips }))
+    .catch(e => res.status(400).send())
+})
+
 router.get('/:id', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
