@@ -2,6 +2,7 @@ var express = require('express')
 var router = express.Router()
 const User = require('../models/user')
 const Company = require('../models/company')
+const Policy = require('../models/policy')
 const { upload } = require('../config/aws')
 const singleUpload = upload.single('image')
 const _ = require('lodash')
@@ -18,7 +19,6 @@ router.get('/', function(req, res) {
 })
 
 router.get('/me', function(req, res, next) {
-  // res.send(req.user)
   User.findById({
     _id: req.user._id
   })
@@ -26,7 +26,6 @@ router.get('/me', function(req, res, next) {
     .catch(e => res.status(400).send())
 })
 router.get('/me/company', function(req, res, next) {
-  // res.send(req.user)
   Company.findById({
     _id: req.user._company
   })
@@ -39,6 +38,33 @@ router.get('/me/point', function(req, res, next) {
   })
     .then(users => res.status(200).send({ point: users.point }))
     .catch(e => res.status(400).send())
+})
+
+router.get('/me/policy', function(req, res, next) {
+  Promise.all([
+    Policy.find({
+      _company: req.user._company
+    }),
+    Policy.findById(req.user._policy)
+  ])
+    .then(result => {
+      let companyPolicies = result[0]
+      let policy = result[1]
+      if (policy.status !== 'disabled') {
+        res.status(200).send({ policy })
+      } else {
+        for (let index = 0; index < companyPolicies.length; index++) {
+          if (companyPolicies[index]._doc.status === 'default') {
+            policy = companyPolicies[index]
+            break
+          }
+        }
+        res.status(200).send({ policy })
+      }
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 router.patch('/me', async (req, res) => {

@@ -70,7 +70,8 @@ UserSchema.methods.toJSON = function() {
     '_role',
     '_policy',
     'lastLoginDate',
-    'disabled'
+    'disabled',
+    'point'
   ])
 
   if (!validator.isURL(_.toString(userObject.avatar))) {

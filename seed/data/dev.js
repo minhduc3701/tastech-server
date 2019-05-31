@@ -22,11 +22,12 @@ const tripId4 = new ObjectID('5cc2d7a24c72b61214af0054')
 const tripId5 = new ObjectID('5cc2d7a24c72b61214af0055')
 const tripId6 = new ObjectID('5cc2d7a24c72b61214af0056')
 const tripId7 = new ObjectID('5cc2d7a24c72b61214af0057')
+const tripId8 = new ObjectID('5cc2d7a24c72b61214af0000')
 const departmentId = new ObjectID('5cd03b1571811c06ad420d36')
 const secondDepartmentId = new ObjectID('5cd03b1571811c06ad420d35')
-const tasAdminRoleId = new ObjectID()
-const adminRoleId = new ObjectID()
-const employeeRoleId = new ObjectID()
+const tasAdminRoleId = new ObjectID('5cc2d7a24c72b61214af0058')
+const adminRoleId = new ObjectID('5cc2d7a24c72b61214af0059')
+const employeeRoleId = new ObjectID('5cc2d7a24c72b61214af0060')
 const password = '12345678'
 const defaultPolicyId = new ObjectID()
 const policyId1 = new ObjectID()
@@ -723,6 +724,37 @@ const trips = [
       'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful.',
     updatedByAdmin: adminId,
     updatedByAdminAt: new Date()
+  },
+  {
+    _id: tripId8,
+    name: 'Sydney trip',
+    _creator: employeeId,
+    status: 'finished',
+    forCreator: true,
+    _company: companyId,
+    budgetPassengers: [
+      {
+        _passenger: employeeId,
+        flight: 5000,
+        lodging: 100,
+        transportation: 150,
+        meal: 2000,
+        provision: 25,
+        note: 'Small budget',
+        classType: 'economy',
+        destinations: [
+          {
+            from: 'HA NOI',
+            date: new Date('2019-03-13')
+          }
+        ],
+        totalPrice: 7500,
+        lastDestination: 'Singapore',
+        lastDestinationDate: new Date('2019-03-17')
+      }
+    ],
+    updatedByAdmin: adminId,
+    updatedByAdminAt: new Date()
   }
 ]
 
@@ -737,10 +769,11 @@ const expenseTrips = [
   tripId4,
   tripId5,
   tripId6,
-  tripId7
+  tripId7,
+  tripId8
 ]
 
-for (let i = 0; i < 150; i++) {
+for (let i = 0; i < 200; i++) {
   expenses.push({
     _creator: randomItemInArray([employeeId, employeeId2]),
     name: `Expense ${i + 1}`,
