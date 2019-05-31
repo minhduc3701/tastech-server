@@ -2,6 +2,8 @@ const express = require('express')
 const router = express.Router()
 const Trip = require('../models/trip')
 const Expense = require('../models/expense')
+const Company = require('../models/company')
+const User = require('../models/user')
 const Order = require('../models/order')
 const { ObjectID } = require('mongodb')
 
@@ -17,6 +19,17 @@ router.get('/', function(req, res, next) {
     .catch(e => {
       res.send({ error: 'Not Found' })
     })
+})
+
+// response approved trips for booking
+router.get('/booking', (req, res) => {
+  Trip.find({
+    _company: req.user._company,
+    _creator: req.user._id,
+    status: 'approved'
+  })
+    .then(trips => res.status(200).send({ trips }))
+    .catch(e => res.status(400).send())
 })
 
 router.get('/:id', function(req, res, next) {
@@ -110,6 +123,57 @@ router.get('/:id/orders', function(req, res, next) {
       res.status(200).send({ orders })
     })
     .catch(e => res.status(400).send())
+})
+
+router.patch('/:id/exchange', function(req, res, next) {
+  let id = req.params.id
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+  Promise.all([
+    Trip.findOneAndUpdate(
+      {
+        _id: id,
+        _creator: req.user._id,
+        status: 'finished'
+      },
+      { $set: { status: 'completed' } },
+      { new: true }
+    ),
+    Expense.find({
+      _creator: req.user._id,
+      _trip: id,
+      status: 'approved'
+    }),
+    Company.findById(req.user._company)
+  ])
+    .then(result => {
+      let trip = result[0]
+      let expenses = result[1]
+      let company = result[2]
+      let budget = trip.budgetPassengers[0].totalPrice
+      let totalAmount = 0
+      let saveAmount = 0
+      expenses.map(expense => {
+        totalAmount += expense.amount
+      })
+      if (budget > totalAmount) {
+        saveAmount = budget - totalAmount
+      }
+      let rate = company.exchangedRate
+      let point = (saveAmount * rate) / 100
+      return User.findByIdAndUpdate(
+        req.user._id,
+        { $inc: { point: point } },
+        { new: true }
+      )
+    })
+    .then(user => {
+      res.status(200).send({ user })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 module.exports = router

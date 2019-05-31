@@ -9,9 +9,9 @@ const moment = require('moment')
 const _ = require('lodash')
 
 router.post('/card', async (req, res, next) => {
-  const { card, trip } = req.body
+  const { card, trip, checkoutAgain } = req.body
   let cardId = card.id
-  let processingTrip, flightOrder, hotelOrder, bookingResponse
+  let foundTrip, flightOrder, hotelOrder, bookingResponse
   let { contactInfo } = trip
 
   // Set your secret key: remember to change this to your live secret key in production
@@ -19,36 +19,100 @@ router.post('/card', async (req, res, next) => {
   const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
   try {
-    if (!trip._id) {
-      processingTrip = new Trip({
+    if (trip._id) {
+      // checkout trip had failed orders
+      if (checkoutAgain) {
+        foundTrip = await Trip.findOne({
+          _creator: req.user._id,
+          _id: trip._id
+        })
+
+        // update existing trip
+      } else {
+        foundTrip = await Trip.findOneAndUpdate(
+          {
+            _creator: req.user._id,
+            _id: trip._id,
+            status: 'approved'
+          },
+          {
+            $set: {
+              ..._.omit(trip, ['_id']),
+              status: 'ongoing'
+            }
+          },
+          {
+            new: true
+          }
+        )
+      } // end inner if
+
+      if (!foundTrip) {
+        throw { message: 'Trip not found' }
+      }
+
+      // create new trip
+    } else {
+      foundTrip = new Trip({
         ...trip,
         _creator: req.user._id
       })
-      await processingTrip.save()
-    }
+      await foundTrip.save()
+      trip._id = foundTrip._id
+    } // end outer if
 
     // flight order
     if (trip.flight) {
-      flightOrder = new Order({
-        currency: trip.flight.currency,
-        type: 'flight',
-        _trip: processingTrip._id,
-        flight: trip.flight,
-        _customer: req.user._id
-      })
+      if (checkoutAgain) {
+        // find the order the assign trip.flight = flightOrder.flight
+        flightOrder = await Order.findOne({
+          type: 'flight',
+          _trip: trip._id,
+          _customer: req.user._id,
+          status: 'failed'
+        })
 
-      await flightOrder.save()
+        if (!flightOrder) {
+          throw { message: 'Order not found' }
+        }
+
+        // not checkout again, create new order
+      } else {
+        flightOrder = new Order({
+          currency: trip.flight.currency,
+          type: 'flight',
+          _trip: trip._id,
+          flight: trip.flight,
+          _customer: req.user._id
+        })
+
+        await flightOrder.save()
+      }
     }
 
     // hotel order
     if (trip.hotel) {
-      hotelOrder = new Order({
-        currency: trip.hotel.currency,
-        type: 'hotel',
-        _trip: processingTrip._id,
-        hotel: trip.hotel,
-        _customer: req.user._id
-      })
+      if (checkoutAgain) {
+        // find the order the assign trip.hotel = hotelOrder.hotel
+        hotelOrder = await Order.findOne({
+          type: 'hotel',
+          _trip: trip._id,
+          _customer: req.user._id,
+          status: 'failed'
+        })
+
+        if (!hotelOrder) {
+          throw { message: 'Order not found' }
+        }
+      } else {
+        hotelOrder = new Order({
+          currency: trip.hotel.currency,
+          type: 'hotel',
+          _trip: trip._id,
+          hotel: trip.hotel,
+          _customer: req.user._id
+        })
+      }
 
       await hotelOrder.save()
     }
@@ -164,7 +228,7 @@ router.post('/card', async (req, res, next) => {
         name: contactInfo.name,
         orderNum,
         PNR: pnr,
-        telNum: contactInfo.phone1
+        telNum: `+${contactInfo.areaCode1} ${contactInfo.phone1}`
       })
 
       flightUpdateData = {
@@ -175,9 +239,9 @@ router.post('/card', async (req, res, next) => {
 
     // create hotel order
     if (trip.hotel) {
-      let customerOrderCode = `${process.env.PKFARE_HOTEL_ORDER_PREFIX}.${
-        processingTrip._id
-      }`
+      // https://www.drzon.net/posts/generate-random-order-number/
+      const orderid = require('order-id')(process.env.PKFARE_HOTEL_ORDER_SECRET)
+      const customerOrderCode = orderid.generate()
 
       let request = {
         checkInDate: trip.hotel.checkInDate,
@@ -236,23 +300,27 @@ router.post('/card', async (req, res, next) => {
 
     res.status(200).send({
       status: charge.status,
-      trip: _.pick(processingTrip, ['_id'])
+      trip: _.pick(trip, ['_id']),
+      flightOrder,
+      hotelOrder
     })
   } catch (error) {
     // update order status to failed if something went wrong
-    if (trip.flight) {
+    if (trip.flight && flightOrder) {
       flightOrder.status = 'failed'
       await flightOrder.save()
     }
 
-    if (trip.hotel) {
+    if (trip.hotel && hotelOrder) {
       hotelOrder.status = 'failed'
       await hotelOrder.save()
     }
 
     res.status(400).send({
       ...error,
-      trip: _.pick(processingTrip, ['_id'])
+      trip: _.pick(trip, ['_id']),
+      flightOrder,
+      hotelOrder
     })
   }
 })
