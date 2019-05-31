@@ -58,7 +58,7 @@ router.post('/search', function(req, res, next) {
         ]
       }
     },
-    // { $limit : 5 },
+    { $limit: 10 },
     {
       $project: {
         name: 1
