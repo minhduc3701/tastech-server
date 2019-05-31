@@ -15,7 +15,7 @@ app.post('/voiding', (req, res) => {
     errorMsg: 'ok',
     data: {
       orderNum: req.body.voidRequest.orderNum,
-      voidOrderNum: 1432558799,
+      voidOrderNum: Date.now(),
       passengers: req.body.voidRequest.passengers
     }
   })
