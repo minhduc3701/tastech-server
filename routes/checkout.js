@@ -228,7 +228,7 @@ router.post('/card', async (req, res, next) => {
         name: contactInfo.name,
         orderNum,
         PNR: pnr,
-        telNum: contactInfo.phone1
+        telNum: `+${contactInfo.areaCode1} ${contactInfo.phone1}`
       })
 
       flightUpdateData = {
