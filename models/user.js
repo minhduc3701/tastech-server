@@ -40,6 +40,10 @@ var UserSchema = new Schema({
     type: 'ObjectId',
     ref: 'Policy'
   },
+  point: {
+    type: Number,
+    default: 0
+  },
   lastLoginDate: Date,
   disabled: Boolean
 })
@@ -66,7 +70,8 @@ UserSchema.methods.toJSON = function() {
     '_role',
     '_policy',
     'lastLoginDate',
-    'disabled'
+    'disabled',
+    'point'
   ])
 
   if (!validator.isURL(_.toString(userObject.avatar))) {

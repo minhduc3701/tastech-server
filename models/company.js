@@ -12,7 +12,10 @@ const CompanySchema = new Schema({
   companySize: String,
   timezone: String,
   industry: String,
-  exchangedRate: Number,
+  exchangedRate: {
+    type: Number,
+    default: 15
+  },
   _policy: {
     type: 'ObjectId',
     ref: 'Policy'
