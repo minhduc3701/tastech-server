@@ -26,7 +26,6 @@ router.get('/me', function(req, res, next) {
     .catch(e => res.status(400).send())
 })
 router.get('/me/company', function(req, res, next) {
-  res.send(req.user)
   Company.findById({
     _id: req.user._company
   })

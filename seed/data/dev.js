@@ -769,10 +769,11 @@ const expenseTrips = [
   tripId4,
   tripId5,
   tripId6,
-  tripId7
+  tripId7,
+  tripId8
 ]
 
-for (let i = 0; i < 150; i++) {
+for (let i = 0; i < 200; i++) {
   expenses.push({
     _creator: randomItemInArray([employeeId, employeeId2]),
     name: `Expense ${i + 1}`,
