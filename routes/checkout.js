@@ -248,7 +248,7 @@ router.post('/card', async (req, res, next) => {
         checkOutDate: trip.hotel.checkOutDate,
         contactEmail: contactInfo.email,
         contactName: contactInfo.name,
-        contactTel: contactInfo.phone1,
+        contactTel: `+${contactInfo.areaCode1} ${contactInfo.phone1}`,
         customerOrderCode,
         numberOfAdult: trip.hotel.numberOfAdult,
         numberOfRoom: trip.hotel.numberOfRoom,
