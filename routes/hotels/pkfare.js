@@ -17,8 +17,10 @@ router.post('/hotelList', (req, res) => {
     }
   })
     .then(response => {
+      console.log(response.data)
       if (response.data.body) {
         let hotelList = response.data.body.hotelInfoList
+        console.log(hotelList)
         let hotelIds = hotelList.map(hotel => parseInt(hotel.hotelId))
 
         return Promise.all([
@@ -93,6 +95,7 @@ router.post('/hotelList', (req, res) => {
       res.status(200).send({ hotels: newHotels })
     })
     .catch(error => {
+      console.log(error)
       res.status(400).send()
     })
 })
@@ -136,7 +139,10 @@ router.post('/hotelsRatePlan', (req, res) => {
 
       return Promise.reject()
     })
-    .catch(error => res.status(400).send())
+    .catch(error => {
+      console.log(error)
+      res.status(400).send()
+    })
 })
 
 router.post('/preBooking', (req, res) => {
