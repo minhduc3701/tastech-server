@@ -146,10 +146,24 @@ router.get('/ongoing', function(req, res, next) {
       res.status(200).json({
         totalBudgets: results[1],
         totalExpenses: results[0][0].totalExpenses,
-        flight: results[0][0].flight,
-        lodging: results[0][0].lodging,
-        transportation: results[0][0].transportation,
-        meal: results[0][0].meal
+        expenses: [
+          {
+            category: 'flight',
+            amount: results[0][0].flight
+          },
+          {
+            category: 'lodging',
+            amount: results[0][0].lodging
+          },
+          {
+            category: 'meal',
+            amount: results[0][0].meal
+          },
+          {
+            category: 'transportation',
+            amount: results[0][0].transportation
+          }
+        ]
       })
     })
     .catch(e => {
