@@ -64,6 +64,39 @@ router.get('/', function(req, res, next) {
     })
 })
 
+router.get('/ongoing', function(req, res, next) {
+  Trip.find({
+    _creator: req.user._id,
+    status: 'ongoing'
+  })
+    .sort({ createdAt: -1 })
+    .limit(1)
+    .then(trips => {
+      return Expense.aggregate([
+        {
+          $match: {
+            _creator: req.user._id,
+            _trip: { $eq: trips[0]._id },
+            status: 'approved'
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            category: 1,
+            amount: 1
+          }
+        }
+      ])
+    })
+    .then(expenses => {
+      res.status(200).json({ expenses })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 router.get('/:id', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
@@ -197,4 +230,5 @@ router.delete('/:id', function(req, res) {
       res.status(400).send()
     })
 })
+
 module.exports = router
