@@ -137,9 +137,9 @@ router.post('/cancel', async (req, res) => {
                 }))
               }
             }
-            let cancelRes = await axios.post(
-              `${process.env.PKFARE_URI}/voiding`,
-              // `http://localhost:5050/voiding`,
+            let base64 = Buffer.from(JSON.stringify(data)).toString('base64')
+            let cancelRes = await axios.get(
+              `${process.env.PKFARE_URI}/voiding?param=${base64}`,
               data
             )
 
