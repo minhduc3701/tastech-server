@@ -373,12 +373,13 @@ const trips = [
         provision: 25,
         note: 'Small budget',
         classType: 'economy',
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
+
+        lastDestination: 'Tan Son Nhat International',
+        lastDestinationCode: 'SGN',
+        lastDestinationDate: new Date('2019-07-17'),
+        startDestination: 'Noibai International',
+        startDestinationCode: 'HAN',
+        startDestinationDate: new Date('2019-07-27'),
         totalPrice: 510,
         lastDestination: 'Singapore',
         lastDestinationDate: new Date('2019-03-17')
@@ -436,14 +437,12 @@ const trips = [
         note: 'Small budget',
         classType: 'economy',
         totalPrice: 5500,
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
-        lastDestination: 'Singapore',
-        lastDestinationDate: new Date('2019-03-17')
+        lastDestination: 'Tan Son Nhat International',
+        lastDestinationCode: 'SGN',
+        lastDestinationDate: new Date('2019-07-17'),
+        startDestination: 'Noibai International',
+        startDestinationCode: 'HAN',
+        startDestinationDate: new Date('2019-07-27')
       }
     ]
   },
@@ -497,15 +496,19 @@ const trips = [
         provision: 25,
         note: 'Small budget',
         classType: 'economy',
+        totalPrice: 120000,
         destinations: [
           {
             from: 'HA NOI',
             date: new Date('2019-03-13')
           }
         ],
-        totalPrice: 120000,
-        lastDestination: 'Singapore',
-        lastDestinationDate: new Date('2019-03-17')
+        lastDestination: 'Tan Son Nhat International',
+        lastDestinationCode: 'SGN',
+        lastDestinationDate: new Date('2019-07-17'),
+        startDestination: 'Noibai International',
+        startDestinationCode: 'HAN',
+        startDestinationDate: new Date('2019-07-27')
       }
     ]
   },
@@ -562,14 +565,12 @@ const trips = [
         note: 'Small budget',
         classType: 'economy',
         totalPrice: 55,
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
-        lastDestination: 'Singapore',
-        lastDestinationDate: new Date('2019-03-17')
+        lastDestination: 'Tan Son Nhat International',
+        lastDestinationCode: 'SGN',
+        lastDestinationDate: new Date('2019-07-17'),
+        startDestination: 'Noibai International',
+        startDestinationCode: 'HAN',
+        startDestinationDate: new Date('2019-07-27')
       }
     ]
   },
@@ -624,14 +625,12 @@ const trips = [
         note: 'Small budget',
         classType: 'economy',
         totalPrice: 55,
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
-        lastDestination: 'Singapore',
-        lastDestinationDate: new Date('2019-03-17')
+        lastDestination: 'Tan Son Nhat International',
+        lastDestinationCode: 'SGN',
+        lastDestinationDate: new Date('2019-07-17'),
+        startDestination: 'Noibai International',
+        startDestinationCode: 'HAN',
+        startDestinationDate: new Date('2019-07-27')
       }
     ]
   },
@@ -649,17 +648,15 @@ const trips = [
         transportation: 15,
         meal: 22,
         provision: 25,
+        totalPrice: 78,
         note: 'Large budget',
         classType: 'economy',
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
-        totalPrice: 78,
-        lastDestination: 'New York',
-        lastDestinationDate: new Date('2019-03-17')
+        lastDestination: 'Tan Son Nhat International',
+        lastDestinationCode: 'SGN',
+        lastDestinationDate: new Date('2019-07-17'),
+        startDestination: 'Noibai International',
+        startDestinationCode: 'HAN',
+        startDestinationDate: new Date('2019-07-27')
       }
     ]
   },
@@ -678,17 +675,15 @@ const trips = [
         transportation: 15,
         meal: 20,
         provision: 25,
+        totalPrice: 125,
         note: 'Small budget',
         classType: 'economy',
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
-        totalPrice: 120,
-        lastDestination: 'Seoul',
-        lastDestinationDate: new Date('2019-03-17')
+        lastDestination: 'Tan Son Nhat International',
+        lastDestinationCode: 'SGN',
+        lastDestinationDate: new Date('2019-07-17'),
+        startDestination: 'Noibai International',
+        startDestinationCode: 'HAN',
+        startDestinationDate: new Date('2019-07-27')
       }
     ]
   },
@@ -709,15 +704,13 @@ const trips = [
         provision: 25,
         note: 'Small budget',
         classType: 'economy',
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
         totalPrice: 750,
-        lastDestination: 'Singapore',
-        lastDestinationDate: new Date('2019-03-17')
+        lastDestination: 'Tan Son Nhat International',
+        lastDestinationCode: 'SGN',
+        lastDestinationDate: new Date('2019-07-17'),
+        startDestination: 'Noibai International',
+        startDestinationCode: 'HAN',
+        startDestinationDate: new Date('2019-07-27')
       }
     ],
     adminMessage:
@@ -742,15 +735,13 @@ const trips = [
         provision: 25,
         note: 'Small budget',
         classType: 'economy',
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
         totalPrice: 7500,
-        lastDestination: 'Singapore',
-        lastDestinationDate: new Date('2019-03-17')
+        lastDestination: 'Tan Son Nhat International',
+        lastDestinationCode: 'SGN',
+        lastDestinationDate: new Date('2019-07-17'),
+        startDestination: 'Noibai International',
+        startDestinationCode: 'HAN',
+        startDestinationDate: new Date('2019-07-27')
       }
     ],
     updatedByAdmin: adminId,

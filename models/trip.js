@@ -29,22 +29,21 @@ var TripSchema = new Schema(
     forCreator: Boolean,
     budgetPassengers: [
       {
-        flight: Number,
-        lodging: Number,
-        transportation: Number,
-        meal: Number,
-        provision: Number,
         note: String,
         classType: String,
-        destinations: [
-          {
-            from: String,
-            date: Date
-          }
-        ],
+        startDestination: String,
+        startDestinationCode: String,
+        startDestinationDate: Date,
         lastDestination: String,
+        lastDestinationCode: String,
         lastDestinationDate: Date,
-        totalPrice: Number
+        totalPrice: Number,
+        flight: {},
+        lodging: {},
+        transportation: {},
+        meal: {},
+        provision: {},
+        others: {}
       }
     ],
     passengers: [
