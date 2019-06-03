@@ -228,7 +228,7 @@ router.post('/card', async (req, res, next) => {
         name: contactInfo.name,
         orderNum,
         PNR: pnr,
-        telNum: contactInfo.phone1
+        telNum: `+${contactInfo.areaCode1} ${contactInfo.phone1}`
       })
 
       flightUpdateData = {
@@ -239,16 +239,16 @@ router.post('/card', async (req, res, next) => {
 
     // create hotel order
     if (trip.hotel) {
-      let customerOrderCode = `${process.env.PKFARE_HOTEL_ORDER_PREFIX}.${
-        hotelOrder._id
-      }`
+      // https://www.drzon.net/posts/generate-random-order-number/
+      const orderid = require('order-id')(process.env.PKFARE_HOTEL_ORDER_SECRET)
+      const customerOrderCode = orderid.generate()
 
       let request = {
         checkInDate: trip.hotel.checkInDate,
         checkOutDate: trip.hotel.checkOutDate,
         contactEmail: contactInfo.email,
         contactName: contactInfo.name,
-        contactTel: contactInfo.phone1,
+        contactTel: `+${contactInfo.areaCode1} ${contactInfo.phone1}`,
         customerOrderCode,
         numberOfAdult: trip.hotel.numberOfAdult,
         numberOfRoom: trip.hotel.numberOfRoom,

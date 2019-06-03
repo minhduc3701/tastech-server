@@ -19,11 +19,7 @@ router.get('/', function(req, res) {
 })
 
 router.get('/me', function(req, res, next) {
-  User.findById({
-    _id: req.user._id
-  })
-    .then(users => res.status(200).send({ users }))
-    .catch(e => res.status(400).send())
+  res.send({ user: req.user })
 })
 router.get('/me/company', function(req, res, next) {
   Company.findById({

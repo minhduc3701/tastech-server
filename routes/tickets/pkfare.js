@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Ticket = require('../../models/ticket')
+const VoidTicket = require('../../models/voidTicket')
 const Order = require('../../models/order')
 const bodyParser = require('body-parser')
 const _ = require('lodash')
@@ -26,24 +27,22 @@ router.post('/', bodyParser.text({ type: '*/*' }), (req, res) => {
   let { orderNum, permitVoid, airPnr } = body
   let ticket = new Ticket(body)
 
-  Order.findOne({
-    number: String(orderNum),
-    status: { $eq: 'processing' }
-  })
-    .then(order => {
-      if (!order) {
-        throw new Error()
+  Promise.all([
+    ticket.save(),
+    Order.findOneAndUpdate(
+      {
+        number: String(orderNum),
+        status: 'processing'
+      },
+      {
+        $set: {
+          status: 'completed',
+          pnr: airPnr,
+          canCancel: permitVoid
+        }
       }
-
-      order.status = 'completed'
-      order.pnr = airPnr
-      order.canCancel = permitVoid
-
-      return order.save()
-    })
-    .then(order => {
-      return ticket.save()
-    })
+    )
+  ])
     .then(() => {
       res.status(200).send({
         errorCode: 0,
@@ -81,29 +80,26 @@ router.post('/voidResult', bodyParser.text({ type: '*/*' }), (req, res) => {
     voidSuccess = true
   }
 
-  Order.findOne({
-    number: String(orderNum),
-    cancelNumber: String(voidOrderNum),
-    status: { $eq: 'cancelling' }
-  })
-    .then(order => {
-      if (!order) {
-        throw new Error()
+  let voidTicket = new VoidTicket(body)
+
+  Promise.all([
+    voidTicket.save(),
+    Order.findOneAndUpdate(
+      {
+        number: String(orderNum),
+        cancelNumber: String(voidOrderNum),
+        status: 'cancelling'
+      },
+      {
+        $set: {
+          status: voidSuccess ? 'cancelled' : 'completed',
+          rejectedReason: voidSuccess ? null : remark,
+          canCancel: false
+        }
       }
-
-      if (voidSuccess) {
-        order.status = 'cancelled'
-        order.rejectedReason = null
-      } else {
-        order.status = 'completed'
-        order.rejectedReason = remark
-      }
-
-      order.canCancel = false
-
-      return order.save()
-    })
-    .then(order => {
+    )
+  ])
+    .then(() => {
       res.status(200).send({
         errorCode: 0,
         errorMsg: 'ok'

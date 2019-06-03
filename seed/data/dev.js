@@ -762,26 +762,19 @@ const expenses = []
 const expenseStatuses = ['waiting', 'claiming', 'rejected', 'approved']
 const expenseCategories = ['flight', 'lodging', 'transportation', 'meal']
 const expenseAccounts = ['credit-card', 'cash']
-const expenseTrips = [
-  tripId,
-  tripId2,
-  tripId3,
-  tripId4,
-  tripId5,
-  tripId6,
-  tripId7,
-  tripId8
-]
+const expenseTripsUser1 = [tripId, tripId2, tripId3, tripId6, tripId7, tripId8]
 
-for (let i = 0; i < 200; i++) {
+const expensesTripsUser2 = [tripId4, tripId5]
+
+for (let i = 0; i < 150; i++) {
   expenses.push({
-    _creator: randomItemInArray([employeeId, employeeId2]),
+    _creator: employeeId,
     name: `Expense ${i + 1}`,
     status: randomItemInArray(expenseStatuses),
     amount: chance.integer({ min: 0, max: 500 }),
     category: randomItemInArray(expenseCategories),
     transactionDate: new Date(chance.date({ year: 2019 })),
-    _trip: randomItemInArray(expenseTrips),
+    _trip: randomItemInArray(expenseTripsUser1),
     _company: companyId,
     account: randomItemInArray(expenseAccounts),
     receipts: ['1556164218511', '1556164218512'],
@@ -789,6 +782,24 @@ for (let i = 0; i < 200; i++) {
     city: chance.city(),
     vendor: chance.company(),
     _attendees: [employeeId2]
+  })
+}
+
+for (let i = 150; i < 200; i++) {
+  expenses.push({
+    _creator: employeeId2,
+    name: `Expense ${i + 1}`,
+    status: randomItemInArray(expenseStatuses),
+    amount: chance.integer({ min: 0, max: 500 }),
+    category: randomItemInArray(expenseCategories),
+    transactionDate: new Date(chance.date({ year: 2019 })),
+    _trip: randomItemInArray(expensesTripsUser2),
+    _company: companyId,
+    account: randomItemInArray(expenseAccounts),
+    receipts: ['1556164218511', '1556164218512'],
+    message: chance.paragraph({ sentences: 1 }),
+    city: chance.city(),
+    vendor: chance.company()
   })
 }
 
