@@ -262,7 +262,7 @@ const makeFlightsData = (data, isRoundTrip) => {
       ]
 
       let price = priceBreakdown.reduce((acc, fee) => solution[fee] + acc, 0)
-      price = price.toFixed(2)
+      price = Number(price.toFixed(2))
 
       flightsData.push({
         ...solution,
