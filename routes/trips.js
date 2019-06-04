@@ -10,6 +10,8 @@ const { authentication } = require('../config/pkfare')
 const request = require('request')
 const zlib = require('zlib')
 const _ = require('lodash')
+const axios = require('axios')
+const Policy = require('../models/policy')
 
 router.get('/', function(req, res, next) {
   Trip.find({
@@ -60,21 +62,37 @@ router.post('/', async (req, res, next) => {
   try {
     await trip.save()
     let budget = req.body.budgetPassengers[0]
+
+    // get Policy
+    let companyPolicies = await Policy.find({
+      _company: req.user._company
+    })
+    let policy = await Policy.findById(req.user._policy)
+    if (!policy || policy.status === 'disabled') {
+      for (let index = 0; index < companyPolicies.length; index++) {
+        if (companyPolicies[index]._doc.status === 'default') {
+          policy = companyPolicies[index]
+          break
+        }
+      }
+    }
+
+    // calculate Flight budget
     let searchAirLegs = []
     searchAirLegs = [
       {
         // cabinClass: classOption.value,
-        cabinClass: 'Economy',
+        cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
         departureDate: budget.startDestinationDate,
         destination: budget.lastDestinationCode,
         origin: budget.startDestinationCode
+      },
+      {
+        cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
+        departureDate: budget.lastDestinationDate,
+        destination: budget.startDestinationCode,
+        origin: budget.lastDestinationCode
       }
-      // {
-      //   cabinClass: "Economy",
-      //   departureDate: budget.lastDestinationDate,
-      //   destination: budget.startDestinationCode,
-      //   origin: budget.lastDestinationCode,
-      // }
     ]
     let search = {
       adults: 1,
@@ -84,6 +102,7 @@ router.post('/', async (req, res, next) => {
       searchAirLegs,
       solutions: 0
     }
+
     let base64 = Buffer.from(
       JSON.stringify({
         search,
@@ -97,27 +116,69 @@ router.post('/', async (req, res, next) => {
         if (err) {
           return res.status(400).send()
         }
-        zlib.gunzip(body, function(err, dezipped) {
+        zlib.gunzip(body, async (err, dezipped) => {
           let flights = JSON.parse(dezipped.toString())
           flights = flights.data
           let isRoundTrip = searchAirLegs.length === 2
           flights = makeFlightsData(flights, isRoundTrip)
           let sumPrice = 0
-          let max = Number(flights[0].price)
           flights.forEach(flight => {
-            if (Number(flight.price) > max) {
-              max = Number(flight.price)
-            }
             sumPrice += Number(flight.price)
           })
           trip.budgetPassengers[0].flight.price = sumPrice / flights.length
+
+          //  Calculate Hotel budget
+          let request = {
+            checkInDate: budget.startDestinationDate,
+            checkOutDate: budget.lastDestinationDate,
+            // regionId: parseInt(hotelDestination),
+            regionId: 6001380,
+            numberOfAdult: 1,
+            numberOfRoom: 1,
+            languageCode: 'en_US'
+          }
+          let responseHotel = await axios({
+            method: 'post',
+            url: `${process.env.PKFARE_HOTEL_URI}/queryHotelList`,
+            data: {
+              authentication,
+              request
+            }
+          })
+          let { data } = responseHotel
+          let { hotelInfoList } = data.body
+          let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
+
+          request.hotelIdList = hotelIds
+          let responseHotelRatePlan = await axios({
+            method: 'post',
+            url: `${process.env.PKFARE_HOTEL_URI}/queryMultipleHotelRatePlan`,
+            data: {
+              authentication,
+              request
+            }
+          })
+          let ratePlanList = responseHotelRatePlan.data.body.ratePlanList
+          let hotelRooms = []
+          ratePlanList.forEach(ratePlan => {
+            ratePlan.ratePlanDetailList.forEach(detail => {
+              hotelRooms.push(detail)
+            })
+          })
+
+          let sumPriceHotelRoom = 0
+          hotelRooms.forEach(rooms => {
+            sumPriceHotelRoom += Number(rooms.totalPrice)
+          })
+          trip.budgetPassengers[0].lodging.price =
+            sumPriceHotelRoom / hotelRooms.length
 
           Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
             trip => {
               if (!trip) {
                 return res.status(404).send()
               }
-              res.status(200).send({ trip })
+              res.status(200).send({ trip, policy, searchAirLegs })
             }
           )
         })

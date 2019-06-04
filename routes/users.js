@@ -46,7 +46,7 @@ router.get('/me/policy', function(req, res, next) {
     .then(result => {
       let companyPolicies = result[0]
       let policy = result[1]
-      if (policy.status !== 'disabled') {
+      if (policy && policy.status !== 'disabled') {
         res.status(200).send({ policy })
       } else {
         for (let index = 0; index < companyPolicies.length; index++) {
