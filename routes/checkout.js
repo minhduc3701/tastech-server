@@ -7,6 +7,7 @@ const api = require('../modules/api')
 const { makeSegmentsData, makeRoomGuestDetails } = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
+const { removeSpaces } = require('../modules/utils')
 
 router.post('/card', async (req, res, next) => {
   const { card, trip, checkoutAgain } = req.body
@@ -135,8 +136,8 @@ router.post('/card', async (req, res, next) => {
           ),
           cardNum: passenger.passportNo,
           cardType: 'P',
-          firstName: passenger.firstName,
-          lastName: passenger.lastName,
+          firstName: removeSpaces(passenger.firstName),
+          lastName: removeSpaces(passenger.lastName),
           nationality: passenger.nationality,
           psgType: 'ADT',
           sex: passenger.title === 'Mr' ? 'M' : 'F'
@@ -225,7 +226,7 @@ router.post('/card', async (req, res, next) => {
 
       let ticketingRes = await api.ticketing({
         email: contactInfo.email,
-        name: contactInfo.name,
+        name: removeSpaces(contactInfo.name),
         orderNum,
         PNR: pnr,
         telNum: `+${contactInfo.areaCode1} ${contactInfo.phone1}`
@@ -247,7 +248,7 @@ router.post('/card', async (req, res, next) => {
         checkInDate: trip.hotel.checkInDate,
         checkOutDate: trip.hotel.checkOutDate,
         contactEmail: contactInfo.email,
-        contactName: contactInfo.name,
+        contactName: removeSpaces(contactInfo.name),
         contactTel: `+${contactInfo.areaCode1} ${contactInfo.phone1}`,
         customerOrderCode,
         numberOfAdult: trip.hotel.numberOfAdult,
