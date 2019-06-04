@@ -133,8 +133,8 @@ router.post('/cancel', async (req, res) => {
                 passengers: order._trip.passengers.map(passenger => ({
                   cardType: 'P',
                   cardNum: passenger.passportNo,
-                  firstName: _.replace(passenger.firstName, /\s/g, ''),
-                  lastName: _.replace(passenger.lastName, /\s/g, '')
+                  firstName: _.replace(passenger.firstName, /\s+/g, ''),
+                  lastName: _.replace(passenger.lastName, /\s+/g, '')
                 }))
               }
             }
