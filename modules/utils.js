@@ -28,8 +28,8 @@ const makeRoomGuestDetails = (passengers, numberOfRoom) => {
     let passenger = passengers[pi]
     let passengerInfo = {
       gender: passenger.title === 'Mr' ? 2 : 1,
-      firstName: passenger.firstName,
-      lastName: passenger.lastName
+      firstName: removeSpaces(passenger.firstName),
+      lastName: removeSpaces(passenger.lastName)
     }
 
     if (!roomGuestDetails[ri]) {
@@ -52,7 +52,10 @@ const makeRoomGuestDetails = (passengers, numberOfRoom) => {
   return roomGuestDetails
 }
 
+const removeSpaces = str => _.replace(str, /\s+/g, '')
+
 module.exports = {
   makeSegmentsData,
-  makeRoomGuestDetails
+  makeRoomGuestDetails,
+  removeSpaces
 }
