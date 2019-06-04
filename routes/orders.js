@@ -4,6 +4,7 @@ const Order = require('../models/order')
 const { ObjectID } = require('mongodb')
 const axios = require('axios')
 const { authentication } = require('../config/pkfare')
+const _ = require('lodash')
 
 router.get('/', function(req, res, next) {
   Order.find({
@@ -132,8 +133,8 @@ router.post('/cancel', async (req, res) => {
                 passengers: order._trip.passengers.map(passenger => ({
                   cardType: 'P',
                   cardNum: passenger.passportNo,
-                  lastName: passenger.lastName,
-                  firstName: passenger.firstName
+                  firstName: _.replace(passenger.firstName, /\s/g, ''),
+                  lastName: _.replace(passenger.lastName, /\s/g, '')
                 }))
               }
             }

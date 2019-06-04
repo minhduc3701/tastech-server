@@ -135,8 +135,8 @@ router.post('/card', async (req, res, next) => {
           ),
           cardNum: passenger.passportNo,
           cardType: 'P',
-          firstName: passenger.firstName,
-          lastName: passenger.lastName,
+          firstName: _.replace(passenger.firstName, /\s/g, ''),
+          lastName: _.replace(passenger.lastName, /\s/g, ''),
           nationality: passenger.nationality,
           psgType: 'ADT',
           sex: passenger.title === 'Mr' ? 'M' : 'F'
@@ -225,7 +225,7 @@ router.post('/card', async (req, res, next) => {
 
       let ticketingRes = await api.ticketing({
         email: contactInfo.email,
-        name: contactInfo.name,
+        name: _.replace(contactInfo.name, /\s/g, ''),
         orderNum,
         PNR: pnr,
         telNum: `+${contactInfo.areaCode1} ${contactInfo.phone1}`

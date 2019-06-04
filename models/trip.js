@@ -1,7 +1,8 @@
-var mongoose = require('mongoose')
-var Schema = mongoose.Schema
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+const validator = require('validator')
 
-var TripSchema = new Schema(
+const TripSchema = new Schema(
   {
     name: {
       type: String,
@@ -49,30 +50,99 @@ var TripSchema = new Schema(
     ],
     passengers: [
       {
-        businessEmail: String,
+        businessEmail: {
+          type: String,
+          minlength: 1,
+          required: true,
+          trim: true,
+          validate: {
+            validator: validator.isEmail,
+            message: '{VALUE} is not a valid email'
+          }
+        },
         dateOfBirth: Date,
-        firstName: String,
-        frequentFlyerNumber: String,
-        frequentFlyerPropgram: String,
-        gender: String,
-        lastName: String,
-        nationality: String,
+        firstName: {
+          type: String,
+          trim: true
+        },
+        lastName: {
+          type: String,
+          trim: true
+        },
+        frequentFlyerNumber: {
+          type: String,
+          trim: true
+        },
+        frequentFlyerPropgram: {
+          type: String,
+          trim: true
+        },
+        gender: {
+          type: String,
+          trim: true
+        },
+        nationality: {
+          type: String,
+          trim: true
+        },
         passportExpiryDate: Date,
-        passportNo: String,
-        title: String
+        passportNo: {
+          type: String,
+          trim: true
+        },
+        title: {
+          type: String,
+          trim: true
+        }
       }
     ],
     contactInfo: {
-      name: String,
-      email: String,
-      city: String,
-      country: String,
-      phone1: String,
-      phone2: String,
-      postalAddress: String,
-      areaCode1: String,
-      areaCode2: String,
-      province: String
+      name: {
+        type: String,
+        trim: true
+      },
+      email: {
+        type: String,
+        minlength: 1,
+        required: true,
+        trim: true,
+        validate: {
+          validator: validator.isEmail,
+          message: '{VALUE} is not a valid email'
+        }
+      },
+      city: {
+        type: String,
+        trim: true
+      },
+      country: {
+        type: String,
+        trim: true
+      },
+      phone1: {
+        type: String,
+        trim: true
+      },
+      phone2: {
+        type: String,
+        trim: true
+      },
+      postalAddress: {
+        type: String,
+        trim: true
+      },
+      areaCode1: {
+        type: String,
+        trim: true
+      },
+      areaCode2: {
+        type: String,
+        trim: true
+      },
+      province: {
+        type: String,
+        trim: true
+      }
     },
     roundTrip: Boolean,
     numberPassengers: String,
