@@ -9,8 +9,9 @@ const bodyParser = require('body-parser')
 const zlib = require('zlib')
 const request = require('request')
 const { authentication } = require('../../config/pkfare')
+const { currencyExchange } = require('../../middleware/currency')
 
-router.post('/shopping', (req, res) => {
+router.post('/shopping', currencyExchange, (req, res) => {
   let base64 = Buffer.from(
     JSON.stringify({
       search: req.body.search,
@@ -30,7 +31,7 @@ router.post('/shopping', (req, res) => {
         let flights = JSON.parse(dezipped.toString())
         flights = flights.data
         let isRoundTrip = req.body.search.searchAirLegs.length === 2
-        flights = makeFlightsData(flights, isRoundTrip)
+        flights = makeFlightsData(flights, isRoundTrip, req.currency)
 
         let airlines = []
         let airports = []
@@ -206,7 +207,7 @@ router.post('/ticketing', (req, res) => {
     res.status(200).send(JSON.parse(body))
   })
 })
-const makeFlightsData = (data, isRoundTrip) => {
+const makeFlightsData = (data, isRoundTrip, currency) => {
   let flightsData = []
   if (data) {
     data.solutions.forEach(solution => {
@@ -262,10 +263,11 @@ const makeFlightsData = (data, isRoundTrip) => {
       ]
 
       let price = priceBreakdown.reduce((acc, fee) => solution[fee] + acc, 0)
-      price = Number(price.toFixed(2))
+      price = Number((price * currency.rate).toFixed(2))
 
       flightsData.push({
         ...solution,
+        currency: currency.code,
         price,
         departureFlight,
         departureSegments,

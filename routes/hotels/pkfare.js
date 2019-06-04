@@ -6,8 +6,9 @@ const axios = require('axios')
 const Hotel = require('../../models/hotel')
 const { ObjectID } = require('mongodb')
 const { authentication } = require('../../config/pkfare')
+const { currencyExchange } = require('../../middleware/currency')
 
-router.post('/hotelList', (req, res) => {
+router.post('/hotelList', currencyExchange, (req, res) => {
   axios({
     method: 'post',
     url: `${process.env.PKFARE_HOTEL_URI}/queryHotelList`,
@@ -85,8 +86,8 @@ router.post('/hotelList', (req, res) => {
         )
         return {
           ...hotel,
-          currency: matchingHotel.currency,
-          lowestPrice: matchingHotel.lowestPrice,
+          currency: req.currency.code,
+          lowestPrice: matchingHotel.lowestPrice * req.currency.rate,
           supplier: 'pkfare'
         }
       })
