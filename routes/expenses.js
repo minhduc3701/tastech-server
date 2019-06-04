@@ -73,6 +73,7 @@ router.get('/ongoing', function(req, res, next) {
     .limit(1)
     .then(trips => {
       return Promise.all([
+        trips[0].budgetPassengers[0].totalPrice,
         Expense.aggregate([
           {
             $match: {
@@ -84,86 +85,49 @@ router.get('/ongoing', function(req, res, next) {
           {
             $group: {
               _id: '',
-              flight: {
-                $sum: {
-                  $cond: {
-                    if: { $eq: ['$category', 'flight'] },
-                    then: '$amount',
-                    else: 0
-                  }
-                }
-              },
-              lodging: {
-                $sum: {
-                  $cond: {
-                    if: { $eq: ['$category', 'lodging'] },
-                    then: '$amount',
-                    else: 0
-                  }
-                }
-              },
-              meal: {
-                $sum: {
-                  $cond: {
-                    if: { $eq: ['$category', 'meal'] },
-                    then: '$amount',
-                    else: 0
-                  }
-                }
-              },
-              transportation: {
-                $sum: {
-                  $cond: {
-                    if: { $eq: ['$category', 'transportation'] },
-                    then: '$amount',
-                    else: 0
-                  }
-                }
-              },
               totalExpenses: {
                 $sum: '$amount'
-              },
-              totalBudgets: { $first: '$_trip.name' }
+              }
             }
           },
           {
             $project: {
               _id: 0,
-              flight: '$flight',
-              lodging: '$lodging',
-              meal: '$meal',
-              transportation: '$transportation',
-              totalExpenses: '$totalExpenses',
-              trip: '$_trip'
+              totalExpenses: '$totalExpenses'
             }
           }
         ]),
-        trips[0].budgetPassengers[0].totalPrice
+        Expense.aggregate([
+          {
+            $match: {
+              _creator: req.user._id,
+              _trip: { $eq: trips[0]._id },
+              status: 'approved'
+            }
+          },
+          {
+            $group: {
+              _id: '$category',
+              category: { $first: '$category' },
+              amount: { $sum: '$amount' }
+            }
+          },
+          {
+            $project: {
+              _id: 0,
+              category: '$category',
+              amount: '$amount'
+            }
+          }
+        ])
       ])
     })
 
     .then(results => {
       res.status(200).json({
-        totalBudgets: results[1],
-        totalExpenses: results[0][0].totalExpenses,
-        expenses: [
-          {
-            category: 'flight',
-            amount: results[0][0].flight
-          },
-          {
-            category: 'lodging',
-            amount: results[0][0].lodging
-          },
-          {
-            category: 'meal',
-            amount: results[0][0].meal
-          },
-          {
-            category: 'transportation',
-            amount: results[0][0].transportation
-          }
-        ]
+        totalBudgets: results[0],
+        totalExpenses: results[1][0].totalExpenses,
+        expenses: results[2]
       })
     })
     .catch(e => {
