@@ -28,8 +28,8 @@ const makeRoomGuestDetails = (passengers, numberOfRoom) => {
     let passenger = passengers[pi]
     let passengerInfo = {
       gender: passenger.title === 'Mr' ? 2 : 1,
-      firstName: _.replace(passenger.firstName, /\s/g, ''),
-      lastName: _.replace(passenger.lastName, /\s/g, '')
+      firstName: _.replace(passenger.firstName, /\s+/g, ''),
+      lastName: _.replace(passenger.lastName, /\s+/g, '')
     }
 
     if (!roomGuestDetails[ri]) {
