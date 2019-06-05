@@ -31,7 +31,7 @@ const adminReportsRouter = require('./routes/admin/reports')
 const flightsPkfareRouter = require('./routes/flights/pkfare')
 const hotelsPkfareRouter = require('./routes/hotels/pkfare')
 const ticketsPkfareRouter = require('./routes/tickets/pkfare')
-const countriesRouter = require('./routes/countries')
+const settingsRouter = require('./routes/settings')
 const airportsRouter = require('./routes/airports')
 const citiesRouter = require('./routes/cities')
 const regionsRouter = require('./routes/regions')
@@ -183,7 +183,7 @@ app.use(
 app.use('/tickets/pkfare', ticketsPkfareRouter)
 
 // content api
-app.use('/countries', countriesRouter)
+app.use('/settings', settingsRouter)
 app.use(
   '/airports',
   passport.authenticate('jwt', { session: false }),
