@@ -8,6 +8,7 @@ const { makeSegmentsData, makeRoomGuestDetails } = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
+const { USD, VND, SGD } = require('../config/currency')
 
 router.post('/card', async (req, res, next) => {
   const { card, trip, checkoutAgain } = req.body
@@ -185,16 +186,27 @@ router.post('/card', async (req, res, next) => {
         0
       )
 
-      amount += Math.floor((adultPrice + serviceFee) * 100)
-
       currency = flightOrder.flight.currency
+
+      amount += adultPrice + serviceFee
     } // end flight
 
     // if have hotel
     if (hotelOrder && hotelOrder.hotel) {
-      amount += Math.floor(hotelOrder.hotel.totalPrice * 100)
+      amount += hotelOrder.hotel.totalPrice
 
       currency = hotelOrder.hotel.currency
+    }
+
+    switch (currency) {
+      case USD:
+      case SGD:
+        amount = Math.floor(amount * 100)
+        break
+
+      case VND:
+        amount = Math.floor(amount)
+        break
     }
 
     // find the card
