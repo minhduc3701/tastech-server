@@ -25,7 +25,10 @@ Add config/config.json with the content like below:
     "PKFARE_PARTNER_ID": <PKFARE_PARTNER_ID>,
     "PKFARE_PARTNER_KEY": <PKFARE_PARTNER_KEY>,
     "PKFARE_HOTEL_ORDER_SECRET": <dev.ezbiztrip or local.thanh>,
-    "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>
+    "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>,
+    "BASE_CURRENCY": "USD",
+    "TRANSFERWISE_URI": "https://api.sandbox.transferwise.tech",
+    "TRANSFERWISE_API_KEY": ""
   }
 }
 
@@ -126,6 +129,9 @@ export PKFARE_PARTNER_ID=<PKFARE_PARTNER_ID>
 export PKFARE_PARTNER_KEY=<PKFARE_PARTNER_KEY>
 export PKFARE_HOTEL_ORDER_SECRET=<production hotel order secret>
 export STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY>
+export BASE_CURRENCY=SGD
+export TRANSFERWISE_URI=https://api.transferwise.com
+export TRANSFERWISE_API_KEY=<TRANSFERWISE_LIVE_KEY>
 ```
 
 Now you ready to run your app
