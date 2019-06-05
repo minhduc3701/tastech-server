@@ -10,6 +10,7 @@ const zlib = require('zlib')
 const request = require('request')
 const { authentication } = require('../../config/pkfare')
 const { currencyExchange } = require('../../middleware/currency')
+const { debugPkfare } = require('../../config/debug')
 
 router.post('/shopping', currencyExchange, (req, res) => {
   let base64 = Buffer.from(
@@ -23,6 +24,7 @@ router.post('/shopping', currencyExchange, (req, res) => {
     { encoding: null },
     function(err, response, body) {
       if (err) {
+        debugPkfare(err)
         return res.status(400).send()
       }
 

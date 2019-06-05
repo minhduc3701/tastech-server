@@ -9,7 +9,6 @@ const async = require('async')
 const { mail } = require('../config/mail')
 const mailTemplates = require('../config/mailTemplates.js')
 const { debugMail } = require('../config/debug')
-const debug = require('debug')(debugMail)
 
 router.post('/login', function(req, res, next) {
   if (!req.body.email || !req.body.password) {
@@ -108,7 +107,7 @@ router.post('/forgot-password', function(req, res) {
     ],
     function(err, user) {
       if (err) {
-        debug(err)
+        debugMail(err)
       }
     }
   )

@@ -1,5 +1,8 @@
+const debug = require('debug')
+
 module.exports = {
-  debugServer: 'tas-server-app:server',
-  debugMail: 'tas-server-app:mail',
-  debugDb: 'tas-server-app:db'
+  debugServer: debug('tas-server-app:server'),
+  debugMail: debug('tas-server-app:mail'),
+  debugDb: debug('tas-server-app:db'),
+  debugPkfare: debug('tas-server-app:pkfare')
 }
