@@ -83,23 +83,40 @@ router.post('/', async (req, res, next) => {
         moment(budget.startDestinationDate),
         'days'
       ) + 1
-
+    trip.budgetPassengers[0].totalPrice = 0
+    console.log(trip.budgetPassengers[0].totalPrice)
     // calcuate transportation budget
     if (
       policy.setTransportLimit &&
       trip.budgetPassengers[0].transportation.selected
     ) {
-      trip.budgetPassengers[0].transportation.price =
+      trip.budgetPassengers[0].transportation.price = Number(
         policy.transportLimit * countDays
+      )
+      trip.budgetPassengers[0].totalPrice += Number(
+        policy.transportLimit * countDays
+      )
+      console.log(trip.budgetPassengers[0].totalPrice)
     } else {
       trip.budgetPassengers[0].transportation.price = 0
     }
 
     // calcuate meal budget
     if (policy.setMealLimit && trip.budgetPassengers[0].meal.selected) {
-      trip.budgetPassengers[0].meal.price = policy.mealLimit * countDays
+      trip.budgetPassengers[0].meal.price = Number(policy.mealLimit * countDays)
+      trip.budgetPassengers[0].totalPrice += Number(
+        policy.mealLimit * countDays
+      )
+      console.log(trip.budgetPassengers[0].totalPrice)
     } else {
       trip.budgetPassengers[0].meal.price = 0
+    }
+
+    if (trip.budgetPassengers[0].others.selected) {
+      trip.budgetPassengers[0].totalPrice += Number(
+        trip.budgetPassengers[0].others.amount
+      )
+      console.log(trip.budgetPassengers[0].totalPrice)
     }
 
     // calculate Flight budget
@@ -150,8 +167,15 @@ router.post('/', async (req, res, next) => {
             flights.forEach(flight => {
               sumPrice += Number(flight.price)
             })
-            trip.budgetPassengers[0].flight.price = sumPrice / flights.length
+            trip.budgetPassengers[0].flight.price = Number(
+              sumPrice / flights.length
+            )
+            trip.budgetPassengers[0].totalPrice += Number(
+              sumPrice / flights.length
+            )
+            console.log(trip.budgetPassengers[0].totalPrice)
 
+            //  Calculate Hotel budget
             if (trip.budgetPassengers[0].lodging.selected) {
               let request = {
                 checkInDate: budget.startDestinationDate,
@@ -199,23 +223,35 @@ router.post('/', async (req, res, next) => {
               })
               trip.budgetPassengers[0].lodging.price =
                 sumPriceHotelRoom / hotelRooms.length
-            }
-            //  Calculate Hotel budget
+              trip.budgetPassengers[0].totalPrice += Number(
+                sumPriceHotelRoom / hotelRooms.length
+              )
+              console.log(trip.budgetPassengers[0].totalPrice)
 
-            Trip.findByIdAndUpdate(
-              trip._id,
-              { $set: trip },
-              { new: true }
-            ).then(trip => {
-              if (!trip) {
-                return res.status(404).send()
+              //Update provision budget
+              if (trip.budgetPassengers[0].provision.selected) {
+                trip.budgetPassengers[0].totalPrice +=
+                  trip.budgetPassengers[0].totalPrice *
+                  (trip.budgetPassengers[0].provision.rate / 100)
               }
-              res.status(200).send({ trip, policy, searchAirLegs })
-            })
+
+              //Update trip information
+              Trip.findByIdAndUpdate(
+                trip._id,
+                { $set: trip },
+                { new: true }
+              ).then(trip => {
+                if (!trip) {
+                  return res.status(404).send()
+                }
+                res.status(200).send({ trip, policy, searchAirLegs })
+              })
+            }
           })
         }
       )
     } else if (trip.budgetPassengers[0].lodging.selected) {
+      //  Calculate Hotel budget
       let request = {
         checkInDate: budget.startDestinationDate,
         checkOutDate: budget.lastDestinationDate,
@@ -260,6 +296,35 @@ router.post('/', async (req, res, next) => {
       })
       trip.budgetPassengers[0].lodging.price =
         sumPriceHotelRoom / hotelRooms.length
+      trip.budgetPassengers[0].totalPrice += Number(
+        sumPriceHotelRoom / hotelRooms.length
+      )
+
+      //Update provision budget
+      if (trip.budgetPassengers[0].provision.selected) {
+        trip.budgetPassengers[0].totalPrice +=
+          trip.budgetPassengers[0].totalPrice *
+          (trip.budgetPassengers[0].provision.rate / 100)
+      }
+
+      //Update trip information
+      Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
+        trip => {
+          if (!trip) {
+            return res.status(404).send()
+          }
+          res.status(200).send({ trip, policy, searchAirLegs })
+        }
+      )
+    } else {
+      //Update provision budget
+      if (trip.budgetPassengers[0].provision.selected) {
+        trip.budgetPassengers[0].totalPrice +=
+          trip.budgetPassengers[0].totalPrice *
+          (trip.budgetPassengers[0].provision.rate / 100)
+      }
+
+      //Update trip information
       Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
         trip => {
           if (!trip) {
