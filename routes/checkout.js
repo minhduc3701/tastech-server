@@ -35,7 +35,7 @@ router.post('/card', async (req, res, next) => {
           {
             _creator: req.user._id,
             _id: trip._id,
-            status: 'approved'
+            $or: [{ status: 'approved' }, { status: 'ongoing' }]
           },
           {
             $set: {
@@ -85,7 +85,9 @@ router.post('/card', async (req, res, next) => {
           type: 'flight',
           _trip: trip._id,
           flight: trip.flight,
-          _customer: req.user._id
+          _customer: req.user._id,
+          passengers: trip.passengers,
+          contactInfo: trip.contactInfo
         })
 
         await flightOrder.save()
@@ -112,7 +114,9 @@ router.post('/card', async (req, res, next) => {
           type: 'hotel',
           _trip: trip._id,
           hotel: trip.hotel,
-          _customer: req.user._id
+          _customer: req.user._id,
+          passengers: trip.passengers,
+          contactInfo: trip.contactInfo
         })
       }
 

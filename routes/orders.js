@@ -94,7 +94,7 @@ router.post('/cancel', async (req, res) => {
       _customer: req.user._id,
       status: { $eq: 'completed' },
       canCancel: { $eq: true }
-    }).populate('_trip')
+    })
 
     if (!order) {
       return res.status(404).send()
@@ -131,7 +131,7 @@ router.post('/cancel', async (req, res) => {
               authentication,
               voidRequest: {
                 orderNum: order.number,
-                passengers: order._trip.passengers.map(passenger => ({
+                passengers: order.passengers.map(passenger => ({
                   cardType: 'P',
                   cardNum: passenger.passportNo,
                   firstName: removeSpaces(passenger.firstName),
