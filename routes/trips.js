@@ -78,9 +78,6 @@ router.post('/', async (req, res, next) => {
       }
     }
 
-    // let countDays = 5
-    // console.log( moment(budget.lastDestinationCode).ormat('YYYY-MM-DD'))
-    // console.log( moment(budget.startDestinationDate))
     let countDays =
       moment(budget.lastDestinationDate).diff(
         moment(budget.startDestinationDate),
@@ -109,7 +106,6 @@ router.post('/', async (req, res, next) => {
     let searchAirLegs = []
     searchAirLegs = [
       {
-        // cabinClass: classOption.value,
         cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
         departureDate: budget.startDestinationDate,
         destination: budget.lastDestinationCode,
@@ -131,87 +127,148 @@ router.post('/', async (req, res, next) => {
       solutions: 0
     }
 
-    let base64 = Buffer.from(
-      JSON.stringify({
-        search,
-        authentication
-      })
-    ).toString('base64')
-    request(
-      `${process.env.PKFARE_URI}/shoppingV2?param=${base64}`,
-      { encoding: null },
-      function(err, response, body) {
-        if (err) {
-          return res.status(400).send()
-        }
-        zlib.gunzip(body, async (err, dezipped) => {
-          let flights = JSON.parse(dezipped.toString())
-          flights = flights.data
-          let isRoundTrip = searchAirLegs.length === 2
-          flights = makeFlightsData(flights, isRoundTrip)
-          let sumPrice = 0
-          flights.forEach(flight => {
-            sumPrice += Number(flight.price)
-          })
-          trip.budgetPassengers[0].flight.price = sumPrice / flights.length
+    if (trip.budgetPassengers[0].flight.selected) {
+      let base64 = Buffer.from(
+        JSON.stringify({
+          search,
+          authentication
+        })
+      ).toString('base64')
+      request(
+        `${process.env.PKFARE_URI}/shoppingV2?param=${base64}`,
+        { encoding: null },
+        function(err, response, body) {
+          if (err) {
+            return res.status(400).send()
+          }
+          zlib.gunzip(body, async (err, dezipped) => {
+            let flights = JSON.parse(dezipped.toString())
+            flights = flights.data
+            let isRoundTrip = searchAirLegs.length === 2
+            flights = makeFlightsData(flights, isRoundTrip)
+            let sumPrice = 0
+            flights.forEach(flight => {
+              sumPrice += Number(flight.price)
+            })
+            trip.budgetPassengers[0].flight.price = sumPrice / flights.length
 
-          //  Calculate Hotel budget
-          // { let request = {
-          //     checkInDate: budget.startDestinationDate,
-          //     checkOutDate: budget.lastDestinationDate,
-          //     // regionId: parseInt(hotelDestination),
-          //     regionId: 6001380,
-          //     numberOfAdult: 1,
-          //     numberOfRoom: 1,
-          //     languageCode: 'en_US'
-          //   }
-          //   let responseHotel = await axios({
-          //     method: 'post',
-          //     url: `${process.env.PKFARE_HOTEL_URI}/queryHotelList`,
-          //     data: {
-          //       authentication,
-          //       request
-          //     }
-          //   })
-          //   let { data } = responseHotel
-          //   let { hotelInfoList } = data.body
-          //   let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
+            if (trip.budgetPassengers[0].lodging.selected) {
+              let request = {
+                checkInDate: budget.startDestinationDate,
+                checkOutDate: budget.lastDestinationDate,
+                regionId: parseInt(budget.regionId),
+                // regionId: 6001380,
+                numberOfAdult: 1,
+                numberOfRoom: 1,
+                languageCode: 'en_US'
+              }
+              let responseHotel = await axios({
+                method: 'post',
+                url: `${process.env.PKFARE_HOTEL_URI}/queryHotelList`,
+                data: {
+                  authentication,
+                  request
+                }
+              })
+              let { data } = responseHotel
+              let { hotelInfoList } = data.body
+              let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
 
-          //   request.hotelIdList = hotelIds
-          //   let responseHotelRatePlan = await axios({
-          //     method: 'post',
-          //     url: `${process.env.PKFARE_HOTEL_URI}/queryMultipleHotelRatePlan`,
-          //     data: {
-          //       authentication,
-          //       request
-          //     }
-          //   })
-          //   let ratePlanList = responseHotelRatePlan.data.body.ratePlanList
-          //   let hotelRooms = []
-          //   ratePlanList.forEach(ratePlan => {
-          //     ratePlan.ratePlanDetailList.forEach(detail => {
-          //       hotelRooms.push(detail)
-          //     })
-          //   })
+              request.hotelIdList = hotelIds
+              let responseHotelRatePlan = await axios({
+                method: 'post',
+                url: `${
+                  process.env.PKFARE_HOTEL_URI
+                }/queryMultipleHotelRatePlan`,
+                data: {
+                  authentication,
+                  request
+                }
+              })
+              let ratePlanList = responseHotelRatePlan.data.body.ratePlanList
+              let hotelRooms = []
+              ratePlanList.forEach(ratePlan => {
+                ratePlan.ratePlanDetailList.forEach(detail => {
+                  hotelRooms.push(detail)
+                })
+              })
 
-          //   let sumPriceHotelRoom = 0
-          //   hotelRooms.forEach(rooms => {
-          //     sumPriceHotelRoom += Number(rooms.totalPrice)
-          //   })
-          //   trip.budgetPassengers[0].lodging.price =
-          //     sumPriceHotelRoom / hotelRooms.length
-          // }
-          Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
-            trip => {
+              let sumPriceHotelRoom = 0
+              hotelRooms.forEach(rooms => {
+                sumPriceHotelRoom += Number(rooms.totalPrice)
+              })
+              trip.budgetPassengers[0].lodging.price =
+                sumPriceHotelRoom / hotelRooms.length
+            }
+            //  Calculate Hotel budget
+
+            Trip.findByIdAndUpdate(
+              trip._id,
+              { $set: trip },
+              { new: true }
+            ).then(trip => {
               if (!trip) {
                 return res.status(404).send()
               }
               res.status(200).send({ trip, policy, searchAirLegs })
-            }
-          )
-        })
+            })
+          })
+        }
+      )
+    } else if (trip.budgetPassengers[0].lodging.selected) {
+      let request = {
+        checkInDate: budget.startDestinationDate,
+        checkOutDate: budget.lastDestinationDate,
+        regionId: parseInt(budget.regionId),
+        // regionId: 6001380,
+        numberOfAdult: 1,
+        numberOfRoom: 1,
+        languageCode: 'en_US'
       }
-    )
+      let responseHotel = await axios({
+        method: 'post',
+        url: `${process.env.PKFARE_HOTEL_URI}/queryHotelList`,
+        data: {
+          authentication,
+          request
+        }
+      })
+      let { data } = responseHotel
+      let { hotelInfoList } = data.body
+      let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
+
+      request.hotelIdList = hotelIds
+      let responseHotelRatePlan = await axios({
+        method: 'post',
+        url: `${process.env.PKFARE_HOTEL_URI}/queryMultipleHotelRatePlan`,
+        data: {
+          authentication,
+          request
+        }
+      })
+      let ratePlanList = responseHotelRatePlan.data.body.ratePlanList
+      let hotelRooms = []
+      ratePlanList.forEach(ratePlan => {
+        ratePlan.ratePlanDetailList.forEach(detail => {
+          hotelRooms.push(detail)
+        })
+      })
+
+      let sumPriceHotelRoom = 0
+      hotelRooms.forEach(rooms => {
+        sumPriceHotelRoom += Number(rooms.totalPrice)
+      })
+      trip.budgetPassengers[0].lodging.price =
+        sumPriceHotelRoom / hotelRooms.length
+      Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
+        trip => {
+          if (!trip) {
+            return res.status(404).send()
+          }
+          res.status(200).send({ trip, policy, searchAirLegs })
+        }
+      )
+    }
   } catch (error) {
     console.log(error)
     return res.status(404).send()
