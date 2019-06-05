@@ -13,6 +13,7 @@ router.get('/', (req, res) => {
         select: 'name'
       }
     })
+    .sort({ updatedAt: -1 })
     .then(trips => res.status(200).send({ trips }))
     .catch(e => res.status(400).send())
 })
