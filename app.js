@@ -2,6 +2,7 @@ require('./config/config')
 require('./config/mongoose')
 require('./config/mail')
 require('./config/aws')
+require('./config/schedule')
 
 const createError = require('http-errors')
 const express = require('express')
