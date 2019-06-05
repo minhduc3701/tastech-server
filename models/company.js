@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
-const { SGD, USD, VND } = require('../config/currency')
+const { supportCurrencies } = require('../config/currency')
 
 const CompanySchema = new Schema({
   name: String,
@@ -24,7 +24,7 @@ const CompanySchema = new Schema({
   currency: {
     type: String,
     required: true,
-    enum: [SGD, USD, VND]
+    enum: supportCurrencies
   }
 })
 

@@ -119,7 +119,7 @@ router.post('/hotelRatePlan', (req, res) => {
     .catch(error => res.status(400).send())
 })
 
-router.post('/hotelsRatePlan', (req, res) => {
+router.post('/hotelsRatePlan', currencyExchange, (req, res) => {
   axios({
     method: 'post',
     url: `${process.env.PKFARE_HOTEL_URI}/queryMultipleHotelRatePlan`,
@@ -130,8 +130,27 @@ router.post('/hotelsRatePlan', (req, res) => {
   })
     .then(response => {
       if (response.data.body) {
+        let ratePlans = response.data.body
+
+        ratePlans.ratePlanList = ratePlans.ratePlanList.map(plan => ({
+          ...plan,
+          ratePlanDetailList: plan.ratePlanDetailList.map(room => ({
+            ...room,
+            cancelRules: room.cancelRules.map(rule => ({
+              ...rule,
+              cancelCharge: rule.cancelCharge * req.currency.rate
+            })),
+            dailyPriceList: room.dailyPriceList.map(daily => ({
+              ...daily,
+              salePrice: daily.salePrice * req.currency.rate
+            })),
+            totalPrice: room.totalPrice * req.currency.rate,
+            currency: req.currency.code
+          }))
+        }))
+
         return res.status(200).send({
-          ratePlans: response.data.body
+          ratePlans
         })
       }
 
