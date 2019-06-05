@@ -161,7 +161,7 @@ router.patch('/:id/exchange', function(req, res, next) {
         saveAmount = budget - totalAmount
       }
       let rate = company.exchangedRate
-      let point = (saveAmount * rate) / 100
+      let point = Math.round((saveAmount * rate) / 100)
       return User.findByIdAndUpdate(
         req.user._id,
         { $inc: { point: point } },
