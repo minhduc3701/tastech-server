@@ -14,9 +14,11 @@ app.get('/voiding', (req, res) => {
   console.log(req.query.param)
   let buff = new Buffer(req.query.param, 'base64')
   let text = buff.toString('ascii')
+  console.log(text)
 
   try {
     let data = JSON.parse(text)
+    console.log(data)
 
     return res.status(200).send({
       errorCode: '0',
