@@ -15,6 +15,8 @@ const adminId = new ObjectID('5cc2d7a24c72b61214af004a')
 const employeeId = new ObjectID('5cc2d7a24c72b61214af004b')
 const employeeId2 = new ObjectID('5cc2d7a24c72b61214af004c')
 const companyId = new ObjectID('5cc2d7a24c72b61214af004d')
+const companyId2 = new ObjectID()
+const companyId3 = new ObjectID()
 const tripId = new ObjectID('5cc2d7a24c72b61214af0051')
 const tripId2 = new ObjectID('5cc2d7a24c72b61214af0052')
 const tripId3 = new ObjectID('5cc2d7a24c72b61214af0053')
@@ -27,9 +29,15 @@ const departmentId = new ObjectID('5cd03b1571811c06ad420d36')
 const secondDepartmentId = new ObjectID('5cd03b1571811c06ad420d35')
 const tasAdminRoleId = new ObjectID('5cc2d7a24c72b61214af0058')
 const adminRoleId = new ObjectID('5cc2d7a24c72b61214af0059')
+const adminRoleId2 = new ObjectID()
+const adminRoleId3 = new ObjectID()
 const employeeRoleId = new ObjectID('5cc2d7a24c72b61214af0060')
+const employeeRoleId2 = new ObjectID()
+const employeeRoleId3 = new ObjectID()
 const password = '12345678'
 const defaultPolicyId = new ObjectID()
+const defaultPolicyId2 = new ObjectID()
+const defaultPolicyId3 = new ObjectID()
 const policyId1 = new ObjectID()
 const policyId2 = new ObjectID()
 
@@ -75,6 +83,42 @@ const users = [
     firstName: chance.first(),
     lastName: chance.last(),
     _department: departmentId
+  },
+
+  // admin, employee for company 2
+  {
+    username: 'a1c2@tastech.asia',
+    email: 'a1c2@tastech.asia',
+    _company: companyId2,
+    avatar: `http://i.pravatar.cc/150?img=2`,
+    _role: adminRoleId2
+  },
+  {
+    username: 'e1c2@tastech.asia',
+    email: 'e1c2@tastech.asia',
+    _company: companyId2,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: employeeRoleId2,
+    firstName: chance.first(),
+    lastName: chance.last()
+  },
+
+  // admin, employee for company 3
+  {
+    username: 'a1c3@tastech.asia',
+    email: 'a1c3@tastech.asia',
+    _company: companyId3,
+    avatar: `http://i.pravatar.cc/150?img=2`,
+    _role: adminRoleId3
+  },
+  {
+    username: 'e1c3@tastech.asia',
+    email: 'e1c3@tastech.asia',
+    _company: companyId3,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: employeeRoleId3,
+    firstName: chance.first(),
+    lastName: chance.last()
   }
 ]
 
@@ -90,7 +134,7 @@ for (let i = 4; i < 50; i++) {
     lastName: chance.last(),
     avatar: `http://i.pravatar.cc/150?img=${i + 1}`,
     _department: randomItemInArray([departmentId, secondDepartmentId]),
-    _role: randomItemInArray([adminRoleId, employeeRoleId]),
+    _role: employeeRoleId,
     _policy: randomItemInArray([policyId1, policyId2])
   })
 }
@@ -100,22 +144,24 @@ const companies = [
     _id: companyId,
     name: 'TAS',
     exchangedRate: 10,
-    _policy: defaultPolicyId
+    _policy: defaultPolicyId,
+    currency: 'VND'
   },
   {
-    name: 'Microsoft'
+    _id: companyId2,
+    name: 'Company 2',
+    exchangedRate: 10,
+    _policy: defaultPolicyId2,
+    currency: 'SGD'
   },
   {
-    name: 'Apple'
+    _id: companyId3,
+    name: 'Company 3',
+    exchangedRate: 10,
+    _policy: defaultPolicyId3,
+    currency: 'USD'
   }
 ]
-
-for (let i = 3; i < 50; i++) {
-  companies.push({
-    name: chance.company(),
-    exchangedRate: 10
-  })
-}
 
 const roles = [
   {
@@ -137,6 +183,38 @@ const roles = [
     type: 'employee',
     permissions: ['CAN_CLAIM_EXPRENSE'],
     _company: companyId
+  },
+
+  // company 2 roles
+  {
+    _id: adminRoleId2,
+    name: 'Admin',
+    type: 'admin',
+    permissions: ['CAN_EDIT_USER'],
+    _company: companyId2
+  },
+  {
+    _id: employeeRoleId2,
+    name: 'Employee',
+    type: 'employee',
+    permissions: ['CAN_CLAIM_EXPRENSE'],
+    _company: companyId2
+  },
+
+  // company 3 roles
+  {
+    _id: adminRoleId3,
+    name: 'Admin',
+    type: 'admin',
+    permissions: ['CAN_EDIT_USER'],
+    _company: companyId3
+  },
+  {
+    _id: employeeRoleId3,
+    name: 'Employee',
+    type: 'employee',
+    permissions: ['CAN_CLAIM_EXPRENSE'],
+    _company: companyId3
   }
 ]
 
@@ -235,34 +313,38 @@ for (let i = 0; i < 46; i++) {
   }
 }
 
+const defaultPolicy = {
+  name: 'Default Policy',
+  status: 'default',
+  flightClass: 'business',
+  stops: '0',
+  setDaysBeforeFlights: true,
+  daysBeforeFlights: 7,
+  setFlightLimit: true,
+  flightLimit: 2000,
+  flightNotification: 'no',
+  flightApproval: 'no',
+  hotelClass: 3,
+  hotelSearchDistance: 10,
+  setDaysBeforeLodging: true,
+  daysBeforeLodging: 7,
+  setHotelLimit: true,
+  hotelLimit: 5000,
+  hotelNotification: 'no',
+  hotelApproval: 'no',
+  setTransportLimit: true,
+  transportLimit: 100,
+  setMealLimit: true,
+  mealLimit: 100,
+  setProvision: true,
+  provision: 5
+}
+
 const policies = [
   {
+    ...defaultPolicy,
     _id: defaultPolicyId,
-    name: 'Default Policy',
-    _company: companyId,
-    status: 'default',
-    flightClass: 'business',
-    stops: '0',
-    setDaysBeforeFlights: true,
-    daysBeforeFlights: 7,
-    setFlightLimit: true,
-    flightLimit: 2000,
-    flightNotification: 'no',
-    flightApproval: 'no',
-    hotelClass: 3,
-    hotelSearchDistance: 10,
-    setDaysBeforeLodging: true,
-    daysBeforeLodging: 7,
-    setHotelLimit: true,
-    hotelLimit: 5000,
-    hotelNotification: 'no',
-    hotelApproval: 'no',
-    setTransportLimit: true,
-    transportLimit: 100,
-    setMealLimit: true,
-    mealLimit: 100,
-    setProvision: true,
-    provision: 5
+    _company: companyId
   },
   {
     _id: policyId1,
@@ -319,6 +401,18 @@ const policies = [
     mealLimit: 0,
     setProvision: true,
     provision: 10
+  },
+
+  {
+    ...defaultPolicy,
+    _id: defaultPolicyId2,
+    _company: companyId2
+  },
+
+  {
+    ...defaultPolicy,
+    _id: defaultPolicyId3,
+    _company: companyId3
   }
 ]
 
@@ -329,33 +423,21 @@ const trips = [
     status: 'ongoing',
     _creator: employeeId,
     _company: companyId,
-    checkoutStatus: 'completed', // pending, completed, canceled
-    hotelCode: 'AROMA',
-    rooms: [
-      {
-        price: 1000,
-        roomType: 'DOUBLE',
-        numberRooms: 1
-      },
-      {
-        price: 800,
-        roomType: 'SINGLE',
-        numberRooms: 3
-      }
-    ],
-    departureFlight: {},
-    returnFlight: {},
     passengers: [
       {
+        businessEmail: 'john@doe.com',
         firstName: 'John',
         lastName: 'Doe'
       },
       {
+        businessEmail: 'john@doe.com',
         firstName: 'Jane',
         lastName: 'Doe'
       }
     ],
-    payment: 'card',
+    contactInfo: {
+      email: 'john@doe.com'
+    },
     roundTrip: true,
     numberPassengers: 5,
     flightClass: 'economy',
@@ -391,33 +473,21 @@ const trips = [
     status: 'completed',
     _creator: employeeId,
     _company: companyId,
-    checkoutStatus: 'completed', // pending, completed, canceled
-    hotelCode: 'AROMA',
-    rooms: [
-      {
-        price: 1000,
-        roomType: 'DOUBLE',
-        numberRooms: 1
-      },
-      {
-        price: 800,
-        roomType: 'SINGLE',
-        numberRooms: 3
-      }
-    ],
-    departureFlight: {},
-    returnFlight: {},
     passengers: [
       {
+        businessEmail: 'john@doe.com',
         firstName: 'John',
         lastName: 'Doe'
       },
       {
+        businessEmail: 'john@doe.com',
         firstName: 'Jane',
         lastName: 'Doe'
       }
     ],
-    payment: 'card',
+    contactInfo: {
+      email: 'john@doe.com'
+    },
     roundTrip: true,
     numberPassengers: 5,
     flightClass: 'economy',
@@ -453,33 +523,21 @@ const trips = [
     status: 'finished',
     _creator: employeeId,
     _company: companyId,
-    checkoutStatus: 'completed', // pending, completed, canceled
-    hotelCode: 'BANGKOKHOTL',
-    rooms: [
-      {
-        price: 1000,
-        roomType: 'DOUBLE',
-        numberRooms: 1
-      },
-      {
-        price: 800,
-        roomType: 'SINGLE',
-        numberRooms: 3
-      }
-    ],
-    departureFlight: {},
-    returnFlight: {},
     passengers: [
       {
+        businessEmail: 'john@doe.com',
         firstName: 'John',
         lastName: 'Doe'
       },
       {
+        businessEmail: 'john@doe.com',
         firstName: 'Jane',
         lastName: 'Doe'
       }
     ],
-    payment: 'card',
+    contactInfo: {
+      email: 'john@doe.com'
+    },
     roundTrip: true,
     numberPassengers: 5,
     flightClass: 'economy',
@@ -517,33 +575,21 @@ const trips = [
     status: 'completed',
     _creator: employeeId2,
     _company: companyId,
-    checkoutStatus: 'completed', // pending, completed, canceled
-    hotelCode: 'AROMA',
-    rooms: [
-      {
-        price: 1000,
-        roomType: 'DOUBLE',
-        numberRooms: 1
-      },
-      {
-        price: 800,
-        roomType: 'SINGLE',
-        numberRooms: 3
-      }
-    ],
-    departureFlight: {},
-    returnFlight: {},
     passengers: [
       {
+        businessEmail: 'john@doe.com',
         firstName: 'John',
         lastName: 'Doe'
       },
       {
+        businessEmail: 'john@doe.com',
         firstName: 'Jane',
         lastName: 'Doe'
       }
     ],
-    payment: 'card',
+    contactInfo: {
+      email: 'john@doe.com'
+    },
     roundTrip: true,
     numberPassengers: 5,
     flightClass: 'economy',
@@ -579,33 +625,21 @@ const trips = [
     status: 'completed',
     _creator: employeeId2,
     _company: companyId,
-    checkoutStatus: 'completed', // pending, completed, canceled
-    hotelCode: 'AROMA',
-    rooms: [
-      {
-        price: 1000,
-        roomType: 'DOUBLE',
-        numberRooms: 1
-      },
-      {
-        price: 800,
-        roomType: 'SINGLE',
-        numberRooms: 3
-      }
-    ],
-    departureFlight: {},
-    returnFlight: {},
     passengers: [
       {
+        businessEmail: 'john@doe.com',
         firstName: 'John',
         lastName: 'Doe'
       },
       {
+        businessEmail: 'john@doe.com',
         firstName: 'Jane',
         lastName: 'Doe'
       }
     ],
-    payment: 'card',
+    contactInfo: {
+      email: 'john@doe.com'
+    },
     roundTrip: true,
     numberPassengers: 5,
     flightClass: 'economy',
@@ -641,6 +675,21 @@ const trips = [
     status: 'waiting',
     forCreator: true,
     _company: companyId,
+    passengers: [
+      {
+        businessEmail: 'john@doe.com',
+        firstName: 'John',
+        lastName: 'Doe'
+      },
+      {
+        businessEmail: 'john@doe.com',
+        firstName: 'Jane',
+        lastName: 'Doe'
+      }
+    ],
+    contactInfo: {
+      email: 'john@doe.com'
+    },
     budgetPassengers: [
       {
         _passenger: employeeId,
@@ -670,6 +719,21 @@ const trips = [
     status: 'approved',
     forCreator: true,
     _company: companyId,
+    passengers: [
+      {
+        businessEmail: 'john@doe.com',
+        firstName: 'John',
+        lastName: 'Doe'
+      },
+      {
+        businessEmail: 'john@doe.com',
+        firstName: 'Jane',
+        lastName: 'Doe'
+      }
+    ],
+    contactInfo: {
+      email: 'john@doe.com'
+    },
     budgetPassengers: [
       {
         _passenger: employeeId,
@@ -699,6 +763,21 @@ const trips = [
     status: 'rejected',
     forCreator: true,
     _company: companyId,
+    passengers: [
+      {
+        businessEmail: 'john@doe.com',
+        firstName: 'John',
+        lastName: 'Doe'
+      },
+      {
+        businessEmail: 'john@doe.com',
+        firstName: 'Jane',
+        lastName: 'Doe'
+      }
+    ],
+    contactInfo: {
+      email: 'john@doe.com'
+    },
     budgetPassengers: [
       {
         _passenger: employeeId,
@@ -732,6 +811,21 @@ const trips = [
     status: 'finished',
     forCreator: true,
     _company: companyId,
+    passengers: [
+      {
+        businessEmail: 'john@doe.com',
+        firstName: 'John',
+        lastName: 'Doe'
+      },
+      {
+        businessEmail: 'john@doe.com',
+        firstName: 'Jane',
+        lastName: 'Doe'
+      }
+    ],
+    contactInfo: {
+      email: 'john@doe.com'
+    },
     budgetPassengers: [
       {
         _passenger: employeeId,

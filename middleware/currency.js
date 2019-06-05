@@ -1,16 +1,24 @@
-const { VND, USD, SGD } = require('../config/currency')
+const { supportCurrencies } = require('../config/currency')
 const axios = require('axios')
 const _ = require('lodash')
+const Company = require('../models/company')
 
 const currencyExchange = async (req, res, next) => {
-  // get company currency setting here. e.g. VND
-  const COMPANY_CURRENCY = 'VND'
-
   try {
+    let company = await Company.findById(req.user._company)
+
+    if (
+      !company ||
+      !company.currency ||
+      !supportCurrencies.includes(company.currency)
+    ) {
+      throw new Error()
+    }
+
     const rateRes = await axios.get(
       `${process.env.TRANSFERWISE_URI}/v1/rates?source=${
         process.env.BASE_CURRENCY
-      }&target=${COMPANY_CURRENCY}`,
+      }&target=${company.currency}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.TRANSFERWISE_API_KEY}`
@@ -20,7 +28,7 @@ const currencyExchange = async (req, res, next) => {
     if (_.isArray(rateRes.data)) {
       // save the rate
       req.currency = {
-        code: COMPANY_CURRENCY,
+        code: company.currency,
         rate: rateRes.data[0].rate
       }
     }
