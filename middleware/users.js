@@ -4,7 +4,6 @@ const async = require('async')
 const { mail } = require('../config/mail')
 const mailTemplates = require('../config/mailTemplates.js')
 const { debugMail } = require('../config/debug')
-const debug = require('debug')(debugMail)
 
 const createUser = function(req, res, next) {
   async.waterfall(
@@ -43,7 +42,7 @@ const createUser = function(req, res, next) {
     ],
     function(err, user) {
       if (err) {
-        debug(err)
+        debugMail(err)
       }
     }
   )

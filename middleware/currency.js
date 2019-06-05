@@ -2,6 +2,7 @@ const { supportCurrencies } = require('../config/currency')
 const axios = require('axios')
 const _ = require('lodash')
 const Company = require('../models/company')
+const debugServer = require('../config/debug')
 
 const currencyExchange = async (req, res, next) => {
   try {
@@ -33,6 +34,7 @@ const currencyExchange = async (req, res, next) => {
       }
     }
   } catch (e) {
+    debugServer(e)
     req.currency = {
       code: process.env.BASE_CURRENCY,
       rate: 1
