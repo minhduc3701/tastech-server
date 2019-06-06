@@ -1,7 +1,8 @@
-var mongoose = require('mongoose')
-var Schema = mongoose.Schema
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+const validator = require('validator')
 
-var TripSchema = new Schema(
+const TripSchema = new Schema(
   {
     name: {
       type: String,
@@ -46,40 +47,9 @@ var TripSchema = new Schema(
         others: {}
       }
     ],
-    passengers: [
-      {
-        businessEmail: String,
-        dateOfBirth: Date,
-        firstName: String,
-        frequentFlyerNumber: String,
-        frequentFlyerPropgram: String,
-        gender: String,
-        lastName: String,
-        nationality: String,
-        passportExpiryDate: Date,
-        passportNo: String,
-        title: String
-      }
-    ],
-    contactInfo: {
-      name: String,
-      email: String,
-      city: String,
-      country: String,
-      phone1: String,
-      phone2: String,
-      postalAddress: String,
-      areaCode1: String,
-      areaCode2: String,
-      province: String
-    },
-    roundTrip: Boolean,
     numberPassengers: String,
-    flightClass: String,
-    departure: String,
-    departureDate: Date,
-    arrival: String,
-    returnDate: Date,
+    startDate: Date,
+    endDate: Date,
     adminMessage: String,
     updatedByAdmin: {
       type: 'ObjectId',
@@ -89,7 +59,8 @@ var TripSchema = new Schema(
     archived: {
       type: Boolean,
       default: false
-    }
+    },
+    businessTrip: Boolean
   },
   {
     timestamps: true

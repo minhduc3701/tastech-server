@@ -18,7 +18,7 @@ router.get('/', function(req, res) {
 })
 
 router.post('/', function(req, res) {
-  let body = _.pick(req.body, ['name', 'departments'])
+  let body = _.pick(req.body, ['name', 'currency'])
 
   let company = new Company({
     _creator: req.user._id,
@@ -101,7 +101,7 @@ router.patch('/:id', function(req, res) {
     return res.status(404).send()
   }
 
-  let body = _.pick(req.body, ['name', 'departments'])
+  let body = _.pick(req.body, ['name', 'currency'])
 
   Company.findByIdAndUpdate(id, { $set: body }, { new: true })
     .then(company => {

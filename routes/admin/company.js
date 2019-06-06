@@ -4,21 +4,10 @@ const Company = require('../../models/company')
 const { upload } = require('../../config/aws')
 const singleUpload = upload.single('logo')
 const _ = require('lodash')
+const { currentCompany } = require('../../middleware/company')
 
-router.get('/', function(req, res) {
-  let companyId = req.user._company
-
-  Company.findById(req.user._company)
-    .then(company => {
-      if (!company) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ company })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
+router.get('/', currentCompany, function(req, res) {
+  res.status(200).send({ company: req.company })
 })
 
 router.patch('/', (req, res) => {

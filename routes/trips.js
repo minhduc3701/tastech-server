@@ -33,7 +33,8 @@ router.get('/booking', (req, res) => {
   Trip.find({
     _company: req.user._company,
     _creator: req.user._id,
-    status: 'approved'
+    businessTrip: true,
+    $or: [{ status: 'approved' }, { status: 'ongoing' }]
   })
     .then(trips => res.status(200).send({ trips }))
     .catch(e => res.status(400).send())
@@ -480,7 +481,7 @@ router.patch('/:id/exchange', function(req, res, next) {
         saveAmount = budget - totalAmount
       }
       let rate = company.exchangedRate
-      let point = (saveAmount * rate) / 100
+      let point = Math.round((saveAmount * rate) / 100)
       return User.findByIdAndUpdate(
         req.user._id,
         { $inc: { point: point } },

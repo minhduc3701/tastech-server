@@ -61,113 +61,149 @@ router.get('/trips', (req, res) => {
     .catch(e => res.status(400).send())
 })
 
-router.get('/', (req, res) => {
-  Promise.all([
-    // total budget
-    Trip.aggregate([
-      {
-        $match: {
-          _creator: req.user._id,
-          _company: req.user._company
-        }
-      },
-      {
-        $unwind: '$budgetPassengers'
-      },
-      {
-        $group: {
-          _id: '',
-          totalBudget: { $sum: '$budgetPassengers.totalPrice' }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          totalBudget: '$totalBudget'
-        }
+router.get('/trips/spendingsByTrip', (req, res) => {
+  Expense.aggregate([
+    {
+      $match: {
+        _company: req.user._company,
+        _creator: req.user._id,
+        status: 'approved'
       }
-    ]),
-    // total trip
-    Trip.countDocuments({
-      _creator: req.user._id,
-      _company: req.user._company
-    }),
-    // approved spending by trip
-    Expense.aggregate([
-      {
-        $match: {
-          _company: req.user._company,
-          _creator: req.user._id,
-          status: 'approved'
-        }
-      },
-      {
-        $group: {
-          _id: '$_trip',
-          _trip: { $first: '$_trip' },
-          amount: { $sum: '$amount' }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          _trip: '$_trip',
-          amount: '$amount'
-        }
-      },
-      {
-        $sort: {
-          amount: -1 // larger amount first
-        }
+    },
+    {
+      $group: {
+        _id: '$_trip',
+        _trip: { $first: '$_trip' },
+        amount: { $sum: '$amount' }
       }
-    ]),
-    // total approved spending
-    Expense.aggregate([
-      {
-        $match: {
-          _company: req.user._company,
-          _creator: req.user._id,
-          status: 'approved'
-        }
-      },
-      {
-        $group: {
-          _id: '',
-          totalSpending: { $sum: '$amount' }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          totalSpending: '$totalSpending'
-        }
+    },
+    {
+      $project: {
+        _id: 0,
+        _trip: '$_trip',
+        totalExpenses: '$amount'
       }
-    ])
+    },
+    {
+      $sort: {
+        totalExpenses: -1 // larger amount first
+      }
+    }
   ])
-    .then(results => {
-      return Promise.all([
-        results[0],
-        results[1],
-        Expense.populate(results[2], [{ path: '_trip', select: 'name' }]),
-        results[3]
+    .then(expense => {
+      return Expense.populate(expense, [
+        { path: '_trip', select: ['name', 'budgetPassengers'] }
       ])
     })
-    .then(results => {
-      let totalBudgetResults = results[0]
-      let totalTrips = results[1]
-      let spendingByTrips = results[2]
-      let totalSpendingResults = results[3]
-      let totalBudget = totalBudgetResults[0].totalBudget
-      let totalSpending = totalSpendingResults[0].totalSpending
-
+    .then(trips => {
+      let spendingsByTrip = trips
       res.status(200).send({
-        totalBudget,
-        totalSpending,
-        totalTrips,
-        spendingByTrips
+        spendingsByTrip
       })
     })
     .catch(e => res.status(400).send())
+})
+
+router.get('/trips/spendingsByTime', (req, res) => {
+  Expense.aggregate([
+    {
+      $match: {
+        _company: req.user._company,
+        _creator: req.user._id,
+        status: 'approved'
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: '%d-%m-%Y', date: '$transactionDate' }
+        },
+        amount: { $sum: '$amount' },
+        transactionDate: { $first: '$transactionDate' }
+      }
+    },
+    {
+      $sort: { transactionDate: 1 }
+    }
+  ])
+    .then(expenses => {
+      let spendingsByTime = expenses
+      res.status(200).send({
+        spendingsByTime
+      })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.get('/ongoingTrip', function(req, res, next) {
+  Trip.find({
+    _creator: req.user._id,
+    status: 'ongoing'
+  })
+    .sort({ createdAt: -1 })
+    .limit(1)
+    .then(trips => {
+      return Promise.all([
+        trips[0].budgetPassengers[0].totalPrice,
+        Expense.aggregate([
+          {
+            $match: {
+              _creator: req.user._id,
+              _trip: { $eq: trips[0]._id },
+              status: 'approved'
+            }
+          },
+          {
+            $group: {
+              _id: '',
+              totalExpenses: {
+                $sum: '$amount'
+              }
+            }
+          },
+          {
+            $project: {
+              _id: 0,
+              totalExpenses: '$totalExpenses'
+            }
+          }
+        ]),
+        Expense.aggregate([
+          {
+            $match: {
+              _creator: req.user._id,
+              _trip: { $eq: trips[0]._id },
+              status: 'approved'
+            }
+          },
+          {
+            $group: {
+              _id: '$category',
+              category: { $first: '$category' },
+              amount: { $sum: '$amount' }
+            }
+          },
+          {
+            $project: {
+              _id: 0,
+              category: '$category',
+              amount: '$amount'
+            }
+          }
+        ])
+      ])
+    })
+
+    .then(results => {
+      res.status(200).json({
+        totalBudgets: results[0],
+        totalExpenses: results[1][0].totalExpenses,
+        expenses: results[2]
+      })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 router.get('/:id', (req, res) => {
@@ -212,46 +248,15 @@ router.get('/:id', (req, res) => {
           amount: -1 // larger amount first
         }
       }
-    ]),
-    // trip statistic by account
-    Expense.aggregate([
-      {
-        $match: {
-          _trip: new ObjectID(id),
-          _company: req.user._company,
-          status: 'approved'
-        }
-      },
-      {
-        $group: {
-          _id: '$account',
-          account: { $first: '$account' },
-          amount: { $sum: '$amount' }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          account: '$account',
-          amount: '$amount'
-        }
-      },
-      {
-        $sort: {
-          amount: -1 // larger amount first
-        }
-      }
     ])
   ])
     .then(results => {
       let expenses = results[0]
       let categoryStatistics = results[1]
-      let accountStatistics = results[2]
 
       res.status(200).send({
         expenses,
-        categoryStatistics,
-        accountStatistics
+        categoryStatistics
       })
     })
     .catch(e => {
