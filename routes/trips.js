@@ -57,6 +57,7 @@ router.get('/:id', function(req, res, next) {
 })
 
 router.post('/', async (req, res, next) => {
+  console.log('start!!!')
   const trip = new Trip(req.body)
   trip._creator = req.user._id
   trip._company = req.user._company
@@ -82,8 +83,9 @@ router.post('/', async (req, res, next) => {
     let countDays =
       moment(req.body.endDate).diff(moment(req.body.startDate), 'days') + 1
     trip.budgetPassengers[0].totalPrice = 0
-
+    console.log(trip.budgetPassengers[0].totalPrice)
     // calcuate transportation budget
+
     if (
       policy.setTransportLimit &&
       trip.budgetPassengers[0].transportation.selected
@@ -94,6 +96,7 @@ router.post('/', async (req, res, next) => {
       trip.budgetPassengers[0].totalPrice += Number(
         policy.transportLimit * countDays
       )
+      console.log('+ transport: ', trip.budgetPassengers[0].totalPrice)
     } else {
       trip.budgetPassengers[0].transportation.price = 0
     }
@@ -104,6 +107,7 @@ router.post('/', async (req, res, next) => {
       trip.budgetPassengers[0].totalPrice += Number(
         policy.mealLimit * countDays
       )
+      console.log('+ meat: ', trip.budgetPassengers[0].totalPrice)
     } else {
       trip.budgetPassengers[0].meal.price = 0
     }
@@ -161,6 +165,8 @@ router.post('/', async (req, res, next) => {
             trip.budgetPassengers[0].totalPrice += Number(
               sumPrice / flights.length
             )
+            console.log('+ flight: ', trip.budgetPassengers[0].totalPrice)
+
             //  Calculate Hotel budget
             if (trip.budgetPassengers[0].lodging.selected) {
               let request = {
@@ -211,23 +217,27 @@ router.post('/', async (req, res, next) => {
               trip.budgetPassengers[0].totalPrice += Number(
                 sumPriceHotelRoom / hotelRooms.length
               )
+              console.log('+ hotel: ', trip.budgetPassengers[0].totalPrice)
             }
             //Update provision budget
             if (trip.budgetPassengers[0].provision.selected) {
               trip.budgetPassengers[0].totalPrice +=
                 trip.budgetPassengers[0].totalPrice *
                 (trip.budgetPassengers[0].provision.rate / 100)
+              console.log('+ provision : ', trip.budgetPassengers[0].totalPrice)
             }
             //update travel other
             if (trip.budgetPassengers[0].others.selected) {
               trip.budgetPassengers[0].totalPrice += Number(
                 trip.budgetPassengers[0].others.amount
               )
+              console.log('+ other: ', trip.budgetPassengers[0].totalPrice)
             }
 
             trip.budgetPassengers[0].totalPrice = Number(
               trip.budgetPassengers[0].totalPrice.toFixed(2)
             )
+            console.log('final: ', trip.budgetPassengers[0].totalPrice)
             //Update trip information
             Trip.findByIdAndUpdate(
               trip._id,
@@ -303,6 +313,7 @@ router.post('/', async (req, res, next) => {
         trip.budgetPassengers[0].totalPrice += Number(
           trip.budgetPassengers[0].others.amount
         )
+        console.log(trip.budgetPassengers[0].totalPrice)
       }
       //Update trip information
       trip.budgetPassengers[0].totalPrice = Number(
@@ -328,6 +339,7 @@ router.post('/', async (req, res, next) => {
         trip.budgetPassengers[0].totalPrice += Number(
           trip.budgetPassengers[0].others.amount
         )
+        console.log(trip.budgetPassengers[0].totalPrice)
       }
       //Update trip information
       trip.budgetPassengers[0].totalPrice = Number(
