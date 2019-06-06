@@ -60,6 +60,7 @@ router.post('/', async (req, res, next) => {
   const trip = new Trip(req.body)
   trip._creator = req.user._id
   trip._company = req.user._company
+  trip.businessTrip = true
   try {
     await trip.save()
     let budget = req.body.budgetPassengers[0]
@@ -79,12 +80,9 @@ router.post('/', async (req, res, next) => {
     }
 
     let countDays =
-      moment(budget.lastDestinationDate).diff(
-        moment(budget.startDestinationDate),
-        'days'
-      ) + 1
+      moment(req.body.endDate).diff(moment(req.body.startDate), 'days') + 1
     trip.budgetPassengers[0].totalPrice = 0
-    console.log(trip.budgetPassengers[0].totalPrice)
+
     // calcuate transportation budget
     if (
       policy.setTransportLimit &&
@@ -96,7 +94,6 @@ router.post('/', async (req, res, next) => {
       trip.budgetPassengers[0].totalPrice += Number(
         policy.transportLimit * countDays
       )
-      console.log(trip.budgetPassengers[0].totalPrice)
     } else {
       trip.budgetPassengers[0].transportation.price = 0
     }
@@ -107,16 +104,8 @@ router.post('/', async (req, res, next) => {
       trip.budgetPassengers[0].totalPrice += Number(
         policy.mealLimit * countDays
       )
-      console.log(trip.budgetPassengers[0].totalPrice)
     } else {
       trip.budgetPassengers[0].meal.price = 0
-    }
-
-    if (trip.budgetPassengers[0].others.selected) {
-      trip.budgetPassengers[0].totalPrice += Number(
-        trip.budgetPassengers[0].others.amount
-      )
-      console.log(trip.budgetPassengers[0].totalPrice)
     }
 
     // calculate Flight budget
@@ -124,15 +113,15 @@ router.post('/', async (req, res, next) => {
     searchAirLegs = [
       {
         cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
-        departureDate: budget.startDestinationDate,
-        destination: budget.lastDestinationCode,
-        origin: budget.startDestinationCode
+        departureDate: budget.flight.departDate,
+        destination: budget.flight.returnDestinationCode,
+        origin: budget.flight.departDestinationCode
       },
       {
         cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
-        departureDate: budget.lastDestinationDate,
-        destination: budget.startDestinationCode,
-        origin: budget.lastDestinationCode
+        departureDate: budget.flight.returnDate,
+        destination: budget.flight.departDestinationCode,
+        origin: budget.flight.returnDestinationCode
       }
     ]
     let search = {
@@ -143,7 +132,6 @@ router.post('/', async (req, res, next) => {
       searchAirLegs,
       solutions: 0
     }
-
     if (trip.budgetPassengers[0].flight.selected) {
       let base64 = Buffer.from(
         JSON.stringify({
@@ -173,15 +161,12 @@ router.post('/', async (req, res, next) => {
             trip.budgetPassengers[0].totalPrice += Number(
               sumPrice / flights.length
             )
-            console.log(trip.budgetPassengers[0].totalPrice)
-
             //  Calculate Hotel budget
             if (trip.budgetPassengers[0].lodging.selected) {
               let request = {
-                checkInDate: budget.startDestinationDate,
-                checkOutDate: budget.lastDestinationDate,
-                regionId: parseInt(budget.regionId),
-                // regionId: 6001380,
+                checkInDate: budget.lodging.checkInDate,
+                checkOutDate: budget.lodging.checkOutDate,
+                regionId: parseInt(budget.lodging.regionId),
                 numberOfAdult: 1,
                 numberOfRoom: 1,
                 languageCode: 'en_US'
@@ -226,36 +211,43 @@ router.post('/', async (req, res, next) => {
               trip.budgetPassengers[0].totalPrice += Number(
                 sumPriceHotelRoom / hotelRooms.length
               )
-              console.log(trip.budgetPassengers[0].totalPrice)
-
-              //Update provision budget
-              if (trip.budgetPassengers[0].provision.selected) {
-                trip.budgetPassengers[0].totalPrice +=
-                  trip.budgetPassengers[0].totalPrice *
-                  (trip.budgetPassengers[0].provision.rate / 100)
-              }
-
-              //Update trip information
-              Trip.findByIdAndUpdate(
-                trip._id,
-                { $set: trip },
-                { new: true }
-              ).then(trip => {
-                if (!trip) {
-                  return res.status(404).send()
-                }
-                res.status(200).send({ trip, policy, searchAirLegs })
-              })
             }
+            //Update provision budget
+            if (trip.budgetPassengers[0].provision.selected) {
+              trip.budgetPassengers[0].totalPrice +=
+                trip.budgetPassengers[0].totalPrice *
+                (trip.budgetPassengers[0].provision.rate / 100)
+            }
+            //update travel other
+            if (trip.budgetPassengers[0].others.selected) {
+              trip.budgetPassengers[0].totalPrice += Number(
+                trip.budgetPassengers[0].others.amount
+              )
+            }
+
+            trip.budgetPassengers[0].totalPrice = Number(
+              trip.budgetPassengers[0].totalPrice.toFixed(2)
+            )
+            //Update trip information
+            Trip.findByIdAndUpdate(
+              trip._id,
+              { $set: trip },
+              { new: true }
+            ).then(trip => {
+              if (!trip) {
+                return res.status(404).send()
+              }
+              res.status(200).send({ trip, policy, searchAirLegs })
+            })
           })
         }
       )
     } else if (trip.budgetPassengers[0].lodging.selected) {
       //  Calculate Hotel budget
       let request = {
-        checkInDate: budget.startDestinationDate,
-        checkOutDate: budget.lastDestinationDate,
-        regionId: parseInt(budget.regionId),
+        checkInDate: budget.lodging.checkInDate,
+        checkOutDate: budget.lodging.checkOutDate,
+        regionId: parseInt(budget.lodging.regionId),
         // regionId: 6001380,
         numberOfAdult: 1,
         numberOfRoom: 1,
@@ -306,8 +298,16 @@ router.post('/', async (req, res, next) => {
           trip.budgetPassengers[0].totalPrice *
           (trip.budgetPassengers[0].provision.rate / 100)
       }
-
+      //update travel other
+      if (trip.budgetPassengers[0].others.selected) {
+        trip.budgetPassengers[0].totalPrice += Number(
+          trip.budgetPassengers[0].others.amount
+        )
+      }
       //Update trip information
+      trip.budgetPassengers[0].totalPrice = Number(
+        trip.budgetPassengers[0].totalPrice.toFixed(2)
+      )
       Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
         trip => {
           if (!trip) {
@@ -323,8 +323,16 @@ router.post('/', async (req, res, next) => {
           trip.budgetPassengers[0].totalPrice *
           (trip.budgetPassengers[0].provision.rate / 100)
       }
-
+      //update travel other
+      if (trip.budgetPassengers[0].others.selected) {
+        trip.budgetPassengers[0].totalPrice += Number(
+          trip.budgetPassengers[0].others.amount
+        )
+      }
       //Update trip information
+      trip.budgetPassengers[0].totalPrice = Number(
+        trip.budgetPassengers[0].totalPrice.toFixed(2)
+      )
       Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
         trip => {
           if (!trip) {
