@@ -35,11 +35,12 @@ router.post('/card', async (req, res, next) => {
           {
             _creator: req.user._id,
             _id: trip._id,
+            businessTrip: true,
             $or: [{ status: 'approved' }, { status: 'ongoing' }]
           },
           {
             $set: {
-              ..._.omit(trip, ['_id']),
+              ..._.omit(trip, ['_id', 'startDate', 'endDate']),
               status: 'ongoing'
             }
           },
