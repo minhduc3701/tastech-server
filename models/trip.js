@@ -48,8 +48,9 @@ const TripSchema = new Schema(
         totalPrice: Number
       }
     ],
-    roundTrip: Boolean,
     numberPassengers: String,
+    startDate: Date,
+    endDate: Date,
     adminMessage: String,
     updatedByAdmin: {
       type: 'ObjectId',
