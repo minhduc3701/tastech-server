@@ -5,6 +5,7 @@ const Expense = require('../models/expense')
 const Company = require('../models/company')
 const User = require('../models/user')
 const Order = require('../models/order')
+const Hotel = require('../models/hotel')
 const { ObjectID } = require('mongodb')
 const { authentication } = require('../config/pkfare')
 const request = require('request')
@@ -189,8 +190,12 @@ router.post('/', async (req, res, next) => {
               let { data } = responseHotel
               let { hotelInfoList } = data.body
               let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
-
-              request.hotelIdList = hotelIds
+              let hotels = await Hotel.find({
+                _id: { $in: hotelIds },
+                starRating: { $eq: policy.hotelClass }
+              })
+              let hotelPolicyIds = hotels.map(hotel => parseInt(hotel._id))
+              request.hotelIdList = hotelPolicyIds
               let responseHotelRatePlan = await axios({
                 method: 'post',
                 url: `${
@@ -248,7 +253,9 @@ router.post('/', async (req, res, next) => {
               if (!trip) {
                 return res.status(404).send()
               }
-              res.status(200).send({ trip, policy, searchAirLegs })
+              res
+                .status(200)
+                .send({ trip, policy, searchAirLegs, hotelInfoList })
             })
           })
         }
@@ -275,8 +282,12 @@ router.post('/', async (req, res, next) => {
       let { data } = responseHotel
       let { hotelInfoList } = data.body
       let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
-
-      request.hotelIdList = hotelIds
+      let hotels = await Hotel.find({
+        _id: { $in: hotelIds },
+        starRating: { $eq: policy.hotelClass }
+      })
+      let hotelPolicyIds = hotels.map(hotel => parseInt(hotel._id))
+      request.hotelIdList = hotelPolicyIds
       let responseHotelRatePlan = await axios({
         method: 'post',
         url: `${process.env.PKFARE_HOTEL_URI}/queryMultipleHotelRatePlan`,
@@ -325,7 +336,17 @@ router.post('/', async (req, res, next) => {
           if (!trip) {
             return res.status(404).send()
           }
-          res.status(200).send({ trip, policy, searchAirLegs })
+          res
+            .status(200)
+            .send({
+              trip,
+              policy,
+              searchAirLegs,
+              hotelInfoList,
+              hotelIds,
+              hotels,
+              hotelPolicyIds
+            })
         }
       )
     } else {
