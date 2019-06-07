@@ -8,6 +8,7 @@ const TripSchema = new Schema(
       type: String,
       required: true
     },
+
     _company: mongoose.Schema.Types.ObjectId,
     status: {
       type: String,
@@ -60,7 +61,13 @@ const TripSchema = new Schema(
       type: Boolean,
       default: false
     },
-    businessTrip: Boolean
+    businessTrip: Boolean,
+    currency: String,
+    daysOfTrip: Number,
+    isUpdated: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     timestamps: true

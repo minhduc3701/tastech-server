@@ -14,6 +14,7 @@ const _ = require('lodash')
 const axios = require('axios')
 const Policy = require('../models/policy')
 const moment = require('moment')
+const { currentCompany } = require('../middleware/company')
 
 router.get('/', function(req, res, next) {
   Trip.find({
@@ -58,16 +59,21 @@ router.get('/:id', function(req, res, next) {
     })
 })
 
-router.post('/', async (req, res, next) => {
+router.post('/', currentCompany, async (req, res, next) => {
   console.log('start!!!')
   const trip = new Trip(req.body)
   trip._creator = req.user._id
   trip._company = req.user._company
   trip.businessTrip = true
+  trip.currency = req.company.currency
+  let countDays =
+    moment(req.body.endDate).diff(moment(req.body.startDate), 'days') + 1
+  trip.daysOfTrip = countDays
+  trip.isUpdated = false
+
   try {
     await trip.save()
     let budget = req.body.budgetPassengers[0]
-
     // get Policy
     let companyPolicies = await Policy.find({
       _company: req.user._company
@@ -82,8 +88,6 @@ router.post('/', async (req, res, next) => {
       }
     }
 
-    let countDays =
-      moment(req.body.endDate).diff(moment(req.body.startDate), 'days') + 1
     trip.budgetPassengers[0].totalPrice = 0
     console.log(trip.budgetPassengers[0].totalPrice)
     // calcuate transportation budget
@@ -95,6 +99,7 @@ router.post('/', async (req, res, next) => {
       trip.budgetPassengers[0].transportation.price = Number(
         policy.transportLimit * countDays
       )
+      trip.budgetPassengers[0].transportation.limit = policy.transportLimit
       trip.budgetPassengers[0].totalPrice += Number(
         policy.transportLimit * countDays
       )
@@ -106,6 +111,7 @@ router.post('/', async (req, res, next) => {
     // calcuate meal budget
     if (policy.setMealLimit && trip.budgetPassengers[0].meal.selected) {
       trip.budgetPassengers[0].meal.price = Number(policy.mealLimit * countDays)
+      trip.budgetPassengers[0].meal.limit = policy.mealLimit
       trip.budgetPassengers[0].totalPrice += Number(
         policy.mealLimit * countDays
       )
@@ -114,31 +120,32 @@ router.post('/', async (req, res, next) => {
       trip.budgetPassengers[0].meal.price = 0
     }
 
-    // calculate Flight budget
-    let searchAirLegs = []
-    searchAirLegs = [
-      {
-        cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
-        departureDate: budget.flight.departDate,
-        destination: budget.flight.returnDestinationCode,
-        origin: budget.flight.departDestinationCode
-      },
-      {
-        cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
-        departureDate: budget.flight.returnDate,
-        destination: budget.flight.departDestinationCode,
-        origin: budget.flight.returnDestinationCode
-      }
-    ]
-    let search = {
-      adults: 1,
-      children: 0,
-      infants: 0,
-      nonstop: 0,
-      searchAirLegs,
-      solutions: 0
-    }
     if (trip.budgetPassengers[0].flight.selected) {
+      // calculate Flight budget
+      let searchAirLegs = []
+      searchAirLegs = [
+        {
+          cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
+          departureDate: budget.flight.departDate,
+          destination: budget.flight.returnDestinationCode,
+          origin: budget.flight.departDestinationCode
+        },
+        {
+          cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
+          departureDate: budget.flight.returnDate,
+          destination: budget.flight.departDestinationCode,
+          origin: budget.flight.returnDestinationCode
+        }
+      ]
+      let search = {
+        adults: 1,
+        children: 0,
+        infants: 0,
+        nonstop: 0,
+        searchAirLegs,
+        solutions: 0
+      }
+      trip.budgetPassengers[0].flight.class = policy.flightClass
       let base64 = Buffer.from(
         JSON.stringify({
           search,
@@ -171,6 +178,7 @@ router.post('/', async (req, res, next) => {
 
             //  Calculate Hotel budget
             if (trip.budgetPassengers[0].lodging.selected) {
+              trip.budgetPassengers[0].lodging.class = policy.hotelClass
               let request = {
                 checkInDate: budget.lodging.checkInDate,
                 checkOutDate: budget.lodging.checkOutDate,
@@ -244,23 +252,21 @@ router.post('/', async (req, res, next) => {
               trip.budgetPassengers[0].totalPrice.toFixed(2)
             )
             console.log('final: ', trip.budgetPassengers[0].totalPrice)
+            trip.isUpdated = true
+
             //Update trip information
             Trip.findByIdAndUpdate(
               trip._id,
               { $set: trip },
               { new: true }
             ).then(trip => {
-              if (!trip) {
-                return res.status(404).send()
-              }
-              res
-                .status(200)
-                .send({ trip, policy, searchAirLegs, hotelInfoList })
+              console.log('success')
             })
           })
         }
       )
     } else if (trip.budgetPassengers[0].lodging.selected) {
+      trip.budgetPassengers[0].lodging.class = policy.hotelClass
       //  Calculate Hotel budget
       let request = {
         checkInDate: budget.lodging.checkInDate,
@@ -331,22 +337,11 @@ router.post('/', async (req, res, next) => {
       trip.budgetPassengers[0].totalPrice = Number(
         trip.budgetPassengers[0].totalPrice.toFixed(2)
       )
+      trip.isUpdated = true
+
       Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
         trip => {
-          if (!trip) {
-            return res.status(404).send()
-          }
-          res
-            .status(200)
-            .send({
-              trip,
-              policy,
-              searchAirLegs,
-              hotelInfoList,
-              hotelIds,
-              hotels,
-              hotelPolicyIds
-            })
+          console.log('success')
         }
       )
     } else {
@@ -367,12 +362,10 @@ router.post('/', async (req, res, next) => {
       trip.budgetPassengers[0].totalPrice = Number(
         trip.budgetPassengers[0].totalPrice.toFixed(2)
       )
+      trip.isUpdated = true
       Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
         trip => {
-          if (!trip) {
-            return res.status(404).send()
-          }
-          res.status(200).send({ trip, policy, searchAirLegs })
+          console.log('success')
         }
       )
     }
