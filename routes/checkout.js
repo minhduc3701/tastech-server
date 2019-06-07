@@ -7,6 +7,8 @@ const api = require('../modules/api')
 const { makeSegmentsData, makeRoomGuestDetails } = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
+const { removeSpaces } = require('../modules/utils')
+const { USD, VND, SGD } = require('../config/currency')
 
 router.post('/card', async (req, res, next) => {
   const { card, trip, checkoutAgain } = req.body
@@ -33,11 +35,12 @@ router.post('/card', async (req, res, next) => {
           {
             _creator: req.user._id,
             _id: trip._id,
-            status: 'approved'
+            businessTrip: true,
+            $or: [{ status: 'approved' }, { status: 'ongoing' }]
           },
           {
             $set: {
-              ..._.omit(trip, ['_id']),
+              ..._.omit(trip, ['_id', 'startDate', 'endDate']),
               status: 'ongoing'
             }
           },
@@ -83,7 +86,9 @@ router.post('/card', async (req, res, next) => {
           type: 'flight',
           _trip: trip._id,
           flight: trip.flight,
-          _customer: req.user._id
+          _customer: req.user._id,
+          passengers: trip.passengers,
+          contactInfo: trip.contactInfo
         })
 
         await flightOrder.save()
@@ -110,7 +115,9 @@ router.post('/card', async (req, res, next) => {
           type: 'hotel',
           _trip: trip._id,
           hotel: trip.hotel,
-          _customer: req.user._id
+          _customer: req.user._id,
+          passengers: trip.passengers,
+          contactInfo: trip.contactInfo
         })
       }
 
@@ -135,8 +142,8 @@ router.post('/card', async (req, res, next) => {
           ),
           cardNum: passenger.passportNo,
           cardType: 'P',
-          firstName: passenger.firstName,
-          lastName: passenger.lastName,
+          firstName: removeSpaces(passenger.firstName),
+          lastName: removeSpaces(passenger.lastName),
           nationality: passenger.nationality,
           psgType: 'ADT',
           sex: passenger.title === 'Mr' ? 'M' : 'F'
@@ -184,16 +191,27 @@ router.post('/card', async (req, res, next) => {
         0
       )
 
-      amount += Math.floor((adultPrice + serviceFee) * 100)
-
       currency = flightOrder.flight.currency
+
+      amount += adultPrice + serviceFee
     } // end flight
 
     // if have hotel
     if (hotelOrder && hotelOrder.hotel) {
-      amount += Math.floor(hotelOrder.hotel.totalPrice * 100)
+      amount += hotelOrder.hotel.totalPrice
 
       currency = hotelOrder.hotel.currency
+    }
+
+    switch (currency) {
+      case USD:
+      case SGD:
+        amount = Math.floor(amount * 100)
+        break
+
+      case VND:
+        amount = Math.floor(amount)
+        break
     }
 
     // find the card
@@ -225,7 +243,7 @@ router.post('/card', async (req, res, next) => {
 
       let ticketingRes = await api.ticketing({
         email: contactInfo.email,
-        name: contactInfo.name,
+        name: removeSpaces(contactInfo.name),
         orderNum,
         PNR: pnr,
         telNum: `+${contactInfo.areaCode1} ${contactInfo.phone1}`
@@ -247,7 +265,7 @@ router.post('/card', async (req, res, next) => {
         checkInDate: trip.hotel.checkInDate,
         checkOutDate: trip.hotel.checkOutDate,
         contactEmail: contactInfo.email,
-        contactName: contactInfo.name,
+        contactName: removeSpaces(contactInfo.name),
         contactTel: `+${contactInfo.areaCode1} ${contactInfo.phone1}`,
         customerOrderCode,
         numberOfAdult: trip.hotel.numberOfAdult,

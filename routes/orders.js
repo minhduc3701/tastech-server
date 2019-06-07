@@ -4,6 +4,8 @@ const Order = require('../models/order')
 const { ObjectID } = require('mongodb')
 const axios = require('axios')
 const { authentication } = require('../config/pkfare')
+const _ = require('lodash')
+const { removeSpaces } = require('../modules/utils')
 
 router.get('/', function(req, res, next) {
   Order.find({
@@ -92,7 +94,7 @@ router.post('/cancel', async (req, res) => {
       _customer: req.user._id,
       status: { $eq: 'completed' },
       canCancel: { $eq: true }
-    }).populate('_trip')
+    })
 
     if (!order) {
       return res.status(404).send()
@@ -129,11 +131,11 @@ router.post('/cancel', async (req, res) => {
               authentication,
               voidRequest: {
                 orderNum: order.number,
-                passengers: order._trip.passengers.map(passenger => ({
+                passengers: order.passengers.map(passenger => ({
                   cardType: 'P',
                   cardNum: passenger.passportNo,
-                  lastName: passenger.lastName,
-                  firstName: passenger.firstName
+                  firstName: removeSpaces(passenger.firstName),
+                  lastName: removeSpaces(passenger.lastName)
                 }))
               }
             }

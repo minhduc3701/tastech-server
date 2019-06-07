@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const _ = require('lodash')
 
 const app = express()
 
@@ -9,16 +10,27 @@ app.use(express.json())
 const port = 5050
 
 // fake
-app.post('/voiding', (req, res) => {
-  res.status(200).send({
-    errorCode: '0',
-    errorMsg: 'ok',
-    data: {
-      orderNum: req.body.voidRequest.orderNum,
-      voidOrderNum: Date.now(),
-      passengers: req.body.voidRequest.passengers
-    }
-  })
+app.get('/voiding', (req, res) => {
+  console.log(req.query.param)
+  let buff = new Buffer(req.query.param, 'base64')
+  let text = buff.toString('ascii')
+  console.log(text)
+
+  try {
+    let data = JSON.parse(text)
+    console.log(data)
+
+    return res.status(200).send({
+      errorCode: '0',
+      errorMsg: 'ok',
+      data: {
+        ..._.pick(data.voidRequest, ['orderNum', 'passengers']),
+        voidOrderNum: Date.now()
+      }
+    })
+  } catch (e) {
+    res.status(400).send({ error: e })
+  }
 })
 
 app.listen(port, () => console.log(`Fake app listening on port ${port}!`))

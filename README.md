@@ -11,8 +11,6 @@ Add config/config.json with the content like below:
     "PORT": "8080",
     "MONGODB_URI": "mongodb://localhost:27017/server-db",
     "JWT_SECRET": "ds99s9ds9s9sd09ds90sd9d09",
-    "SENDGRID_USERNAME": "sg-username",
-    "SENDGRID_PASSWORD": "sg-password",
     "APP_URI": "http://localhost:3000",
     "ALLOW_ORIGIN": "http://localhost:3000",
     "AWS_ACCESS_KEY_ID": <AWS_ACCESS_KEY_ID>,
@@ -25,7 +23,14 @@ Add config/config.json with the content like below:
     "PKFARE_PARTNER_ID": <PKFARE_PARTNER_ID>,
     "PKFARE_PARTNER_KEY": <PKFARE_PARTNER_KEY>,
     "PKFARE_HOTEL_ORDER_SECRET": <dev.ezbiztrip or local.thanh>,
-    "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>
+    "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>,
+    "BASE_CURRENCY": "USD",
+    "TRANSFERWISE_URI": "https://api.sandbox.transferwise.tech",
+    "TRANSFERWISE_API_KEY": "",
+    "SMTP_HOST": "smtp.mailtrap.io",
+    "SMTP_PORT": "2525",
+    "SMTP_USER": "<your mailtrap user>",
+    "SMTP_PASSWORD": "<your mailtrap password>"
   }
 }
 
@@ -111,8 +116,7 @@ Create `prod.env` in home directory with the content
 export MONGODB_URI=<production mongodb uri>
 export JWT_SECRET=<production jwt secret>
 export NODE_ENV=production
-export SENDGRID_USERNAME=<production sendgrid username>
-export SENDGRID_PASSWORD=<production sendgrid username>
+export SENDGRID_API_KEY=<sendgrid api key>
 export APP_URI=<frontend app uri>
 export ALLOW_ORIGIN=<frontend app uri>
 export AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
@@ -126,6 +130,9 @@ export PKFARE_PARTNER_ID=<PKFARE_PARTNER_ID>
 export PKFARE_PARTNER_KEY=<PKFARE_PARTNER_KEY>
 export PKFARE_HOTEL_ORDER_SECRET=<production hotel order secret>
 export STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY>
+export BASE_CURRENCY=SGD
+export TRANSFERWISE_URI=https://api.transferwise.com
+export TRANSFERWISE_API_KEY=<TRANSFERWISE_LIVE_KEY>
 ```
 
 Now you ready to run your app

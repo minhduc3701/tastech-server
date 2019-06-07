@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+const validator = require('validator')
 
 const OrderSchema = new Schema(
   {
@@ -40,7 +41,103 @@ const OrderSchema = new Schema(
     hotel: {},
     rejectedReason: String, // rejected reason for cancellation
     pnr: String,
-    canCancel: Boolean
+    canCancel: Boolean,
+    passengers: [
+      {
+        businessEmail: {
+          type: String,
+          minlength: 1,
+          required: true,
+          trim: true,
+          validate: {
+            validator: validator.isEmail,
+            message: '{VALUE} is not a valid email'
+          }
+        },
+        dateOfBirth: Date,
+        firstName: {
+          type: String,
+          trim: true
+        },
+        lastName: {
+          type: String,
+          trim: true
+        },
+        frequentFlyerNumber: {
+          type: String,
+          trim: true
+        },
+        frequentFlyerPropgram: {
+          type: String,
+          trim: true
+        },
+        gender: {
+          type: String,
+          trim: true
+        },
+        nationality: {
+          type: String,
+          trim: true
+        },
+        passportExpiryDate: Date,
+        passportNo: {
+          type: String,
+          trim: true
+        },
+        title: {
+          type: String,
+          trim: true
+        }
+      }
+    ],
+    contactInfo: {
+      name: {
+        type: String,
+        trim: true
+      },
+      email: {
+        type: String,
+        minlength: 1,
+        required: true,
+        trim: true,
+        validate: {
+          validator: validator.isEmail,
+          message: '{VALUE} is not a valid email'
+        }
+      },
+      city: {
+        type: String,
+        trim: true
+      },
+      country: {
+        type: String,
+        trim: true
+      },
+      phone1: {
+        type: String,
+        trim: true
+      },
+      phone2: {
+        type: String,
+        trim: true
+      },
+      postalAddress: {
+        type: String,
+        trim: true
+      },
+      areaCode1: {
+        type: String,
+        trim: true
+      },
+      areaCode2: {
+        type: String,
+        trim: true
+      },
+      province: {
+        type: String,
+        trim: true
+      }
+    }
   },
   {
     timestamps: true
