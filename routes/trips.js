@@ -73,7 +73,7 @@ router.post('/', currentCompany, async (req, res, next) => {
 
   try {
     await trip.save()
-    // res.status(200).send()
+    res.status(200).send()
     let budget = req.body.budgetPassengers[0]
     // get Policy
     let companyPolicies = await Policy.find({
