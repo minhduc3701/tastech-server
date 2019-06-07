@@ -438,33 +438,49 @@ const trips = [
     contactInfo: {
       email: 'john@doe.com'
     },
-    roundTrip: true,
     numberPassengers: 5,
-    flightClass: 'economy',
-    departure: 'HANOI',
-    departureDate: new Date('2019-03-20'),
-    arrival: 'HO CHI MINH',
-    returnDate: new Date('2019-03-25'),
+    startDate: new Date('2019-03-20'),
+    endDate: new Date('2019-03-25'),
+    isUpdated: true,
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 15,
-        lodging: 10,
-        transportation: 150,
-        meal: 210,
-        provision: 25,
-        note: 'Small budget',
-        classType: 'economy',
-
-        lastDestination: 'Tan Son Nhat International',
-        lastDestinationCode: 'SGN',
-        lastDestinationDate: new Date('2019-07-17'),
-        startDestination: 'Noibai International',
-        startDestinationCode: 'HAN',
-        startDestinationDate: new Date('2019-07-27'),
-        totalPrice: 510,
-        lastDestination: 'Singapore',
-        lastDestinationDate: new Date('2019-03-17')
+        flight: {
+          selected: true,
+          departDate: '2019-06-15',
+          returnDate: '2019-06-19',
+          price: 200,
+          departDestinationCode: 'HAN',
+          departDestination: 'Noibai International',
+          returnDestinationCode: 'SGN',
+          returnDestination: 'Tan Son Nhat International',
+          class: 'economy'
+        },
+        lodging: {
+          selected: true,
+          checkInDate: '2019-06-15',
+          checkOutDate: '2019-06-19',
+          price: 0,
+          regionId: 6001380,
+          regionName: 'Ernest Hemingway Home and Museum',
+          class: 2
+        },
+        transportation: {
+          selected: true,
+          price: 250,
+          limit: 50
+        },
+        meal: {
+          selected: true,
+          price: 350,
+          limit: 700
+        },
+        others: {
+          selected: true,
+          amount: 123,
+          reason: 'onaka ga suita'
+        },
+        totalPrice: 2054.6
       }
     ]
   },
@@ -491,28 +507,48 @@ const trips = [
     },
     roundTrip: true,
     numberPassengers: 5,
-    flightClass: 'economy',
-    departure: 'HANOI',
-    departureDate: new Date('2019-03-20'),
-    arrival: 'HO CHI MINH',
-    returnDate: new Date('2019-03-25'),
+    startDate: new Date('2019-03-20'),
+    endDate: new Date('2019-03-25'),
+    isUpdated: true,
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 500,
-        lodging: 1000,
-        transportation: 1500,
-        meal: 2000,
-        provision: 5,
-        note: 'Small budget',
-        classType: 'economy',
-        totalPrice: 5500,
-        lastDestination: 'Tan Son Nhat International',
-        lastDestinationCode: 'SGN',
-        lastDestinationDate: new Date('2019-07-17'),
-        startDestination: 'Noibai International',
-        startDestinationCode: 'HAN',
-        startDestinationDate: new Date('2019-07-27')
+        flight: {
+          selected: true,
+          departDate: '2019-06-15',
+          returnDate: '2019-06-19',
+          price: 200,
+          departDestinationCode: 'HAN',
+          departDestination: 'Noibai International',
+          returnDestinationCode: 'SGN',
+          returnDestination: 'Tan Son Nhat International',
+          class: 'economy'
+        },
+        lodging: {
+          selected: true,
+          checkInDate: '2019-06-15',
+          checkOutDate: '2019-06-19',
+          price: 0,
+          regionId: 6001380,
+          regionName: 'Ernest Hemingway Home and Museum',
+          class: 2
+        },
+        transportation: {
+          selected: true,
+          price: 250,
+          limit: 50
+        },
+        meal: {
+          selected: true,
+          price: 350,
+          limit: 700
+        },
+        others: {
+          selected: true,
+          amount: 123,
+          reason: 'onaka ga suita'
+        },
+        totalPrice: 2054.6
       }
     ]
   },
@@ -539,34 +575,48 @@ const trips = [
     },
     roundTrip: true,
     numberPassengers: 5,
-    flightClass: 'economy',
-    departure: 'HANOI',
-    departureDate: new Date('2019-03-20'),
-    arrival: 'BANGKOK',
-    returnDate: new Date('2019-03-25'),
+    startDate: new Date('2019-03-20'),
+    endDate: new Date('2019-03-25'),
+    isUpdated: true,
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 50000,
-        lodging: 10000,
-        transportation: 15000,
-        meal: 20000,
-        provision: 25,
-        note: 'Small budget',
-        classType: 'economy',
-        totalPrice: 120000,
-        destinations: [
-          {
-            from: 'HA NOI',
-            date: new Date('2019-03-13')
-          }
-        ],
-        lastDestination: 'Tan Son Nhat International',
-        lastDestinationCode: 'SGN',
-        lastDestinationDate: new Date('2019-07-17'),
-        startDestination: 'Noibai International',
-        startDestinationCode: 'HAN',
-        startDestinationDate: new Date('2019-07-27')
+        flight: {
+          selected: true,
+          departDate: '2019-06-15',
+          returnDate: '2019-06-19',
+          price: 200,
+          departDestinationCode: 'HAN',
+          departDestination: 'Noibai International',
+          returnDestinationCode: 'SGN',
+          returnDestination: 'Tan Son Nhat International',
+          class: 'economy'
+        },
+        lodging: {
+          selected: true,
+          checkInDate: '2019-06-15',
+          checkOutDate: '2019-06-19',
+          price: 0,
+          regionId: 6001380,
+          regionName: 'Ernest Hemingway Home and Museum',
+          class: 2
+        },
+        transportation: {
+          selected: true,
+          price: 250,
+          limit: 50
+        },
+        meal: {
+          selected: true,
+          price: 350,
+          limit: 700
+        },
+        others: {
+          selected: true,
+          amount: 123,
+          reason: 'onaka ga suita'
+        },
+        totalPrice: 2054.6
       }
     ]
   },
@@ -595,28 +645,48 @@ const trips = [
     },
     roundTrip: true,
     numberPassengers: 5,
-    flightClass: 'economy',
-    departure: 'HANOI',
-    departureDate: new Date('2019-03-20'),
-    arrival: 'HO CHI MINH',
-    returnDate: new Date('2019-03-25'),
+    startDate: new Date('2019-03-20'),
+    endDate: new Date('2019-03-25'),
+    isUpdated: true,
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 5,
-        lodging: 10,
-        transportation: 15,
-        meal: 20,
-        provision: 5,
-        note: 'Small budget',
-        classType: 'economy',
-        totalPrice: 55,
-        lastDestination: 'Tan Son Nhat International',
-        lastDestinationCode: 'SGN',
-        lastDestinationDate: new Date('2019-07-17'),
-        startDestination: 'Noibai International',
-        startDestinationCode: 'HAN',
-        startDestinationDate: new Date('2019-07-27')
+        flight: {
+          selected: true,
+          departDate: '2019-06-15',
+          returnDate: '2019-06-19',
+          price: 200,
+          departDestinationCode: 'HAN',
+          departDestination: 'Noibai International',
+          returnDestinationCode: 'SGN',
+          returnDestination: 'Tan Son Nhat International',
+          class: 'economy'
+        },
+        lodging: {
+          selected: true,
+          checkInDate: '2019-06-15',
+          checkOutDate: '2019-06-19',
+          price: 0,
+          regionId: 6001380,
+          regionName: 'Ernest Hemingway Home and Museum',
+          class: 2
+        },
+        transportation: {
+          selected: true,
+          price: 250,
+          limit: 50
+        },
+        meal: {
+          selected: true,
+          price: 350,
+          limit: 700
+        },
+        others: {
+          selected: true,
+          amount: 123,
+          reason: 'onaka ga suita'
+        },
+        totalPrice: 2054.6
       }
     ]
   },
@@ -643,28 +713,48 @@ const trips = [
     },
     roundTrip: true,
     numberPassengers: 5,
-    flightClass: 'economy',
-    departure: 'HANOI',
-    departureDate: new Date('2019-03-20'),
-    arrival: 'HO CHI MINH',
-    returnDate: new Date('2019-03-25'),
+    startDate: new Date('2019-03-20'),
+    endDate: new Date('2019-03-25'),
+    isUpdated: true,
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 5,
-        lodging: 10,
-        transportation: 15,
-        meal: 20,
-        provision: 5,
-        note: 'Small budget',
-        classType: 'economy',
-        totalPrice: 55,
-        lastDestination: 'Tan Son Nhat International',
-        lastDestinationCode: 'SGN',
-        lastDestinationDate: new Date('2019-07-17'),
-        startDestination: 'Noibai International',
-        startDestinationCode: 'HAN',
-        startDestinationDate: new Date('2019-07-27')
+        flight: {
+          selected: true,
+          departDate: '2019-06-15',
+          returnDate: '2019-06-19',
+          price: 200,
+          departDestinationCode: 'HAN',
+          departDestination: 'Noibai International',
+          returnDestinationCode: 'SGN',
+          returnDestination: 'Tan Son Nhat International',
+          class: 'economy'
+        },
+        lodging: {
+          selected: true,
+          checkInDate: '2019-06-15',
+          checkOutDate: '2019-06-19',
+          price: 0,
+          regionId: 6001380,
+          regionName: 'Ernest Hemingway Home and Museum',
+          class: 2
+        },
+        transportation: {
+          selected: true,
+          price: 250,
+          limit: 50
+        },
+        meal: {
+          selected: true,
+          price: 350,
+          limit: 700
+        },
+        others: {
+          selected: true,
+          amount: 123,
+          reason: 'onaka ga suita'
+        },
+        totalPrice: 2054.6
       }
     ]
   },
@@ -689,23 +779,48 @@ const trips = [
     contactInfo: {
       email: 'john@doe.com'
     },
+    startDate: new Date('2019-03-20'),
+    endDate: new Date('2019-03-25'),
+    isUpdated: true,
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 5,
-        lodging: 11,
-        transportation: 15,
-        meal: 22,
-        provision: 25,
-        totalPrice: 78,
-        note: 'Large budget',
-        classType: 'economy',
-        lastDestination: 'Tan Son Nhat International',
-        lastDestinationCode: 'SGN',
-        lastDestinationDate: new Date('2019-07-17'),
-        startDestination: 'Noibai International',
-        startDestinationCode: 'HAN',
-        startDestinationDate: new Date('2019-07-27')
+        flight: {
+          selected: true,
+          departDate: '2019-06-15',
+          returnDate: '2019-06-19',
+          price: 200,
+          departDestinationCode: 'HAN',
+          departDestination: 'Noibai International',
+          returnDestinationCode: 'SGN',
+          returnDestination: 'Tan Son Nhat International',
+          class: 'economy'
+        },
+        lodging: {
+          selected: true,
+          checkInDate: '2019-06-15',
+          checkOutDate: '2019-06-19',
+          price: 0,
+          regionId: 6001380,
+          regionName: 'Ernest Hemingway Home and Museum',
+          class: 2
+        },
+        transportation: {
+          selected: true,
+          price: 250,
+          limit: 50
+        },
+        meal: {
+          selected: true,
+          price: 350,
+          limit: 700
+        },
+        others: {
+          selected: true,
+          amount: 123,
+          reason: 'onaka ga suita'
+        },
+        totalPrice: 2054.6
       }
     ]
   },
@@ -731,23 +846,48 @@ const trips = [
     contactInfo: {
       email: 'john@doe.com'
     },
+    startDate: new Date('2019-03-20'),
+    endDate: new Date('2019-03-25'),
+    isUpdated: true,
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 50,
-        lodging: 10,
-        transportation: 15,
-        meal: 20,
-        provision: 25,
-        totalPrice: 125,
-        note: 'Small budget',
-        classType: 'economy',
-        lastDestination: 'Tan Son Nhat International',
-        lastDestinationCode: 'SGN',
-        lastDestinationDate: new Date('2019-07-17'),
-        startDestination: 'Noibai International',
-        startDestinationCode: 'HAN',
-        startDestinationDate: new Date('2019-07-27')
+        flight: {
+          selected: true,
+          departDate: '2019-06-15',
+          returnDate: '2019-06-19',
+          price: 200,
+          departDestinationCode: 'HAN',
+          departDestination: 'Noibai International',
+          returnDestinationCode: 'SGN',
+          returnDestination: 'Tan Son Nhat International',
+          class: 'economy'
+        },
+        lodging: {
+          selected: true,
+          checkInDate: '2019-06-15',
+          checkOutDate: '2019-06-19',
+          price: 0,
+          regionId: 6001380,
+          regionName: 'Ernest Hemingway Home and Museum',
+          class: 2
+        },
+        transportation: {
+          selected: true,
+          price: 250,
+          limit: 50
+        },
+        meal: {
+          selected: true,
+          price: 350,
+          limit: 700
+        },
+        others: {
+          selected: true,
+          amount: 123,
+          reason: 'onaka ga suita'
+        },
+        totalPrice: 2054.6
       }
     ]
   },
@@ -773,23 +913,48 @@ const trips = [
     contactInfo: {
       email: 'john@doe.com'
     },
+    startDate: new Date('2019-03-20'),
+    endDate: new Date('2019-03-25'),
+    isUpdated: true,
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 500,
-        lodging: 10,
-        transportation: 15,
-        meal: 200,
-        provision: 25,
-        note: 'Small budget',
-        classType: 'economy',
-        totalPrice: 750,
-        lastDestination: 'Tan Son Nhat International',
-        lastDestinationCode: 'SGN',
-        lastDestinationDate: new Date('2019-07-17'),
-        startDestination: 'Noibai International',
-        startDestinationCode: 'HAN',
-        startDestinationDate: new Date('2019-07-27')
+        flight: {
+          selected: true,
+          departDate: '2019-06-15',
+          returnDate: '2019-06-19',
+          price: 200,
+          departDestinationCode: 'HAN',
+          departDestination: 'Noibai International',
+          returnDestinationCode: 'SGN',
+          returnDestination: 'Tan Son Nhat International',
+          class: 'economy'
+        },
+        lodging: {
+          selected: true,
+          checkInDate: '2019-06-15',
+          checkOutDate: '2019-06-19',
+          price: 0,
+          regionId: 6001380,
+          regionName: 'Ernest Hemingway Home and Museum',
+          class: 2
+        },
+        transportation: {
+          selected: true,
+          price: 250,
+          limit: 50
+        },
+        meal: {
+          selected: true,
+          price: 350,
+          limit: 700
+        },
+        others: {
+          selected: true,
+          amount: 123,
+          reason: 'onaka ga suita'
+        },
+        totalPrice: 2054.6
       }
     ],
     adminMessage:
@@ -819,23 +984,48 @@ const trips = [
     contactInfo: {
       email: 'john@doe.com'
     },
+    startDate: new Date('2019-03-20'),
+    endDate: new Date('2019-03-25'),
+    isUpdated: true,
     budgetPassengers: [
       {
         _passenger: employeeId,
-        flight: 5000,
-        lodging: 100,
-        transportation: 150,
-        meal: 2000,
-        provision: 25,
-        note: 'Small budget',
-        classType: 'economy',
-        totalPrice: 7500,
-        lastDestination: 'Tan Son Nhat International',
-        lastDestinationCode: 'SGN',
-        lastDestinationDate: new Date('2019-07-17'),
-        startDestination: 'Noibai International',
-        startDestinationCode: 'HAN',
-        startDestinationDate: new Date('2019-07-27')
+        flight: {
+          selected: true,
+          departDate: '2019-06-15',
+          returnDate: '2019-06-19',
+          price: 200,
+          departDestinationCode: 'HAN',
+          departDestination: 'Noibai International',
+          returnDestinationCode: 'SGN',
+          returnDestination: 'Tan Son Nhat International',
+          class: 'economy'
+        },
+        lodging: {
+          selected: true,
+          checkInDate: '2019-06-15',
+          checkOutDate: '2019-06-19',
+          price: 0,
+          regionId: 6001380,
+          regionName: 'Ernest Hemingway Home and Museum',
+          class: 2
+        },
+        transportation: {
+          selected: true,
+          price: 250,
+          limit: 50
+        },
+        meal: {
+          selected: true,
+          price: 350,
+          limit: 700
+        },
+        others: {
+          selected: true,
+          amount: 123,
+          reason: 'onaka ga suita'
+        },
+        totalPrice: 2054.6
       }
     ],
     updatedByAdmin: adminId,
