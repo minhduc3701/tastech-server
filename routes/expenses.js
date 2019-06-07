@@ -7,6 +7,7 @@ const { upload } = require('../config/aws')
 const _ = require('lodash')
 
 router.post('/', upload.array('receipts'), function(req, res, next) {
+  console.log('start')
   const expense = new Expense(req.body)
   expense._creator = req.user._id
   expense._company = req.user._company
@@ -22,19 +23,19 @@ router.post('/', upload.array('receipts'), function(req, res, next) {
   Trip.findById(expense._trip)
     .then(trip => {
       if (!['approved', 'ongoing', 'finished'].includes(trip.status)) {
-        res.status(400).send()
+        return res.status(400).send()
       }
     })
     .catch(e => {
-      res.status(400).send()
+      return res.status(400).send()
     })
   expense
     .save()
     .then(() => {
-      res.status(200).json({ expense })
+      return res.status(200).json({ expense })
     })
     .catch(e => {
-      res.status(400).send()
+      return res.status(400).send()
     })
 })
 

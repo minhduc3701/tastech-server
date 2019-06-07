@@ -55,7 +55,6 @@ router.patch('/:id', (req, res) => {
     'updatedByAdmin',
     'updatedByAdminAt'
   ])
-
   Trip.findOneAndUpdate(
     {
       _id: id,
