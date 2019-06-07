@@ -173,27 +173,13 @@ router.post('/card', async (req, res, next) => {
     // calculate the trip price here
     let currency = ''
 
-    let adultPriceBreakdown = ['adtFare', 'adtTax', 'tktFee']
-
-    let serviceFeeBreadkdown = ['platformServiceFee', 'merchantFee']
-
     let amount = 0
 
     // if have flight
     if (flightOrder && flightOrder.flight) {
-      let adultPrice = adultPriceBreakdown.reduce(
-        (acc, fee) => flightOrder.flight[fee] + acc,
-        0
-      )
-      adultPrice *= trip.passengers.length
-      let serviceFee = serviceFeeBreadkdown.reduce(
-        (acc, fee) => flightOrder.flight[fee] + acc,
-        0
-      )
+      amount += flightOrder.flight.totalPrice
 
       currency = flightOrder.flight.currency
-
-      amount += adultPrice + serviceFee
     } // end flight
 
     // if have hotel

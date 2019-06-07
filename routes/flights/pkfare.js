@@ -33,7 +33,11 @@ router.post('/shopping', currencyExchange, (req, res) => {
         let flights = JSON.parse(dezipped.toString())
         flights = flights.data
         let isRoundTrip = req.body.search.searchAirLegs.length === 2
-        flights = makeFlightsData(flights, isRoundTrip, req.currency)
+        flights = makeFlightsData(flights, {
+          isRoundTrip,
+          currency: req.currency,
+          numberOfAdults: Number(req.body.search.adults)
+        })
 
         let airlines = []
         let airports = []
@@ -209,7 +213,7 @@ router.post('/ticketing', (req, res) => {
     res.status(200).send(JSON.parse(body))
   })
 })
-const makeFlightsData = (data, isRoundTrip, currency) => {
+const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
   let flightsData = []
   if (data) {
     data.solutions.forEach(solution => {
@@ -253,24 +257,28 @@ const makeFlightsData = (data, isRoundTrip, currency) => {
         })
       }
 
-      let priceBreakdown = [
-        'adtFare',
-        'adtTax',
-        'tktFee',
-        'chdFare',
-        'chdTax',
-        'tktFee',
-        'platformServiceFee',
-        'merchantFee'
-      ]
+      let adultPriceBreakdown = ['adtFare', 'adtTax', 'tktFee']
 
-      let price = priceBreakdown.reduce((acc, fee) => solution[fee] + acc, 0)
-      price = Number((price * currency.rate).toFixed(2))
+      let serviceFeeBreadkdown = ['platformServiceFee', 'merchantFee']
+
+      let adultPrice = adultPriceBreakdown.reduce(
+        (acc, fee) => solution[fee] + acc,
+        0
+      )
+      let serviceFee = serviceFeeBreadkdown.reduce(
+        (acc, fee) => solution[fee] + acc,
+        0
+      )
+
+      let price = (adultPrice + serviceFee) * currency.rate
+      let totalPrice =
+        (adultPrice * numberOfAdults + serviceFee) * currency.rate
 
       flightsData.push({
         ...solution,
         currency: currency.code,
         price,
+        totalPrice,
         departureFlight,
         departureSegments,
         returnFlight,
