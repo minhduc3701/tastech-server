@@ -41,8 +41,8 @@ const createUser = function(req, res, next) {
         })
       },
       function(user, token, done) {
-        ;(user.resetPasswordToken = token),
-          (user.resetPasswordExpires = Date.now() + 3600000) // 1 hour
+        user.resetPasswordToken = token
+        user.resetPasswordExpires = Date.now() + 3600000 // 1 hour
         user
           .save()
           .then(() => {

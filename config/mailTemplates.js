@@ -10,8 +10,8 @@ function register(user, token) {
       ''
     )}`,
     text:
-      'Your new account is created successfully.\n' +
-      'To change password, please click on the following link, or paste this into your browser to complete the process:\n\n' +
+      'Your new account is created successfully.\n\n' +
+      'Set your password at: ' +
       appUrl +
       '/reset-password/' +
       token
