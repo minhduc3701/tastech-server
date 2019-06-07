@@ -4,6 +4,7 @@ const async = require('async')
 const { mail } = require('../config/mail')
 const mailTemplates = require('../config/mailTemplates.js')
 const { debugMail } = require('../config/debug')
+const crypto = require('crypto')
 
 const createUser = function(req, res, next) {
   async.waterfall(
@@ -34,7 +35,25 @@ const createUser = function(req, res, next) {
         )
       },
       function(user, done) {
-        let mailOptions = mailTemplates.register(user)
+        crypto.randomBytes(20, function(err, buf) {
+          var token = buf.toString('hex')
+          done(err, user, token)
+        })
+      },
+      function(user, token, done) {
+        ;(user.resetPasswordToken = token),
+          (user.resetPasswordExpires = Date.now() + 3600000) // 1 hour
+        user
+          .save()
+          .then(() => {
+            done(null, user, token)
+          })
+          .catch(e => {
+            done(e)
+          })
+      },
+      function(user, token, done) {
+        let mailOptions = mailTemplates.register(user, token)
         mail.sendMail(mailOptions, function(err, info) {
           return done(err, user)
         })
