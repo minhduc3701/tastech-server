@@ -1,7 +1,7 @@
 const noReplyEmail = 'no-reply@ezbiztrip.com'
 const appUrl = process.env.APP_URI
 
-function register(user) {
+function register(user, token) {
   return {
     to: user.email,
     from: noReplyEmail,
@@ -9,7 +9,12 @@ function register(user) {
       /^https?:\/\//,
       ''
     )}`,
-    text: `Your new account is created successfully.\nLogin at: ${appUrl}/login`
+    text:
+      'Your new account is created successfully.\n\n' +
+      'Set your password at: ' +
+      appUrl +
+      '/reset-password/' +
+      token
   }
 }
 
