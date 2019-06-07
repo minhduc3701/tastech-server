@@ -54,8 +54,86 @@ const makeRoomGuestDetails = (passengers, numberOfRoom) => {
 
 const removeSpaces = str => _.replace(str, /\s+/g, '')
 
+const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
+  let flightsData = []
+  if (data) {
+    data.solutions.forEach(solution => {
+      let departureFlights = data.flights.filter(
+        flight =>
+          solution.journeys.journey_0.findIndex(
+            flightId => flightId === flight.flightId
+          ) >= 0
+      )
+      let departureFlight = departureFlights[0]
+
+      let departureSegments = []
+      let departureSegmentIds = departureFlight.segmengtIds
+      departureSegmentIds.forEach(id => {
+        let segmentIndex = data.segments.findIndex(
+          segment => segment.segmentId === id
+        )
+        let segment = data.segments[segmentIndex]
+        departureSegments.push(segment)
+      })
+
+      let returnFlight = {}
+      let returnSegments = []
+      if (isRoundTrip) {
+        // return flight
+        let returnFlights = data.flights.filter(
+          flight =>
+            solution.journeys.journey_1.findIndex(
+              flightId => flightId === flight.flightId
+            ) >= 0
+        )
+        returnFlight = returnFlights[0]
+
+        let returnSegmentIds = returnFlight.segmengtIds
+        returnSegmentIds.forEach(id => {
+          let segmentIndex = data.segments.findIndex(
+            segment => segment.segmentId === id
+          )
+          let segment = data.segments[segmentIndex]
+          returnSegments.push(segment)
+        })
+      }
+
+      let adultPriceBreakdown = ['adtFare', 'adtTax', 'tktFee']
+
+      let serviceFeeBreadkdown = ['platformServiceFee', 'merchantFee']
+
+      let adultPrice = adultPriceBreakdown.reduce(
+        (acc, fee) => solution[fee] + acc,
+        0
+      )
+      let serviceFee = serviceFeeBreadkdown.reduce(
+        (acc, fee) => solution[fee] + acc,
+        0
+      )
+
+      let price = (adultPrice + serviceFee) * currency.rate
+      let totalPrice =
+        (adultPrice * numberOfAdults + serviceFee) * currency.rate
+
+      flightsData.push({
+        ...solution,
+        currency: currency.code,
+        price,
+        totalPrice,
+        departureFlight,
+        departureSegments,
+        returnFlight,
+        returnSegments,
+        supplier: 'pkfare'
+      })
+    })
+  }
+  return flightsData
+}
+
 module.exports = {
   makeSegmentsData,
   makeRoomGuestDetails,
-  removeSpaces
+  removeSpaces,
+  makeFlightsData
 }
