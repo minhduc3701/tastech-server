@@ -460,7 +460,7 @@ const trips = [
           selected: true,
           checkInDate: '2019-06-15',
           checkOutDate: '2019-06-19',
-          price: 0,
+          price: 750,
           regionId: 6001380,
           regionName: 'Ernest Hemingway Home and Museum',
           class: 2
@@ -528,7 +528,7 @@ const trips = [
           selected: true,
           checkInDate: '2019-06-15',
           checkOutDate: '2019-06-19',
-          price: 0,
+          price: 750,
           regionId: 6001380,
           regionName: 'Ernest Hemingway Home and Museum',
           class: 2
@@ -596,7 +596,7 @@ const trips = [
           selected: true,
           checkInDate: '2019-06-15',
           checkOutDate: '2019-06-19',
-          price: 0,
+          price: 750,
           regionId: 6001380,
           regionName: 'Ernest Hemingway Home and Museum',
           class: 2
@@ -666,7 +666,7 @@ const trips = [
           selected: true,
           checkInDate: '2019-06-15',
           checkOutDate: '2019-06-19',
-          price: 0,
+          price: 750,
           regionId: 6001380,
           regionName: 'Ernest Hemingway Home and Museum',
           class: 2
@@ -734,7 +734,7 @@ const trips = [
           selected: true,
           checkInDate: '2019-06-15',
           checkOutDate: '2019-06-19',
-          price: 0,
+          price: 750,
           regionId: 6001380,
           regionName: 'Ernest Hemingway Home and Museum',
           class: 2
@@ -800,7 +800,7 @@ const trips = [
           selected: true,
           checkInDate: '2019-06-15',
           checkOutDate: '2019-06-19',
-          price: 0,
+          price: 750,
           regionId: 6001380,
           regionName: 'Ernest Hemingway Home and Museum',
           class: 2
@@ -867,7 +867,7 @@ const trips = [
           selected: true,
           checkInDate: '2019-06-15',
           checkOutDate: '2019-06-19',
-          price: 0,
+          price: 750,
           regionId: 6001380,
           regionName: 'Ernest Hemingway Home and Museum',
           class: 2
@@ -934,7 +934,7 @@ const trips = [
           selected: true,
           checkInDate: '2019-06-15',
           checkOutDate: '2019-06-19',
-          price: 0,
+          price: 750,
           regionId: 6001380,
           regionName: 'Ernest Hemingway Home and Museum',
           class: 2
@@ -1005,7 +1005,7 @@ const trips = [
           selected: true,
           checkInDate: '2019-06-15',
           checkOutDate: '2019-06-19',
-          price: 0,
+          price: 750,
           regionId: 6001380,
           regionName: 'Ernest Hemingway Home and Museum',
           class: 2
