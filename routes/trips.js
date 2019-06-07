@@ -73,6 +73,7 @@ router.post('/', currentCompany, async (req, res, next) => {
 
   try {
     await trip.save()
+    // res.status(200).send()
     let budget = req.body.budgetPassengers[0]
     // get Policy
     let companyPolicies = await Policy.find({
@@ -91,7 +92,6 @@ router.post('/', currentCompany, async (req, res, next) => {
     trip.budgetPassengers[0].totalPrice = 0
     console.log(trip.budgetPassengers[0].totalPrice)
     // calcuate transportation budget
-
     if (
       policy.setTransportLimit &&
       trip.budgetPassengers[0].transportation.selected
@@ -196,6 +196,7 @@ router.post('/', currentCompany, async (req, res, next) => {
                 }
               })
               let { data } = responseHotel
+              console.log(data.body)
               let { hotelInfoList } = data.body
               let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
               let hotels = await Hotel.find({
@@ -233,13 +234,7 @@ router.post('/', currentCompany, async (req, res, next) => {
               )
               console.log('+ hotel: ', trip.budgetPassengers[0].totalPrice)
             }
-            //Update provision budget
-            if (trip.budgetPassengers[0].provision.selected) {
-              trip.budgetPassengers[0].totalPrice +=
-                trip.budgetPassengers[0].totalPrice *
-                (trip.budgetPassengers[0].provision.rate / 100)
-              console.log('+ provision : ', trip.budgetPassengers[0].totalPrice)
-            }
+
             //update travel other
             if (trip.budgetPassengers[0].others.selected) {
               trip.budgetPassengers[0].totalPrice += Number(
@@ -320,12 +315,6 @@ router.post('/', currentCompany, async (req, res, next) => {
         sumPriceHotelRoom / hotelRooms.length
       )
 
-      //Update provision budget
-      if (trip.budgetPassengers[0].provision.selected) {
-        trip.budgetPassengers[0].totalPrice +=
-          trip.budgetPassengers[0].totalPrice *
-          (trip.budgetPassengers[0].provision.rate / 100)
-      }
       //update travel other
       if (trip.budgetPassengers[0].others.selected) {
         trip.budgetPassengers[0].totalPrice += Number(
@@ -345,12 +334,6 @@ router.post('/', currentCompany, async (req, res, next) => {
         }
       )
     } else {
-      //Update provision budget
-      if (trip.budgetPassengers[0].provision.selected) {
-        trip.budgetPassengers[0].totalPrice +=
-          trip.budgetPassengers[0].totalPrice *
-          (trip.budgetPassengers[0].provision.rate / 100)
-      }
       //update travel other
       if (trip.budgetPassengers[0].others.selected) {
         trip.budgetPassengers[0].totalPrice += Number(
