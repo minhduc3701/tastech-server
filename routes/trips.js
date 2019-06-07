@@ -14,7 +14,8 @@ const _ = require('lodash')
 const axios = require('axios')
 const Policy = require('../models/policy')
 const moment = require('moment')
-const { currentCompany } = require('../middleware/company')
+const { currencyExchange } = require('../middleware/currency')
+const { makeFlightsData } = require('../modules/utils')
 
 router.get('/', function(req, res, next) {
   Trip.find({
@@ -59,12 +60,12 @@ router.get('/:id', function(req, res, next) {
     })
 })
 
-router.post('/', currentCompany, async (req, res, next) => {
+router.post('/', currencyExchange, async (req, res, next) => {
   const trip = new Trip(req.body)
   trip._creator = req.user._id
   trip._company = req.user._company
   trip.businessTrip = true
-  trip.currency = req.company.currency
+  trip.currency = req.currency.code
   let countDays =
     moment(req.body.endDate).diff(moment(req.body.startDate), 'days') + 1
   trip.daysOfTrip = countDays
@@ -159,7 +160,11 @@ router.post('/', currentCompany, async (req, res, next) => {
             let flights = JSON.parse(dezipped.toString())
             flights = flights.data
             let isRoundTrip = searchAirLegs.length === 2
-            flights = makeFlightsData(flights, isRoundTrip)
+            flights = makeFlightsData(flights, {
+              isRoundTrip,
+              currency: req.currency,
+              numberOfAdults: 1
+            })
             let sumPrice = 0
             flights.forEach(flight => {
               sumPrice += Number(flight.price)
@@ -473,75 +478,5 @@ router.patch('/:id/exchange', function(req, res, next) {
       res.status(400).send()
     })
 })
-const makeFlightsData = (data, isRoundTrip) => {
-  let flightsData = []
-  if (data) {
-    data.solutions.forEach(solution => {
-      let departureFlights = data.flights.filter(
-        flight =>
-          solution.journeys.journey_0.findIndex(
-            flightId => flightId === flight.flightId
-          ) >= 0
-      )
-      let departureFlight = departureFlights[0]
 
-      let departureSegments = []
-      let departureSegmentIds = departureFlight.segmengtIds
-      departureSegmentIds.forEach(id => {
-        let segmentIndex = data.segments.findIndex(
-          segment => segment.segmentId === id
-        )
-        let segment = data.segments[segmentIndex]
-        departureSegments.push(segment)
-      })
-
-      let returnFlight = {}
-      let returnSegments = []
-      if (isRoundTrip) {
-        // return flight
-        let returnFlights = data.flights.filter(
-          flight =>
-            solution.journeys.journey_1.findIndex(
-              flightId => flightId === flight.flightId
-            ) >= 0
-        )
-        returnFlight = returnFlights[0]
-
-        let returnSegmentIds = returnFlight.segmengtIds
-        returnSegmentIds.forEach(id => {
-          let segmentIndex = data.segments.findIndex(
-            segment => segment.segmentId === id
-          )
-          let segment = data.segments[segmentIndex]
-          returnSegments.push(segment)
-        })
-      }
-
-      let priceBreakdown = [
-        'adtFare',
-        'adtTax',
-        'tktFee',
-        'chdFare',
-        'chdTax',
-        'tktFee',
-        'platformServiceFee',
-        'merchantFee'
-      ]
-
-      let price = priceBreakdown.reduce((acc, fee) => solution[fee] + acc, 0)
-      price = price.toFixed(2)
-
-      flightsData.push({
-        ...solution,
-        price,
-        departureFlight,
-        departureSegments,
-        returnFlight,
-        returnSegments,
-        supplier: 'pkfare'
-      })
-    })
-  }
-  return flightsData
-}
 module.exports = router
