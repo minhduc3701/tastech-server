@@ -60,7 +60,6 @@ router.get('/:id', function(req, res, next) {
 })
 
 router.post('/', currentCompany, async (req, res, next) => {
-  console.log('start!!!')
   const trip = new Trip(req.body)
   trip._creator = req.user._id
   trip._company = req.user._company
@@ -90,7 +89,6 @@ router.post('/', currentCompany, async (req, res, next) => {
     }
 
     trip.budgetPassengers[0].totalPrice = 0
-    console.log(trip.budgetPassengers[0].totalPrice)
     // calcuate transportation budget
     if (
       policy.setTransportLimit &&
@@ -103,7 +101,6 @@ router.post('/', currentCompany, async (req, res, next) => {
       trip.budgetPassengers[0].totalPrice += Number(
         policy.transportLimit * countDays
       )
-      console.log('+ transport: ', trip.budgetPassengers[0].totalPrice)
     } else {
       trip.budgetPassengers[0].transportation.price = 0
     }
@@ -115,7 +112,6 @@ router.post('/', currentCompany, async (req, res, next) => {
       trip.budgetPassengers[0].totalPrice += Number(
         policy.mealLimit * countDays
       )
-      console.log('+ meat: ', trip.budgetPassengers[0].totalPrice)
     } else {
       trip.budgetPassengers[0].meal.price = 0
     }
@@ -174,8 +170,6 @@ router.post('/', currentCompany, async (req, res, next) => {
             trip.budgetPassengers[0].totalPrice += Number(
               sumPrice / flights.length
             )
-            console.log('+ flight: ', trip.budgetPassengers[0].totalPrice)
-
             //  Calculate Hotel budget
             if (trip.budgetPassengers[0].lodging.selected) {
               trip.budgetPassengers[0].lodging.class = policy.hotelClass
@@ -196,7 +190,6 @@ router.post('/', currentCompany, async (req, res, next) => {
                 }
               })
               let { data } = responseHotel
-              console.log(data.body)
               let { hotelInfoList } = data.body
               let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
               let hotels = await Hotel.find({
@@ -232,7 +225,6 @@ router.post('/', currentCompany, async (req, res, next) => {
               trip.budgetPassengers[0].totalPrice += Number(
                 sumPriceHotelRoom / hotelRooms.length
               )
-              console.log('+ hotel: ', trip.budgetPassengers[0].totalPrice)
             }
 
             //update travel other
@@ -240,13 +232,11 @@ router.post('/', currentCompany, async (req, res, next) => {
               trip.budgetPassengers[0].totalPrice += Number(
                 trip.budgetPassengers[0].others.amount
               )
-              console.log('+ other: ', trip.budgetPassengers[0].totalPrice)
             }
 
             trip.budgetPassengers[0].totalPrice = Number(
               trip.budgetPassengers[0].totalPrice.toFixed(2)
             )
-            console.log('final: ', trip.budgetPassengers[0].totalPrice)
             trip.isUpdated = true
 
             //Update trip information
@@ -254,9 +244,7 @@ router.post('/', currentCompany, async (req, res, next) => {
               trip._id,
               { $set: trip },
               { new: true }
-            ).then(trip => {
-              console.log('success')
-            })
+            ).then(trip => {})
           })
         }
       )
@@ -320,7 +308,6 @@ router.post('/', currentCompany, async (req, res, next) => {
         trip.budgetPassengers[0].totalPrice += Number(
           trip.budgetPassengers[0].others.amount
         )
-        console.log(trip.budgetPassengers[0].totalPrice)
       }
       //Update trip information
       trip.budgetPassengers[0].totalPrice = Number(
@@ -329,9 +316,7 @@ router.post('/', currentCompany, async (req, res, next) => {
       trip.isUpdated = true
 
       Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
-        trip => {
-          console.log('success')
-        }
+        trip => {}
       )
     } else {
       //update travel other
@@ -339,7 +324,6 @@ router.post('/', currentCompany, async (req, res, next) => {
         trip.budgetPassengers[0].totalPrice += Number(
           trip.budgetPassengers[0].others.amount
         )
-        console.log(trip.budgetPassengers[0].totalPrice)
       }
       //Update trip information
       trip.budgetPassengers[0].totalPrice = Number(
@@ -347,13 +331,10 @@ router.post('/', currentCompany, async (req, res, next) => {
       )
       trip.isUpdated = true
       Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
-        trip => {
-          console.log('success')
-        }
+        trip => {}
       )
     }
   } catch (error) {
-    console.log(error)
     return res.status(404).send()
   }
 })
