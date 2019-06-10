@@ -11,85 +11,76 @@ const request = require('request')
 const { authentication } = require('../../config/pkfare')
 const { currencyExchange } = require('../../middleware/currency')
 const { debugPkfare } = require('../../config/debug')
+const { makeFlightsData } = require('../../modules/utils')
+const api = require('../../modules/api')
 
-router.post('/shopping', currencyExchange, (req, res) => {
-  let base64 = Buffer.from(
-    JSON.stringify({
-      search: req.body.search,
-      authentication
+router.post('/shopping', currencyExchange, async (req, res) => {
+  try {
+    let flights = await api.shopping(req.body.search)
+
+    let isRoundTrip = req.body.search.searchAirLegs.length === 2
+
+    flights = makeFlightsData(flights, {
+      isRoundTrip,
+      currency: req.currency,
+      numberOfAdults: Number(req.body.search.adults)
     })
-  ).toString('base64')
-  request(
-    `${process.env.PKFARE_URI}/shoppingV2?param=${base64}`,
-    { encoding: null },
-    function(err, response, body) {
-      if (err) {
-        debugPkfare(err)
-        return res.status(400).send()
-      }
 
-      zlib.gunzip(body, function(err, dezipped) {
-        // res.status(200).send(JSON.parse(dezipped.toString()))
-        let flights = JSON.parse(dezipped.toString())
-        flights = flights.data
-        let isRoundTrip = req.body.search.searchAirLegs.length === 2
-        flights = makeFlightsData(flights, isRoundTrip, req.currency)
-
-        let airlines = []
-        let airports = []
-        flights.forEach(flight => {
-          flight.departureSegments.forEach(segment => {
-            airlines.push(segment.airline)
-            airports.push(segment.departure)
-            airports.push(segment.arrival)
-          })
-          if (isRoundTrip) {
-            flight.returnSegments.forEach(segment => {
-              airlines.push(segment.airline)
-              airports.push(segment.departure)
-              airports.push(segment.arrival)
-            })
-          }
-        })
-
-        airlines = _.uniq(airlines)
-        airports = _.uniq(airports)
-
-        Promise.all([
-          Airline.find({
-            iata: {
-              $in: airlines
-            }
-          }),
-          Airport.find({
-            airport_code: {
-              $in: airports
-            }
-          })
-        ])
-          .then(results => {
-            let arrAirline = results[0]
-            let airlines = {}
-            arrAirline.forEach(airline => {
-              airlines[airline._doc.iata] = airline
-            })
-            let arrAirport = results[1]
-            let airports = {}
-            arrAirport.forEach(airport => {
-              airports[airport._doc.airport_code] = airport
-            })
-            res.status(200).send({
-              flights,
-              airlines,
-              airports
-            })
-          })
-          .catch(e => {
-            res.status(400).send()
-          })
+    let airlines = []
+    let airports = []
+    flights.forEach(flight => {
+      flight.departureSegments.forEach(segment => {
+        airlines.push(segment.airline)
+        airports.push(segment.departure)
+        airports.push(segment.arrival)
       })
-    }
-  )
+      if (isRoundTrip) {
+        flight.returnSegments.forEach(segment => {
+          airlines.push(segment.airline)
+          airports.push(segment.departure)
+          airports.push(segment.arrival)
+        })
+      }
+    })
+
+    airlines = _.uniq(airlines)
+    airports = _.uniq(airports)
+
+    Promise.all([
+      Airline.find({
+        iata: {
+          $in: airlines
+        }
+      }),
+      Airport.find({
+        airport_code: {
+          $in: airports
+        }
+      })
+    ])
+      .then(results => {
+        let arrAirline = results[0]
+        let airlines = {}
+        arrAirline.forEach(airline => {
+          airlines[airline._doc.iata] = airline
+        })
+        let arrAirport = results[1]
+        let airports = {}
+        arrAirport.forEach(airport => {
+          airports[airport._doc.airport_code] = airport
+        })
+        res.status(200).send({
+          flights,
+          airlines,
+          airports
+        })
+      })
+      .catch(e => {
+        res.status(400).send()
+      })
+  } catch (e) {
+    res.status(400).send()
+  }
 })
 
 router.post('/precisePricing', (req, res) => {
@@ -209,77 +200,5 @@ router.post('/ticketing', (req, res) => {
     res.status(200).send(JSON.parse(body))
   })
 })
-const makeFlightsData = (data, isRoundTrip, currency) => {
-  let flightsData = []
-  if (data) {
-    data.solutions.forEach(solution => {
-      let departureFlights = data.flights.filter(
-        flight =>
-          solution.journeys.journey_0.findIndex(
-            flightId => flightId === flight.flightId
-          ) >= 0
-      )
-      let departureFlight = departureFlights[0]
-
-      let departureSegments = []
-      let departureSegmentIds = departureFlight.segmengtIds
-      departureSegmentIds.forEach(id => {
-        let segmentIndex = data.segments.findIndex(
-          segment => segment.segmentId === id
-        )
-        let segment = data.segments[segmentIndex]
-        departureSegments.push(segment)
-      })
-
-      let returnFlight = {}
-      let returnSegments = []
-      if (isRoundTrip) {
-        // return flight
-        let returnFlights = data.flights.filter(
-          flight =>
-            solution.journeys.journey_1.findIndex(
-              flightId => flightId === flight.flightId
-            ) >= 0
-        )
-        returnFlight = returnFlights[0]
-
-        let returnSegmentIds = returnFlight.segmengtIds
-        returnSegmentIds.forEach(id => {
-          let segmentIndex = data.segments.findIndex(
-            segment => segment.segmentId === id
-          )
-          let segment = data.segments[segmentIndex]
-          returnSegments.push(segment)
-        })
-      }
-
-      let priceBreakdown = [
-        'adtFare',
-        'adtTax',
-        'tktFee',
-        'chdFare',
-        'chdTax',
-        'tktFee',
-        'platformServiceFee',
-        'merchantFee'
-      ]
-
-      let price = priceBreakdown.reduce((acc, fee) => solution[fee] + acc, 0)
-      price = Number((price * currency.rate).toFixed(2))
-
-      flightsData.push({
-        ...solution,
-        currency: currency.code,
-        price,
-        departureFlight,
-        departureSegments,
-        returnFlight,
-        returnSegments,
-        supplier: 'pkfare'
-      })
-    })
-  }
-  return flightsData
-}
 
 module.exports = router

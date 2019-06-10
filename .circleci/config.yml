@@ -7,7 +7,7 @@ jobs:
       - run:
           name: AWS EC2 deploy (development)
           command: |
-            ssh -o StrictHostKeyChecking=no ubuntu@3.19.3.0 \
+            ssh -o StrictHostKeyChecking=no $SSH_DEV_USER@$SSH_DEV_HOST \
             "echo Start development deploy && \
             cd ~/server && \
             git fetch --all && \
@@ -23,7 +23,7 @@ jobs:
       - run:
           name: AWS EC2 deploy (production)
           command: |
-            ssh -o StrictHostKeyChecking=no ubuntu@3.19.3.0 \
+            ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \
             "echo Start production deploy && \
             source ~/prod.env
             cd ~/prod/server && \

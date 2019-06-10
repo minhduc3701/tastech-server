@@ -7,11 +7,13 @@ const _ = require('lodash')
 var UserSchema = new Schema({
   username: {
     type: String,
+    trim: true,
     required: true,
     unique: true
   },
   email: {
     type: String,
+    trim: true,
     required: true,
     unique: true
   },

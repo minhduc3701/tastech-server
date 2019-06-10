@@ -8,6 +8,7 @@ const TripSchema = new Schema(
       type: String,
       required: true
     },
+
     _company: mongoose.Schema.Types.ObjectId,
     status: {
       type: String,
@@ -30,22 +31,21 @@ const TripSchema = new Schema(
     forCreator: Boolean,
     budgetPassengers: [
       {
-        flight: Number,
-        lodging: Number,
-        transportation: Number,
-        meal: Number,
-        provision: Number,
         note: String,
         classType: String,
-        destinations: [
-          {
-            from: String,
-            date: Date
-          }
-        ],
+        startDestination: String,
+        startDestinationCode: String,
+        startDestinationDate: Date,
         lastDestination: String,
+        lastDestinationCode: String,
         lastDestinationDate: Date,
-        totalPrice: Number
+        totalPrice: Number,
+        flight: {},
+        lodging: {},
+        transportation: {},
+        meal: {},
+        provision: {},
+        others: {}
       }
     ],
     numberPassengers: String,
@@ -61,7 +61,13 @@ const TripSchema = new Schema(
       type: Boolean,
       default: false
     },
-    businessTrip: Boolean
+    businessTrip: Boolean,
+    currency: String,
+    daysOfTrip: Number,
+    isUpdated: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     timestamps: true
