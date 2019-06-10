@@ -7,7 +7,6 @@ const { upload } = require('../config/aws')
 const _ = require('lodash')
 
 router.post('/', upload.array('receipts'), function(req, res, next) {
-  console.log('start')
   const expense = new Expense(req.body)
   expense._creator = req.user._id
   expense._company = req.user._company

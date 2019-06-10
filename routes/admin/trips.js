@@ -5,7 +5,10 @@ const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
 router.get('/', (req, res) => {
-  Trip.find({ _company: req.user._company })
+  Trip.find({
+    _company: req.user._company,
+    businessTrip: true
+  })
     .populate({
       path: '_creator',
       populate: {

@@ -544,6 +544,7 @@ for (let i = 0; i < 150; i++) {
     name: `Expense ${i + 1}`,
     status: randomItemInArray(expenseStatuses),
     amount: chance.integer({ min: 0, max: 500 }),
+    currency: 'VND',
     category: randomItemInArray(expenseCategories),
     transactionDate: new Date(chance.date({ year: 2019 })),
     _trip: randomItemInArray(tripIdsUser1),
