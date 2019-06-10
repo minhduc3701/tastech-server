@@ -29,7 +29,7 @@ const api = {
 
     return new Promise((resolve, reject) => {
       request(
-        `${process.env.PKFARE_URI}/shoppingV2?param2=${base64}`,
+        `${process.env.PKFARE_URI}/shoppingV2?param=${base64}`,
         { encoding: null },
         function(err, response, body) {
           if (err) {
