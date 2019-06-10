@@ -69,7 +69,7 @@ router.post('/', currencyExchange, async (req, res, next) => {
   let countDays =
     moment(req.body.endDate).diff(moment(req.body.startDate), 'days') + 1
   trip.daysOfTrip = countDays
-  trip.isUpdated = false
+  trip.isBudgetUpdated = false
 
   try {
     await trip.save()
@@ -242,7 +242,7 @@ router.post('/', currencyExchange, async (req, res, next) => {
             trip.budgetPassengers[0].totalPrice = Number(
               trip.budgetPassengers[0].totalPrice.toFixed(2)
             )
-            trip.isUpdated = true
+            trip.isBudgetUpdated = true
 
             //Update trip information
             Trip.findByIdAndUpdate(
@@ -318,7 +318,7 @@ router.post('/', currencyExchange, async (req, res, next) => {
       trip.budgetPassengers[0].totalPrice = Number(
         trip.budgetPassengers[0].totalPrice.toFixed(2)
       )
-      trip.isUpdated = true
+      trip.isBudgetUpdated = true
 
       Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
         trip => {}
@@ -334,7 +334,7 @@ router.post('/', currencyExchange, async (req, res, next) => {
       trip.budgetPassengers[0].totalPrice = Number(
         trip.budgetPassengers[0].totalPrice.toFixed(2)
       )
-      trip.isUpdated = true
+      trip.isBudgetUpdated = true
       Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
         trip => {}
       )

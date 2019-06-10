@@ -498,7 +498,8 @@ for (let i = 0; i < 30; i++) {
           departDestination: 'Noibai International',
           returnDestinationCode: 'SGN',
           returnDestination: 'Tan Son Nhat International',
-          class: 'economy'
+          class: 'economy',
+          flightType: 'round-trip'
         },
         lodging: {
           selected: true,

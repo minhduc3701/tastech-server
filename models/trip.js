@@ -61,10 +61,13 @@ const TripSchema = new Schema(
       type: Boolean,
       default: false
     },
-    businessTrip: Boolean,
+    businessTrip: {
+      type: Boolean,
+      default: false
+    },
     currency: String,
     daysOfTrip: Number,
-    isUpdated: {
+    isBudgetUpdated: {
       type: Boolean,
       default: false
     }
