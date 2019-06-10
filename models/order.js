@@ -36,7 +36,7 @@ const OrderSchema = new Schema(
     number: String,
     cancelNumber: String,
     currency: String,
-    total: Number,
+    totalPrice: Number,
     flight: {},
     hotel: {},
     rejectedReason: String, // rejected reason for cancellation

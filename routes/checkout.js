@@ -83,6 +83,7 @@ router.post('/card', async (req, res, next) => {
       } else {
         flightOrder = new Order({
           currency: trip.flight.currency,
+          totalPrice: trip.flight.totalPrice,
           type: 'flight',
           _trip: trip._id,
           flight: trip.flight,
@@ -112,6 +113,7 @@ router.post('/card', async (req, res, next) => {
       } else {
         hotelOrder = new Order({
           currency: trip.hotel.currency,
+          totalPrice: trip.hotel.totalPrice,
           type: 'hotel',
           _trip: trip._id,
           hotel: trip.hotel,
