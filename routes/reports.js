@@ -138,20 +138,20 @@ router.get('/trips/spendingsByTime', (req, res) => {
 })
 
 router.get('/ongoingTrip', function(req, res, next) {
-  Trip.find({
+  Trip.findOne({
     _creator: req.user._id,
-    status: 'ongoing'
+    status: 'ongoing',
+    businessTrip: true
   })
     .sort({ createdAt: -1 })
-    .limit(1)
-    .then(trips => {
+    .then(trip => {
       return Promise.all([
-        trips[0].budgetPassengers[0].totalPrice,
+        trip.budgetPassengers[0].totalPrice,
         Expense.aggregate([
           {
             $match: {
               _creator: req.user._id,
-              _trip: { $eq: trips[0]._id },
+              _trip: { $eq: trip._id },
               status: 'approved'
             }
           },
@@ -174,7 +174,7 @@ router.get('/ongoingTrip', function(req, res, next) {
           {
             $match: {
               _creator: req.user._id,
-              _trip: { $eq: trips[0]._id },
+              _trip: { $eq: trip._id },
               status: 'approved'
             }
           },

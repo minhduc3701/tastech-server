@@ -1,5 +1,7 @@
 const axios = require('axios')
 const { authentication } = require('../config/pkfare')
+const zlib = require('zlib')
+const request = require('request')
 
 const flightHttp = axios.create({
   baseURL: process.env.PKFARE_URI
@@ -12,10 +14,42 @@ const hotelHttp = axios.create({
 const endpoints = {
   preciseBooking: 'preciseBooking',
   ticketing: 'ticketing',
-  createOrder: 'createOrder'
+  createOrder: 'createOrder',
+  shopping: 'shopping'
 }
 
 const api = {
+  shopping: search => {
+    let base64 = Buffer.from(
+      JSON.stringify({
+        search,
+        authentication
+      })
+    ).toString('base64')
+
+    return new Promise((resolve, reject) => {
+      request(
+        `${process.env.PKFARE_URI}/shoppingV2?param=${base64}`,
+        { encoding: null },
+        function(err, response, body) {
+          if (err) {
+            return reject({})
+          }
+
+          zlib.gunzip(body, function(err, dezipped) {
+            if (err) {
+              return reject({})
+            }
+
+            let flights = JSON.parse(dezipped.toString())
+            flights = flights.data
+
+            resolve(flights)
+          })
+        }
+      )
+    })
+  },
   preciseBooking: booking => {
     let base64 = Buffer.from(
       JSON.stringify({
