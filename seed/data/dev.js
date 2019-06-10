@@ -25,6 +25,17 @@ const tripId5 = new ObjectID('5cc2d7a24c72b61214af0055')
 const tripId6 = new ObjectID('5cc2d7a24c72b61214af0056')
 const tripId7 = new ObjectID('5cc2d7a24c72b61214af0057')
 const tripId8 = new ObjectID('5cc2d7a24c72b61214af0000')
+const tripIdsUser1 = [
+  tripId,
+  tripId2,
+  tripId3,
+  tripId4,
+  tripId5,
+  tripId6,
+  tripId7,
+  tripId8
+]
+const tripIdsUser2 = []
 const departmentId = new ObjectID('5cd03b1571811c06ad420d36')
 const secondDepartmentId = new ObjectID('5cd03b1571811c06ad420d35')
 const tasAdminRoleId = new ObjectID('5cc2d7a24c72b61214af0058')
@@ -416,630 +427,115 @@ const policies = [
   }
 ]
 
-const trips = [
-  {
-    _id: tripId,
-    name: 'HO CHI MINH trip',
-    status: 'ongoing',
-    _creator: employeeId,
-    _company: companyId,
-    passengers: [
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'John',
-        lastName: 'Doe'
-      },
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'Jane',
-        lastName: 'Doe'
-      }
-    ],
-    contactInfo: {
-      email: 'john@doe.com'
-    },
-    numberPassengers: 5,
-    startDate: new Date('2019-03-20'),
-    endDate: new Date('2019-03-25'),
-    isUpdated: true,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: {
-          selected: true,
-          departDate: '2019-06-15',
-          returnDate: '2019-06-19',
-          price: 200,
-          departDestinationCode: 'HAN',
-          departDestination: 'Noibai International',
-          returnDestinationCode: 'SGN',
-          returnDestination: 'Tan Son Nhat International',
-          class: 'economy'
-        },
-        lodging: {
-          selected: true,
-          checkInDate: '2019-06-15',
-          checkOutDate: '2019-06-19',
-          price: 750,
-          regionId: 6001380,
-          regionName: 'Ernest Hemingway Home and Museum',
-          class: 2
-        },
-        transportation: {
-          selected: true,
-          price: 250,
-          limit: 50
-        },
-        meal: {
-          selected: true,
-          price: 350,
-          limit: 700
-        },
-        others: {
-          selected: true,
-          amount: 123,
-          reason: 'onaka ga suita'
-        },
-        totalPrice: 2054.6
-      }
-    ]
-  },
-  {
-    _id: tripId2,
-    name: 'Ha Long trip',
-    status: 'completed',
-    _creator: employeeId,
-    _company: companyId,
-    passengers: [
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'John',
-        lastName: 'Doe'
-      },
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'Jane',
-        lastName: 'Doe'
-      }
-    ],
-    contactInfo: {
-      email: 'john@doe.com'
-    },
-    roundTrip: true,
-    numberPassengers: 5,
-    startDate: new Date('2019-03-20'),
-    endDate: new Date('2019-03-25'),
-    isUpdated: true,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: {
-          selected: true,
-          departDate: '2019-06-15',
-          returnDate: '2019-06-19',
-          price: 200,
-          departDestinationCode: 'HAN',
-          departDestination: 'Noibai International',
-          returnDestinationCode: 'SGN',
-          returnDestination: 'Tan Son Nhat International',
-          class: 'economy'
-        },
-        lodging: {
-          selected: true,
-          checkInDate: '2019-06-15',
-          checkOutDate: '2019-06-19',
-          price: 750,
-          regionId: 6001380,
-          regionName: 'Ernest Hemingway Home and Museum',
-          class: 2
-        },
-        transportation: {
-          selected: true,
-          price: 250,
-          limit: 50
-        },
-        meal: {
-          selected: true,
-          price: 350,
-          limit: 700
-        },
-        others: {
-          selected: true,
-          amount: 123,
-          reason: 'onaka ga suita'
-        },
-        totalPrice: 2054.6
-      }
-    ]
-  },
-  {
-    _id: tripId3,
-    name: 'ThaiLand trip',
-    status: 'finished',
-    _creator: employeeId,
-    _company: companyId,
-    passengers: [
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'John',
-        lastName: 'Doe'
-      },
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'Jane',
-        lastName: 'Doe'
-      }
-    ],
-    contactInfo: {
-      email: 'john@doe.com'
-    },
-    roundTrip: true,
-    numberPassengers: 5,
-    startDate: new Date('2019-03-20'),
-    endDate: new Date('2019-03-25'),
-    isUpdated: true,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: {
-          selected: true,
-          departDate: '2019-06-15',
-          returnDate: '2019-06-19',
-          price: 200,
-          departDestinationCode: 'HAN',
-          departDestination: 'Noibai International',
-          returnDestinationCode: 'SGN',
-          returnDestination: 'Tan Son Nhat International',
-          class: 'economy'
-        },
-        lodging: {
-          selected: true,
-          checkInDate: '2019-06-15',
-          checkOutDate: '2019-06-19',
-          price: 750,
-          regionId: 6001380,
-          regionName: 'Ernest Hemingway Home and Museum',
-          class: 2
-        },
-        transportation: {
-          selected: true,
-          price: 250,
-          limit: 50
-        },
-        meal: {
-          selected: true,
-          price: 350,
-          limit: 700
-        },
-        others: {
-          selected: true,
-          amount: 123,
-          reason: 'onaka ga suita'
-        },
-        totalPrice: 2054.6
-      }
-    ]
-  },
-
-  // second user trips
-  {
-    _id: tripId4,
-    name: 'Ha Long trip 2',
-    status: 'completed',
-    _creator: employeeId2,
-    _company: companyId,
-    passengers: [
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'John',
-        lastName: 'Doe'
-      },
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'Jane',
-        lastName: 'Doe'
-      }
-    ],
-    contactInfo: {
-      email: 'john@doe.com'
-    },
-    roundTrip: true,
-    numberPassengers: 5,
-    startDate: new Date('2019-03-20'),
-    endDate: new Date('2019-03-25'),
-    isUpdated: true,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: {
-          selected: true,
-          departDate: '2019-06-15',
-          returnDate: '2019-06-19',
-          price: 200,
-          departDestinationCode: 'HAN',
-          departDestination: 'Noibai International',
-          returnDestinationCode: 'SGN',
-          returnDestination: 'Tan Son Nhat International',
-          class: 'economy'
-        },
-        lodging: {
-          selected: true,
-          checkInDate: '2019-06-15',
-          checkOutDate: '2019-06-19',
-          price: 750,
-          regionId: 6001380,
-          regionName: 'Ernest Hemingway Home and Museum',
-          class: 2
-        },
-        transportation: {
-          selected: true,
-          price: 250,
-          limit: 50
-        },
-        meal: {
-          selected: true,
-          price: 350,
-          limit: 700
-        },
-        others: {
-          selected: true,
-          amount: 123,
-          reason: 'onaka ga suita'
-        },
-        totalPrice: 2054.6
-      }
-    ]
-  },
-  {
-    _id: tripId5,
-    name: 'Ha Long trip 3',
-    status: 'completed',
-    _creator: employeeId2,
-    _company: companyId,
-    passengers: [
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'John',
-        lastName: 'Doe'
-      },
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'Jane',
-        lastName: 'Doe'
-      }
-    ],
-    contactInfo: {
-      email: 'john@doe.com'
-    },
-    roundTrip: true,
-    numberPassengers: 5,
-    startDate: new Date('2019-03-20'),
-    endDate: new Date('2019-03-25'),
-    isUpdated: true,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: {
-          selected: true,
-          departDate: '2019-06-15',
-          returnDate: '2019-06-19',
-          price: 200,
-          departDestinationCode: 'HAN',
-          departDestination: 'Noibai International',
-          returnDestinationCode: 'SGN',
-          returnDestination: 'Tan Son Nhat International',
-          class: 'economy'
-        },
-        lodging: {
-          selected: true,
-          checkInDate: '2019-06-15',
-          checkOutDate: '2019-06-19',
-          price: 750,
-          regionId: 6001380,
-          regionName: 'Ernest Hemingway Home and Museum',
-          class: 2
-        },
-        transportation: {
-          selected: true,
-          price: 250,
-          limit: 50
-        },
-        meal: {
-          selected: true,
-          price: 350,
-          limit: 700
-        },
-        others: {
-          selected: true,
-          amount: 123,
-          reason: 'onaka ga suita'
-        },
-        totalPrice: 2054.6
-      }
-    ]
-  },
-  {
-    name: 'New York trip',
-    _creator: employeeId,
-    status: 'waiting',
-    forCreator: true,
-    _company: companyId,
-    passengers: [
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'John',
-        lastName: 'Doe'
-      },
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'Jane',
-        lastName: 'Doe'
-      }
-    ],
-    contactInfo: {
-      email: 'john@doe.com'
-    },
-    startDate: new Date('2019-03-20'),
-    endDate: new Date('2019-03-25'),
-    isUpdated: true,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: {
-          selected: true,
-          departDate: '2019-06-15',
-          returnDate: '2019-06-19',
-          price: 200,
-          departDestinationCode: 'HAN',
-          departDestination: 'Noibai International',
-          returnDestinationCode: 'SGN',
-          returnDestination: 'Tan Son Nhat International',
-          class: 'economy'
-        },
-        lodging: {
-          selected: true,
-          checkInDate: '2019-06-15',
-          checkOutDate: '2019-06-19',
-          price: 750,
-          regionId: 6001380,
-          regionName: 'Ernest Hemingway Home and Museum',
-          class: 2
-        },
-        transportation: {
-          selected: true,
-          price: 250,
-          limit: 50
-        },
-        meal: {
-          selected: true,
-          price: 350,
-          limit: 700
-        },
-        others: {
-          selected: true,
-          amount: 123,
-          reason: 'onaka ga suita'
-        },
-        totalPrice: 2054.6
-      }
-    ]
-  },
-  {
-    _id: tripId6,
-    name: 'Seoul trip',
-    _creator: employeeId,
-    status: 'approved',
-    forCreator: true,
-    _company: companyId,
-    passengers: [
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'John',
-        lastName: 'Doe'
-      },
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'Jane',
-        lastName: 'Doe'
-      }
-    ],
-    contactInfo: {
-      email: 'john@doe.com'
-    },
-    startDate: new Date('2019-03-20'),
-    endDate: new Date('2019-03-25'),
-    isUpdated: true,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: {
-          selected: true,
-          departDate: '2019-06-15',
-          returnDate: '2019-06-19',
-          price: 200,
-          departDestinationCode: 'HAN',
-          departDestination: 'Noibai International',
-          returnDestinationCode: 'SGN',
-          returnDestination: 'Tan Son Nhat International',
-          class: 'economy'
-        },
-        lodging: {
-          selected: true,
-          checkInDate: '2019-06-15',
-          checkOutDate: '2019-06-19',
-          price: 750,
-          regionId: 6001380,
-          regionName: 'Ernest Hemingway Home and Museum',
-          class: 2
-        },
-        transportation: {
-          selected: true,
-          price: 250,
-          limit: 50
-        },
-        meal: {
-          selected: true,
-          price: 350,
-          limit: 700
-        },
-        others: {
-          selected: true,
-          amount: 123,
-          reason: 'onaka ga suita'
-        },
-        totalPrice: 2054.6
-      }
-    ]
-  },
-  {
-    _id: tripId7,
-    name: 'Singapore trip',
-    _creator: employeeId,
-    status: 'rejected',
-    forCreator: true,
-    _company: companyId,
-    passengers: [
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'John',
-        lastName: 'Doe'
-      },
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'Jane',
-        lastName: 'Doe'
-      }
-    ],
-    contactInfo: {
-      email: 'john@doe.com'
-    },
-    startDate: new Date('2019-03-20'),
-    endDate: new Date('2019-03-25'),
-    isUpdated: true,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: {
-          selected: true,
-          departDate: '2019-06-15',
-          returnDate: '2019-06-19',
-          price: 200,
-          departDestinationCode: 'HAN',
-          departDestination: 'Noibai International',
-          returnDestinationCode: 'SGN',
-          returnDestination: 'Tan Son Nhat International',
-          class: 'economy'
-        },
-        lodging: {
-          selected: true,
-          checkInDate: '2019-06-15',
-          checkOutDate: '2019-06-19',
-          price: 750,
-          regionId: 6001380,
-          regionName: 'Ernest Hemingway Home and Museum',
-          class: 2
-        },
-        transportation: {
-          selected: true,
-          price: 250,
-          limit: 50
-        },
-        meal: {
-          selected: true,
-          price: 350,
-          limit: 700
-        },
-        others: {
-          selected: true,
-          amount: 123,
-          reason: 'onaka ga suita'
-        },
-        totalPrice: 2054.6
-      }
-    ],
-    adminMessage:
-      'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful.',
-    updatedByAdmin: adminId,
-    updatedByAdminAt: new Date()
-  },
-  {
-    _id: tripId8,
-    name: 'Sydney trip',
-    _creator: employeeId,
-    status: 'finished',
-    forCreator: true,
-    _company: companyId,
-    passengers: [
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'John',
-        lastName: 'Doe'
-      },
-      {
-        businessEmail: 'john@doe.com',
-        firstName: 'Jane',
-        lastName: 'Doe'
-      }
-    ],
-    contactInfo: {
-      email: 'john@doe.com'
-    },
-    startDate: new Date('2019-03-20'),
-    endDate: new Date('2019-03-25'),
-    isUpdated: true,
-    budgetPassengers: [
-      {
-        _passenger: employeeId,
-        flight: {
-          selected: true,
-          departDate: '2019-06-15',
-          returnDate: '2019-06-19',
-          price: 200,
-          departDestinationCode: 'HAN',
-          departDestination: 'Noibai International',
-          returnDestinationCode: 'SGN',
-          returnDestination: 'Tan Son Nhat International',
-          class: 'economy'
-        },
-        lodging: {
-          selected: true,
-          checkInDate: '2019-06-15',
-          checkOutDate: '2019-06-19',
-          price: 750,
-          regionId: 6001380,
-          regionName: 'Ernest Hemingway Home and Museum',
-          class: 2
-        },
-        transportation: {
-          selected: true,
-          price: 250,
-          limit: 50
-        },
-        meal: {
-          selected: true,
-          price: 350,
-          limit: 700
-        },
-        others: {
-          selected: true,
-          amount: 123,
-          reason: 'onaka ga suita'
-        },
-        totalPrice: 2054.6
-      }
-    ],
-    updatedByAdmin: adminId,
-    updatedByAdminAt: new Date()
-  }
+const trips = []
+const tripStatus = [
+  'waiting',
+  'approved',
+  'rejected',
+  'ongoing',
+  'finished',
+  'completed'
 ]
+
+for (let i = 0; i < 30; i++) {
+  let rejectedProps = {}
+  let status = randomItemInArray(tripStatus)
+  if (status === 'rejected') {
+    rejectedProps = {
+      adminMessage:
+        'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful.',
+      updatedByAdmin: adminId,
+      updatedByAdminAt: new Date()
+    }
+  }
+  let prices = [
+    chance.integer({ min: 100, max: 1000 }),
+    chance.integer({ min: 100, max: 1000 }),
+    chance.integer({ min: 100, max: 1000 }),
+    chance.integer({ min: 100, max: 1000 }),
+    chance.integer({ min: 100, max: 1000 })
+  ]
+  let totalPrice = prices.reduce((acc, val) => acc + val, 0)
+  let currentTripId
+  let currentCreator = employeeId
+
+  // 25 trips for employee 1
+  if (i < 25) {
+    if (tripIdsUser1[i]) {
+      currentTripId = tripIdsUser1[i]
+    } else {
+      currentTripId = new ObjectID()
+      tripIdsUser1.push(currentTripId)
+    }
+
+    // 5 trips for employee 2
+  } else {
+    currentCreator = employeeId2
+    currentTripId = new ObjectID()
+    tripIdsUser2.push(currentTripId)
+  }
+
+  let trip = {
+    _id: currentTripId,
+    name: `Business Trip ${i}`,
+    status,
+    _creator: currentCreator,
+    _company: companyId,
+    businessTrip: true,
+    currency: 'VND',
+    startDate: new Date('2019-03-20'),
+    endDate: new Date('2019-03-25'),
+    isBudgetUpdated: true,
+    budgetPassengers: [
+      {
+        _passenger: currentCreator,
+        flight: {
+          selected: true,
+          departDate: '2019-06-15',
+          returnDate: '2019-06-19',
+          price: prices[0],
+          departDestinationCode: 'HAN',
+          departDestination: 'Noibai International',
+          returnDestinationCode: 'SGN',
+          returnDestination: 'Tan Son Nhat International',
+          class: 'economy'
+        },
+        lodging: {
+          selected: true,
+          checkInDate: '2019-06-15',
+          checkOutDate: '2019-06-19',
+          price: prices[1],
+          regionId: 6001380,
+          regionName: 'Ernest Hemingway Home and Museum',
+          class: 2
+        },
+        transportation: {
+          selected: true,
+          price: prices[2],
+          limit: 50
+        },
+        meal: {
+          selected: true,
+          price: prices[3],
+          limit: 700
+        },
+        others: {
+          selected: true,
+          amount: prices[4],
+          reason: 'onaka ga suita'
+        },
+        totalPrice
+      }
+    ],
+    ...rejectedProps
+  }
+  trips.push(trip)
+}
 
 const expenses = []
 const expenseStatuses = ['waiting', 'claiming', 'rejected', 'approved']
 const expenseCategories = ['flight', 'lodging', 'transportation', 'meal']
 const expenseAccounts = ['credit-card', 'cash']
-const expenseTripsUser1 = [tripId, tripId2, tripId3, tripId6, tripId7, tripId8]
-
-const expensesTripsUser2 = [tripId4, tripId5]
 
 for (let i = 0; i < 150; i++) {
   expenses.push({
@@ -1049,7 +545,7 @@ for (let i = 0; i < 150; i++) {
     amount: chance.integer({ min: 0, max: 500 }),
     category: randomItemInArray(expenseCategories),
     transactionDate: new Date(chance.date({ year: 2019 })),
-    _trip: randomItemInArray(expenseTripsUser1),
+    _trip: randomItemInArray(tripIdsUser1),
     _company: companyId,
     account: randomItemInArray(expenseAccounts),
     receipts: ['1556164218511', '1556164218512'],
@@ -1068,7 +564,7 @@ for (let i = 150; i < 200; i++) {
     amount: chance.integer({ min: 0, max: 500 }),
     category: randomItemInArray(expenseCategories),
     transactionDate: new Date(chance.date({ year: 2019 })),
-    _trip: randomItemInArray(expensesTripsUser2),
+    _trip: randomItemInArray(tripIdsUser2),
     _company: companyId,
     account: randomItemInArray(expenseAccounts),
     receipts: ['1556164218511', '1556164218512'],
