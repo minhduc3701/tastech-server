@@ -11,7 +11,7 @@ const { removeSpaces } = require('../modules/utils')
 const { USD, VND, SGD } = require('../config/currency')
 
 router.post('/card', async (req, res, next) => {
-  const { card, trip, checkoutAgain } = req.body
+  const { card, trip, checkoutAgain, orderId } = req.body
   let cardId = card.id
   let foundTrip, flightOrder, hotelOrder, bookingResponse
   let { contactInfo } = trip
@@ -69,6 +69,7 @@ router.post('/card', async (req, res, next) => {
       if (checkoutAgain) {
         // find the order the assign trip.flight = flightOrder.flight
         flightOrder = await Order.findOne({
+          _id: orderId,
           type: 'flight',
           _trip: trip._id,
           _customer: req.user._id,
@@ -83,6 +84,7 @@ router.post('/card', async (req, res, next) => {
       } else {
         flightOrder = new Order({
           currency: trip.flight.currency,
+          totalPrice: trip.flight.totalPrice,
           type: 'flight',
           _trip: trip._id,
           flight: trip.flight,
@@ -100,6 +102,7 @@ router.post('/card', async (req, res, next) => {
       if (checkoutAgain) {
         // find the order the assign trip.hotel = hotelOrder.hotel
         hotelOrder = await Order.findOne({
+          _id: orderId,
           type: 'hotel',
           _trip: trip._id,
           _customer: req.user._id,
@@ -112,6 +115,7 @@ router.post('/card', async (req, res, next) => {
       } else {
         hotelOrder = new Order({
           currency: trip.hotel.currency,
+          totalPrice: trip.hotel.totalPrice,
           type: 'hotel',
           _trip: trip._id,
           hotel: trip.hotel,
