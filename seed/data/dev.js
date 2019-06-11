@@ -327,7 +327,7 @@ for (let i = 0; i < 46; i++) {
 const defaultPolicy = {
   name: 'Default Policy',
   status: 'default',
-  flightClass: 'business',
+  flightClass: 'Economy',
   stops: '0',
   setDaysBeforeFlights: true,
   daysBeforeFlights: 7,
@@ -362,7 +362,7 @@ const policies = [
     name: 'Travel Policy for Staff',
     _company: companyId,
     status: 'enabled',
-    flightClass: 'economy',
+    flightClass: 'Economy',
     stops: '1',
     setDaysBeforeFlights: false,
     daysBeforeFlights: 7,
@@ -390,7 +390,7 @@ const policies = [
     name: 'Travel Policy for Director',
     _company: companyId,
     status: 'disabled',
-    flightClass: 'economy',
+    flightClass: 'Economy',
     stops: '1+',
     setDaysBeforeFlights: true,
     daysBeforeFlights: 14,
@@ -498,7 +498,7 @@ for (let i = 0; i < 30; i++) {
           departDestination: 'Noibai International',
           returnDestinationCode: 'SGN',
           returnDestination: 'Tan Son Nhat International',
-          class: 'economy',
+          class: 'Economy',
           flightType: 'round-trip'
         },
         lodging: {

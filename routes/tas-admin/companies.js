@@ -40,7 +40,7 @@ router.post('/', function(req, res) {
         name: 'Default Policy',
         _company: company._id,
         status: 'default',
-        flightClass: 'business',
+        flightClass: 'Economy',
         stops: '0',
         setDaysBeforeFlights: true,
         daysBeforeFlights: 7,
