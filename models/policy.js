@@ -13,7 +13,7 @@ const PolicySchema = new Schema({
   },
   flightClass: {
     type: String,
-    enum: ['Economy', 'Preminum Economy', 'Business', 'First Class']
+    enum: ['Economy', 'PreminumEconomy', 'Business', 'First']
   },
   stops: String,
   setDaysBeforeFlights: Boolean,

@@ -8,8 +8,6 @@ const Order = require('../models/order')
 const Hotel = require('../models/hotel')
 const { ObjectID } = require('mongodb')
 const { authentication } = require('../config/pkfare')
-const request = require('request')
-const zlib = require('zlib')
 const _ = require('lodash')
 const axios = require('axios')
 const Policy = require('../models/policy')
@@ -126,20 +124,32 @@ router.post('/', currencyExchange, async (req, res, next) => {
     if (trip.budgetPassengers[0].flight.selected) {
       // calculate Flight budget
       let searchAirLegs = []
-      searchAirLegs = [
-        {
-          cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
-          departureDate: budget.flight.departDate,
-          destination: budget.flight.returnDestinationCode,
-          origin: budget.flight.departDestinationCode
-        },
-        {
-          cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
-          departureDate: budget.flight.returnDate,
-          destination: budget.flight.departDestinationCode,
-          origin: budget.flight.returnDestinationCode
-        }
-      ]
+      if (trip.budgetPassengers[0].flight.flighType === 'round-trip') {
+        searchAirLegs = [
+          {
+            cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
+            departureDate: budget.flight.departDate,
+            destination: budget.flight.returnDestinationCode,
+            origin: budget.flight.departDestinationCode
+          },
+          {
+            cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
+            departureDate: budget.flight.returnDate,
+            destination: budget.flight.departDestinationCode,
+            origin: budget.flight.returnDestinationCode
+          }
+        ]
+      } else {
+        searchAirLegs = [
+          {
+            cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
+            departureDate: budget.flight.departDate,
+            destination: budget.flight.returnDestinationCode,
+            origin: budget.flight.departDestinationCode
+          }
+        ]
+      }
+
       let search = {
         adults: 1,
         children: 0,
