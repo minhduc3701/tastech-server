@@ -36,7 +36,22 @@ router.get('/booking', (req, res) => {
     _company: req.user._company,
     _creator: req.user._id,
     businessTrip: true,
+    archived: false,
     $or: [{ status: 'approved' }, { status: 'ongoing' }]
+  })
+    .then(trips => res.status(200).send({ trips }))
+    .catch(e => res.status(400).send())
+})
+
+// response available trips for adding expense
+router.get('/expense', (req, res) => {
+  let availableStatus = ['approved', 'ongoing', 'finished']
+  Trip.find({
+    _company: req.user._company,
+    _creator: req.user._id,
+    businessTrip: true,
+    archived: false,
+    status: { $in: availableStatus }
   })
     .then(trips => res.status(200).send({ trips }))
     .catch(e => res.status(400).send())
@@ -180,7 +195,6 @@ router.post('/', currencyExchange, async (req, res, next) => {
         checkInDate: budget.lodging.checkInDate,
         checkOutDate: budget.lodging.checkOutDate,
         regionId: parseInt(budget.lodging.regionId),
-        // regionId: 6001380,
         numberOfAdult: 1,
         numberOfRoom: 1,
         languageCode: 'en_US'
