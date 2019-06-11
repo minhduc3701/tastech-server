@@ -192,7 +192,8 @@ router.get('/ongoingTrip', function(req, res, next) {
               amount: '$amount'
             }
           }
-        ])
+        ]),
+        trip.name
       ])
     })
 
@@ -200,7 +201,8 @@ router.get('/ongoingTrip', function(req, res, next) {
       res.status(200).json({
         totalBudgets: results[0],
         totalExpenses: results[1][0].totalExpenses,
-        expenses: results[2]
+        expenses: results[2],
+        name: results[3]
       })
     })
     .catch(e => {
