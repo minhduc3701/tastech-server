@@ -262,7 +262,7 @@ router.post('/card', async (req, res, next) => {
         numberOfRoom: trip.hotel.numberOfRoom,
         hotelId: trip.hotel.hotelId,
         ratePlanCode: trip.hotel.ratePlanCode,
-        bedTypeCode: trip.hotel.bedTypeIdList[0],
+        bedTypeCode: trip.hotel.selectedBedTypeId,
         roomGuestDetails: makeRoomGuestDetails(
           trip.passengers,
           trip.hotel.numberOfRoom
