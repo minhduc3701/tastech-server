@@ -124,7 +124,7 @@ router.post('/', currencyExchange, async (req, res, next) => {
     if (trip.budgetPassengers[0].flight.selected) {
       // calculate Flight budget
       let searchAirLegs = []
-      if (trip.budgetPassengers[0].flight.flighType === 'round-trip') {
+      if (trip.budgetPassengers[0].flight.flightType === 'round-trip') {
         searchAirLegs = [
           {
             cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
@@ -149,7 +149,6 @@ router.post('/', currencyExchange, async (req, res, next) => {
           }
         ]
       }
-
       let search = {
         adults: 1,
         children: 0,
