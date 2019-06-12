@@ -86,8 +86,10 @@ router.post('/', currencyExchange, async (req, res, next) => {
   trip.isBudgetUpdated = false
 
   try {
+    // save and send back trip
     await trip.save()
-    res.status(200).send()
+    res.status(200).send({ trip })
+
     let budget = req.body.budgetPassengers[0]
     // get Policy
     let companyPolicies = await Policy.find({
@@ -247,13 +249,13 @@ router.post('/', currencyExchange, async (req, res, next) => {
     trip.budgetPassengers[0].totalPrice = Number(
       trip.budgetPassengers[0].totalPrice.toFixed(2)
     )
-    trip.isBudgetUpdated = true
-    Trip.findByIdAndUpdate(trip._id, { $set: trip }, { new: true }).then(
-      trip => {}
-    )
   } catch (error) {
-    return res.status(404).send()
+    res.status(400).send()
   }
+
+  // error or not, must update isBudgetUpdated to true to show
+  trip.isBudgetUpdated = true
+  await trip.save()
 })
 
 router.patch('/:id', function(req, res, next) {
