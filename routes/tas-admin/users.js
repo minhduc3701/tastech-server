@@ -63,6 +63,7 @@ router.get('/:id', function(req, res) {
   }
 
   User.findById(id)
+    .populate('_company', 'name')
     .then(user => {
       if (!user) {
         return res.status(404).send()
