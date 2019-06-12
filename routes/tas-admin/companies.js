@@ -17,6 +17,19 @@ router.get('/', function(req, res) {
     .catch(e => res.status(400).send())
 })
 
+router.post('/search', (req, res) => {
+  Company.find({
+    name: new RegExp(req.body.s, 'i')
+  })
+    .limit(10)
+    .then(companies => {
+      res.status(200).send({ companies })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 router.post('/', function(req, res) {
   let body = _.pick(req.body, ['name', 'currency'])
 

@@ -174,6 +174,14 @@ const companies = [
   }
 ]
 
+for (let i = 3; i < 30; i++) {
+  companies.push({
+    name: chance.company(),
+    exchangedRate: 10,
+    currency: 'USD'
+  })
+}
+
 const roles = [
   {
     _id: tasAdminRoleId,
