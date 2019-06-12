@@ -144,13 +144,13 @@ router.post('/', currencyExchange, async (req, res, next) => {
       if (trip.budgetPassengers[0].flight.flightType === 'round-trip') {
         searchAirLegs = [
           {
-            cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
+            cabinClass: policy.flightClass, // Capitalize the First Letter
             departureDate: budget.flight.departDate,
             destination: budget.flight.returnDestinationCode,
             origin: budget.flight.departDestinationCode
           },
           {
-            cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
+            cabinClass: policy.flightClass, // Capitalize the First Letter
             departureDate: budget.flight.returnDate,
             destination: budget.flight.departDestinationCode,
             origin: budget.flight.returnDestinationCode
@@ -159,7 +159,7 @@ router.post('/', currencyExchange, async (req, res, next) => {
       } else {
         searchAirLegs = [
           {
-            cabinClass: policy.flightClass.replace(/^\w/, c => c.toUpperCase()), // Capitalize the First Letter
+            cabinClass: policy.flightClass, // Capitalize the First Letter
             departureDate: budget.flight.departDate,
             destination: budget.flight.returnDestinationCode,
             origin: budget.flight.departDestinationCode
@@ -214,7 +214,7 @@ router.post('/', currencyExchange, async (req, res, next) => {
       let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
       let hotels = await Hotel.find({
         _id: { $in: hotelIds },
-        starRating: { $eq: policy.hotelClass }
+        starRating: { $lte: policy.hotelClass }
       })
       let hotelPolicyIds = hotels.map(hotel => parseInt(hotel._id))
       request.hotelIdList = hotelPolicyIds
@@ -236,7 +236,7 @@ router.post('/', currencyExchange, async (req, res, next) => {
 
       let sumPriceHotelRoom = 0
       hotelRooms.forEach(rooms => {
-        sumPriceHotelRoom += Number(rooms.totalPrice)
+        sumPriceHotelRoom += Number(rooms.totalPrice * req.currency.rate)
       })
       trip.budgetPassengers[0].lodging.price =
         sumPriceHotelRoom / hotelRooms.length
@@ -247,15 +247,19 @@ router.post('/', currencyExchange, async (req, res, next) => {
 
     //Update trip information
     trip.budgetPassengers[0].totalPrice = Number(
-      trip.budgetPassengers[0].totalPrice.toFixed(2)
+      trip.budgetPassengers[0].totalPrice
     )
   } catch (error) {
     res.status(400).send()
   }
 
   // error or not, must update isBudgetUpdated to true to show
-  trip.isBudgetUpdated = true
-  await trip.save()
+  await Trip.findByIdAndUpdate(trip._id, {
+    $set: {
+      isBudgetUpdated: true,
+      budgetPassengers: trip.budgetPassengers
+    }
+  })
 })
 
 router.patch('/:id', function(req, res, next) {
