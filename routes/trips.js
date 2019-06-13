@@ -216,7 +216,7 @@ router.post('/', currencyExchange, async (req, res, next) => {
         _id: { $in: hotelIds },
         starRating: { $lte: policy.hotelClass }
       })
-      let hotelPolicyIds = hotels.map(hotel => parseInt(hotel._id))
+      let hotelPolicyIds = hotels.map(hotel => parseInt(hotel.hotelId))
       request.hotelIdList = hotelPolicyIds
       let responseHotelRatePlan = await axios({
         method: 'post',
