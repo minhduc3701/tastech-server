@@ -236,7 +236,7 @@ router.post('/card', async (req, res, next) => {
         name: removeSpaces(contactInfo.name),
         orderNum,
         PNR: pnr,
-        telNum: `+${contactInfo.areaCode1} ${contactInfo.phone1}`
+        telNum: `+${contactInfo.callingCode} ${contactInfo.phone}`
       })
 
       flightUpdateData = {
@@ -256,7 +256,7 @@ router.post('/card', async (req, res, next) => {
         checkOutDate: trip.hotel.checkOutDate,
         contactEmail: contactInfo.email,
         contactName: removeSpaces(contactInfo.name),
-        contactTel: `+${contactInfo.areaCode1} ${contactInfo.phone1}`,
+        contactTel: `+${contactInfo.callingCode} ${contactInfo.phone}`,
         customerOrderCode,
         numberOfAdult: trip.hotel.numberOfAdult,
         numberOfRoom: trip.hotel.numberOfRoom,
