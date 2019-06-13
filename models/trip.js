@@ -32,7 +32,6 @@ const TripSchema = new Schema(
     budgetPassengers: [
       {
         note: String,
-        classType: String,
         startDestination: String,
         startDestinationCode: String,
         startDestinationDate: Date,
@@ -40,12 +39,42 @@ const TripSchema = new Schema(
         lastDestinationCode: String,
         lastDestinationDate: Date,
         totalPrice: Number,
-        flight: {},
-        lodging: {},
-        transportation: {},
-        meal: {},
-        provision: {},
-        others: {}
+        flight: {
+          selected: Boolean,
+          departDate: Date,
+          returnDate: Date,
+          price: Number,
+          flightType: String,
+          departDestinationCode: String,
+          returnDestinationCode: String,
+          departDestination: String,
+          returnDestination: String,
+          class: String
+        },
+        lodging: {
+          selected: Boolean,
+          checkInDate: Date,
+          checkOutDate: Date,
+          price: Number,
+          regionId: Number,
+          regionName: String,
+          class: Number
+        },
+        transportation: {
+          selected: Boolean,
+          price: Number,
+          limit: Number
+        },
+        meal: {
+          selected: Boolean,
+          price: Number,
+          limit: Number
+        },
+        others: {
+          selected: Boolean,
+          amount: Number,
+          reason: String
+        }
       }
     ],
     numberPassengers: String,
