@@ -30,7 +30,7 @@ router.post('/hotelList', currencyExchange, (req, res) => {
         return Promise.all([
           hotelList,
           Hotel.find({
-            _id: { $in: hotelIds },
+            hotelId: { $in: hotelIds },
             language: 'en_US'
           }),
           HotelImage.find({
@@ -62,20 +62,22 @@ router.post('/hotelList', currencyExchange, (req, res) => {
 
       let newHotels = hotels.map(hotel => {
         let matchingHotel = hotelList.find(
-          hotelApi => parseInt(hotelApi.hotelId) === hotel._id
+          hotelApi => parseInt(hotelApi.hotelId) === hotel.hotelId
         )
-        let images = hotelImages.filter(image => image.hotelId === hotel._id)
+        let images = hotelImages.filter(
+          image => image.hotelId === hotel.hotelId
+        )
         let policies = hotelPolicies.filter(
-          policy => policy.hotelId === hotel._id
+          policy => policy.hotelId === hotel.hotelId
         )
         let amenities = hotelAmenities.filter(
-          amenity => amenity.hotelId === hotel._id
+          amenity => amenity.hotelId === hotel.hotelId
         )
         let description = hotelDescriptions.filter(
-          desc => desc.hotelId === hotel._id
+          desc => desc.hotelId === hotel.hotelId
         )
         let transportations = hotelTransportations.filter(
-          trans => trans.hotelId === hotel._id
+          trans => trans.hotelId === hotel.hotelId
         )
 
         return {
