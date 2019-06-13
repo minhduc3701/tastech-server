@@ -6,7 +6,7 @@ schedule.scheduleJob('0 0 0 */1 * *', function() {
   Trip.updateMany(
     {
       status: 'ongoing',
-      endDate: { $lt: Date.now() - 86400000 }
+      endDate: { $lt: Date.now() - 86400000 } // minus 1 day
     },
     {
       $set: {
