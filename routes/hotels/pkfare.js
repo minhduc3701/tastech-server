@@ -30,7 +30,8 @@ router.post('/hotelList', currencyExchange, (req, res) => {
         return Promise.all([
           hotelList,
           Hotel.find({
-            _id: { $in: hotelIds }
+            _id: { $in: hotelIds },
+            language: 'en_US'
           }),
           HotelImage.find({
             hotelId: { $in: hotelIds }
