@@ -41,10 +41,15 @@ router.get('/callingCodes', (req, res) => {
       res.status(200).send({
         callingCodes: countries
           .filter(country => country.callingCode.length > 0)
-          .map(country => ({
-            value: country.callingCode.join(', '),
-            label: country.name.common
-          }))
+          .map(country => {
+            return country.callingCode.map(code => {
+              return {
+                value: code,
+                label: country.name.common + ' +' + code
+              }
+            })
+          })
+          .map(country => country[0])
       })
     })
     .catch(e => {
