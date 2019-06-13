@@ -5,6 +5,10 @@ const passport = require('passport')
 const axios = require('axios')
 const Hotel = require('../../models/hotel')
 const HotelImage = require('../../models/hotelImage')
+const HotelPolicy = require('../../models/hotelPolicy')
+const HotelAmenity = require('../../models/hotelAmenity')
+const HotelDescription = require('../../models/hotelDescription')
+const HotelTransportation = require('../../models/hotelTransportation')
 const { ObjectID } = require('mongodb')
 const { authentication } = require('../../config/pkfare')
 const { currencyExchange } = require('../../middleware/currency')
@@ -30,6 +34,18 @@ router.post('/hotelList', currencyExchange, (req, res) => {
           }),
           HotelImage.find({
             hotelId: { $in: hotelIds }
+          }),
+          HotelPolicy.find({
+            hotelId: { $in: hotelIds }
+          }),
+          HotelAmenity.find({
+            hotelId: { $in: hotelIds }
+          }),
+          HotelDescription.find({
+            hotelId: { $in: hotelIds }
+          }),
+          HotelTransportation.find({
+            hotelId: { $in: hotelIds }
           })
         ])
       }
@@ -38,18 +54,39 @@ router.post('/hotelList', currencyExchange, (req, res) => {
       let hotelList = results[0]
       let hotels = results[1]
       let hotelImages = results[2]
+      let hotelPolicies = results[3]
+      let hotelAmenities = results[4]
+      let hotelDescriptions = results[5]
+      let hotelTransportations = results[6]
 
       let newHotels = hotels.map(hotel => {
         let matchingHotel = hotelList.find(
           hotelApi => parseInt(hotelApi.hotelId) === hotel._id
         )
         let images = hotelImages.filter(image => image.hotelId === hotel._id)
+        let policies = hotelPolicies.filter(
+          policy => policy.hotelId === hotel._id
+        )
+        let amenities = hotelAmenities.filter(
+          amenity => amenity.hotelId === hotel._id
+        )
+        let description = hotelDescriptions.filter(
+          desc => desc.hotelId === hotel._id
+        )
+        let transportations = hotelTransportations.filter(
+          trans => trans.hotelId === hotel._id
+        )
+
         return {
           ...hotel.toObject(),
           currency: req.currency.code,
           lowestPrice: matchingHotel.lowestPrice * req.currency.rate,
           supplier: 'pkfare',
-          images
+          images,
+          policies,
+          amenities,
+          description,
+          transportations
         }
       })
       res.status(200).send({ hotels: newHotels })
