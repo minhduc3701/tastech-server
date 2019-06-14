@@ -39,6 +39,7 @@ const cardsRouter = require('./routes/cards')
 const checkoutRouter = require('./routes/checkout')
 const ordersRouter = require('./routes/orders')
 const reportsRouter = require('./routes/reports')
+const searchRouter = require('./routes/search')
 
 const {
   authenticateTasAdmin,
@@ -71,6 +72,11 @@ app.use('/auth', authRouter)
 app.use('/requests', requestsRouter)
 app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
 app.use('/trips', passport.authenticate('jwt', { session: false }), tripsRouter)
+app.use(
+  '/search',
+  passport.authenticate('jwt', { session: false }),
+  searchRouter
+)
 app.use(
   '/expenses',
   passport.authenticate('jwt', { session: false }),

@@ -70,7 +70,7 @@ router.patch('/me', async (req, res) => {
     'firstName',
     'lastName',
     'phone',
-    'age'
+    'dateOfBirth'
   ])
 
   User.findByIdAndUpdate(
