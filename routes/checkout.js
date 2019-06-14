@@ -150,7 +150,7 @@ router.post('/card', async (req, res, next) => {
           lastName: removeSpaces(passenger.lastName),
           nationality: passenger.nationality,
           psgType: 'ADT',
-          sex: passenger.title === 'Mr' ? 'M' : 'F'
+          sex: passenger.title === 'mr' ? 'M' : 'F'
         })),
         solution: {
           adtFare: 0,
