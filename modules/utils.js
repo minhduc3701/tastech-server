@@ -27,7 +27,7 @@ const makeRoomGuestDetails = (passengers, numberOfRoom) => {
   do {
     let passenger = passengers[pi]
     let passengerInfo = {
-      gender: passenger.title === 'Mr' ? 2 : 1,
+      gender: passenger.title === 'mr' ? 2 : 1,
       firstName: removeSpaces(passenger.firstName),
       lastName: removeSpaces(passenger.lastName)
     }

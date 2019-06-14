@@ -12,7 +12,7 @@ router.get('/', function(req, res) {
   User.find({
     _company: req.user._company,
     _id: { $ne: req.user._id },
-    type: { $eq: 'employee' }
+    _role: req.user._role
   })
     .then(users => res.status(200).send({ users }))
     .catch(e => res.status(400).send())
@@ -70,7 +70,7 @@ router.patch('/me', async (req, res) => {
     'firstName',
     'lastName',
     'phone',
-    'age'
+    'dateOfBirth'
   ])
 
   User.findByIdAndUpdate(

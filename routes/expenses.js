@@ -5,12 +5,17 @@ const Trip = require('../models/trip')
 const { ObjectID } = require('mongodb')
 const { upload } = require('../config/aws')
 const _ = require('lodash')
+const { currencyExchange } = require('../middleware/currency')
 
-router.post('/', upload.array('receipts'), function(req, res, next) {
-  console.log('start')
+router.post('/', currencyExchange, upload.array('receipts'), function(
+  req,
+  res,
+  next
+) {
   const expense = new Expense(req.body)
   expense._creator = req.user._id
   expense._company = req.user._company
+  expense.currency = req.currency.code
   if (!_.isEmpty(req.files)) {
     expense.receipts = req.files.map(file => file.key)
   }
@@ -25,16 +30,12 @@ router.post('/', upload.array('receipts'), function(req, res, next) {
       if (!['approved', 'ongoing', 'finished'].includes(trip.status)) {
         return res.status(400).send()
       }
+      expense.save().then(() => {
+        return res.status(200).json({ expense })
+      })
     })
     .catch(e => {
-      return res.status(400).send()
-    })
-  expense
-    .save()
-    .then(() => {
-      return res.status(200).json({ expense })
-    })
-    .catch(e => {
+      console.log(e)
       return res.status(400).send()
     })
 })

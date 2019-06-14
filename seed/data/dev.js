@@ -82,7 +82,10 @@ const users = [
     _role: employeeRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
-    _department: departmentId
+    _department: departmentId,
+    phone: '0819020695',
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'VN'
   },
   {
     _id: employeeId2,
@@ -146,7 +149,10 @@ for (let i = 4; i < 50; i++) {
     avatar: `http://i.pravatar.cc/150?img=${i + 1}`,
     _department: randomItemInArray([departmentId, secondDepartmentId]),
     _role: employeeRoleId,
-    _policy: randomItemInArray([policyId1, policyId2])
+    _policy: randomItemInArray([policyId1, policyId2]),
+    phone: (Math.random() * 1000000000).toFixed(0),
+    dateOfBirth: new Date('1990-01-01'),
+    country: 'VN'
   })
 }
 
@@ -173,6 +179,14 @@ const companies = [
     currency: 'USD'
   }
 ]
+
+for (let i = 3; i < 30; i++) {
+  companies.push({
+    name: chance.company(),
+    exchangedRate: 10,
+    currency: 'USD'
+  })
+}
 
 const roles = [
   {
@@ -327,7 +341,7 @@ for (let i = 0; i < 46; i++) {
 const defaultPolicy = {
   name: 'Default Policy',
   status: 'default',
-  flightClass: 'business',
+  flightClass: 'Economy',
   stops: '0',
   setDaysBeforeFlights: true,
   daysBeforeFlights: 7,
@@ -362,7 +376,7 @@ const policies = [
     name: 'Travel Policy for Staff',
     _company: companyId,
     status: 'enabled',
-    flightClass: 'economy',
+    flightClass: 'Economy',
     stops: '1',
     setDaysBeforeFlights: false,
     daysBeforeFlights: 7,
@@ -390,7 +404,7 @@ const policies = [
     name: 'Travel Policy for Director',
     _company: companyId,
     status: 'disabled',
-    flightClass: 'economy',
+    flightClass: 'Economy',
     stops: '1+',
     setDaysBeforeFlights: true,
     daysBeforeFlights: 14,
@@ -437,7 +451,7 @@ const tripStatus = [
   'completed'
 ]
 
-for (let i = 0; i < 30; i++) {
+for (let i = 0; i < 50; i++) {
   let rejectedProps = {}
   let status = randomItemInArray(tripStatus)
   if (status === 'rejected') {
@@ -456,36 +470,11 @@ for (let i = 0; i < 30; i++) {
     chance.integer({ min: 100, max: 1000 })
   ]
   let totalPrice = prices.reduce((acc, val) => acc + val, 0)
-  let currentTripId
+  let currentTripId = new ObjectID()
   let currentCreator = employeeId
+  let namePrefix = 'Business Trip'
 
-  // 25 trips for employee 1
-  if (i < 25) {
-    if (tripIdsUser1[i]) {
-      currentTripId = tripIdsUser1[i]
-    } else {
-      currentTripId = new ObjectID()
-      tripIdsUser1.push(currentTripId)
-    }
-
-    // 5 trips for employee 2
-  } else {
-    currentCreator = employeeId2
-    currentTripId = new ObjectID()
-    tripIdsUser2.push(currentTripId)
-  }
-
-  let trip = {
-    _id: currentTripId,
-    name: `Business Trip ${i}`,
-    status,
-    _creator: currentCreator,
-    _company: companyId,
-    businessTrip: true,
-    currency: 'VND',
-    startDate: new Date('2019-03-20'),
-    endDate: new Date('2019-03-25'),
-    isBudgetUpdated: true,
+  let updateData = {
     budgetPassengers: [
       {
         _passenger: currentCreator,
@@ -498,7 +487,8 @@ for (let i = 0; i < 30; i++) {
           departDestination: 'Noibai International',
           returnDestinationCode: 'SGN',
           returnDestination: 'Tan Son Nhat International',
-          class: 'economy'
+          class: 'Economy',
+          flightType: 'round-trip'
         },
         lodging: {
           selected: true,
@@ -526,7 +516,47 @@ for (let i = 0; i < 30; i++) {
         },
         totalPrice
       }
-    ],
+    ]
+  }
+
+  // 25 trips for employee 1
+  if (i < 25) {
+    if (tripIdsUser1[i]) {
+      currentTripId = tripIdsUser1[i]
+    } else {
+      tripIdsUser1.push(currentTripId)
+    }
+
+    // 5 trips for employee 2
+  } else if (i < 30) {
+    currentCreator = employeeId2
+    tripIdsUser2.push(currentTripId)
+
+    // the rest is employee 1 personal trips
+  } else {
+    updateData = {
+      businessTrip: false
+    }
+    namePrefix = 'Personal Trip'
+  }
+
+  let startDate = chance.date({ year: 2019 })
+  let startDateObj = new Date(startDate)
+  let duration = chance.integer({ min: 1, max: 10 })
+  let endDateObj = new Date(startDateObj.getTime() + duration * 86400000)
+
+  let trip = {
+    _id: currentTripId,
+    name: `${namePrefix} ${i}`,
+    status,
+    _creator: currentCreator,
+    _company: companyId,
+    businessTrip: true,
+    currency: 'VND',
+    startDate: startDateObj,
+    endDate: endDateObj,
+    isBudgetUpdated: true,
+    ...updateData,
     ...rejectedProps
   }
   trips.push(trip)
@@ -543,6 +573,7 @@ for (let i = 0; i < 150; i++) {
     name: `Expense ${i + 1}`,
     status: randomItemInArray(expenseStatuses),
     amount: chance.integer({ min: 0, max: 500 }),
+    currency: 'VND',
     category: randomItemInArray(expenseCategories),
     transactionDate: new Date(chance.date({ year: 2019 })),
     _trip: randomItemInArray(tripIdsUser1),

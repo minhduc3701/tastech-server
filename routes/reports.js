@@ -29,9 +29,10 @@ router.get('/trips', (req, res) => {
         _id: '$_id',
         id: { $first: '$_id' },
         name: { $first: '$name' },
-        departureDate: { $first: '$departureDate' },
-        returnDate: { $first: '$returnDate' },
+        startDate: { $first: '$startDate' },
+        endDate: { $first: '$endDate' },
         budgetPassengers: { $first: '$budgetPassengers' },
+        currency: { $first: '$currency' },
         totalExpense: {
           $sum: {
             $cond: {
@@ -48,10 +49,11 @@ router.get('/trips', (req, res) => {
         _id: 0,
         name: '$name',
         id: '$_id',
-        departureDate: '$departureDate',
-        returnDate: '$returnDate',
+        startDate: '$startDate',
+        endDate: '$endDate',
         budgetPassengers: '$budgetPassengers',
-        totalExpense: '$totalExpense'
+        totalExpense: '$totalExpense',
+        currency: '$currency'
       }
     }
   ])
@@ -190,7 +192,8 @@ router.get('/ongoingTrip', function(req, res, next) {
               amount: '$amount'
             }
           }
-        ])
+        ]),
+        trip.name
       ])
     })
 
@@ -198,7 +201,8 @@ router.get('/ongoingTrip', function(req, res, next) {
       res.status(200).json({
         totalBudgets: results[0],
         totalExpenses: results[1][0].totalExpenses,
-        expenses: results[2]
+        expenses: results[2],
+        name: results[3]
       })
     })
     .catch(e => {

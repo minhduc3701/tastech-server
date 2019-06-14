@@ -105,35 +105,11 @@ const OrderSchema = new Schema(
           message: '{VALUE} is not a valid email'
         }
       },
-      city: {
+      phone: {
         type: String,
         trim: true
       },
-      country: {
-        type: String,
-        trim: true
-      },
-      phone1: {
-        type: String,
-        trim: true
-      },
-      phone2: {
-        type: String,
-        trim: true
-      },
-      postalAddress: {
-        type: String,
-        trim: true
-      },
-      areaCode1: {
-        type: String,
-        trim: true
-      },
-      areaCode2: {
-        type: String,
-        trim: true
-      },
-      province: {
+      callingCode: {
         type: String,
         trim: true
       }

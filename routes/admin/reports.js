@@ -21,7 +21,8 @@ router.get('/trips', (req, res) => {
   Trip.aggregate([
     {
       $match: {
-        _company: req.user._company
+        _company: req.user._company,
+        businessTrip: true
       }
     },
     {
@@ -41,8 +42,9 @@ router.get('/trips', (req, res) => {
         id: { $first: '$_id' },
         name: { $first: '$name' },
         _creator: { $first: '$_creator' },
-        departureDate: { $first: '$departureDate' },
-        returnDate: { $first: '$returnDate' },
+        startDate: { $first: '$startDate' },
+        endDate: { $first: '$endDate' },
+        currency: { $first: '$currency' },
         budgetPassengers: { $first: '$budgetPassengers' },
         totalExpense: {
           $sum: {
@@ -61,8 +63,9 @@ router.get('/trips', (req, res) => {
         name: '$name',
         id: '$_id',
         _creator: '$_creator',
-        departureDate: '$departureDate',
-        returnDate: '$returnDate',
+        startDate: '$startDate',
+        endDate: '$endDate',
+        currency: '$currency',
         budgetPassengers: '$budgetPassengers',
         totalExpense: '$totalExpense'
       }
@@ -92,7 +95,8 @@ router.get('/', (req, res) => {
     Trip.aggregate([
       {
         $match: {
-          _company: req.user._company
+          _company: req.user._company,
+          businessTrip: true
         }
       },
       {
@@ -101,12 +105,14 @@ router.get('/', (req, res) => {
       {
         $group: {
           _id: '',
+          currency: { $first: '$currency' },
           totalBudget: { $sum: '$budgetPassengers.totalPrice' }
         }
       },
       {
         $project: {
           _id: 0,
+          currency: '$currency',
           totalBudget: '$totalBudget'
         }
       }
@@ -218,6 +224,7 @@ router.get('/', (req, res) => {
       let totalSpendingResults = results[5]
       let totalBudget = totalBudgetResults[0].totalBudget
       let totalSpending = totalSpendingResults[0].totalSpending
+      let currency = totalBudgetResults[0].currency
 
       res.status(200).send({
         totalBudget,
@@ -225,7 +232,8 @@ router.get('/', (req, res) => {
         totalTrips,
         totalTravelEmployees,
         spendingByUsers,
-        spendingByTrips
+        spendingByTrips,
+        currency
       })
     })
     .catch(e => res.status(400).send())

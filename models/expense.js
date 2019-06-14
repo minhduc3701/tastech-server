@@ -23,6 +23,7 @@ var ExpenseSchema = new Schema(
       type: Number,
       required: true
     },
+    currency: String,
     category: {
       type: String,
       required: true,

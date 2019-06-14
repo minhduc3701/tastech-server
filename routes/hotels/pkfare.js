@@ -4,6 +4,11 @@ const _ = require('lodash')
 const passport = require('passport')
 const axios = require('axios')
 const Hotel = require('../../models/hotel')
+const HotelImage = require('../../models/hotelImage')
+const HotelPolicy = require('../../models/hotelPolicy')
+const HotelAmenity = require('../../models/hotelAmenity')
+const HotelDescription = require('../../models/hotelDescription')
+const HotelTransportation = require('../../models/hotelTransportation')
 const { ObjectID } = require('mongodb')
 const { authentication } = require('../../config/pkfare')
 const { currencyExchange } = require('../../middleware/currency')
@@ -24,71 +29,67 @@ router.post('/hotelList', currencyExchange, (req, res) => {
 
         return Promise.all([
           hotelList,
-          Hotel.aggregate([
-            {
-              $match: {
-                _id: {
-                  $in: hotelIds
-                }
-              }
-            },
-            {
-              $lookup: {
-                from: 'hotelImages',
-                localField: '_id',
-                foreignField: 'hotelId',
-                as: 'images'
-              }
-            },
-            {
-              $lookup: {
-                from: 'hotelDescriptions',
-                localField: '_id',
-                foreignField: 'hotelId',
-                as: 'description'
-              }
-            },
-            {
-              $lookup: {
-                from: 'hotelAmenities',
-                localField: '_id',
-                foreignField: 'hotelId',
-                as: 'amenities'
-              }
-            },
-            {
-              $lookup: {
-                from: 'hotelPolicies',
-                localField: '_id',
-                foreignField: 'hotelId',
-                as: 'policies'
-              }
-            },
-            {
-              $lookup: {
-                from: 'hotelTransportations',
-                localField: '_id',
-                foreignField: 'hotelId',
-                as: 'transportations'
-              }
-            }
-          ])
+          Hotel.find({
+            hotelId: { $in: hotelIds },
+            language: 'en_US'
+          }),
+          HotelImage.find({
+            hotelId: { $in: hotelIds }
+          }),
+          HotelPolicy.find({
+            hotelId: { $in: hotelIds }
+          }),
+          HotelAmenity.find({
+            hotelId: { $in: hotelIds }
+          }),
+          HotelDescription.find({
+            hotelId: { $in: hotelIds }
+          }),
+          HotelTransportation.find({
+            hotelId: { $in: hotelIds }
+          })
         ])
       }
     })
     .then(results => {
       let hotelList = results[0]
       let hotels = results[1]
+      let hotelImages = results[2]
+      let hotelPolicies = results[3]
+      let hotelAmenities = results[4]
+      let hotelDescriptions = results[5]
+      let hotelTransportations = results[6]
 
       let newHotels = hotels.map(hotel => {
         let matchingHotel = hotelList.find(
-          hotelApi => parseInt(hotelApi.hotelId) === hotel._id
+          hotelApi => parseInt(hotelApi.hotelId) === hotel.hotelId
         )
+        let images = hotelImages.filter(
+          image => image.hotelId === hotel.hotelId
+        )
+        let policies = hotelPolicies.filter(
+          policy => policy.hotelId === hotel.hotelId
+        )
+        let amenities = hotelAmenities.filter(
+          amenity => amenity.hotelId === hotel.hotelId
+        )
+        let description = hotelDescriptions.filter(
+          desc => desc.hotelId === hotel.hotelId
+        )
+        let transportations = hotelTransportations.filter(
+          trans => trans.hotelId === hotel.hotelId
+        )
+
         return {
-          ...hotel,
+          ...hotel.toObject(),
           currency: req.currency.code,
           lowestPrice: matchingHotel.lowestPrice * req.currency.rate,
-          supplier: 'pkfare'
+          supplier: 'pkfare',
+          images,
+          policies,
+          amenities,
+          description,
+          transportations
         }
       })
       res.status(200).send({ hotels: newHotels })
@@ -98,7 +99,7 @@ router.post('/hotelList', currencyExchange, (req, res) => {
     })
 })
 
-router.post('/hotelRatePlan', (req, res) => {
+router.post('/hotelRatePlan', currencyExchange, (req, res) => {
   axios({
     method: 'post',
     url: `${process.env.PKFARE_HOTEL_URI}/queryHotelRatePlan`,
@@ -109,14 +110,30 @@ router.post('/hotelRatePlan', (req, res) => {
   })
     .then(response => {
       if (response.data.body) {
+        let ratePlans = response.data.body
+        ratePlans.ratePlanList = ratePlans.ratePlanList.map(room => ({
+          ...room,
+          cancelRules: room.cancelRules.map(rule => ({
+            ...rule,
+            cancelCharge: rule.cancelCharge * req.currency.rate
+          })),
+          dailyPriceList: room.dailyPriceList.map(daily => ({
+            ...daily,
+            salePrice: daily.salePrice * req.currency.rate
+          })),
+          totalPrice: room.totalPrice * req.currency.rate,
+          currency: req.currency.code
+        }))
         return res.status(200).send({
-          hotel: response.data.body
+          ratePlans
         })
       }
 
       return Promise.reject()
     })
-    .catch(error => res.status(400).send())
+    .catch(error => {
+      res.status(400).send()
+    })
 })
 
 router.post('/hotelsRatePlan', currencyExchange, (req, res) => {

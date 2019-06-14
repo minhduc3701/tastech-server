@@ -19,6 +19,7 @@ var UserSchema = new Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+  dateOfBirth: Date,
   country: String,
   title: String,
   firstName: String,
@@ -73,7 +74,8 @@ UserSchema.methods.toJSON = function() {
     '_policy',
     'lastLoginDate',
     'disabled',
-    'point'
+    'point',
+    'dateOfBirth'
   ])
 
   if (!validator.isURL(_.toString(userObject.avatar))) {
