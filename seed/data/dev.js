@@ -84,7 +84,8 @@ const users = [
     lastName: chance.last(),
     _department: departmentId,
     phone: '0819020695',
-    dateOfBirth: new Date('1996-07-02')
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'VN'
   },
   {
     _id: employeeId2,
@@ -150,7 +151,8 @@ for (let i = 4; i < 50; i++) {
     _role: employeeRoleId,
     _policy: randomItemInArray([policyId1, policyId2]),
     phone: (Math.random() * 1000000000).toFixed(0),
-    dateOfBirth: new Date('1990-01-01')
+    dateOfBirth: new Date('1990-01-01'),
+    country: 'VN'
   })
 }
 
