@@ -237,7 +237,6 @@ router.post('/', currencyExchange, async (req, res, next) => {
       trip.budgetPassengers[0].totalPrice
     )
   } catch (error) {
-    console.log(error)
     res.status(400).send()
   }
 
