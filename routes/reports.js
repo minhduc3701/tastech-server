@@ -223,7 +223,9 @@ router.get('/:id', (req, res) => {
       _company: req.user._company,
       _trip: id,
       status: 'approved'
-    }).populate('_trip'),
+    })
+      .populate('_trip')
+      .populate('_attendees', 'username'),
     // trip statistic by category
     Expense.aggregate([
       {
