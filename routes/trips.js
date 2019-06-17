@@ -213,36 +213,23 @@ router.post('/', currencyExchange, async (req, res, next) => {
       let { hotelInfoList } = data.body
       let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
       let hotels = await Hotel.find({
-        _id: { $in: hotelIds },
-        starRating: { $lte: policy.hotelClass }
+        hotelId: { $in: hotelIds },
+        starRating: { $lte: policy.hotelClass },
+        language: 'en_US'
       })
       let hotelPolicyIds = hotels.map(hotel => parseInt(hotel.hotelId))
-      request.hotelIdList = hotelPolicyIds
-      let responseHotelRatePlan = await axios({
-        method: 'post',
-        url: `${process.env.PKFARE_HOTEL_URI}/queryMultipleHotelRatePlan`,
-        data: {
-          authentication,
-          request
-        }
-      })
-      let ratePlanList = responseHotelRatePlan.data.body.ratePlanList
-      let hotelRooms = []
-      ratePlanList.forEach(ratePlan => {
-        ratePlan.ratePlanDetailList.forEach(detail => {
-          hotelRooms.push(detail)
-        })
-      })
-
-      let sumPriceHotelRoom = 0
-      hotelRooms.forEach(rooms => {
-        sumPriceHotelRoom += Number(rooms.totalPrice * req.currency.rate)
-      })
-      trip.budgetPassengers[0].lodging.price =
-        sumPriceHotelRoom / hotelRooms.length
-      trip.budgetPassengers[0].totalPrice += Number(
-        sumPriceHotelRoom / hotelRooms.length
+      let newHotelList = hotelInfoList.filter(hotel =>
+        hotelPolicyIds.includes(parseInt(hotel.hotelId))
       )
+      let sumPriceHotelRoom = 0
+      newHotelList.forEach(hotel => {
+        sumPriceHotelRoom += Number(hotel.lowestPrice * req.currency.rate)
+      })
+      trip.budgetPassengers[0].lodging.price = Number(
+        sumPriceHotelRoom / hotelInfoList.length
+      )
+      trip.budgetPassengers[0].totalPrice +=
+        trip.budgetPassengers[0].lodging.price
     }
 
     //Update trip information
