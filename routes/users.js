@@ -102,6 +102,10 @@ router.post('/me/avatar', function(req, res) {
       })
     }
 
+    if (_.isEmpty(req.file)) {
+      return res.status(400).send()
+    }
+
     User.findByIdAndUpdate(
       req.user._id,
       {
