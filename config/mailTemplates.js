@@ -4,7 +4,7 @@ const appUrl = process.env.APP_URI
 function register(user, token) {
   return {
     to: user.email,
-    from: noReplyEmail,
+    from: `EzBizTrip <${noReplyEmail}>`,
     subject: `New account ${user.email} on ${appUrl.replace(
       /^https?:\/\//,
       ''
@@ -21,7 +21,7 @@ function register(user, token) {
 function forgotPassword(user, token) {
   return {
     to: user.email,
-    from: 'no-reply@ezbiztrip.com',
+    from: `EzBizTrip <${noReplyEmail}>`,
     subject: `Password Reset for ${user.email} on ${appUrl.replace(
       /^https?:\/\//,
       ''
