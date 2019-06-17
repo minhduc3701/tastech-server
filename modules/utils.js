@@ -128,6 +128,7 @@ const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
       })
     })
   }
+  flightsData = _.sortBy(flightsData, ['price'])
   return flightsData
 }
 
