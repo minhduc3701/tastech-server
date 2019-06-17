@@ -267,30 +267,6 @@ router.patch('/:id', function(req, res, next) {
     })
 })
 
-router.patch('/:id/exchange', function(req, res, next) {
-  let id = req.params.id
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send()
-  }
-  Trip.findOneAndUpdate(
-    {
-      _id: id,
-      _creator: req.user._id
-    },
-    { $set: { status: 'completed' } },
-    { new: true }
-  )
-    .then(trip => {
-      if (!trip) {
-        return res.status(404).send()
-      }
-      res.status(200).send({ trip })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
-})
-
 // get expenses by trip id
 router.get('/:id/expenses', function(req, res, next) {
   let id = req.params.id
