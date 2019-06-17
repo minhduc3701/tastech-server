@@ -9,12 +9,8 @@ function register(user, token) {
       /^https?:\/\//,
       ''
     )}`,
-    text:
-      'Your new account is created successfully.\n\n' +
-      'Set your password at: ' +
-      appUrl +
-      '/reset-password/' +
-      token
+    text: `Congratulation!\n\nYour new account has been created successfully.\n\nPlease set your new password via this link: ${appUrl}/reset-password/${token}\n\nThe link will be expire next 1 hour.\n\nIf you have any questions, please contact our Travel Concierge for support.\n
+    `
   }
 }
 
@@ -26,14 +22,8 @@ function forgotPassword(user, token) {
       /^https?:\/\//,
       ''
     )}`,
-    text:
-      'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
-      'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-      appUrl +
-      '/reset-password/' +
-      token +
-      '\n\n' +
-      'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+    text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\nPlease click on the following link, or paste this into your browser to complete the process:\n\n${appUrl}/reset-password/${token}\n\nThe link will be expire next 1 hour.\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\n
+    `
   }
 }
 
