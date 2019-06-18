@@ -7,6 +7,7 @@ const Hotel = require('../../models/hotel')
 const HotelImage = require('../../models/hotelImage')
 const HotelPolicy = require('../../models/hotelPolicy')
 const HotelAmenity = require('../../models/hotelAmenity')
+const HotelAmenityType = require('../../models/hotelAmenityType')
 const HotelDescription = require('../../models/hotelDescription')
 const HotelTransportation = require('../../models/hotelTransportation')
 const { ObjectID } = require('mongodb')
@@ -52,6 +53,16 @@ router.post('/hotelList', currencyExchange, (req, res) => {
       }
     })
     .then(results => {
+      let amenityIds = _.uniq(results[4].map(amenity => amenity.amenityId))
+
+      return Promise.all([
+        ...results,
+        HotelAmenityType.find({
+          amenityId: { $in: amenityIds }
+        })
+      ])
+    })
+    .then(results => {
       let hotelList = results[0]
       let hotels = results[1]
       let hotelImages = results[2]
@@ -59,6 +70,7 @@ router.post('/hotelList', currencyExchange, (req, res) => {
       let hotelAmenities = results[4]
       let hotelDescriptions = results[5]
       let hotelTransportations = results[6]
+      let hotelAmenityTypes = results[7]
 
       let newHotels = hotels.map(hotel => {
         let matchingHotel = hotelList.find(
@@ -73,6 +85,27 @@ router.post('/hotelList', currencyExchange, (req, res) => {
         let amenities = hotelAmenities.filter(
           amenity => amenity.hotelId === hotel.hotelId
         )
+        amenities = _.uniqBy(amenities, amenity => amenity.amenityId)
+        amenities = amenities.map(amenity => {
+          let type = hotelAmenityTypes.find(
+            type => type.amenityId === amenity.amenityId
+          )
+
+          if (!type) {
+            type = {
+              groupId: 0,
+              groupName: 'Others',
+              groupType: 'others'
+            }
+          } else {
+            type = type.toObject()
+          }
+
+          return {
+            ...amenity.toObject(),
+            ...type
+          }
+        })
         let description = hotelDescriptions.filter(
           desc => desc.hotelId === hotel.hotelId
         )
