@@ -27,7 +27,7 @@ var ExpenseSchema = new Schema(
     category: {
       type: String,
       required: true,
-      enum: ['flight', 'lodging', 'transportation', 'meal']
+      enum: ['flight', 'lodging', 'transportation', 'meal', 'others']
     },
     claimed: {
       type: Boolean,
