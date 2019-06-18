@@ -4,7 +4,7 @@ const Schema = mongoose.Schema
 const HotelAmenitySchema = new Schema(
   {
     hotelId: Number,
-    amenityId: String,
+    amenityId: Number,
     name: String
   },
   {
