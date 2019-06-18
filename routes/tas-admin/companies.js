@@ -6,6 +6,7 @@ const Policy = require('../../models/policy')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { roles } = require('../../config/roles')
+const api = require('../../modules/api')
 
 router.get('/', function(req, res) {
   Promise.all([Company.find({}).sort([['_id', -1]]), Company.count({})])
@@ -49,6 +50,10 @@ router.post('/', function(req, res) {
       )
     })
     .then(roles => {
+      return api.currency(company.currency)
+    })
+    .then(currency => {
+      let rate = currency.data[0].rate
       let policy = new Policy({
         name: 'Default Policy',
         _company: company._id,
@@ -58,7 +63,7 @@ router.post('/', function(req, res) {
         setDaysBeforeFlights: true,
         daysBeforeFlights: 7,
         setFlightLimit: true,
-        flightLimit: 2000,
+        flightLimit: 2000 * rate,
         flightNotification: 'no',
         flightApproval: 'no',
         hotelClass: 3,
@@ -66,13 +71,13 @@ router.post('/', function(req, res) {
         setDaysBeforeLodging: true,
         daysBeforeLodging: 7,
         setHotelLimit: true,
-        hotelLimit: 5000,
+        hotelLimit: 5000 * rate,
         hotelNotification: 'no',
         hotelApproval: 'no',
         setTransportLimit: true,
-        transportLimit: 100,
+        transportLimit: 100 * rate,
         setMealLimit: true,
-        mealLimit: 100,
+        mealLimit: 100 * rate,
         setProvision: true,
         provision: 5
       })
@@ -84,7 +89,9 @@ router.post('/', function(req, res) {
       return company.save()
     })
     .then(company => res.status(200).send({ company }))
-    .catch(e => res.status(400).send())
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 router.get('/:id', function(req, res) {
