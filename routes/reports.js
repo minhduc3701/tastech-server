@@ -4,6 +4,7 @@ const Trip = require('../models/trip')
 const Expense = require('../models/expense')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
+const { currentCompany } = require('../middleware/company')
 
 router.get('/trips', (req, res) => {
   Trip.aggregate([
@@ -63,7 +64,7 @@ router.get('/trips', (req, res) => {
     .catch(e => res.status(400).send())
 })
 
-router.get('/trips/spendingsByTrip', (req, res) => {
+router.get('/trips/spendingsByTrip', currentCompany, (req, res) => {
   Expense.aggregate([
     {
       $match: {
@@ -94,14 +95,14 @@ router.get('/trips/spendingsByTrip', (req, res) => {
   ])
     .then(expense => {
       return Expense.populate(expense, [
-        { path: '_trip', select: ['name', 'budgetPassengers', 'currency'] }
+        { path: '_trip', select: ['name', 'budgetPassengers'] }
       ])
     })
     .then(trips => {
       let spendingsByTrip = trips
       res.status(200).send({
         spendingsByTrip,
-        currency: _.get(trips[0], '_trip.currency')
+        currency: req.company.currency
       })
     })
     .catch(e => res.status(400).send())
@@ -138,7 +139,7 @@ router.get('/trips/spendingsByTime', (req, res) => {
     .catch(e => res.status(400).send())
 })
 
-router.get('/ongoingTrip', function(req, res, next) {
+router.get('/ongoingTrip', currentCompany, function(req, res, next) {
   Trip.findOne({
     _creator: req.user._id,
     status: 'ongoing',
@@ -203,7 +204,8 @@ router.get('/ongoingTrip', function(req, res, next) {
         totalBudgets: results[0],
         totalExpenses: results[1][0].totalExpenses,
         expenses: results[2],
-        name: results[3]
+        name: results[3],
+        currency: req.company.currency
       })
     })
     .catch(e => {
