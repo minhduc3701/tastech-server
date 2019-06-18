@@ -94,13 +94,14 @@ router.get('/trips/spendingsByTrip', (req, res) => {
   ])
     .then(expense => {
       return Expense.populate(expense, [
-        { path: '_trip', select: ['name', 'budgetPassengers'] }
+        { path: '_trip', select: ['name', 'budgetPassengers', 'currency'] }
       ])
     })
     .then(trips => {
       let spendingsByTrip = trips
       res.status(200).send({
-        spendingsByTrip
+        spendingsByTrip,
+        currency: _.get(trips[0], '_trip.currency')
       })
     })
     .catch(e => res.status(400).send())
