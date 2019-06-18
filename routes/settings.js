@@ -22,6 +22,7 @@ router.get('/countries', function(req, res, next) {
 
 router.get('/countriesOptions', (req, res) => {
   Country.find({}, 'cca2 name.common')
+    .sort({ 'name.common': 1 })
     .then(countries => {
       res.status(200).send({
         countries: countries.map(country => ({
