@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Card = require('../models/card')
+const { ObjectID } = require('mongodb')
 
 router.post('/', function(req, res, next) {
   const token = req.body.token
@@ -54,6 +55,46 @@ router.get('/', (req, res) => {
         last4: card.info.last4
       }))
       res.status(200).send({ cards })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
+router.delete('/:id', (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  Card.findOne({
+    _id: req.params.id,
+    owner: req.user._id
+  })
+    .then(card => {
+      if (!card) {
+        return res.status(404).send()
+      }
+
+      // delete customer on stripe
+      // @see https://stripe.com/docs/api/customers/delete
+      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+
+      return stripe.customers.del(card.customer.id)
+    })
+    .then(deleteCustomer => {
+      if (!deleteCustomer.deleted) {
+        // delete customer failed
+        throw new Error()
+      }
+
+      // delete card on our db
+      return Card.findOneAndDelete({
+        _id: req.params.id,
+        owner: req.user._id
+      })
+    })
+    .then(card => {
+      res.status(200).send({ card })
     })
     .catch(e => {
       res.status(400).send()
