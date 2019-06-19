@@ -326,6 +326,7 @@ router.get('/:id/orders', function(req, res, next) {
       airports = _.uniq(airports)
 
       return Promise.all([
+        orders,
         Airline.find({
           iata: {
             $in: airlines
@@ -335,14 +336,13 @@ router.get('/:id/orders', function(req, res, next) {
           airport_code: {
             $in: airports
           }
-        }),
-        orders
+        })
       ])
     })
     .then(results => {
-      let arrAirline = results[0]
-      let arrAirport = results[1]
-      let orders = results[2]
+      let orders = results[0]
+      let arrAirline = results[1]
+      let arrAirport = results[2]
       let airlines = {}
       arrAirline.forEach(airline => {
         airlines[airline._doc.iata] = airline
