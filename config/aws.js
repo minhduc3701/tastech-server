@@ -21,7 +21,11 @@ const upload = multer({
     key: function(req, file, cb) {
       cb(null, Date.now().toString())
     }
-  })
+  }),
+  // @see https://www.npmjs.com/package/multer#limits
+  limits: {
+    fileSize: 2 * 1024 * 1024 // we are allowing only 2 MB files
+  }
 })
 
 module.exports = {
