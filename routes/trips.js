@@ -6,6 +6,8 @@ const Company = require('../models/company')
 const User = require('../models/user')
 const Order = require('../models/order')
 const Hotel = require('../models/hotel')
+const Airline = require('../models/airline')
+const Airport = require('../models/airport')
 const { ObjectID } = require('mongodb')
 const { authentication } = require('../config/pkfare')
 const _ = require('lodash')
@@ -294,7 +296,8 @@ router.get('/:id/expenses', function(req, res, next) {
 // get orders by trip
 router.get('/:id/orders', function(req, res, next) {
   let id = req.params.id
-
+  let airlines = []
+  let airports = []
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()
   }
@@ -304,9 +307,60 @@ router.get('/:id/orders', function(req, res, next) {
     _trip: id
   })
     .then(orders => {
-      res.status(200).send({ orders })
+      orders.forEach(order => {
+        if (order.flight) {
+          order.flight.departureSegments.forEach(segment => {
+            airlines.push(segment.airline)
+            airports.push(segment.departure)
+            airports.push(segment.arrival)
+          })
+          order.flight.returnSegments.forEach(segment => {
+            airlines.push(segment.airline)
+            airports.push(segment.departure)
+            airports.push(segment.arrival)
+          })
+        }
+      })
+
+      airlines = _.uniq(airlines)
+      airports = _.uniq(airports)
+
+      return Promise.all([
+        orders,
+        Airline.find({
+          iata: {
+            $in: airlines
+          }
+        }),
+        Airport.find({
+          airport_code: {
+            $in: airports
+          }
+        })
+      ])
     })
-    .catch(e => res.status(400).send())
+    .then(results => {
+      let orders = results[0]
+      let arrAirline = results[1]
+      let arrAirport = results[2]
+      let airlines = {}
+      arrAirline.forEach(airline => {
+        airlines[airline._doc.iata] = airline
+      })
+      let airports = {}
+      arrAirport.forEach(airport => {
+        airports[airport._doc.airport_code] = airport
+      })
+
+      res.status(200).send({
+        orders,
+        airlines,
+        airports
+      })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 router.patch('/:id/exchange', function(req, res, next) {
