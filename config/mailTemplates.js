@@ -1,10 +1,11 @@
 const noReplyEmail = 'no-reply@ezbiztrip.com'
 const appUrl = process.env.APP_URI
 const contactEmail = process.env.EMAIL_CONTACT
+
 function contact(data) {
   return {
     to: contactEmail,
-    from: `${data.firstName} ${data.lastName} <${data.email}>`,
+    from: `Help - EzBizTrip <${data.email}>`,
     subject: `New message from email: ${data.email}`,
     text: `You receiced new message! \n\nFirst name: ${
       data.firstName
@@ -12,6 +13,22 @@ function contact(data) {
       data.email
     } \n\nPhone number: ${data.phone} \n\nMessage: ${data.message} \n\n
     `
+  }
+}
+function requestDemo(data) {
+  return {
+    to: contactEmail,
+    from: `Request Demo - EzBizTrip <${data.email}>`,
+    subject: `New request demo from email: ${data.email}`,
+    text: `You receiced new request demo! \n\nFirst name: ${
+      data.firstName
+    } \n\nLast name: ${data.lastName} \n\nEmail: ${
+      data.email
+    } \n\nPhone number: ${data.phone} \n\nCompany: ${data.company} \n\nRole: ${
+      data.role
+    } \n\nNumber Of Employees: ${data.numberOfEmployees} \n\nCountry: ${
+      data.country
+    }`
   }
 }
 
@@ -44,5 +61,6 @@ function forgotPassword(user, token) {
 module.exports = {
   register,
   forgotPassword,
-  contact
+  contact,
+  requestDemo
 }
