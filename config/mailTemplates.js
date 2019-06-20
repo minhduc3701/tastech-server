@@ -1,10 +1,11 @@
 const noReplyEmail = 'no-reply@ezbiztrip.com'
 const appUrl = process.env.APP_URI
 const contactEmail = process.env.EMAIL_CONTACT
+
 function contact(data) {
   return {
     to: contactEmail,
-    from: `${data.firstName} ${data.lastName} <${data.email}>`,
+    from: `Help - EzBizTrip <${data.email}>`,
     subject: `New message from email: ${data.email}`,
     text: `You receiced new message! \n\nFirst name: ${
       data.firstName
