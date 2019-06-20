@@ -9,7 +9,6 @@ const moment = require('moment')
 const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
 const { USD, VND, SGD } = require('../config/currency')
-const { currencyExchange } = require('../middleware/currency')
 
 router.post('/card', async (req, res, next) => {
   const { card, trip, checkoutAgain, orderId } = req.body
