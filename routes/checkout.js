@@ -9,8 +9,9 @@ const moment = require('moment')
 const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
 const { USD, VND, SGD } = require('../config/currency')
+const { currencyExchange } = require('../middleware/currency')
 
-router.post('/card', async (req, res, next) => {
+router.post('/card', currencyExchange, async (req, res, next) => {
   const { card, trip, checkoutAgain, orderId } = req.body
   let cardId = card.id
   let foundTrip, flightOrder, hotelOrder, bookingResponse
@@ -267,7 +268,7 @@ router.post('/card', async (req, res, next) => {
           trip.passengers,
           trip.hotel.numberOfRoom
         ),
-        totalPrice: trip.hotel.totalPrice,
+        totalPrice: trip.hotel.totalPrice / req.currency.rate,
         nationality: '',
         languageCode: 'en_US'
       }
