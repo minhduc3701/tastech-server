@@ -112,14 +112,16 @@ const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
       )
 
       let price = (adultPrice + serviceFee) * currency.rate
-      let totalPrice =
-        (adultPrice * numberOfAdults + serviceFee) * currency.rate
+      let rawTotalPrice = adultPrice * numberOfAdults + serviceFee
+      let totalPrice = rawTotalPrice * currency.rate
 
       flightsData.push({
         ...solution,
         currency: currency.code,
+        rawCurrency: solution.currency,
         price,
         totalPrice,
+        rawTotalPrice,
         departureFlight,
         departureSegments,
         returnFlight,
