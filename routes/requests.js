@@ -16,14 +16,14 @@ router.post('/', function(req, res, next) {
       res.status(400).send()
     })
 })
-router.post('/contact', function(req, res, next) {
+router.post('/contact', function(req, res) {
   try {
     let { data } = req.body
     data = _.pick(data, ['firstName', 'lastName', 'email', 'phone', 'message'])
     let mailOptions = mailTemplates.contact(data)
     mail.sendMail(mailOptions, function(err, info) {
       if (err) {
-        return next(err)
+        res.status(400).send()
       }
       res.status(200).send()
     })
