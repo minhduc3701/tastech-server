@@ -4,6 +4,7 @@ var Request = require('../models/request')
 const _ = require('lodash')
 const mailTemplates = require('../config/mailTemplates')
 const { mail } = require('../config/mail')
+const { debugMail } = require('../config/debug')
 
 router.post('/', function(req, res, next) {
   const request = new Request(req.body)
@@ -11,6 +12,13 @@ router.post('/', function(req, res, next) {
     .save()
     .then(() => {
       res.status(200).json({ request })
+      let mailOptions = mailTemplates.requestDemo(request)
+      mail.sendMail(mailOptions, function(err, info) {
+        if (err) {
+          debugMail(error)
+          res.status(400).send()
+        }
+      })
     })
     .catch(e => {
       res.status(400).send()
@@ -23,6 +31,7 @@ router.post('/contact', function(req, res) {
     let mailOptions = mailTemplates.contact(data)
     mail.sendMail(mailOptions, function(err, info) {
       if (err) {
+        debugMail(error)
         res.status(400).send()
       }
       res.status(200).send()
