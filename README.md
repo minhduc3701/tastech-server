@@ -30,7 +30,8 @@ Add config/config.json with the content like below:
     "SMTP_HOST": "smtp.mailtrap.io",
     "SMTP_PORT": "2525",
     "SMTP_USER": "<your mailtrap user>",
-    "SMTP_PASSWORD": "<your mailtrap password>"
+    "SMTP_PASSWORD": "<your mailtrap password>",
+    "EMAIL_CONTACT": "support@ezbiztrip.com"
   }
 }
 
