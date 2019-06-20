@@ -118,6 +118,7 @@ const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
       flightsData.push({
         ...solution,
         currency: currency.code,
+        rawCurrency: solution.currency,
         price,
         totalPrice,
         rawTotalPrice,

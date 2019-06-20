@@ -156,7 +156,8 @@ router.post('/hotelRatePlan', currencyExchange, (req, res) => {
           })),
           totalPrice: room.totalPrice * req.currency.rate,
           rawTotalPrice: room.totalPrice,
-          currency: req.currency.code
+          currency: req.currency.code,
+          rawCurrency: room.currency
         }))
         return res.status(200).send({
           ratePlans
@@ -197,7 +198,8 @@ router.post('/hotelsRatePlan', currencyExchange, (req, res) => {
             })),
             totalPrice: room.totalPrice * req.currency.rate,
             rawTotalPrice: room.totalPrice,
-            currency: req.currency.code
+            currency: req.currency.code,
+            rawCurrency: room.currency
           }))
         }))
 
