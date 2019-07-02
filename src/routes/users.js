@@ -6,6 +6,7 @@ const Policy = require('../models/policy')
 const { upload } = require('../config/aws')
 const singleUpload = upload.single('image')
 const _ = require('lodash')
+const { currentCompany } = require('../middleware/company')
 
 // get list user coworker
 router.get('/', function(req, res) {
@@ -18,9 +19,13 @@ router.get('/', function(req, res) {
     .catch(e => res.status(400).send())
 })
 
-router.get('/me', function(req, res, next) {
-  res.send({ user: req.user })
+router.get('/me', currentCompany, function(req, res, next) {
+  res.send({
+    user: req.user,
+    currency: req.company.currency
+  })
 })
+
 router.get('/me/company', function(req, res, next) {
   Company.findById({
     _id: req.user._company
@@ -28,6 +33,7 @@ router.get('/me/company', function(req, res, next) {
     .then(company => res.status(200).send({ company }))
     .catch(e => res.status(400).send())
 })
+
 router.get('/me/point', function(req, res, next) {
   User.findById({
     _id: req.user._id
