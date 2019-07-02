@@ -6,7 +6,7 @@ const currentCompany = async (req, res, next) => {
     let company = await Company.findById(req.user._company)
 
     if (!company) {
-      return res.status(404).send()
+      throw new Error('Company not found')
     }
 
     if (!supportCurrencies.includes(company.currency)) {
@@ -14,11 +14,13 @@ const currentCompany = async (req, res, next) => {
     }
 
     req.company = company
-
-    next()
   } catch (e) {
-    res.status(400).send()
+    req.company = {
+      currency: process.env.BASE_CURRENCY
+    }
   }
+
+  next()
 }
 
 module.exports = {
