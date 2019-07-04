@@ -7,7 +7,8 @@ const hotelbedsHttp = axios.create({
 })
 
 const endpoints = {
-  hotels: '/hotel-content-api/1.0/hotels'
+  hotels: '/hotel-content-api/1.0/hotels',
+  rooms: '/hotel-content-api/1.0/types/rooms'
 }
 
 const api = {
@@ -19,6 +20,11 @@ const api = {
   getHotelDetail: hotelCode => {
     return hotelbedsHttp.get(
       `${endpoints.hotels}/${hotelCode}/details?language=ENG`
+    )
+  },
+  getRooms: () => {
+    return hotelbedsHttp.get(
+      `${endpoints.rooms}?fields=all&language=ENG&from=1&to=50`
     )
   }
 }
