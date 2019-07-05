@@ -7,19 +7,21 @@ const hotelbedsHttp = axios.create({
 })
 
 const endpoints = {
-  hotels: '/hotel-content-api/1.0/hotels'
+  hotels: '/hotel-api/1.0/hotels',
+  hotelContents: '/hotel-content-api/1.0/hotels'
 }
 
 const api = {
-  getHotels: () => {
-    return hotelbedsHttp.get(
-      `${endpoints.hotels}?fields=all&language=ENG&from=1&to=50`
-    )
+  getHotels: queryString => {
+    return hotelbedsHttp.get(`${endpoints.hotelContents}?${queryString}`)
   },
   getHotelDetail: hotelCode => {
     return hotelbedsHttp.get(
-      `${endpoints.hotels}/${hotelCode}/details?language=ENG`
+      `${endpoints.hotelContents}/${hotelCode}/details?language=ENG`
     )
+  },
+  getRooms: request => {
+    return hotelbedsHttp.post(`${endpoints.hotels}`, request)
   }
 }
 
