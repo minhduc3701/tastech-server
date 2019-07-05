@@ -17,6 +17,7 @@ const headers = {
   'Api-key': process.env.HOTELBEDS_HOTEL_KEY,
   'X-Signature': encryption,
   Accept: 'application/json',
+  'Accept-Encoding': 'gzip',
   'Content-Type': 'application/json'
 }
 
