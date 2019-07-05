@@ -3,8 +3,12 @@ const router = express.Router()
 const api = require('../../modules/apiHotelbeds')
 
 router.post('/hotels', (req, res) => {
+  const request = req.body
+  const queryString = Object.keys(request)
+    .map(key => key + '=' + request[key])
+    .join('&')
   api
-    .getHotels()
+    .getHotels(queryString)
     .then(response => {
       if (response.data) {
         res.status(200).send({ hotels: response.data.hotels })
@@ -30,11 +34,12 @@ router.get('/hotels/:id', (req, res) => {
 })
 
 router.post('/rooms', (req, res) => {
+  const request = req.body
   api
-    .getRooms()
+    .getRooms(request)
     .then(response => {
       if (response.data) {
-        res.status(200).send({ rooms: response.data.rooms })
+        res.status(200).send({ hotels: response.data.hotels })
       }
     })
     .catch(error => {

@@ -16,7 +16,8 @@ encryption = hash.toString(CryptoJS.enc.Hex)
 const headers = {
   'Api-key': process.env.HOTELBEDS_HOTEL_KEY,
   'X-Signature': encryption,
-  Accept: 'application/json'
+  Accept: 'application/json',
+  'Content-Type': 'application/json'
 }
 
 module.exports = {
