@@ -46,6 +46,8 @@ const {
   authenticateAdmin
 } = require('./middleware/authenticate')
 
+const jwtAuthenticate = passport.authenticate('jwt', { session: false })
+
 const app = express()
 app.use(cors())
 // view engine setup
@@ -70,47 +72,35 @@ require('./config/passport')
 
 app.use('/auth', authRouter)
 app.use('/requests', requestsRouter)
-app.use('/users', passport.authenticate('jwt', { session: false }), usersRouter)
-app.use('/trips', passport.authenticate('jwt', { session: false }), tripsRouter)
-app.use(
-  '/expenses',
-  passport.authenticate('jwt', { session: false }),
-  expensesRouter
-)
-app.use(
-  '/orders',
-  passport.authenticate('jwt', { session: false }),
-  ordersRouter
-)
-app.use(
-  '/reports',
-  passport.authenticate('jwt', { session: false }),
-  reportsRouter
-)
+app.use('/users', jwtAuthenticate, usersRouter)
+app.use('/trips', jwtAuthenticate, tripsRouter)
+app.use('/expenses', jwtAuthenticate, expensesRouter)
+app.use('/orders', jwtAuthenticate, ordersRouter)
+app.use('/reports', jwtAuthenticate, reportsRouter)
 
 // tas-admin routes
 app.use(
   '/tas-admin/requests',
-  passport.authenticate('jwt', { session: false }),
+  jwtAuthenticate,
   authenticateTasAdmin,
   tasAdminRequestsRouter
 )
 app.use(
   '/tas-admin/users',
-  passport.authenticate('jwt', { session: false }),
+  jwtAuthenticate,
   authenticateTasAdmin,
   tasAdminUsersRouter
 )
 app.use(
   '/tas-admin/companies',
-  passport.authenticate('jwt', { session: false }),
+  jwtAuthenticate,
   authenticateTasAdmin,
   tasAdminCompaniesRouter
 )
 
 app.use(
   '/tas-admin/orders',
-  passport.authenticate('jwt', { session: false }),
+  jwtAuthenticate,
   authenticateTasAdmin,
   tasAdminOrdersRouter
 )
@@ -118,50 +108,35 @@ app.use(
 // admin routes
 app.use(
   '/admin/company',
-  passport.authenticate('jwt', { session: false }),
+  jwtAuthenticate,
   authenticateAdmin,
   adminCompanyRouter
 )
-app.use(
-  '/admin/users',
-  passport.authenticate('jwt', { session: false }),
-  authenticateAdmin,
-  adminUsersRouter
-)
-app.use(
-  '/admin/roles',
-  passport.authenticate('jwt', { session: false }),
-  authenticateAdmin,
-  adminRolesRouter
-)
-app.use(
-  '/admin/trips',
-  passport.authenticate('jwt', { session: false }),
-  authenticateAdmin,
-  adminTripsRouter
-)
+app.use('/admin/users', jwtAuthenticate, authenticateAdmin, adminUsersRouter)
+app.use('/admin/roles', jwtAuthenticate, authenticateAdmin, adminRolesRouter)
+app.use('/admin/trips', jwtAuthenticate, authenticateAdmin, adminTripsRouter)
 app.use(
   '/admin/expenses',
-  passport.authenticate('jwt', { session: false }),
+  jwtAuthenticate,
   authenticateAdmin,
   adminExpensesRouter
 )
 app.use(
   '/admin/policies',
-  passport.authenticate('jwt', { session: false }),
+  jwtAuthenticate,
   authenticateAdmin,
   adminPolicyRouter
 )
 app.use(
   '/admin/departments',
-  passport.authenticate('jwt', { session: false }),
+  jwtAuthenticate,
   authenticateAdmin,
   adminDepartmentRouter
 )
 
 app.use(
   '/admin/reports',
-  passport.authenticate('jwt', { session: false }),
+  jwtAuthenticate,
   authenticateAdmin,
   adminReportsRouter
 )
@@ -179,41 +154,21 @@ app.use(
 )
 
 // hotels
-app.use(
-  '/hotels/pkfare',
-  passport.authenticate('jwt', { session: false }),
-  hotelsPkfareRouter
-)
+app.use('/hotels/pkfare', jwtAuthenticate, hotelsPkfareRouter)
 
 // tickets
 app.use('/tickets/pkfare', ticketsPkfareRouter)
 
 // content api
-app.use('/settings', settingsRouter)
-app.use(
-  '/airports',
-  passport.authenticate('jwt', { session: false }),
-  airportsRouter
-)
-app.use(
-  '/cities',
-  passport.authenticate('jwt', { session: false }),
-  citiesRouter
-)
-app.use(
-  '/regions',
-  passport.authenticate('jwt', { session: false }),
-  regionsRouter
-)
+app.use('/settings', jwtAuthenticate, settingsRouter)
+app.use('/airports', jwtAuthenticate, airportsRouter)
+app.use('/cities', jwtAuthenticate, citiesRouter)
+app.use('/regions', jwtAuthenticate, regionsRouter)
 
 // checkout
-app.use('/cards', passport.authenticate('jwt', { session: false }), cardsRouter)
+app.use('/cards', jwtAuthenticate, cardsRouter)
 
-app.use(
-  '/checkout',
-  passport.authenticate('jwt', { session: false }),
-  checkoutRouter
-)
+app.use('/checkout', jwtAuthenticate, checkoutRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
