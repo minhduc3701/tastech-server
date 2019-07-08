@@ -134,9 +134,31 @@ const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
   return flightsData
 }
 
+const formatHotelListApiData = hotel => {
+  return {
+    hotelId: hotel.code,
+    name: hotel.name.content,
+    starRating: parseInt(hotel.categoryCode.charAt(0)),
+    country: hotel.countryCode,
+    cityName: hotel.city.content,
+    address: hotel.address.content,
+    zip: hotel.postalCode,
+    longitude: hotel.coordinates.longitude,
+    latitude: hotel.coordinates.latitude,
+    description: [
+      {
+        hotelId: hotel.code,
+        description: hotel.description.content,
+        type: 'HotelIntroduce'
+      }
+    ]
+  }
+}
+
 module.exports = {
   makeSegmentsData,
   makeRoomGuestDetails,
   removeSpaces,
-  makeFlightsData
+  makeFlightsData,
+  formatHotelListApiData
 }
