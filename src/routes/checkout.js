@@ -182,6 +182,10 @@ const pkfareFlightPreBooking = async (req, res, next) => {
   const trip = req.trip
   let bookingResponse
 
+  if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
+    next()
+  }
+
   try {
     // if error occurs before
     if (req.checkoutError) {
@@ -189,7 +193,7 @@ const pkfareFlightPreBooking = async (req, res, next) => {
     }
 
     // booking
-    if (trip.flight && trip.flight.supplier === 'pkfare') {
+    if (trip.flight) {
       let journeys = {
         journey_0: trip.flight.departureSegments.map(makeSegmentsData)
       }
@@ -316,6 +320,129 @@ const stripeCharging = async (req, res, next) => {
   next()
 }
 
+const pkfareFlightTicketing = async (req, res, next) => {
+  const trip = req.trip
+
+  if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
+    next()
+  }
+
+  let flightOrder = req.flightOrder
+  let bookingResponse = req.bookingResponse
+
+  try {
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    // update data for trip
+    let flightUpdateData = {}
+
+    // ticketing
+    if (trip.flight) {
+      let { pnr, orderNum } = bookingResponse.data.data
+
+      let ticketingRes = await api.ticketing({
+        email: trip.contactInfo.email,
+        name: removeSpaces(trip.contactInfo.name),
+        orderNum,
+        PNR: pnr,
+        telNum: `+${trip.contactInfo.callingCode} ${trip.contactInfo.phone}`
+      })
+
+      flightUpdateData = {
+        customerCode: pnr,
+        number: orderNum
+      }
+
+      flightOrder.customerCode = flightUpdateData.customerCode
+      flightOrder.number = flightUpdateData.number
+      flightOrder.status = 'processing'
+      await flightOrder.save()
+
+      req.flightOrder = flightOrder
+    } // end trip.flight
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const pkfareHotelCreateOrder = async (req, res, next) => {
+  const trip = req.trip
+
+  if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'pkfare') {
+    next()
+  }
+
+  let hotelOrder = req.hotelOrder
+
+  try {
+    // update data for trip
+    let hotelUpdateData = {}
+
+    // create hotel order
+    if (trip.hotel) {
+      // https://www.drzon.net/posts/generate-random-order-number/
+      const orderid = require('order-id')(process.env.PKFARE_HOTEL_ORDER_SECRET)
+      const customerOrderCode = orderid.generate()
+
+      let request = {
+        checkInDate: trip.hotel.checkInDate,
+        checkOutDate: trip.hotel.checkOutDate,
+        contactEmail: trip.contactInfo.email,
+        contactName: removeSpaces(trip.contactInfo.name),
+        contactTel: `+${trip.contactInfo.callingCode} ${
+          trip.contactInfo.phone
+        }`,
+        customerOrderCode,
+        numberOfAdult: trip.hotel.numberOfAdult,
+        numberOfRoom: trip.hotel.numberOfRoom,
+        hotelId: trip.hotel.hotelId,
+        ratePlanCode: trip.hotel.ratePlanCode,
+        bedTypeCode: trip.hotel.selectedBedTypeId,
+        roomGuestDetails: makeRoomGuestDetails(
+          trip.passengers,
+          trip.hotel.numberOfRoom
+        ),
+        totalPrice: trip.hotel.rawTotalPrice,
+        nationality: '',
+        languageCode: 'en_US'
+      }
+
+      let holteOrderRes = await api.createHotelOrder(request)
+      let orderData = holteOrderRes.data
+
+      if (orderData.header.code !== 'S00000') {
+        throw {
+          message: `${orderData.header.message} / ${_.toString(
+            orderData.header.warning
+          )}`,
+          hotel: true
+        }
+      }
+
+      hotelUpdateData = {
+        customerCode: customerOrderCode,
+        number: orderData.body.orderCode
+      }
+
+      hotelOrder.customerCode = hotelUpdateData.customerCode
+      hotelOrder.number = hotelUpdateData.number
+      hotelOrder.status = 'completed'
+      hotelOrder.canCancel = true
+      await hotelOrder.save()
+
+      req.hotelOrder = hotelOrder
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
 router.post(
   '/card',
   createOrFindTrip,
@@ -323,6 +450,8 @@ router.post(
   createOrFindHotelOrder,
   pkfareFlightPreBooking,
   stripeCharging,
+  pkfareFlightTicketing,
+  pkfareHotelCreateOrder,
   async (req, res, next) => {
     // from createOrFindTrip
     const trip = req.trip
@@ -335,93 +464,6 @@ router.post(
     try {
       if (req.checkoutError) {
         throw req.checkoutError
-      }
-
-      // update data for trip
-      let flightUpdateData = {}
-      let hotelUpdateData = {}
-
-      // ticketing
-      if (trip.flight) {
-        let { pnr, orderNum } = bookingResponse.data.data
-
-        let ticketingRes = await api.ticketing({
-          email: trip.contactInfo.email,
-          name: removeSpaces(trip.contactInfo.name),
-          orderNum,
-          PNR: pnr,
-          telNum: `+${trip.contactInfo.callingCode} ${trip.contactInfo.phone}`
-        })
-
-        flightUpdateData = {
-          customerCode: pnr,
-          number: orderNum
-        }
-      } // end trip.flight
-
-      // create hotel order
-      if (trip.hotel) {
-        // https://www.drzon.net/posts/generate-random-order-number/
-        const orderid = require('order-id')(
-          process.env.PKFARE_HOTEL_ORDER_SECRET
-        )
-        const customerOrderCode = orderid.generate()
-
-        let request = {
-          checkInDate: trip.hotel.checkInDate,
-          checkOutDate: trip.hotel.checkOutDate,
-          contactEmail: trip.contactInfo.email,
-          contactName: removeSpaces(trip.contactInfo.name),
-          contactTel: `+${trip.contactInfo.callingCode} ${
-            trip.contactInfo.phone
-          }`,
-          customerOrderCode,
-          numberOfAdult: trip.hotel.numberOfAdult,
-          numberOfRoom: trip.hotel.numberOfRoom,
-          hotelId: trip.hotel.hotelId,
-          ratePlanCode: trip.hotel.ratePlanCode,
-          bedTypeCode: trip.hotel.selectedBedTypeId,
-          roomGuestDetails: makeRoomGuestDetails(
-            trip.passengers,
-            trip.hotel.numberOfRoom
-          ),
-          totalPrice: trip.hotel.rawTotalPrice,
-          nationality: '',
-          languageCode: 'en_US'
-        }
-
-        let holteOrderRes = await api.createHotelOrder(request)
-        let orderData = holteOrderRes.data
-
-        if (orderData.header.code !== 'S00000') {
-          throw {
-            message: `${orderData.header.message} / ${_.toString(
-              orderData.header.warning
-            )}`,
-            hotel: true
-          }
-        }
-
-        hotelUpdateData = {
-          customerCode: customerOrderCode,
-          number: orderData.body.orderCode
-        }
-      }
-
-      // update order status
-      if (trip.flight) {
-        flightOrder.customerCode = flightUpdateData.customerCode
-        flightOrder.number = flightUpdateData.number
-        flightOrder.status = 'processing'
-        await flightOrder.save()
-      }
-
-      if (trip.hotel) {
-        hotelOrder.customerCode = hotelUpdateData.customerCode
-        hotelOrder.number = hotelUpdateData.number
-        hotelOrder.status = 'completed'
-        hotelOrder.canCancel = true
-        await hotelOrder.save()
       }
 
       res.status(200).send({
