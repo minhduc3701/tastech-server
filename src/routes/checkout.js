@@ -183,6 +183,11 @@ const pkfareFlightPreBooking = async (req, res, next) => {
   let bookingResponse
 
   try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
     // booking
     if (trip.flight && trip.flight.supplier === 'pkfare') {
       let journeys = {
@@ -236,81 +241,101 @@ const pkfareFlightPreBooking = async (req, res, next) => {
   next()
 }
 
+const stripeCharging = async (req, res, next) => {
+  try {
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const flightOrder = req.flightOrder
+    const hotelOrder = req.hotelOrder
+
+    const { card } = req.body
+    let cardId = card.id
+
+    // Set your secret key: remember to change this to your live secret key in production
+    // See your keys here: https://dashboard.stripe.com/account/apikeys
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+
+    // START CHARGING =======
+
+    // calculate the trip price here
+    let currency = ''
+
+    let amount = 0
+
+    // if have flight
+    if (flightOrder && flightOrder.flight) {
+      amount += flightOrder.flight.totalPrice
+
+      currency = flightOrder.flight.currency
+    } // end flight
+
+    // if have hotel
+    if (hotelOrder && hotelOrder.hotel) {
+      amount += hotelOrder.hotel.totalPrice
+
+      currency = hotelOrder.hotel.currency
+    }
+
+    switch (currency) {
+      case USD:
+      case SGD:
+        amount = Math.floor(amount * 100)
+        break
+
+      case VND:
+        amount = Math.floor(amount)
+        break
+    }
+
+    // find the card
+    let foundCard = await Card.findOne({
+      _id: cardId,
+      owner: req.user._id
+    })
+
+    if (!foundCard) {
+      throw { message: 'Cannot find card' }
+    }
+
+    // charge the customer
+    const charge = await stripe.charges.create({
+      amount,
+      currency,
+      customer: foundCard.customer.id // Previously stored, then retrieved
+    })
+
+    req.charge = charge
+
+    // AFTER CHARGING =======
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
 router.post(
   '/card',
   createOrFindTrip,
   createOrFindFlightOrder,
   createOrFindHotelOrder,
   pkfareFlightPreBooking,
+  stripeCharging,
   async (req, res, next) => {
     // from createOrFindTrip
     const trip = req.trip
     let flightOrder = req.flightOrder
     let hotelOrder = req.hotelOrder
+    const charge = req.charge
 
-    const { card } = req.body
-    let cardId = card.id
     let bookingResponse = req.bookingResponse
-
-    // Set your secret key: remember to change this to your live secret key in production
-    // See your keys here: https://dashboard.stripe.com/account/apikeys
-    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
     try {
       if (req.checkoutError) {
         throw req.checkoutError
       }
-
-      // START CHARGING =======
-
-      // calculate the trip price here
-      let currency = ''
-
-      let amount = 0
-
-      // if have flight
-      if (flightOrder && flightOrder.flight) {
-        amount += flightOrder.flight.totalPrice
-
-        currency = flightOrder.flight.currency
-      } // end flight
-
-      // if have hotel
-      if (hotelOrder && hotelOrder.hotel) {
-        amount += hotelOrder.hotel.totalPrice
-
-        currency = hotelOrder.hotel.currency
-      }
-
-      switch (currency) {
-        case USD:
-        case SGD:
-          amount = Math.floor(amount * 100)
-          break
-
-        case VND:
-          amount = Math.floor(amount)
-          break
-      }
-
-      // find the card
-      let foundCard = await Card.findOne({
-        _id: cardId,
-        owner: req.user._id
-      })
-
-      if (!foundCard) {
-        throw { message: 'Cannot find card' }
-      }
-
-      // charge the customer
-      const charge = await stripe.charges.create({
-        amount,
-        currency,
-        customer: foundCard.customer.id // Previously stored, then retrieved
-      })
-
-      // AFTER CHARGING =======
 
       // update data for trip
       let flightUpdateData = {}
@@ -365,8 +390,8 @@ router.post(
           languageCode: 'en_US'
         }
 
-        let res = await api.createHotelOrder(request)
-        let orderData = res.data
+        let holteOrderRes = await api.createHotelOrder(request)
+        let orderData = holteOrderRes.data
 
         if (orderData.header.code !== 'S00000') {
           throw {
