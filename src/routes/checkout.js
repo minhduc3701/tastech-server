@@ -228,7 +228,7 @@ const pkfareFlightPreBooking = async (req, res, next) => {
       bookingResponse = await api.preciseBooking(data)
 
       // save for using later in ticketing
-      req.bookingResponse = req.bookingResponse
+      req.bookingResponse = bookingResponse
 
       if (bookingResponse.data.errorCode !== '0') {
         req.checkoutError = {
