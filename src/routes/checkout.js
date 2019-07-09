@@ -178,16 +178,71 @@ const createOrFindHotelOrder = async (req, res, next) => {
   next()
 }
 
+const pkfareFlightPreBooking = async (req, res, next) => {
+  const trip = req.trip
+  let bookingResponse
+
+  try {
+    // booking
+    if (trip.flight && trip.flight.supplier === 'pkfare') {
+      let journeys = {
+        journey_0: trip.flight.departureSegments.map(makeSegmentsData)
+      }
+
+      if (trip.roundTrip) {
+        journeys.journey_1 = trip.flight.returnSegments.map(makeSegmentsData)
+      }
+
+      let data = {
+        passengers: trip.passengers.map(passenger => ({
+          birthday: moment(passenger.dateOfBirth).format('YYYY-MM-DD'),
+          cardExpiredDate: moment(passenger.passportExpiryDate).format(
+            'YYYY-MM-DD'
+          ),
+          cardNum: passenger.passportNo,
+          cardType: 'P',
+          firstName: removeSpaces(passenger.firstName),
+          lastName: removeSpaces(passenger.lastName),
+          nationality: passenger.nationality,
+          psgType: 'ADT',
+          sex: passenger.title === 'mr' ? 'M' : 'F'
+        })),
+        solution: {
+          adtFare: 0,
+          adtTax: 0,
+          infFare: 0,
+          infTax: 0,
+          journeys
+        }
+      }
+
+      bookingResponse = await api.preciseBooking(data)
+
+      // save for using later in ticketing
+      req.bookingResponse = req.bookingResponse
+
+      if (bookingResponse.data.errorCode !== '0') {
+        req.checkoutError = {
+          ...bookingResponse.data,
+          message: bookingResponse.data.errorMsg,
+          flight: true
+        }
+      }
+    } // end trip.flight
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
 router.post(
   '/card',
   createOrFindTrip,
   createOrFindFlightOrder,
   createOrFindHotelOrder,
+  pkfareFlightPreBooking,
   async (req, res, next) => {
-    if (req.checkoutError) {
-      throw req.checkoutError
-    }
-
     // from createOrFindTrip
     const trip = req.trip
     let flightOrder = req.flightOrder
@@ -195,56 +250,16 @@ router.post(
 
     const { card } = req.body
     let cardId = card.id
-    let bookingResponse
+    let bookingResponse = req.bookingResponse
 
     // Set your secret key: remember to change this to your live secret key in production
     // See your keys here: https://dashboard.stripe.com/account/apikeys
     const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
     try {
-      // booking
-      if (trip.flight) {
-        let journeys = {
-          journey_0: trip.flight.departureSegments.map(makeSegmentsData)
-        }
-
-        if (trip.roundTrip) {
-          journeys.journey_1 = trip.flight.returnSegments.map(makeSegmentsData)
-        }
-
-        let data = {
-          passengers: trip.passengers.map(passenger => ({
-            birthday: moment(passenger.dateOfBirth).format('YYYY-MM-DD'),
-            cardExpiredDate: moment(passenger.passportExpiryDate).format(
-              'YYYY-MM-DD'
-            ),
-            cardNum: passenger.passportNo,
-            cardType: 'P',
-            firstName: removeSpaces(passenger.firstName),
-            lastName: removeSpaces(passenger.lastName),
-            nationality: passenger.nationality,
-            psgType: 'ADT',
-            sex: passenger.title === 'mr' ? 'M' : 'F'
-          })),
-          solution: {
-            adtFare: 0,
-            adtTax: 0,
-            infFare: 0,
-            infTax: 0,
-            journeys
-          }
-        }
-
-        bookingResponse = await api.preciseBooking(data)
-
-        if (bookingResponse.data.errorCode !== '0') {
-          throw {
-            ...bookingResponse.data,
-            message: bookingResponse.data.errorMsg,
-            flight: true
-          }
-        }
-      } // end trip.flight
+      if (req.checkoutError) {
+        throw req.checkoutError
+      }
 
       // START CHARGING =======
 
