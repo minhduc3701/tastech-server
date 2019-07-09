@@ -59,24 +59,27 @@ const createOrFindTrip = async (req, res, next) => {
     } // end outer if
 
     req.trip = trip
-    next()
   } catch (error) {
-    res.status(400).send({
-      ...error,
-      trip: _.pick(trip, ['_id'])
-    })
+    req.checkoutError = error
   }
+
+  next()
 }
 
 const createOrFindFlightOrder = async (req, res, next) => {
-  const { checkoutAgain } = req.body
-
-  // from createOrFindTrip
-  const trip = req.trip
-
-  let flightOrder
-
   try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const { checkoutAgain, orderId } = req.body
+
+    // from createOrFindTrip
+    const trip = req.trip
+
+    let flightOrder
+
     // flight order
     if (trip.flight) {
       if (checkoutAgain) {
@@ -113,73 +116,92 @@ const createOrFindFlightOrder = async (req, res, next) => {
     }
 
     req.flightOrder = flightOrder
-    next()
   } catch (error) {
-    // update order status to failed if something went wrong
-    if (trip.flight && flightOrder) {
-      flightOrder.status = 'failed'
-      await flightOrder.save()
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const createOrFindHotelOrder = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
     }
 
-    res.status(400).send({
-      ...error,
-      trip: _.pick(trip, ['_id']),
-      flightOrder
-    })
+    const { checkoutAgain, orderId } = req.body
+
+    // from createOrFindTrip
+    const trip = req.trip
+
+    let hotelOrder
+
+    // hotel order
+    if (trip.hotel) {
+      if (checkoutAgain) {
+        // find the order the assign trip.hotel = hotelOrder.hotel
+        hotelOrder = await Order.findOne({
+          _id: orderId,
+          type: 'hotel',
+          _trip: trip._id,
+          _customer: req.user._id,
+          status: 'failed'
+        })
+
+        if (!hotelOrder) {
+          throw { message: 'Order not found' }
+        }
+      } else {
+        hotelOrder = new Order({
+          currency: trip.hotel.currency,
+          rawCurrency: trip.hotel.rawCurrency,
+          totalPrice: trip.hotel.totalPrice,
+          rawTotalPrice: trip.hotel.rawTotalPrice,
+          type: 'hotel',
+          _trip: trip._id,
+          hotel: trip.hotel,
+          _customer: req.user._id,
+          passengers: trip.passengers,
+          contactInfo: trip.contactInfo
+        })
+      }
+
+      await hotelOrder.save()
+
+      req.hotelOrder = hotelOrder
+    }
+  } catch (error) {
+    req.checkoutError = error
   }
+
+  next()
 }
 
 router.post(
   '/card',
   createOrFindTrip,
   createOrFindFlightOrder,
+  createOrFindHotelOrder,
   async (req, res, next) => {
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
     // from createOrFindTrip
     const trip = req.trip
     let flightOrder = req.flightOrder
+    let hotelOrder = req.hotelOrder
 
-    const { card, checkoutAgain, orderId } = req.body
+    const { card } = req.body
     let cardId = card.id
-    let foundTrip, hotelOrder, bookingResponse
+    let bookingResponse
 
     // Set your secret key: remember to change this to your live secret key in production
     // See your keys here: https://dashboard.stripe.com/account/apikeys
     const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
     try {
-      // hotel order
-      if (trip.hotel) {
-        if (checkoutAgain) {
-          // find the order the assign trip.hotel = hotelOrder.hotel
-          hotelOrder = await Order.findOne({
-            _id: orderId,
-            type: 'hotel',
-            _trip: trip._id,
-            _customer: req.user._id,
-            status: 'failed'
-          })
-
-          if (!hotelOrder) {
-            throw { message: 'Order not found' }
-          }
-        } else {
-          hotelOrder = new Order({
-            currency: trip.hotel.currency,
-            rawCurrency: trip.hotel.rawCurrency,
-            totalPrice: trip.hotel.totalPrice,
-            rawTotalPrice: trip.hotel.rawTotalPrice,
-            type: 'hotel',
-            _trip: trip._id,
-            hotel: trip.hotel,
-            _customer: req.user._id,
-            passengers: trip.passengers,
-            contactInfo: trip.contactInfo
-          })
-        }
-
-        await hotelOrder.save()
-      }
-
       // booking
       if (trip.flight) {
         let journeys = {
