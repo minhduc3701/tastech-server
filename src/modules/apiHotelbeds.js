@@ -13,6 +13,7 @@ const endpoints = {
 
 const api = {
   getHotels: queryString => {
+    console.log(queryString)
     return hotelbedsHttp.get(`${endpoints.hotelContents}?${queryString}`)
   },
   getHotelDetail: hotelCode => {

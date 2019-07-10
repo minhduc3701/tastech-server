@@ -1,7 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const api = require('../../modules/apiHotelbeds')
-const { formatHotelListApiData } = require('../../modules/utils')
+const {
+  makeHotelbedsHotelsData,
+  makeHotelbedsRoomsData
+} = require('../../modules/utils')
 const { currencyExchange } = require('../../middleware/currency')
 
 router.post('/hotels', currencyExchange, (req, res) => {
@@ -13,8 +16,8 @@ router.post('/hotels', currencyExchange, (req, res) => {
     .getHotels(queryString)
     .then(response => {
       if (response.data) {
-        let formatedData = response.data.hotels.map(formatHotelListApiData)
-        formatedData = formatedData.map(hotel => {
+        let matchingData = response.data.hotels.map(makeHotelbedsHotelsData)
+        matchingData = matchingData.map(hotel => {
           return {
             ...hotel,
             supplier: 'hotelbeds',
@@ -23,7 +26,7 @@ router.post('/hotels', currencyExchange, (req, res) => {
         })
 
         res.status(200).send({
-          hotels: formatedData
+          hotels: matchingData
         })
       }
     })
@@ -48,11 +51,22 @@ router.get('/hotels/:id', (req, res) => {
 
 router.post('/rooms', (req, res) => {
   const request = req.body
+  // console.log(req.body)
   api
     .getRooms(request)
     .then(response => {
       if (response.data) {
-        res.status(200).send({ hotels: response.data.hotels })
+        // console.log(response.data.hotels.hotels[0])
+        let matchingData = {
+          ratePlans: {
+            ratePlanList: response.data.hotels.hotels[0].rooms.map(
+              makeHotelbedsRoomsData
+            )
+          }
+        }
+        res.status(200).send({
+          matchingData
+        })
       }
     })
     .catch(error => {

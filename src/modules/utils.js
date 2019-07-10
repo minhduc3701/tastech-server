@@ -134,7 +134,16 @@ const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
   return flightsData
 }
 
-const formatHotelListApiData = hotel => {
+const makeHotelbedsHotelsData = hotel => {
+  const images = hotel.images.map(image => {
+    let newImage = {
+      ...image,
+      url: 'http://photos.hotelbeds.com/giata/' + image.path
+    }
+    delete newImage.path
+    return newImage
+  })
+
   return {
     hotelId: hotel.code,
     name: hotel.name.content,
@@ -151,7 +160,20 @@ const formatHotelListApiData = hotel => {
         description: hotel.description.content,
         type: 'HotelIntroduce'
       }
-    ]
+    ],
+    images: images,
+    amenities: [],
+    policies: [],
+    transportations: []
+  }
+}
+
+const makeHotelbedsRoomsData = room => {
+  return {
+    roomName: room.name,
+    totalPrice: room.rates[0].net,
+    cancelRules: room.rates[0].cancellationPolicies,
+    ratePlanCode: room.rates[0].rateKey
   }
 }
 
@@ -160,5 +182,6 @@ module.exports = {
   makeRoomGuestDetails,
   removeSpaces,
   makeFlightsData,
-  formatHotelListApiData
+  makeHotelbedsHotelsData,
+  makeHotelbedsRoomsData
 }
