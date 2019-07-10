@@ -9,12 +9,9 @@ const sabreToken = async (req, res, next) => {
       'base64'
     )
     let encodeToken = Buffer.from(`${encodeId}:${encodeKey}`).toString('base64')
-    console.log('encodeToken: ', encodeToken)
     let sabreRes = await apiSabre.getToken(encodeToken)
-    console.log(sabreRes)
     req.sabreToken = sabreRes.data.access_token
   } catch (e) {
-    console.log(e)
     debugServer(e)
     req.sabreToken = ''
   }

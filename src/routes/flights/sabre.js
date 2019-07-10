@@ -1,7 +1,6 @@
 const axios = require('axios')
 const express = require('express')
 const router = express.Router()
-const { authentication } = require('../../config/sabre')
 const apiSabre = require('../../modules/apiSabre')
 const moment = require('moment')
 const Airline = require('../../models/airline')
