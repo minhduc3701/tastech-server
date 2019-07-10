@@ -143,16 +143,8 @@ app.use(
 )
 
 // flights
-app.use(
-  '/flights/pkfare',
-  passport.authenticate('jwt', { session: false }),
-  flightsPkfareRouter
-)
-app.use(
-  '/flights/sabre',
-  passport.authenticate('jwt', { session: false }),
-  flightsSabreRouter
-)
+app.use('/flights/pkfare', jwtAuthenticate, flightsPkfareRouter)
+app.use('/flights/sabre', jwtAuthenticate, flightsSabreRouter)
 
 // hotels
 app.use('/hotels/pkfare', jwtAuthenticate, hotelsPkfareRouter)

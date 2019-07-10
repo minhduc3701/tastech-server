@@ -9,6 +9,7 @@ const Airport = require('../../models/airport')
 const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
 const { currencyExchange } = require('../../middleware/currency')
+const { makeSabreFlightsData } = require('../../modules/utils')
 
 router.post('/shopping', currencyExchange, async (req, res) => {
   let isRoundTrip = req.body.searchAirLegs.length === 2
@@ -44,7 +45,6 @@ router.post('/shopping', currencyExchange, async (req, res) => {
       }
     })
   }
-  console.log(OriginDestinationInformation)
   let data = {
     OTA_AirLowFareSearchRQ: {
       OriginDestinationInformation,
@@ -82,92 +82,7 @@ router.post('/shopping', currencyExchange, async (req, res) => {
     let sabreRes = await apiSabre.shopping(data)
     sabreRes = sabreRes.data.groupedItineraryResponse
     let { itineraryGroups } = sabreRes
-    let flights = []
-    itineraryGroups.map(l => {
-      l.itineraries.map(i => {
-        let obj = {
-          legs: i.legs
-        }
-        obj.departureDescs = sabreRes.legDescs.find(
-          leg => leg.id === i.legs[0].ref
-        )
-        obj.departureSegments = []
-        obj.departureDescs.schedules.map(s => {
-          let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
-          obj.departureSegments.push({
-            id: data.id,
-            departure: data.departure.airport,
-            arrival: data.arrival.airport,
-            strDepartureTime: data.departure.time.substring(0, 5),
-            strArrivalTime: data.arrival.time.substring(0, 5),
-            flightNum: data.carrier.marketingFlightNumber,
-            flightTime: moment(data.arrival.time.substring(0, 5), 'hh:mm').diff(
-              moment(data.departure.time.substring(0, 5), 'hh:mm'),
-              'minutes'
-            ),
-            airline: data.carrier.marketing
-          })
-        })
-        obj.departureFlight = {
-          flightId: ''
-        }
-        obj.departureSegments.forEach(s => {
-          if (obj.departureFlight.flightId === '') {
-            obj.departureFlight.flightId += `${s.flightNum}-${s.airline}`
-          } else {
-            obj.departureFlight.flightId += `-${s.flightNum}-${s.airline}`
-          }
-        })
-
-        obj.returnDescs = {}
-        obj.returnSegments = []
-        obj.returnFlight = {}
-        if (i.legs.length === 2) {
-          obj.returnDescs = sabreRes.legDescs.find(
-            leg => leg.id === i.legs[1].ref
-          )
-          obj.returnSegments = []
-          obj.returnDescs.schedules.map(s => {
-            let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
-            obj.returnSegments.push({
-              id: data.id,
-              departure: data.departure.airport,
-              arrival: data.arrival.airport,
-              strDepartureTime: data.departure.time.substring(0, 5),
-              strArrivalTime: data.arrival.time.substring(0, 5),
-              flightNum: data.carrier.marketingFlightNumber,
-              flightTime: moment(
-                data.arrival.time.substring(0, 5),
-                'hh:mm'
-              ).diff(
-                moment(data.departure.time.substring(0, 5), 'hh:mm'),
-                'minutes'
-              ),
-              airline: data.carrier.marketing
-            })
-          })
-          obj.returnFlight = {
-            flightId: ''
-          }
-          obj.returnSegments.forEach(s => {
-            if (obj.returnFlight.flightId === '') {
-              obj.returnFlight.flightId += `${s.flightNum}-${s.airline}`
-            } else {
-              obj.returnFlight.flightId += `-${s.flightNum}-${s.airline}`
-            }
-          })
-        }
-
-        obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
-        obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
-        obj.currency = req.currency.code
-        obj.totalPrice = obj.rawTotalPrice * req.currency.rate
-        obj.price = obj.rawTotalPrice * req.currency.rate
-        obj.supplier = 'sabre'
-
-        flights.push(obj)
-      })
-    })
+    let flights = makeSabreFlightsData(itineraryGroups, sabreRes, req)
     let airlines = []
     let airports = []
     flights.forEach(flight => {
