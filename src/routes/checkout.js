@@ -10,15 +10,9 @@ const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
 const { USD, VND, SGD } = require('../config/currency')
 
-router.post('/card', async (req, res, next) => {
-  const { card, trip, checkoutAgain, orderId } = req.body
-  let cardId = card.id
-  let foundTrip, flightOrder, hotelOrder, bookingResponse
-  let { contactInfo } = trip
-
-  // Set your secret key: remember to change this to your live secret key in production
-  // See your keys here: https://dashboard.stripe.com/account/apikeys
-  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const createOrFindTrip = async (req, res, next) => {
+  const { trip, checkoutAgain } = req.body
+  let foundTrip
 
   try {
     if (trip._id) {
@@ -64,6 +58,28 @@ router.post('/card', async (req, res, next) => {
       trip._id = foundTrip._id
     } // end outer if
 
+    req.trip = trip
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const createOrFindFlightOrder = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const { checkoutAgain, orderId } = req.body
+
+    // from createOrFindTrip
+    const trip = req.trip
+
+    let flightOrder
+
     // flight order
     if (trip.flight) {
       if (checkoutAgain) {
@@ -99,6 +115,28 @@ router.post('/card', async (req, res, next) => {
       }
     }
 
+    req.flightOrder = flightOrder
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const createOrFindHotelOrder = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const { checkoutAgain, orderId } = req.body
+
+    // from createOrFindTrip
+    const trip = req.trip
+
+    let hotelOrder
+
     // hotel order
     if (trip.hotel) {
       if (checkoutAgain) {
@@ -130,6 +168,28 @@ router.post('/card', async (req, res, next) => {
       }
 
       await hotelOrder.save()
+
+      req.hotelOrder = hotelOrder
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const pkfareFlightPreBooking = async (req, res, next) => {
+  const trip = req.trip
+  let bookingResponse
+
+  if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
+    next()
+  }
+
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
     }
 
     // booking
@@ -167,14 +227,39 @@ router.post('/card', async (req, res, next) => {
 
       bookingResponse = await api.preciseBooking(data)
 
+      // save for using later in ticketing
+      req.bookingResponse = bookingResponse
+
       if (bookingResponse.data.errorCode !== '0') {
-        throw {
+        req.checkoutError = {
           ...bookingResponse.data,
           message: bookingResponse.data.errorMsg,
           flight: true
         }
       }
     } // end trip.flight
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const stripeCharging = async (req, res, next) => {
+  try {
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const flightOrder = req.flightOrder
+    const hotelOrder = req.hotelOrder
+
+    const { card } = req.body
+    let cardId = card.id
+
+    // Set your secret key: remember to change this to your live secret key in production
+    // See your keys here: https://dashboard.stripe.com/account/apikeys
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
     // START CHARGING =======
 
@@ -225,29 +310,77 @@ router.post('/card', async (req, res, next) => {
       customer: foundCard.customer.id // Previously stored, then retrieved
     })
 
+    req.charge = charge
+
     // AFTER CHARGING =======
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const pkfareFlightTicketing = async (req, res, next) => {
+  const trip = req.trip
+
+  if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
+    next()
+  }
+
+  let flightOrder = req.flightOrder
+  let bookingResponse = req.bookingResponse
+
+  try {
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
 
     // update data for trip
     let flightUpdateData = {}
-    let hotelUpdateData = {}
 
     // ticketing
     if (trip.flight) {
       let { pnr, orderNum } = bookingResponse.data.data
 
       let ticketingRes = await api.ticketing({
-        email: contactInfo.email,
-        name: removeSpaces(contactInfo.name),
+        email: trip.contactInfo.email,
+        name: removeSpaces(trip.contactInfo.name),
         orderNum,
         PNR: pnr,
-        telNum: `+${contactInfo.callingCode} ${contactInfo.phone}`
+        telNum: `+${trip.contactInfo.callingCode} ${trip.contactInfo.phone}`
       })
 
       flightUpdateData = {
         customerCode: pnr,
         number: orderNum
       }
+
+      flightOrder.customerCode = flightUpdateData.customerCode
+      flightOrder.number = flightUpdateData.number
+      flightOrder.status = 'processing'
+      await flightOrder.save()
+
+      req.flightOrder = flightOrder
     } // end trip.flight
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const pkfareHotelCreateOrder = async (req, res, next) => {
+  const trip = req.trip
+
+  if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'pkfare') {
+    next()
+  }
+
+  let hotelOrder = req.hotelOrder
+
+  try {
+    // update data for trip
+    let hotelUpdateData = {}
 
     // create hotel order
     if (trip.hotel) {
@@ -258,9 +391,11 @@ router.post('/card', async (req, res, next) => {
       let request = {
         checkInDate: trip.hotel.checkInDate,
         checkOutDate: trip.hotel.checkOutDate,
-        contactEmail: contactInfo.email,
-        contactName: removeSpaces(contactInfo.name),
-        contactTel: `+${contactInfo.callingCode} ${contactInfo.phone}`,
+        contactEmail: trip.contactInfo.email,
+        contactName: removeSpaces(trip.contactInfo.name),
+        contactTel: `+${trip.contactInfo.callingCode} ${
+          trip.contactInfo.phone
+        }`,
         customerOrderCode,
         numberOfAdult: trip.hotel.numberOfAdult,
         numberOfRoom: trip.hotel.numberOfRoom,
@@ -276,8 +411,8 @@ router.post('/card', async (req, res, next) => {
         languageCode: 'en_US'
       }
 
-      let res = await api.createHotelOrder(request)
-      let orderData = res.data
+      let holteOrderRes = await api.createHotelOrder(request)
+      let orderData = holteOrderRes.data
 
       if (orderData.header.code !== 'S00000') {
         throw {
@@ -292,50 +427,72 @@ router.post('/card', async (req, res, next) => {
         customerCode: customerOrderCode,
         number: orderData.body.orderCode
       }
-    }
 
-    // update order status
-    if (trip.flight) {
-      flightOrder.customerCode = flightUpdateData.customerCode
-      flightOrder.number = flightUpdateData.number
-      flightOrder.status = 'processing'
-      await flightOrder.save()
-    }
-
-    if (trip.hotel) {
       hotelOrder.customerCode = hotelUpdateData.customerCode
       hotelOrder.number = hotelUpdateData.number
       hotelOrder.status = 'completed'
       hotelOrder.canCancel = true
       await hotelOrder.save()
-    }
 
-    res.status(200).send({
-      status: charge.status,
-      trip: _.pick(trip, ['_id']),
-      flightOrder,
-      hotelOrder
-    })
+      req.hotelOrder = hotelOrder
+    }
   } catch (error) {
-    // update order status to failed if something went wrong
-    if (trip.flight && flightOrder) {
-      flightOrder.status = 'failed'
-      await flightOrder.save()
-    }
-
-    if (trip.hotel && hotelOrder) {
-      hotelOrder.status = 'failed'
-      await hotelOrder.save()
-    }
-
-    res.status(400).send({
-      ...error,
-      trip: _.pick(trip, ['_id']),
-      flightOrder,
-      hotelOrder
-    })
+    req.checkoutError = error
   }
-})
+
+  next()
+}
+
+router.post(
+  '/card',
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  pkfareFlightPreBooking,
+  stripeCharging,
+  pkfareFlightTicketing,
+  pkfareHotelCreateOrder,
+  async (req, res, next) => {
+    // from createOrFindTrip
+    const trip = req.trip
+    let flightOrder = req.flightOrder
+    let hotelOrder = req.hotelOrder
+    const charge = req.charge
+
+    let bookingResponse = req.bookingResponse
+
+    try {
+      if (req.checkoutError) {
+        throw req.checkoutError
+      }
+
+      res.status(200).send({
+        status: charge.status,
+        trip: _.pick(trip, ['_id']),
+        flightOrder,
+        hotelOrder
+      })
+    } catch (error) {
+      // update order status to failed if something went wrong
+      if (trip.flight && flightOrder) {
+        flightOrder.status = 'failed'
+        await flightOrder.save()
+      }
+
+      if (trip.hotel && hotelOrder) {
+        hotelOrder.status = 'failed'
+        await hotelOrder.save()
+      }
+
+      res.status(400).send({
+        ...error,
+        trip: _.pick(trip, ['_id']),
+        flightOrder,
+        hotelOrder
+      })
+    }
+  }
+)
 
 router.post('/password', (req, res) => {
   let password = req.body.password

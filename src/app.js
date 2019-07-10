@@ -31,6 +31,7 @@ const adminReportsRouter = require('./routes/admin/reports')
 const flightsPkfareRouter = require('./routes/flights/pkfare')
 const flightsSabreRouter = require('./routes/flights/sabre')
 const hotelsPkfareRouter = require('./routes/hotels/pkfare')
+const hotelbedsRouter = require('./routes/hotels/hotelbeds')
 const ticketsPkfareRouter = require('./routes/tickets/pkfare')
 const settingsRouter = require('./routes/settings')
 const airportsRouter = require('./routes/airports')
@@ -155,6 +156,7 @@ app.use(
 
 // hotels
 app.use('/hotels/pkfare', jwtAuthenticate, hotelsPkfareRouter)
+app.use('/hotels/hotelbeds', jwtAuthenticate, hotelbedsRouter)
 
 // tickets
 app.use('/tickets/pkfare', ticketsPkfareRouter)
