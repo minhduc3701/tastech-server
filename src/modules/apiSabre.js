@@ -1,16 +1,31 @@
 const axios = require('axios')
-const { authentication } = require('../config/sabre')
+const querystring = require('querystring')
 
 const flightHttp = axios.create({
-  baseURL: process.env.SABRE_URI,
-  headers: {
-    Authorization: `Bearer ${authentication.token}`
-  }
+  baseURL: process.env.SABRE_URI
 })
 
 const apiSabre = {
-  shopping: data => {
-    return flightHttp.post(`/v1/offers/shop`, data)
+  shopping: (data, sabreToken) => {
+    return flightHttp.post(`/v1/offers/shop`, data, {
+      headers: {
+        Authorization: `Bearer ${sabreToken}`
+      }
+    })
+  },
+  getToken: encodeToken => {
+    return flightHttp.post(
+      `/v2/auth/token`,
+      querystring.stringify({
+        grant_type: 'client_credentials'
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Authorization: `Basic ${encodeToken}`
+        }
+      }
+    )
   }
 }
 

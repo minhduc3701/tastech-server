@@ -1,8 +1,0 @@
-const authentication = {
-  token:
-    'T1RLAQKLh0xCOQwa/J2FYnUnCXTdvDIp0hAyvChBzPoccZmslySKJjXeAADALR8EovXlYKzgxkwiIZVPzX3Tj2XqBgscGEOtytL5lc/aJyOESDXkFBOuN29F4XGtU/z4WxKaKYOZ/EEFnmyFOAOFK5pnNQh8jY0ngTsHC0vWm8NElRvk26ERqEGicvmJo8b8xIG1AKSnh1U6hxM72aeePohzJW3rpwtBobkvYrvbMgzWey0j329GiA1hS3ZCkfkUPT/CDPdyygBu6lGXhrKakaVx+yoS6gwKMhOywG/X6DSMQMlIrJe0Mh2BwCoT'
-}
-
-module.exports = {
-  authentication
-}

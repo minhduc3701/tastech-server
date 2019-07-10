@@ -9,9 +9,10 @@ const Airport = require('../../models/airport')
 const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
 const { currencyExchange } = require('../../middleware/currency')
+const { sabreToken } = require('../../middleware/sabre')
 const { makeSabreFlightsData } = require('../../modules/utils')
 
-router.post('/shopping', currencyExchange, async (req, res) => {
+router.post('/shopping', currencyExchange, sabreToken, async (req, res) => {
   let isRoundTrip = req.body.searchAirLegs.length === 2
   let OriginDestinationInformation = [
     {
@@ -79,7 +80,7 @@ router.post('/shopping', currencyExchange, async (req, res) => {
     }
   }
   try {
-    let sabreRes = await apiSabre.shopping(data)
+    let sabreRes = await apiSabre.shopping(data, req.sabreToken)
     sabreRes = sabreRes.data.groupedItineraryResponse
     let { itineraryGroups } = sabreRes
     let flights = makeSabreFlightsData(itineraryGroups, sabreRes, req)
@@ -149,7 +150,7 @@ router.post('/shopping', currencyExchange, async (req, res) => {
       })
     })
   } catch (error) {
-    console.log(error)
+    // console.log(error)
     return res.status(400).send()
   }
 })
