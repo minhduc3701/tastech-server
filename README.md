@@ -23,8 +23,11 @@ Add config/config.json with the content like below:
     "PKFARE_PARTNER_ID": <PKFARE_PARTNER_ID>,
     "PKFARE_PARTNER_KEY": <PKFARE_PARTNER_KEY>,
     "PKFARE_HOTEL_ORDER_SECRET": <dev.ezbiztrip or local.thanh>,
+    "SABRE_URI":"https://api-crt.cert.havail.sabre.com",
+    "SABRE_CLIENT_ID":"V1:qtpenkzrdxoe7seo:DEVCENTER:EXT",
+    "SABRE_SECRETE_KEY":"DnH33osD",
     "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>,
-    "BASE_CURRENCY": "USD",
+    "BASE_CURRENCY": "USD",- Re
     "TRANSFERWISE_URI": "https://api.sandbox.transferwise.tech",
     "TRANSFERWISE_API_KEY": "",
     "SMTP_HOST": "smtp.mailtrap.io",
