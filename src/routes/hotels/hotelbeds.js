@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const api = require('../../modules/apiHotelbeds')
+const axios = require('axios')
 const {
   makeHotelbedsHotelsData,
   makeHotelbedsRoomsData
@@ -12,6 +13,7 @@ router.post('/hotels', currencyExchange, (req, res) => {
   const queryString = Object.keys(request)
     .map(key => key + '=' + request[key])
     .join('&')
+
   api
     .getHotels(queryString)
     .then(response => {
@@ -51,12 +53,10 @@ router.get('/hotels/:id', (req, res) => {
 
 router.post('/rooms', (req, res) => {
   const request = req.body
-  // console.log(req.body)
   api
     .getRooms(request)
     .then(response => {
       if (response.data) {
-        // console.log(response.data.hotels.hotels[0])
         let matchingData = {
           ratePlans: {
             ratePlanList: response.data.hotels.hotels[0].rooms.map(

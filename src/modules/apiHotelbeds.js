@@ -1,5 +1,6 @@
 const axios = require('axios')
-const { headers } = require('../config/hotelbeds')
+const { generateHeader } = require('../config/hotelbeds')
+const headers = generateHeader()
 
 const hotelbedsHttp = axios.create({
   baseURL: process.env.HOTELBEDS_URI,
@@ -13,7 +14,6 @@ const endpoints = {
 
 const api = {
   getHotels: queryString => {
-    console.log(queryString)
     return hotelbedsHttp.get(`${endpoints.hotelContents}?${queryString}`)
   },
   getHotelDetail: hotelCode => {

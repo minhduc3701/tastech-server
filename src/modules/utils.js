@@ -138,7 +138,7 @@ const makeHotelbedsHotelsData = hotel => {
   const images = hotel.images.map(image => {
     let newImage = {
       ...image,
-      url: 'http://photos.hotelbeds.com/giata/' + image.path
+      url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
     }
     delete newImage.path
     return newImage
@@ -164,7 +164,8 @@ const makeHotelbedsHotelsData = hotel => {
     images: images,
     amenities: [],
     policies: [],
-    transportations: []
+    transportations: [],
+    lowestPrice: 0
   }
 }
 
