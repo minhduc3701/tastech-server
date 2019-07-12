@@ -1,26 +1,27 @@
-const CryptoJS = require('crypto-js')
+function generateHeader() {
+  const CryptoJS = require('crypto-js')
 
-//Begin UTC creation
-var utcDate = Math.floor(new Date().getTime() / 1000)
+  //Begin UTC creation
+  var utcDate = Math.floor(new Date().getTime() / 1000)
 
-//Begin Signature Assembly
-var hotelKey = process.env.HOTELBEDS_HOTEL_KEY
-var hotelSecret = process.env.HOTELBEDS_HOTEL_SECRET
+  //Begin Signature Assembly
+  var hotelKey = process.env.HOTELBEDS_HOTEL_KEY
+  var hotelSecret = process.env.HOTELBEDS_HOTEL_SECRET
 
-var assemble = hotelKey + hotelSecret + utcDate
+  var assemble = hotelKey + hotelSecret + utcDate
 
-//Begin SHA-256 Encryption
-hash = CryptoJS.SHA256(assemble).toString()
-encryption = hash.toString(CryptoJS.enc.Hex)
+  //Begin SHA-256 Encryption
+  hash = CryptoJS.SHA256(assemble).toString()
+  encryption = hash.toString(CryptoJS.enc.Hex)
 
-const headers = {
-  'Api-key': process.env.HOTELBEDS_HOTEL_KEY,
-  'X-Signature': encryption,
-  Accept: 'application/json',
-  'Accept-Encoding': 'gzip',
-  'Content-Type': 'application/json'
+  return {
+    'Api-key': process.env.HOTELBEDS_HOTEL_KEY,
+    'X-Signature': encryption,
+    Accept: 'application/json',
+    'Accept-Encoding': 'gzip'
+  }
 }
 
 module.exports = {
-  headers
+  generateHeader: generateHeader
 }

@@ -134,6 +134,7 @@ const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
   flightsData = _.sortBy(flightsData, ['price'])
   return flightsData
 }
+
 const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
   let flights = []
   itineraryGroups.map(l => {
@@ -207,7 +208,6 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
           }
         })
       }
-
       obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
       obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
       obj.currency = req.currency.code
@@ -220,10 +220,52 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
   })
   return flights
 }
+
+const makeHotelbedsHotelsData = hotel => {
+  const images = hotel.images.map(image => {
+    let newImage = {
+      ...image,
+      url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
+    }
+    delete newImage.path
+    return newImage
+  })
+
+  return {
+    hotelId: hotel.code,
+    name: hotel.name.content,
+    starRating: parseInt(hotel.categoryCode.charAt(0)),
+    country: hotel.countryCode,
+    cityName: hotel.city.content,
+    address: hotel.address.content,
+    zip: hotel.postalCode,
+    longitude: hotel.coordinates.longitude,
+    latitude: hotel.coordinates.latitude,
+    summary: hotel.description.content,
+    description: hotel.description.content,
+    images: images,
+    amenities: [],
+    policies: [],
+    transportations: [],
+    lowestPrice: 0
+  }
+}
+
+const makeHotelbedsRoomsData = room => {
+  return {
+    roomName: room.name,
+    totalPrice: room.rates[0].net,
+    cancelRules: room.rates[0].cancellationPolicies,
+    ratePlanCode: room.rates[0].rateKey
+  }
+}
+
 module.exports = {
   makeSegmentsData,
   makeSabreFlightsData,
   makeRoomGuestDetails,
   removeSpaces,
-  makeFlightsData
+  makeFlightsData,
+  makeHotelbedsHotelsData,
+  makeHotelbedsRoomsData
 }
