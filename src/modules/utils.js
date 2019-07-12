@@ -155,7 +155,7 @@ const makeHotelbedsHotelsData = hotel => {
     longitude: hotel.coordinates.longitude,
     latitude: hotel.coordinates.latitude,
     summary: hotel.description.content,
-    descriptions: hotel.description.content,
+    description: hotel.description.content,
     images: images,
     amenities: [],
     policies: [],

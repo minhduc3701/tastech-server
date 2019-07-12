@@ -106,13 +106,13 @@ router.post('/hotelList', currencyExchange, (req, res) => {
             ...type
           }
         })
-        let description = hotelDescriptions.filter(
+        let descriptions = hotelDescriptions.filter(
           desc => desc.hotelId === hotel.hotelId
         )
-        let summary = description.find(
+        let summary = descriptions.find(
           desc => desc.type === 'LocationIntroduce'
         )
-        let descriptions = description.find(
+        let description = descriptions.find(
           desc => desc.type === 'HotelIntroduce'
         )
         let transportations = hotelTransportations.filter(
@@ -128,7 +128,7 @@ router.post('/hotelList', currencyExchange, (req, res) => {
           policies,
           amenities,
           summary: summary.description,
-          descriptions: descriptions.description,
+          description: description.description,
           transportations
         }
       })
