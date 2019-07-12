@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const moment = require('moment')
 
 const makeSegmentsData = segment => {
   let data = _.pick(segment, [
@@ -134,6 +135,92 @@ const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
   return flightsData
 }
 
+const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
+  let flights = []
+  itineraryGroups.map(l => {
+    l.itineraries.map(i => {
+      let obj = {
+        legs: i.legs
+      }
+      obj.departureDescs = sabreRes.legDescs.find(
+        leg => leg.id === i.legs[0].ref
+      )
+      obj.departureSegments = []
+      obj.departureDescs.schedules.map(s => {
+        let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
+        obj.departureSegments.push({
+          id: data.id,
+          departure: data.departure.airport,
+          arrival: data.arrival.airport,
+          strDepartureTime: data.departure.time.substring(0, 5),
+          strArrivalTime: data.arrival.time.substring(0, 5),
+          flightNum: data.carrier.marketingFlightNumber,
+          flightTime: moment(data.arrival.time.substring(0, 5), 'hh:mm').diff(
+            moment(data.departure.time.substring(0, 5), 'hh:mm'),
+            'minutes'
+          ),
+          airline: data.carrier.marketing
+        })
+      })
+      obj.departureFlight = {
+        flightId: ''
+      }
+      obj.departureSegments.forEach(s => {
+        if (obj.departureFlight.flightId === '') {
+          obj.departureFlight.flightId += `${s.flightNum}-${s.airline}`
+        } else {
+          obj.departureFlight.flightId += `-${s.flightNum}-${s.airline}`
+        }
+      })
+
+      obj.returnDescs = {}
+      obj.returnSegments = []
+      obj.returnFlight = {}
+      if (i.legs.length === 2) {
+        obj.returnDescs = sabreRes.legDescs.find(
+          leg => leg.id === i.legs[1].ref
+        )
+        obj.returnSegments = []
+        obj.returnDescs.schedules.map(s => {
+          let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
+          obj.returnSegments.push({
+            id: data.id,
+            departure: data.departure.airport,
+            arrival: data.arrival.airport,
+            strDepartureTime: data.departure.time.substring(0, 5),
+            strArrivalTime: data.arrival.time.substring(0, 5),
+            flightNum: data.carrier.marketingFlightNumber,
+            flightTime: moment(data.arrival.time.substring(0, 5), 'hh:mm').diff(
+              moment(data.departure.time.substring(0, 5), 'hh:mm'),
+              'minutes'
+            ),
+            airline: data.carrier.marketing
+          })
+        })
+        obj.returnFlight = {
+          flightId: ''
+        }
+        obj.returnSegments.forEach(s => {
+          if (obj.returnFlight.flightId === '') {
+            obj.returnFlight.flightId += `${s.flightNum}-${s.airline}`
+          } else {
+            obj.returnFlight.flightId += `-${s.flightNum}-${s.airline}`
+          }
+        })
+      }
+      obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
+      obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
+      obj.currency = req.currency.code
+      obj.totalPrice = obj.rawTotalPrice * req.currency.rate
+      obj.price = obj.rawTotalPrice * req.currency.rate
+      obj.supplier = 'sabre'
+
+      flights.push(obj)
+    })
+  })
+  return flights
+}
+
 const makeHotelbedsHotelsData = hotel => {
   const images = hotel.images.map(image => {
     let newImage = {
@@ -175,6 +262,7 @@ const makeHotelbedsRoomsData = room => {
 
 module.exports = {
   makeSegmentsData,
+  makeSabreFlightsData,
   makeRoomGuestDetails,
   removeSpaces,
   makeFlightsData,
