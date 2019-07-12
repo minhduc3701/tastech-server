@@ -7,7 +7,9 @@ const hotelbedsHttp = axios.create({
 
 const endpoints = {
   hotels: '/hotel-api/1.0/hotels',
-  hotelContents: '/hotel-content-api/1.0/hotels'
+  hotelContents: '/hotel-content-api/1.0/hotels',
+  checkRate: '/hotel-api/1.0/checkrates',
+  bookings: '/hotel-api/1.0/bookings'
 }
 
 const api = {
@@ -24,6 +26,16 @@ const api = {
   },
   getRooms: request => {
     return hotelbedsHttp.post(`${endpoints.hotels}`, request, {
+      headers: generateHeader()
+    })
+  },
+  checkRate: request => {
+    return hotelbedsHttp.post(`${endpoints.checkRate}`, request, {
+      headers: generateHeader()
+    })
+  },
+  bookings: request => {
+    return hotelbedsHttp.post(`${endpoints.bookings}`, request, {
       headers: generateHeader()
     })
   }

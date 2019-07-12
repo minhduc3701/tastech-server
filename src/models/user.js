@@ -48,7 +48,8 @@ var UserSchema = new Schema({
     default: 0
   },
   lastLoginDate: Date,
-  disabled: Boolean
+  disabled: Boolean,
+  callingCode: String
 })
 
 UserSchema.plugin(passportLocalMongoose)
@@ -75,7 +76,8 @@ UserSchema.methods.toJSON = function() {
     'lastLoginDate',
     'disabled',
     'point',
-    'dateOfBirth'
+    'dateOfBirth',
+    'callingCode'
   ])
 
   if (!validator.isURL(_.toString(userObject.avatar))) {
