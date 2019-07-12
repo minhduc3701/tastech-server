@@ -154,13 +154,8 @@ const makeHotelbedsHotelsData = hotel => {
     zip: hotel.postalCode,
     longitude: hotel.coordinates.longitude,
     latitude: hotel.coordinates.latitude,
-    description: [
-      {
-        hotelId: hotel.code,
-        description: hotel.description.content,
-        type: 'HotelIntroduce'
-      }
-    ],
+    summary: hotel.description.content,
+    descriptions: hotel.description.content,
     images: images,
     amenities: [],
     policies: [],
