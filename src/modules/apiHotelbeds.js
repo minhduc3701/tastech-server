@@ -1,10 +1,9 @@
 const axios = require('axios')
 const { generateHeader } = require('../config/hotelbeds')
-const headers = generateHeader()
 
 const hotelbedsHttp = axios.create({
   baseURL: process.env.HOTELBEDS_URI,
-  headers: headers
+  headers: generateHeader()
 })
 
 const endpoints = {
