@@ -200,7 +200,7 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
           let cabinClass = mapClassOptions[cabinCode]
           obj.returnSegments.push({
             id: data.id,
-            cabinClass: cabinClass,
+            cabinClass,
             departure: data.departure.airport,
             arrival: data.arrival.airport,
             strDepartureTime: data.departure.time.substring(0, 5),
