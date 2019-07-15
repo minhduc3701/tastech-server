@@ -27,7 +27,7 @@ Add config/config.json with the content like below:
     "SABRE_CLIENT_ID":"V1:qtpenkzrdxoe7seo:DEVCENTER:EXT",
     "SABRE_SECRETE_KEY":"DnH33osD",
     "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>,
-    "BASE_CURRENCY": "USD",- Re
+    "BASE_CURRENCY": "USD",
     "TRANSFERWISE_URI": "https://api.sandbox.transferwise.tech",
     "TRANSFERWISE_API_KEY": "",
     "SMTP_HOST": "smtp.mailtrap.io",
