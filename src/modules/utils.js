@@ -1,6 +1,11 @@
 const _ = require('lodash')
 const moment = require('moment')
-
+const mapClassOptions = {
+  Y: 'ECONOMY',
+  S: 'PREMIUM ECONOMY',
+  C: 'BUSINESS',
+  F: 'FIRST CLASS'
+}
 const makeSegmentsData = segment => {
   let data = _.pick(segment, [
     'airline',
@@ -146,10 +151,15 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
         leg => leg.id === i.legs[0].ref
       )
       obj.departureSegments = []
-      obj.departureDescs.schedules.map(s => {
+      obj.departureDescs.schedules.map((s, index) => {
+        let cabinCode =
+          i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
+            .fareComponents[index].segments[0].segment.cabinCode
+        let cabinClass = mapClassOptions[cabinCode]
         let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
         obj.departureSegments.push({
           id: data.id,
+          cabinClass,
           departure: data.departure.airport,
           arrival: data.arrival.airport,
           strDepartureTime: data.departure.time.substring(0, 5),
@@ -181,10 +191,16 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
           leg => leg.id === i.legs[1].ref
         )
         obj.returnSegments = []
-        obj.returnDescs.schedules.map(s => {
+        obj.returnDescs.schedules.map((s, index) => {
           let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
+          let cabinCode =
+            i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
+              .fareComponents[obj.departureSegments.length + index - 1]
+              .segments[0].segment.cabinCode
+          let cabinClass = mapClassOptions[cabinCode]
           obj.returnSegments.push({
             id: data.id,
+            cabinClass,
             departure: data.departure.airport,
             arrival: data.arrival.airport,
             strDepartureTime: data.departure.time.substring(0, 5),
