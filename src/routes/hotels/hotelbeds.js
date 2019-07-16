@@ -19,7 +19,9 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
 
     let hotelIds = hotelbedsHotelsRes.data.hotels.map(hotel => hotel.code)
     let roomRequest = req.body.roomRequest
-    roomRequest.hotels.hotel = hotelIds
+    roomRequest.hotels = {
+      hotel: hotelIds
+    }
 
     let hotelbedsRoomsRes = await api.getRooms(roomRequest)
     let hotelbedsRoomsData = makeHotelbedsRoomsData(

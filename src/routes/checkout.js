@@ -443,6 +443,29 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
   next()
 }
 
+const hotelbedsCreateOrder = async (req, res, next) => {
+  const trip = req.trip
+
+  if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'hotelbeds') {
+    next()
+  }
+
+  let hotelOrder = req.hotelOrder
+
+  try {
+    // update data for trip
+    let hotelUpdateData = {}
+
+    // create hotel order
+    if (trip.hotel) {
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
 router.post(
   '/card',
   createOrFindTrip,
@@ -452,6 +475,7 @@ router.post(
   stripeCharging,
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
   async (req, res, next) => {
     // from createOrFindTrip
     const trip = req.trip
