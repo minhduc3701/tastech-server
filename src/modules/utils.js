@@ -221,43 +221,79 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
   return flights
 }
 
-const makeHotelbedsHotelsData = hotel => {
-  const images = hotel.images.map(image => {
-    let newImage = {
-      ...image,
-      url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
-    }
-    delete newImage.path
-    return newImage
-  })
+const makeHotelbedsHotelsData = (hotelbedsHotels, hotelbedsRooms, currency) => {
+  return hotelbedsRooms.map(hotelRooms => {
+    let matchingHotel = hotelbedsHotels.find(
+      hotel => hotel.code === hotelRooms.code
+    )
 
-  return {
-    hotelId: hotel.code,
-    name: hotel.name.content,
-    starRating: parseInt(hotel.categoryCode.charAt(0)),
-    country: hotel.countryCode,
-    cityName: hotel.city.content,
-    address: hotel.address.content,
-    zip: hotel.postalCode,
-    longitude: hotel.coordinates.longitude,
-    latitude: hotel.coordinates.latitude,
-    summary: hotel.description.content,
-    description: hotel.description.content,
-    images: images,
-    amenities: [],
-    policies: [],
-    transportations: [],
-    lowestPrice: 0
-  }
+    if (matchingHotel) {
+      const images = matchingHotel.images.map(image => {
+        let newImage = {
+          ...image,
+          url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
+        }
+        delete newImage.path
+        return newImage
+      })
+
+      return {
+        hotelId: matchingHotel.code,
+        name: matchingHotel.name.content,
+        starRating: parseInt(matchingHotel.categoryCode.charAt(0)),
+        country: matchingHotel.countryCode,
+        cityName: matchingHotel.city.content,
+        address: matchingHotel.address.content,
+        zip: matchingHotel.postalCode,
+        longitude: matchingHotel.coordinates.longitude,
+        latitude: matchingHotel.coordinates.latitude,
+        summary: matchingHotel.description.content,
+        description: matchingHotel.description.content,
+        amenities: [],
+        policies: [],
+        transportations: [],
+        images: images,
+        lowestPrice: hotelRooms.lowestPrice,
+        ratePlans: hotelRooms.ratePlans,
+        supplier: 'hotelbeds',
+        currency: currency.code
+      }
+    }
+    return null
+  })
 }
 
-const makeHotelbedsRoomsData = room => {
-  return {
-    roomName: room.name,
-    totalPrice: room.rates[0].net,
-    cancelRules: room.rates[0].cancellationPolicies,
-    ratePlanCode: room.rates[0].rateKey
-  }
+const makeHotelbedsRoomsData = (hotels, currency) => {
+  return hotels.map(hotel => {
+    const rooms = []
+    hotel.rooms.forEach(room => {
+      room.rates.forEach(rate => {
+        rooms.push({
+          roomCode: room.code,
+          roomName: room.name,
+          currency: currency.code,
+          totalPrice: (rate.net * currency.rate).toFixed(2),
+          cancelRules: rate.cancellationPolicies,
+          ratePlanCode: rate.rateKey,
+          boardName: rate.boardName
+        })
+      })
+    })
+    const lowestPrice = (hotel.minRate * currency.rate).toFixed(2)
+    const highestPrice = (hotel.maxRate * currency.rate).toFixed(2)
+    delete hotel.rooms
+    delete hotel.minRate
+    delete hotel.maxRate
+    return {
+      ...hotel,
+      currency: currency.code,
+      lowestPrice,
+      highestPrice,
+      ratePlans: {
+        ratePlanList: rooms
+      }
+    }
+  })
 }
 
 module.exports = {
