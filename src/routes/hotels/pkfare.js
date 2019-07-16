@@ -164,8 +164,12 @@ router.post('/hotelRatePlan', currencyExchange, (req, res) => {
           totalPrice: room.totalPrice * req.currency.rate,
           rawTotalPrice: room.totalPrice,
           currency: req.currency.code,
-          rawCurrency: room.currency
+          rawCurrency: room.currency,
+          bedNames: ratePlans.bedTypeList.filter(bedType =>
+            room.bedTypeIdList.includes(bedType.id)
+          )
         }))
+
         return res.status(200).send({
           ratePlans
         })

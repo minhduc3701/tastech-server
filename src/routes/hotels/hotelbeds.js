@@ -6,35 +6,41 @@ const {
   makeHotelbedsHotelsData,
   makeHotelbedsRoomsData
 } = require('../../modules/utils')
-const { currencyExchange } = require('../../middleware/currency')
+const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
 
-router.post('/hotels', currencyExchange, (req, res) => {
-  const request = req.body
-  const queryString = Object.keys(request)
-    .map(key => key + '=' + request[key])
-    .join('&')
+router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
+  try {
+    const hotelRequest = req.body.hotelRequest
+    const queryString = Object.keys(hotelRequest)
+      .map(key => key + '=' + hotelRequest[key])
+      .join('&')
 
-  api
-    .getHotels(queryString)
-    .then(response => {
-      if (response.data) {
-        let matchingData = response.data.hotels.map(makeHotelbedsHotelsData)
-        matchingData = matchingData.map(hotel => {
-          return {
-            ...hotel,
-            supplier: 'hotelbeds',
-            currency: req.currency.code
-          }
-        })
+    let hotelbedsHotelsRes = await api.getHotels(queryString)
 
-        res.status(200).send({
-          hotels: matchingData
-        })
-      }
-    })
-    .catch(error => {
-      res.status(400).send()
-    })
+    let hotelIds = hotelbedsHotelsRes.data.hotels.map(hotel => hotel.code)
+    let roomRequest = req.body.roomRequest
+    roomRequest.hotels.hotel = hotelIds
+
+    let hotelbedsRoomsRes = await api.getRooms(roomRequest)
+    let hotelbedsRoomsData = makeHotelbedsRoomsData(
+      hotelbedsRoomsRes.data.hotels.hotels,
+      req.currency
+    )
+
+    let hotelbedsHotelsData = makeHotelbedsHotelsData(
+      hotelbedsHotelsRes.data.hotels,
+      hotelbedsRoomsData,
+      req.currency
+    )
+
+    if (hotelbedsHotelsRes.data) {
+      res.status(200).send({
+        hotels: hotelbedsHotelsData
+      })
+    }
+  } catch (error) {
+    res.status(400).send(error)
+  }
 })
 
 router.get('/hotels/:id', (req, res) => {
@@ -51,21 +57,18 @@ router.get('/hotels/:id', (req, res) => {
     })
 })
 
-router.post('/rooms', (req, res) => {
+router.post('/rooms', hotelbedsCurrencyExchange, (req, res) => {
   const request = req.body
   api
     .getRooms(request)
     .then(response => {
       if (response.data) {
-        let matchingData = {
-          ratePlans: {
-            ratePlanList: response.data.hotels.hotels[0].rooms.map(
-              makeHotelbedsRoomsData
-            )
-          }
-        }
+        hotelbedsHotelsData = makeHotelbedsRoomsData(
+          response.data.hotels.hotels,
+          req.currency
+        )
         res.status(200).send({
-          matchingData
+          hotels: hotelbedsHotelsData
         })
       }
     })
