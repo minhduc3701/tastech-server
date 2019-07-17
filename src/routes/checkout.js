@@ -375,6 +375,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
 
   if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'pkfare') {
     next()
+    return
   }
 
   let hotelOrder = req.hotelOrder
@@ -447,8 +448,9 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
 const hotelbedsCheckRate = async (req, res, next) => {
   const trip = req.trip
 
-  if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'hotelbeds') {
+  if (_.get(trip, 'hotel.supplier') !== 'hotelbeds') {
     next()
+    return
   }
 
   try {
@@ -461,7 +463,6 @@ const hotelbedsCheckRate = async (req, res, next) => {
     }
 
     let rateRes = await apiHotelbeds.checkRate(request)
-    console.log(rateRes)
   } catch (error) {
     req.checkoutError = error
   }
@@ -472,16 +473,14 @@ const hotelbedsCheckRate = async (req, res, next) => {
 const hotelbedsCreateOrder = async (req, res, next) => {
   const trip = req.trip
 
-  if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'hotelbeds') {
+  if (_.get(trip, 'hotel.supplier') !== 'hotelbeds') {
     next()
+    return
   }
 
   let hotelOrder = req.hotelOrder
 
   try {
-    // update data for trip
-    let hotelUpdateData = {}
-
     let request = {
       holder: {
         name: trip.contactInfo.name,
@@ -500,22 +499,32 @@ const hotelbedsCreateOrder = async (req, res, next) => {
           ]
         }
       ],
-      clientReference: 'ABC Agency',
+      clientReference: `EzBizTrip${hotelOrder._id.toHexString()}`.substring(
+        0,
+        20
+      ),
       remark: 'Booking remarks are to be written here.',
       tolerance: 2.0
     }
-    console.log('request', request)
 
-    let holteOrderRes = await apiHotelbeds.createHotelbedsOrder(request)
-    console.log('res')
-    console.log(holteOrderRes)
+    let hotelOrderRes = await apiHotelbeds.createHotelbedsOrder(request)
+    let orderData = hotelOrderRes.data
+    console.log(orderData)
 
     // create hotel order
-    // if (trip.hotel) {
-    // }
+    hotelOrder.customerCode = orderData.booking.reference
+    hotelOrder.number = orderData.booking.reference
+    hotelOrder.status = 'completed'
+    hotelOrder.canCancel = true
+    await hotelOrder.save()
+
+    req.hotelOrder = hotelOrder
   } catch (error) {
     console.log(error)
-    req.checkoutError = error
+    req.checkoutError = {
+      message: _.get(error, 'response.data.error.message'),
+      hotel: true
+    }
   }
 
   next()
@@ -553,6 +562,8 @@ router.post(
         hotelOrder
       })
     } catch (error) {
+      console.log(error)
+
       // update order status to failed if something went wrong
       if (trip.flight && flightOrder) {
         flightOrder.status = 'failed'

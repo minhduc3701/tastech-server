@@ -38,6 +38,14 @@ const api = {
     return hotelbedsHttp.post(`${endpoints.bookings}`, request, {
       headers: generateHeader()
     })
+  },
+  cancelHotelbedsOrder: bookingReference => {
+    return hotelbedsHttp.delete(
+      `${endpoints.bookings}/${bookingReference}?cancellationFlag=CANCELLATION`,
+      {
+        headers: generateHeader()
+      }
+    )
   }
 }
 
