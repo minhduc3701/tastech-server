@@ -4,6 +4,7 @@ const Card = require('../models/card')
 const Trip = require('../models/trip')
 const Order = require('../models/order')
 const api = require('../modules/api')
+const apiHotelbeds = require('../modules/apiHotelbeds')
 const { makeSegmentsData, makeRoomGuestDetails } = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
@@ -443,6 +444,31 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
   next()
 }
 
+const hotelbedsCheckRate = async (req, res, next) => {
+  const trip = req.trip
+
+  if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'hotelbeds') {
+    next()
+  }
+
+  try {
+    let request = {
+      rooms: [
+        {
+          rateKey: trip.hotel.ratePlanCode
+        }
+      ]
+    }
+
+    let rateRes = await apiHotelbeds.checkRate(request)
+    console.log(rateRes)
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
 const hotelbedsCreateOrder = async (req, res, next) => {
   const trip = req.trip
 
@@ -456,10 +482,39 @@ const hotelbedsCreateOrder = async (req, res, next) => {
     // update data for trip
     let hotelUpdateData = {}
 
-    // create hotel order
-    if (trip.hotel) {
+    let request = {
+      holder: {
+        name: trip.contactInfo.name,
+        surname: 'Good'
+      },
+      rooms: [
+        {
+          rateKey: trip.hotel.ratePlanCode,
+          paxes: [
+            {
+              roomId: 1,
+              type: 'AD',
+              name: trip.passengers[0].firstName,
+              surname: trip.passengers[0].lastName
+            }
+          ]
+        }
+      ],
+      clientReference: 'ABC Agency',
+      remark: 'Booking remarks are to be written here.',
+      tolerance: 2.0
     }
+    console.log('request', request)
+
+    let holteOrderRes = await apiHotelbeds.createHotelbedsOrder(request)
+    console.log('res')
+    console.log(holteOrderRes)
+
+    // create hotel order
+    // if (trip.hotel) {
+    // }
   } catch (error) {
+    console.log(error)
     req.checkoutError = error
   }
 
@@ -472,6 +527,7 @@ router.post(
   createOrFindFlightOrder,
   createOrFindHotelOrder,
   pkfareFlightPreBooking,
+  hotelbedsCheckRate,
   stripeCharging,
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,

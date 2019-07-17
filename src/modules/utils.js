@@ -266,22 +266,25 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
   return hotels.map(hotel => {
     const rooms = []
     hotel.rooms.forEach(room => {
-      room.rates.forEach(rate => {
-        rooms.push({
-          ratePlanCode: room.rateKey,
-          roomCode: room.code,
-          roomName: room.name,
-          currency: currency.code,
-          totalPrice: (rate.net * currency.rate).toFixed(2),
-          cancelRules: rate.cancellationPolicies,
-          ratePlanCode: rate.rateKey,
-          boardName: rate.boardName,
-          bedTypes: []
+      room.rates
+        .filter(rate => rate.paymentType === 'AT_WEB')
+        .forEach(rate => {
+          rooms.push({
+            paymentType: rate.paymentType,
+            ratePlanCode: room.rateKey,
+            roomCode: room.code,
+            roomName: room.name,
+            currency: currency.code,
+            totalPrice: Number(rate.net) * currency.rate,
+            cancelRules: rate.cancellationPolicies,
+            ratePlanCode: rate.rateKey,
+            boardName: rate.boardName,
+            bedTypes: []
+          })
         })
-      })
     })
-    const lowestPrice = (hotel.minRate * currency.rate).toFixed(2)
-    const highestPrice = (hotel.maxRate * currency.rate).toFixed(2)
+    const lowestPrice = Number(hotel.minRate) * currency.rate
+    const highestPrice = Number(hotel.maxRate) * currency.rate
 
     return {
       ...hotel,

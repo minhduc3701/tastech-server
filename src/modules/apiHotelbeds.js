@@ -34,7 +34,7 @@ const api = {
       headers: generateHeader()
     })
   },
-  bookings: request => {
+  createHotelbedsOrder: request => {
     return hotelbedsHttp.post(`${endpoints.bookings}`, request, {
       headers: generateHeader()
     })

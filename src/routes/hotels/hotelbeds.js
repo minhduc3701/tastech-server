@@ -96,7 +96,7 @@ router.post('/checkRate', (req, res) => {
 router.post('/bookings', (req, res) => {
   const request = req.body
   api
-    .bookings(request)
+    .createHotelbedsOrder(request)
     .then(response => {
       if (response.data) {
         res.status(200).send({ data: response.data })
