@@ -244,7 +244,7 @@ const makeHotelbedsHotelsData = (hotelbedsHotels, hotelbedsRooms, currency) => {
     )
 
     if (matchingHotel) {
-      const images = matchingHotel.images.map(image => {
+      const images = _.get(matchingHotel, 'images', []).map(image => {
         let newImage = {
           ...image,
           url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
