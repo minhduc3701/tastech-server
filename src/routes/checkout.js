@@ -484,7 +484,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
     let request = {
       holder: {
         name: trip.contactInfo.name,
-        surname: trip.contactInfo.surName
+        surname: trip.contactInfo.lastName
       },
       rooms: [
         {

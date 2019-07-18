@@ -97,7 +97,7 @@ const OrderSchema = new Schema(
         type: String,
         trim: true
       },
-      surName: {
+      lastName: {
         type: String,
         trim: true
       },
