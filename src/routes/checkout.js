@@ -4,6 +4,7 @@ const Card = require('../models/card')
 const Trip = require('../models/trip')
 const Order = require('../models/order')
 const api = require('../modules/api')
+const apiHotelbeds = require('../modules/apiHotelbeds')
 const { makeSegmentsData, makeRoomGuestDetails } = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
@@ -374,6 +375,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
 
   if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'pkfare') {
     next()
+    return
   }
 
   let hotelOrder = req.hotelOrder
@@ -443,15 +445,102 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
   next()
 }
 
+const hotelbedsCheckRate = async (req, res, next) => {
+  const trip = req.trip
+
+  if (_.get(trip, 'hotel.supplier') !== 'hotelbeds') {
+    next()
+    return
+  }
+
+  try {
+    let request = {
+      rooms: [
+        {
+          rateKey: trip.hotel.ratePlanCode
+        }
+      ]
+    }
+
+    let rateRes = await apiHotelbeds.checkRate(request)
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const hotelbedsCreateOrder = async (req, res, next) => {
+  const trip = req.trip
+
+  if (_.get(trip, 'hotel.supplier') !== 'hotelbeds') {
+    next()
+    return
+  }
+
+  let hotelOrder = req.hotelOrder
+
+  try {
+    let request = {
+      holder: {
+        name: trip.contactInfo.name,
+        surname: 'Good'
+      },
+      rooms: [
+        {
+          rateKey: trip.hotel.ratePlanCode,
+          paxes: [
+            {
+              roomId: 1,
+              type: 'AD',
+              name: trip.passengers[0].firstName,
+              surname: trip.passengers[0].lastName
+            }
+          ]
+        }
+      ],
+      clientReference: `EzBizTrip${hotelOrder._id.toHexString()}`.substring(
+        0,
+        20
+      ),
+      remark: 'Booking remarks are to be written here.',
+      tolerance: 2.0
+    }
+
+    let hotelOrderRes = await apiHotelbeds.createHotelbedsOrder(request)
+    let orderData = hotelOrderRes.data
+    console.log(orderData)
+
+    // create hotel order
+    hotelOrder.customerCode = orderData.booking.reference
+    hotelOrder.number = orderData.booking.reference
+    hotelOrder.status = 'completed'
+    hotelOrder.canCancel = true
+    await hotelOrder.save()
+
+    req.hotelOrder = hotelOrder
+  } catch (error) {
+    console.log(error)
+    req.checkoutError = {
+      message: _.get(error, 'response.data.error.message'),
+      hotel: true
+    }
+  }
+
+  next()
+}
+
 router.post(
   '/card',
   createOrFindTrip,
   createOrFindFlightOrder,
   createOrFindHotelOrder,
   pkfareFlightPreBooking,
+  hotelbedsCheckRate,
   stripeCharging,
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
   async (req, res, next) => {
     // from createOrFindTrip
     const trip = req.trip
@@ -473,6 +562,8 @@ router.post(
         hotelOrder
       })
     } catch (error) {
+      console.log(error)
+
       // update order status to failed if something went wrong
       if (trip.flight && flightOrder) {
         flightOrder.status = 'failed'

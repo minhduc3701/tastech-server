@@ -249,7 +249,6 @@ const makeHotelbedsHotelsData = (hotelbedsHotels, hotelbedsRooms, currency) => {
           ...image,
           url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
         }
-        delete newImage.path
         return newImage
       })
 
@@ -283,29 +282,35 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
   return hotels.map(hotel => {
     const rooms = []
     hotel.rooms.forEach(room => {
-      room.rates.forEach(rate => {
-        rooms.push({
-          roomCode: room.code,
-          roomName: room.name,
-          currency: currency.code,
-          totalPrice: (rate.net * currency.rate).toFixed(2),
-          cancelRules: rate.cancellationPolicies,
-          ratePlanCode: rate.rateKey,
-          boardName: rate.boardName
+      room.rates
+        .filter(rate => rate.paymentType === 'AT_WEB')
+        .forEach(rate => {
+          rooms.push({
+            paymentType: rate.paymentType,
+            ratePlanCode: room.rateKey,
+            roomCode: room.code,
+            roomName: room.name,
+            currency: currency.code,
+            rawCurrency: hotel.currency,
+            totalPrice: Number(rate.net) * currency.rate,
+            rawTotalPrice: rate.net,
+            cancelRules: rate.cancellationPolicies,
+            ratePlanCode: rate.rateKey,
+            boardName: rate.boardName,
+            bedTypes: []
+          })
         })
-      })
     })
-    const lowestPrice = (hotel.minRate * currency.rate).toFixed(2)
-    const highestPrice = (hotel.maxRate * currency.rate).toFixed(2)
-    delete hotel.rooms
-    delete hotel.minRate
-    delete hotel.maxRate
+    const lowestPrice = Number(hotel.minRate) * currency.rate
+    const highestPrice = Number(hotel.maxRate) * currency.rate
+
     return {
       ...hotel,
       currency: currency.code,
       lowestPrice,
       highestPrice,
       ratePlans: {
+        bedTypeList: [],
         ratePlanList: rooms
       }
     }
