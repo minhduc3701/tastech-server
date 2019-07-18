@@ -97,6 +97,10 @@ const OrderSchema = new Schema(
         type: String,
         trim: true
       },
+      surName: {
+        type: String,
+        trim: true
+      },
       email: {
         type: String,
         minlength: 1,

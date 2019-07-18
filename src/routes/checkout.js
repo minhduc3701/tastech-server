@@ -484,7 +484,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
     let request = {
       holder: {
         name: trip.contactInfo.name,
-        surname: 'Good'
+        surname: trip.contactInfo.surName
       },
       rooms: [
         {
@@ -509,7 +509,6 @@ const hotelbedsCreateOrder = async (req, res, next) => {
 
     let hotelOrderRes = await apiHotelbeds.createHotelbedsOrder(request)
     let orderData = hotelOrderRes.data
-    console.log(orderData)
 
     // create hotel order
     hotelOrder.customerCode = orderData.booking.reference
