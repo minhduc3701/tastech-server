@@ -6,7 +6,7 @@ const axios = require('axios')
 const { authentication } = require('../config/pkfare')
 const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
-const apiHotelBeds = require('../modules/apiHotelBeds')
+const apiHotelbeds = require('../modules/apiHotelbeds')
 
 router.get('/', function(req, res, next) {
   Order.find({
