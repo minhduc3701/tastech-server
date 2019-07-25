@@ -13,6 +13,7 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
     // get available hotelbeds rooms
     let { roomRequest } = req.body
     let hotelbedsRoomsRes = await api.getRooms(roomRequest)
+
     let hotelbedsRoomsData = makeHotelbedsRoomsData(
       hotelbedsRoomsRes.data.hotels.hotels,
       req.currency
@@ -25,10 +26,15 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
     }`
     let hotelbedsHotelsRes = await api.getHotels(queryString)
 
+    let hotelFacilityRes = await api.getFacilities()
+    let hotelFacilityGroupRes = await api.getFacilityGroups()
+
     let hotelbedsHotelsData = makeHotelbedsHotelsData(
       hotelbedsHotelsRes.data.hotels,
       hotelbedsRoomsData,
-      req.currency
+      req.currency,
+      hotelFacilityRes.data.facilities,
+      hotelFacilityGroupRes.data.facilityGroups
     )
 
     if (hotelbedsRoomsRes.data) {

@@ -237,7 +237,13 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
   return flights
 }
 
-const makeHotelbedsHotelsData = (hotelbedsHotels, hotelbedsRooms, currency) => {
+const makeHotelbedsHotelsData = (
+  hotelbedsHotels,
+  hotelbedsRooms,
+  currency,
+  hotelFacilities,
+  hotelFacilityGroups
+) => {
   return hotelbedsRooms.map(hotelRooms => {
     let matchingHotel = hotelbedsHotels.find(
       hotel => hotel.code === hotelRooms.code
@@ -252,6 +258,35 @@ const makeHotelbedsHotelsData = (hotelbedsHotels, hotelbedsRooms, currency) => {
         return newImage
       })
 
+      let facilitites = _.get(matchingHotel, 'facilities', []).map(facility => {
+        let matchingFacility = hotelFacilities.find(
+          hotelFacility => hotelFacility.code === facility.facilityCode
+        )
+        let matchingGroup = hotelFacilityGroups.find(
+          group => group.code === facility.facilityGroupCode
+        )
+
+        let facilityName = matchingFacility.description.content
+        if (facility.number > 0) {
+          facilityName += ': ' + facility.number
+        }
+
+        if (matchingFacility.description.content !== '1') {
+          return {
+            ...facility,
+            groupName: matchingGroup.description.content,
+            name: facilityName
+          }
+        } else return null
+      })
+      facilitites = facilitites.filter(facility => facility !== null)
+
+      let transportations = _.get(matchingHotel, 'interestPoints', []).map(
+        point => {
+          return `${point.poiName} - ${point.distance} meters`
+        }
+      )
+
       return {
         hotelId: matchingHotel.code,
         name: matchingHotel.name.content,
@@ -264,9 +299,9 @@ const makeHotelbedsHotelsData = (hotelbedsHotels, hotelbedsRooms, currency) => {
         latitude: matchingHotel.coordinates.latitude,
         summary: matchingHotel.description.content,
         description: matchingHotel.description.content,
-        amenities: [],
+        amenities: facilitites,
         policies: [],
-        transportations: [],
+        transportations: transportations,
         images: images,
         lowestPrice: hotelRooms.lowestPrice,
         ratePlans: hotelRooms.ratePlans,
