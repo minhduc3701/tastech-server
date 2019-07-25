@@ -258,7 +258,7 @@ const makeHotelbedsHotelsData = (
         return newImage
       })
 
-      let facilitites = matchingHotel.facilities.map(facility => {
+      let facilitites = _.get(matchingHotel, 'facilities', []).map(facility => {
         let matchingFacility = hotelFacilities.find(
           hotelFacility => hotelFacility.code === facility.facilityCode
         )
@@ -281,6 +281,12 @@ const makeHotelbedsHotelsData = (
       })
       facilitites = facilitites.filter(facility => facility !== null)
 
+      let transportations = _.get(matchingHotel, 'interestPoints', []).map(
+        point => {
+          return `${point.poiName} - ${point.distance} meters`
+        }
+      )
+
       return {
         hotelId: matchingHotel.code,
         name: matchingHotel.name.content,
@@ -295,7 +301,7 @@ const makeHotelbedsHotelsData = (
         description: matchingHotel.description.content,
         amenities: facilitites,
         policies: [],
-        transportations: [],
+        transportations: transportations,
         images: images,
         lowestPrice: hotelRooms.lowestPrice,
         ratePlans: hotelRooms.ratePlans,
