@@ -124,7 +124,7 @@ router.post('/cancel', async (req, res) => {
             break
 
           case 'hotelbeds':
-            let cancelHotelbedsRes = await apiHotelBeds.cancelHotelbedsOrder(
+            let cancelHotelbedsRes = await apiHotelbeds.cancelHotelbedsOrder(
               order.customerCode
             )
             order.status = 'cancelled'
