@@ -295,21 +295,20 @@ const stripeCharging = async (req, res, next) => {
     }
 
     // find the card
-    // let foundCard = await Card.findOne({
-    //   _id: cardId,
-    //   owner: req.user._id
-    // })
+    let foundCard = await Card.findOne({
+      _id: cardId,
+      owner: req.user._id
+    })
 
-    // if (!foundCard) {
-    //   throw { message: 'Cannot find card' }
-    // }
+    if (!foundCard) {
+      throw { message: 'Cannot find card' }
+    }
 
     // charge the customer
     const charge = await stripe.charges.create({
       amount,
       currency,
-      customer: 'cus_FV5Esb02bVBt4D'
-      // customer: foundCard.customer.id // Previously stored, then retrieved
+      customer: foundCard.customer.id // Previously stored, then retrieved
     })
 
     req.charge = charge
