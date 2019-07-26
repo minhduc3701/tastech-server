@@ -537,7 +537,7 @@ router.post(
   createOrFindHotelOrder,
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
-  stripeCharging,
+  // stripeCharging,
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
@@ -546,7 +546,7 @@ router.post(
     const trip = req.trip
     let flightOrder = req.flightOrder
     let hotelOrder = req.hotelOrder
-    const charge = req.charge
+    // const charge = req.charge
 
     let bookingResponse = req.bookingResponse
 
@@ -556,7 +556,7 @@ router.post(
       }
 
       res.status(200).send({
-        status: charge.status,
+        // status: charge.status,
         trip: _.pick(trip, ['_id']),
         flightOrder,
         hotelOrder
