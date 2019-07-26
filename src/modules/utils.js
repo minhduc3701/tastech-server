@@ -331,6 +331,7 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
             rawTotalPrice: rate.net,
             cancelRules: rate.cancellationPolicies,
             ratePlanCode: rate.rateKey,
+            rateType: rate.rateType,
             boardName: rate.boardName,
             bedTypes: []
           })

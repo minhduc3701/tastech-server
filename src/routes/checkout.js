@@ -447,8 +447,10 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
 
 const hotelbedsCheckRate = async (req, res, next) => {
   const trip = req.trip
+  const supplier = _.get(trip, 'hotel.supplier')
+  const rateType = _.get(trip, 'hotel.rateType')
 
-  if (_.get(trip, 'hotel.supplier') !== 'hotelbeds') {
+  if (supplier !== 'hotelbeds' || rateType !== 'RECHECK') {
     next()
     return
   }
@@ -561,8 +563,6 @@ router.post(
         hotelOrder
       })
     } catch (error) {
-      console.log(error)
-
       // update order status to failed if something went wrong
       if (trip.flight && flightOrder) {
         flightOrder.status = 'failed'
