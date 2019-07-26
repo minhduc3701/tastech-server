@@ -81,10 +81,12 @@ router.post('/shopping', currencyExchange, sabreToken, async (req, res) => {
   try {
     let sabreRes = await apiSabre.shopping(data, req.sabreToken)
     sabreRes = sabreRes.data.groupedItineraryResponse
+
     let { itineraryGroups } = sabreRes
     let flights = makeSabreFlightsData(itineraryGroups, sabreRes, req)
     let airlines = []
     let airports = []
+
     flights.forEach(flight => {
       flight.departureSegments.forEach(segment => {
         airlines.push(segment.airline)
@@ -149,6 +151,7 @@ router.post('/shopping', currencyExchange, sabreToken, async (req, res) => {
       })
     })
   } catch (error) {
+    console.log(error)
     return res.status(400).send()
   }
 })

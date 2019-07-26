@@ -19,7 +19,6 @@ const api = require('../../modules/api')
 router.post('/shopping', currencyExchange, async (req, res) => {
   try {
     let flights = await api.shopping(req.body.search)
-
     let isRoundTrip = req.body.search.searchAirLegs.length === 2
 
     flights = makeFlightsData(flights, {
