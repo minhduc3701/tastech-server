@@ -9,7 +9,9 @@ const endpoints = {
   hotels: '/hotel-api/1.0/hotels',
   hotelContents: '/hotel-content-api/1.0/hotels',
   checkRate: '/hotel-api/1.0/checkrates',
-  bookings: '/hotel-api/1.0/bookings'
+  bookings: '/hotel-api/1.0/bookings',
+  facilities: '/hotel-content-api/1.0/types/facilities',
+  facilityGroups: '/hotel-content-api/1.0/types/facilitygroups'
 }
 
 const api = {
@@ -42,6 +44,22 @@ const api = {
   cancelHotelbedsOrder: bookingReference => {
     return hotelbedsHttp.delete(
       `${endpoints.bookings}/${bookingReference}?cancellationFlag=CANCELLATION`,
+      {
+        headers: generateHeader()
+      }
+    )
+  },
+  getFacilities: () => {
+    return hotelbedsHttp.get(
+      `${endpoints.facilities}?fields=all&from=1&to=500`,
+      {
+        headers: generateHeader()
+      }
+    )
+  },
+  getFacilityGroups: () => {
+    return hotelbedsHttp.get(
+      `${endpoints.facilityGroups}?fields=all&from=1&to=100`,
       {
         headers: generateHeader()
       }

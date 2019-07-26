@@ -20,7 +20,8 @@ router.post('/search', function(req, res, next) {
     { $limit: 30 },
     {
       $project: {
-        name: 1
+        name: 1,
+        coordinates: 1
       }
     }
   ])
@@ -35,13 +36,15 @@ router.post('/search', function(req, res, next) {
         }),
         IataCity.find({
           city_id: { $in: cityIds }
-        })
+        }),
+        cities
       ])
     })
     .then(results => {
       let airports = results[0]
       let iataCities = results[1]
-      res.status(200).send({ airports, iataCities })
+      let cities = results[2]
+      res.status(200).send({ cities, airports, iataCities })
     })
     .catch(e => {
       res.status(400).send()
