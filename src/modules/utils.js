@@ -151,12 +151,31 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
         leg => leg.id === i.legs[0].ref
       )
       obj.departureSegments = []
+      // console.log(i)
+      // console.log("schedules: ", obj.departureDescs.schedules)
+      // console.log("schedules - length: ", obj.departureDescs.schedules.length)
+      // console.log("fareComponents - length: ", i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo.fareComponents.length)
+      // console.log("fareComponents: ", i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo.fareComponents)
+      // console.log("-------")
       obj.departureDescs.schedules.map((s, index) => {
-        let cabinCode =
-          i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
-            .fareComponents[index].segments[0].segment.cabinCode
-        let cabinClass = mapClassOptions[cabinCode]
+        // let cabinCode =
+        //   i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
+        //     .fareComponents[index].segments[0].segment.cabinCode
+        // let cabinClass = mapClassOptions[cabinCode]
+        let cabinClass = 'ECONOMY'
         let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
+        let toDayText = moment().format('YYYY-MM-DDT')
+        let nextDayText = moment()
+          .add(1, 'days')
+          .format('YYYY-MM-DDT')
+        let flightTime = moment
+          .utc(`${toDayText}${data.arrival.time}`)
+          .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
+        if (flightTime < 0) {
+          flightTime = moment
+            .utc(`${nextDayText}${data.arrival.time}`)
+            .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
+        }
         obj.departureSegments.push({
           id: data.id,
           cabinClass,
@@ -165,10 +184,7 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
           strDepartureTime: data.departure.time.substring(0, 5),
           strArrivalTime: data.arrival.time.substring(0, 5),
           flightNum: data.carrier.marketingFlightNumber,
-          flightTime: moment(data.arrival.time.substring(0, 5), 'hh:mm').diff(
-            moment(data.departure.time.substring(0, 5), 'hh:mm'),
-            'minutes'
-          ),
+          flightTime,
           airline: data.carrier.marketing
         })
       })
@@ -191,13 +207,18 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
           leg => leg.id === i.legs[1].ref
         )
         obj.returnSegments = []
+        // console.log("return schecule : ", obj.returnDescs.schedules)
+        // console.log("return schecule - length: ", obj.returnDescs.schedules.length)
+        // console.log("-------")
+
         obj.returnDescs.schedules.map((s, index) => {
           let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
-          let cabinCode =
-            i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
-              .fareComponents[obj.departureSegments.length + index - 1]
-              .segments[0].segment.cabinCode
-          let cabinClass = mapClassOptions[cabinCode]
+          // let cabinCode =
+          //   i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
+          //     .fareComponents[1]
+          //     .segments[index].segment.cabinCode
+          // let cabinClass = mapClassOptions[cabinCode]
+          let cabinClass = 'ECONOMY'
           obj.returnSegments.push({
             id: data.id,
             cabinClass,
