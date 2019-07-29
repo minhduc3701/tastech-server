@@ -320,6 +320,15 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
       room.rates
         .filter(rate => rate.paymentType === 'AT_WEB')
         .forEach(rate => {
+          const cancelRules = _.get(rate, 'cancellationPolicies', []).map(
+            rule => {
+              return {
+                cancelCharge: rule.amount * currency.rate,
+                from: rule.from
+              }
+            }
+          )
+
           rooms.push({
             paymentType: rate.paymentType,
             ratePlanCode: room.rateKey,
@@ -329,7 +338,7 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
             rawCurrency: hotel.currency,
             totalPrice: Number(rate.net) * currency.rate,
             rawTotalPrice: rate.net,
-            cancelRules: rate.cancellationPolicies,
+            cancelRules: cancelRules,
             ratePlanCode: rate.rateKey,
             rateType: rate.rateType,
             boardName: rate.boardName,
