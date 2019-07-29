@@ -127,8 +127,8 @@ router.post('/hotelList', currencyExchange, (req, res) => {
           images,
           policies,
           amenities,
-          summary: summary.description,
-          description: description.description,
+          summary: _.get(summary, 'description'),
+          description: _.get(description, 'description'),
           transportations
         }
       })
