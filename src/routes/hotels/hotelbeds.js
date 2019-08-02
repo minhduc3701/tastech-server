@@ -7,11 +7,13 @@ const {
   makeHotelbedsRoomsData
 } = require('../../modules/utils')
 const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
+const { logger } = require('../../config/winston')
 
 router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
   try {
     // get available hotelbeds rooms
     let { roomRequest } = req.body
+
     let hotelbedsRoomsRes = await api.getRooms(roomRequest)
 
     let hotelbedsRoomsData = makeHotelbedsRoomsData(
@@ -73,7 +75,12 @@ router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
     const queryString = `fields=all&codes=${hotelId}`
     let hotelbedsHotelsRes = await api.getHotels(queryString)
 
+    logger.info('AvailibilityRQ', roomRequest)
+
     let hotelbedsRoomsRes = await api.getRooms(roomRequest)
+
+    logger.info('AvailibilityRS', hotelbedsRoomsRes.data)
+
     let hotelbedsRoomsData = []
     if (hotelbedsRoomsRes.data.hotels.total > 0) {
       hotelbedsRoomsData = makeHotelbedsRoomsData(

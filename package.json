@@ -39,6 +39,7 @@
     "pug": "2.0.0-beta11",
     "stripe": "^6.34.0",
     "validator": "^10.11.0",
+    "winston": "^3.2.1",
     "zlib": "^1.0.5"
   },
   "devDependencies": {
