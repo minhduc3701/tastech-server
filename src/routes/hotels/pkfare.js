@@ -272,7 +272,7 @@ router.post('/createOrder', (req, res) => {
     })
 })
 
-router.get('/pkfare/:id', currencyExchange, async (req, res) => {
+router.get('/:id', currencyExchange, async (req, res) => {
   hotelId = req.params.id
 
   Promise.all([

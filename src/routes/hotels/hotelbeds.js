@@ -36,6 +36,7 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
       hotelFacilityRes.data.facilities,
       hotelFacilityGroupRes.data.facilityGroups
     )
+    hotelbedsHotelsData = hotelbedsHotelsData.filter(hotel => hotel !== null)
 
     if (hotelbedsRoomsRes.data) {
       res.status(200).send({
