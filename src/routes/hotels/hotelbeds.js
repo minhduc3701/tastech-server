@@ -26,15 +26,10 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
     }`
     let hotelbedsHotelsRes = await api.getHotels(queryString)
 
-    let hotelFacilityRes = await api.getFacilities()
-    let hotelFacilityGroupRes = await api.getFacilityGroups()
-
     let hotelbedsHotelsData = makeHotelbedsHotelsData(
       hotelbedsHotelsRes.data.hotels,
       hotelbedsRoomsData,
-      req.currency,
-      hotelFacilityRes.data.facilities,
-      hotelFacilityGroupRes.data.facilityGroups
+      req.currency
     )
     hotelbedsHotelsData = hotelbedsHotelsData.filter(hotel => hotel !== null)
 
@@ -65,34 +60,6 @@ router.post('/rooms', hotelbedsCurrencyExchange, (req, res) => {
     })
     .catch(error => {
       res.status(400).send({ message: '404 Bad request' })
-    })
-})
-
-router.post('/checkRate', (req, res) => {
-  const request = req.body
-  api
-    .checkRate(request)
-    .then(response => {
-      if (response.data) {
-        res.status(200).send({ hotel: response.data.hotel })
-      }
-    })
-    .catch(error => {
-      res.status(400).send()
-    })
-})
-
-router.post('/bookings', (req, res) => {
-  const request = req.body
-  api
-    .createHotelbedsOrder(request)
-    .then(response => {
-      if (response.data) {
-        res.status(200).send({ data: response.data })
-      }
-    })
-    .catch(error => {
-      res.status(400).send(error.response.data)
     })
 })
 

@@ -281,8 +281,9 @@ const makeHotelbedsHotelsData = (
           return newImage
         })
 
-        let facilitites = _.get(matchingHotel, 'facilities', []).map(
-          facility => {
+        let facilitites = []
+        if (hotelFacilities && hotelFacilityGroups) {
+          facilitites = _.get(matchingHotel, 'facilities', []).map(facility => {
             let matchingFacility = hotelFacilities.find(
               hotelFacility => hotelFacility.code === facility.facilityCode
             )
@@ -302,9 +303,9 @@ const makeHotelbedsHotelsData = (
                 name: facilityName
               }
             } else return null
-          }
-        )
-        facilitites = facilitites.filter(facility => facility !== null)
+          })
+          facilitites = facilitites.filter(facility => facility !== null)
+        }
 
         let transportations = _.get(matchingHotel, 'interestPoints', []).map(
           point => {
@@ -338,7 +339,6 @@ const makeHotelbedsHotelsData = (
     })
   } else {
     // has availabile rooms
-    // return hotelbedsHotels[0]
     let hotel = hotelbedsHotels[0]
     return [
       {
@@ -415,10 +415,41 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
   })
 }
 
+const makeHotelbedsPaxes = (passengers, rateKeys) => {
+  let rooms = rateKeys.map(room => [])
+  let numberOfRoom = rateKeys.length
+  let count = 0
+
+  passengers.forEach(passenger => {
+    let pax = {
+      roomId: 1,
+      type: 'AD',
+      name: passenger.firstName,
+      surName: passenger.lastName
+    }
+    if (rooms[count].hasOwnProperty('rateKey')) {
+      rooms[count]['paxes'].push(pax)
+    } else {
+      rooms[count] = {
+        rateKey: rateKeys[count],
+        paxes: [pax]
+      }
+    }
+
+    if (count < numberOfRoom - 1) {
+      count++
+    } else {
+      count = 0
+    }
+  })
+  return rooms
+}
+
 module.exports = {
   makeSegmentsData,
   makeSabreFlightsData,
   makeRoomGuestDetails,
+  makeHotelbedsPaxes,
   removeSpaces,
   makeFlightsData,
   makeHotelbedsHotelsData,
