@@ -415,32 +415,22 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
   })
 }
 
-const makeHtbRoomPaxes = (passengers, rateKeys) => {
-  let rooms = rateKeys.map(room => [])
-  let numberOfRoom = rateKeys.length
-  let count = 0
+const makeHtbRoomPaxes = (passengers, numberOfRoom, rateKey) => {
+  let rooms = [
+    {
+      rateKey: rateKey,
+      paxes: []
+    }
+  ]
 
-  passengers.forEach(passenger => {
+  passengers.forEach((passenger, index) => {
     let passengerInfo = {
-      roomId: 1,
+      roomId: (index % numberOfRoom) + 1,
       type: 'AD',
       name: passenger.firstName,
       surName: passenger.lastName
     }
-    if (rooms[count].hasOwnProperty('rateKey')) {
-      rooms[count]['paxes'].push(passengerInfo)
-    } else {
-      rooms[count] = {
-        rateKey: rateKeys[count],
-        paxes: [passengerInfo]
-      }
-    }
-
-    if (count < numberOfRoom - 1) {
-      count++
-    } else {
-      count = 0
-    }
+    rooms[0]['paxes'].push(passengerInfo)
   })
   return rooms
 }

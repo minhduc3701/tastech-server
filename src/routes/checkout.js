@@ -497,7 +497,11 @@ const hotelbedsCreateOrder = async (req, res, next) => {
         name: trip.contactInfo.name,
         surname: trip.contactInfo.lastName
       },
-      rooms: makeHtbRoomPaxes(trip.passengers, [trip.hotel.ratePlanCode]),
+      rooms: makeHtbRoomPaxes(
+        trip.passengers,
+        trip.hotel.numberOfRoom,
+        trip.hotel.ratePlanCode
+      ),
       clientReference: `EzBizTrip${hotelOrder._id.toHexString()}`.substring(
         0,
         20
