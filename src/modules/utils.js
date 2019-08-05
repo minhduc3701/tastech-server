@@ -298,8 +298,9 @@ const makeHotelbedsHotelsData = (
           return newImage
         })
 
-        let facilitites = _.get(matchingHotel, 'facilities', []).map(
-          facility => {
+        let facilitites = []
+        if (hotelFacilities && hotelFacilityGroups) {
+          facilitites = _.get(matchingHotel, 'facilities', []).map(facility => {
             let matchingFacility = hotelFacilities.find(
               hotelFacility => hotelFacility.code === facility.facilityCode
             )
@@ -319,9 +320,9 @@ const makeHotelbedsHotelsData = (
                 name: facilityName
               }
             } else return null
-          }
-        )
-        facilitites = facilitites.filter(facility => facility !== null)
+          })
+          facilitites = facilitites.filter(facility => facility !== null)
+        }
 
         let transportations = _.get(matchingHotel, 'interestPoints', []).map(
           point => {
@@ -355,7 +356,6 @@ const makeHotelbedsHotelsData = (
     })
   } else {
     // has availabile rooms
-    // return hotelbedsHotels[0]
     let hotel = hotelbedsHotels[0]
     return [
       {
@@ -432,10 +432,31 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
   })
 }
 
+const makeHtbRoomPaxes = (passengers, numberOfRoom, rateKey) => {
+  let rooms = [
+    {
+      rateKey: rateKey,
+      paxes: []
+    }
+  ]
+
+  passengers.forEach((passenger, index) => {
+    let passengerInfo = {
+      roomId: (index % numberOfRoom) + 1,
+      type: 'AD',
+      name: passenger.firstName,
+      surName: passenger.lastName
+    }
+    rooms[0]['paxes'].push(passengerInfo)
+  })
+  return rooms
+}
+
 module.exports = {
   makeSegmentsData,
   makeSabreFlightsData,
   makeRoomGuestDetails,
+  makeHtbRoomPaxes,
   removeSpaces,
   makeFlightsData,
   makeHotelbedsHotelsData,

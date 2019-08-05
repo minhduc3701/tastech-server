@@ -5,7 +5,11 @@ const Trip = require('../models/trip')
 const Order = require('../models/order')
 const api = require('../modules/api')
 const apiHotelbeds = require('../modules/apiHotelbeds')
-const { makeSegmentsData, makeRoomGuestDetails } = require('../modules/utils')
+const {
+  makeSegmentsData,
+  makeRoomGuestDetails,
+  makeHtbRoomPaxes
+} = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
@@ -493,19 +497,11 @@ const hotelbedsCreateOrder = async (req, res, next) => {
         name: trip.contactInfo.name,
         surname: trip.contactInfo.lastName
       },
-      rooms: [
-        {
-          rateKey: trip.hotel.ratePlanCode,
-          paxes: [
-            {
-              roomId: 1,
-              type: 'AD',
-              name: trip.passengers[0].firstName,
-              surname: trip.passengers[0].lastName
-            }
-          ]
-        }
-      ],
+      rooms: makeHtbRoomPaxes(
+        trip.passengers,
+        trip.hotel.numberOfRoom,
+        trip.hotel.ratePlanCode
+      ),
       clientReference: `EzBizTrip${hotelOrder._id.toHexString()}`.substring(
         0,
         20
