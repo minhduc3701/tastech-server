@@ -140,26 +140,18 @@ const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
   return flightsData
 }
 const getSegmentForFlight = (fareComponents, index) => {
-  try {
-    let startIndex = 0
-    for (let i = 0; i < fareComponents.length; i++) {
-      for (let j = 0; j < fareComponents[i].segments.length; j++) {
-        if (startIndex + j === index) {
-          let cabinClass =
-            mapClassOptions[fareComponents[i].segments[j].segment.cabinCode]
-          let seatsAvailable =
-            fareComponents[i].segments[j].segment.seatsAvailable
-          // console.log("cabinClass: ", cabinClass)
-
-          return { cabinClass, seatsAvailable }
-          // return cabinClass
-        }
+  let startIndex = 0
+  for (let i = 0; i < fareComponents.length; i++) {
+    for (let j = 0; j < fareComponents[i].segments.length; j++) {
+      if (startIndex + j === index) {
+        let cabinClass =
+          mapClassOptions[fareComponents[i].segments[j].segment.cabinCode]
+        let seatsAvailable =
+          fareComponents[i].segments[j].segment.seatsAvailable
+        return { cabinClass, seatsAvailable }
       }
-      startIndex += fareComponents[i].segments.length
     }
-    return 'ktd'
-  } catch (error) {
-    return ' aaa '
+    startIndex += fareComponents[i].segments.length
   }
 }
 const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
