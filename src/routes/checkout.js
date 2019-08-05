@@ -8,7 +8,7 @@ const apiHotelbeds = require('../modules/apiHotelbeds')
 const {
   makeSegmentsData,
   makeRoomGuestDetails,
-  makeHotelbedsPaxes
+  makeHtbRoomPaxes
 } = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
@@ -497,7 +497,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
         name: trip.contactInfo.name,
         surname: trip.contactInfo.lastName
       },
-      rooms: makeHotelbedsPaxes(trip.passengers, [trip.hotel.ratePlanCode]),
+      rooms: makeHtbRoomPaxes(trip.passengers, [trip.hotel.ratePlanCode]),
       clientReference: `EzBizTrip${hotelOrder._id.toHexString()}`.substring(
         0,
         20

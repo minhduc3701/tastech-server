@@ -415,24 +415,24 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
   })
 }
 
-const makeHotelbedsPaxes = (passengers, rateKeys) => {
+const makeHtbRoomPaxes = (passengers, rateKeys) => {
   let rooms = rateKeys.map(room => [])
   let numberOfRoom = rateKeys.length
   let count = 0
 
   passengers.forEach(passenger => {
-    let pax = {
+    let passengerInfo = {
       roomId: 1,
       type: 'AD',
       name: passenger.firstName,
       surName: passenger.lastName
     }
     if (rooms[count].hasOwnProperty('rateKey')) {
-      rooms[count]['paxes'].push(pax)
+      rooms[count]['paxes'].push(passengerInfo)
     } else {
       rooms[count] = {
         rateKey: rateKeys[count],
-        paxes: [pax]
+        paxes: [passengerInfo]
       }
     }
 
@@ -449,7 +449,7 @@ module.exports = {
   makeSegmentsData,
   makeSabreFlightsData,
   makeRoomGuestDetails,
-  makeHotelbedsPaxes,
+  makeHtbRoomPaxes,
   removeSpaces,
   makeFlightsData,
   makeHotelbedsHotelsData,
