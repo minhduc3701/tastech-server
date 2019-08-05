@@ -157,10 +157,8 @@ const getSegmentForFlight = (fareComponents, index) => {
       }
       startIndex += fareComponents[i].segments.length
     }
-    console.log('ko tim dc')
     return 'ktd'
   } catch (error) {
-    console.log('error')
     return ' aaa '
   }
 }
@@ -171,35 +169,23 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
       let obj = {
         legs: i.legs
       }
+      obj.refundable = !i.pricingInformation[0].fare.passengerInfoList[0]
+        .passengerInfo.nonRefundable
       obj.departureDescs = sabreRes.legDescs.find(
         leg => leg.id === i.legs[0].ref
       )
       obj.departureSegments = []
-      // console.log(i)
-      // console.log("schedules: ", obj.departureDescs.schedules)
-      // console.log("schedules - length: ", obj.departureDescs.schedules.length)
-      // console.log("fareComponents - length: ", i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo.fareComponents.length)
-      // console.log("fareComponents: ", i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo.fareComponents)
       obj.departureDescs.schedules.map((s, index) => {
-        // let cabinCode =
-        //   i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
-        //     .fareComponents[index].segments[0].segment.cabinCode
-        // let cabinClass = mapClassOptions[cabinCode]
-        // let cabinClass = 'ECONOMY'
         let cabinClass = getSegmentForFlight(
           i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
             .fareComponents,
           index
         ).cabinClass
-        console.log('===========after do function: ')
-
         let seatsAvailable = getSegmentForFlight(
           i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
             .fareComponents,
           index
         ).seatsAvailable
-        console.log('cabinClass:', cabinClass)
-        console.log('seatsAvailable:', seatsAvailable)
         let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
         let toDayText = moment().format('YYYY-MM-DDT')
         let nextDayText = moment()
@@ -257,8 +243,6 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
               .fareComponents,
             index + obj.departureDescs.schedules.length
           ).seatsAvailable
-          console.log('cabinClass:', cabinClass)
-          console.log('seatsAvailable:', seatsAvailable)
           obj.returnSegments.push({
             id: data.id,
             cabinClass,
