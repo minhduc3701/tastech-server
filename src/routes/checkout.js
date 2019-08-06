@@ -506,11 +506,8 @@ const hotelbedsCreateOrder = async (req, res, next) => {
         trip.hotel.numberOfRoom,
         trip.hotel.ratePlanCode
       ),
-      clientReference: `EzBizTrip${hotelOrder._id.toHexString()}`.substring(
-        0,
-        20
-      ),
-      remark: 'Booking remarks are to be written here.',
+      clientReference: 'EzBizTrip',
+      remark: '',
       tolerance: 2.0
     }
 
