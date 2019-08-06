@@ -92,6 +92,22 @@ const OrderSchema = new Schema(
         }
       }
     ],
+    childrenInfo: [
+      {
+        age: {
+          type: Number,
+          required: true
+        },
+        firstName: {
+          type: String,
+          trim: true
+        },
+        lastName: {
+          type: String,
+          trim: true
+        }
+      }
+    ],
     contactInfo: {
       name: {
         type: String,
@@ -119,7 +135,8 @@ const OrderSchema = new Schema(
         type: String,
         trim: true
       }
-    }
+    },
+    supplierInfo: {}
   },
   {
     timestamps: true

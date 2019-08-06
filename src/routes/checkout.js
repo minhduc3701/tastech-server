@@ -60,6 +60,7 @@ const createOrFindTrip = async (req, res, next) => {
         ...trip,
         _creator: req.user._id
       })
+
       await foundTrip.save()
       trip._id = foundTrip._id
     } // end outer if
@@ -169,6 +170,7 @@ const createOrFindHotelOrder = async (req, res, next) => {
           hotel: trip.hotel,
           _customer: req.user._id,
           passengers: trip.passengers,
+          childrenInfo: trip.childrenInfo,
           contactInfo: trip.contactInfo
         })
       }
@@ -490,6 +492,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
   }
 
   let hotelOrder = req.hotelOrder
+  let childrenInfo = _.get(trip, 'childrenInfo', [])
 
   try {
     let request = {
@@ -499,6 +502,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
       },
       rooms: makeHtbRoomPaxes(
         trip.passengers,
+        childrenInfo,
         trip.hotel.numberOfRoom,
         trip.hotel.ratePlanCode
       ),
@@ -520,6 +524,10 @@ const hotelbedsCreateOrder = async (req, res, next) => {
     // create hotel order
     hotelOrder.customerCode = orderData.booking.reference
     hotelOrder.number = orderData.booking.reference
+    hotelOrder.supplierInfo = {
+      rooms: _.get(orderData, 'booking.hotel.rooms'),
+      vat: _.get(orderData, 'booking.hotel.supplier.vatNumber')
+    }
     hotelOrder.status = 'completed'
     hotelOrder.canCancel = true
     await hotelOrder.save()

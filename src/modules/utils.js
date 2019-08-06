@@ -432,7 +432,7 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
   })
 }
 
-const makeHtbRoomPaxes = (passengers, numberOfRoom, rateKey) => {
+const makeHtbRoomPaxes = (passengers, children, numberOfRoom, rateKey) => {
   let rooms = [
     {
       rateKey: rateKey,
@@ -449,6 +449,17 @@ const makeHtbRoomPaxes = (passengers, numberOfRoom, rateKey) => {
     }
     rooms[0]['paxes'].push(passengerInfo)
   })
+
+  children.forEach((child, index) => {
+    let childInfo = {
+      roomId: (index % numberOfRoom) + 1,
+      type: 'CH',
+      name: child.firstName,
+      surName: child.lastName
+    }
+    rooms[0]['paxes'].push(childInfo)
+  })
+
   return rooms
 }
 
