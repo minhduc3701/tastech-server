@@ -11,7 +11,7 @@ jobs:
             "echo Start development deploy && \
             cd ~/server && \
             git fetch --all && \
-            git reset --hard origin/newIntegration && \
+            git reset --hard origin/develop && \
             yarn && \
             pm2 stop "server" && \
             PORT=8080 NODE_ENV=development pm2 start ./bin/www --name "server" && \
@@ -41,7 +41,7 @@ workflows:
           filters:
             branches:
               only:
-                - newIntegration
+                - develop
       - deploy:
           filters:
             branches:
