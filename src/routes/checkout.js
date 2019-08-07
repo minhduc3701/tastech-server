@@ -5,7 +5,7 @@ const Trip = require('../models/trip')
 const Order = require('../models/order')
 const api = require('../modules/api')
 const apiSabre = require('../modules/apiSabre')
-
+const { sabreToken } = require('../middleware/sabre')
 const apiHotelbeds = require('../modules/apiHotelbeds')
 const {
   makeSegmentsData,
@@ -684,6 +684,7 @@ const sabreCreatePNR = async (req, res, next) => {
 
 router.post(
   '/card',
+  sabreToken, // get token for sabre api
   createOrFindTrip,
   createOrFindFlightOrder,
   createOrFindHotelOrder,
@@ -700,7 +701,6 @@ router.post(
     const trip = req.trip
     let flightOrder = req.flightOrder
     let hotelOrder = req.hotelOrder
-
     // const charge = req.charge
 
     let bookingResponse = req.bookingResponse
