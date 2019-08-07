@@ -3,6 +3,7 @@ const router = express.Router()
 const City = require('../models/city')
 const Airport = require('../models/airport')
 const IataCity = require('../models/iataCity')
+const Country = require('../models/country')
 
 const _ = require('lodash')
 
@@ -21,7 +22,8 @@ router.post('/search', function(req, res, next) {
     {
       $project: {
         name: 1,
-        coordinates: 1
+        coordinates: 1,
+        country: 1
       }
     }
   ])
@@ -30,6 +32,7 @@ router.post('/search', function(req, res, next) {
       cities.map(city => {
         cityIds.push(city._id)
       })
+      let countryCodes = cities.map(city => city.country)
       return Promise.all([
         Airport.find({
           city_name_geo_name_id: { $in: cityIds }
@@ -37,13 +40,28 @@ router.post('/search', function(req, res, next) {
         IataCity.find({
           city_id: { $in: cityIds }
         }),
-        cities
+        cities,
+        Country.find({
+          cca2: { $in: countryCodes }
+        })
       ])
     })
     .then(results => {
       let airports = results[0]
       let iataCities = results[1]
       let cities = results[2]
+      let countries = results[3]
+
+      cities = cities.map(city => {
+        let countryItem = countries.find(
+          country => country.cca2 === city.country
+        )
+        return {
+          ...city,
+          label: city.name + ', ' + _.get(countryItem, 'name.common')
+        }
+      })
+
       res.status(200).send({ cities, airports, iataCities })
     })
     .catch(e => {

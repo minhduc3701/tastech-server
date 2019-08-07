@@ -65,6 +65,20 @@ router.post('/rooms', hotelbedsCurrencyExchange, (req, res) => {
     })
 })
 
+router.post('/checkRate', (req, res) => {
+  const request = req.body
+  api
+    .checkRate(request)
+    .then(response => {
+      if (response.data) {
+        res.status(200).send({ hotel: response.data.hotel })
+      }
+    })
+    .catch(error => {
+      res.status(400).send()
+    })
+})
+
 router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
   hotelId = req.params.id
   try {

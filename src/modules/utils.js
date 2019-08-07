@@ -337,6 +337,7 @@ const makeHotelbedsHotelsData = (
           country: matchingHotel.countryCode,
           cityName: matchingHotel.city.content,
           address: matchingHotel.address.content,
+          phones: matchingHotel.phones,
           zip: matchingHotel.postalCode,
           longitude: matchingHotel.coordinates.longitude,
           latitude: matchingHotel.coordinates.latitude,
@@ -365,6 +366,7 @@ const makeHotelbedsHotelsData = (
         country: hotel.countryCode,
         cityName: hotel.city.content,
         address: hotel.address.content,
+
         zip: hotel.postalCode,
         longitude: hotel.coordinates.longitude,
         latitude: hotel.coordinates.latitude,
