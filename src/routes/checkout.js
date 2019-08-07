@@ -550,6 +550,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
 }
 const sabreCreatePNR = async (req, res, next) => {
   const trip = req.trip
+  let flightOrder = req.flightOrder
   if (_.get(trip, 'flight.supplier') !== 'sabre') {
     next()
     return
@@ -610,7 +611,7 @@ const sabreCreatePNR = async (req, res, next) => {
         PostProcessing: {
           EndTransaction: {
             Source: {
-              ReceivedFrom: 'SWSTEST'
+              ReceivedFrom: 'EzBizTrip'
             }
           },
           RedisplayReservation: {
@@ -654,9 +655,26 @@ const sabreCreatePNR = async (req, res, next) => {
         }
       )
     })
-    logger.info('createPNR', data)
+    logger.info('createPNR request', data)
     let sabrePNRres = await apiSabre.createPNR(data, req.sabreToken)
-    req.flightOrder = sabrePNRres.data
+    let status = _.get(
+      sabrePNRres,
+      ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
+      'failed'
+    )
+    logger.info('createPNR response', sabrePNRres.data)
+    if (status === 'Complete') {
+      flightOrder.customerCode = _.get(
+        sabrePNRres,
+        ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
+        ''
+      )
+      flightOrder.status = 'processing'
+      await flightOrder.save()
+      req.flightOrder = flightOrder
+    } else {
+      throw 'Create PNR failed!'
+    }
   } catch (error) {
     req.checkoutError = error
   }
@@ -703,12 +721,12 @@ router.post(
       // update order status to failed if something went wrong
       if (trip.flight && flightOrder) {
         flightOrder.status = 'failed'
-        // await flightOrder.save()
+        await flightOrder.save()
       }
 
       if (trip.hotel && hotelOrder) {
         hotelOrder.status = 'failed'
-        // await hotelOrder.save()
+        await hotelOrder.save()
       }
 
       res.status(400).send({

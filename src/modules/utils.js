@@ -157,7 +157,6 @@ const getSegmentForFlight = (fareComponents, index) => {
 const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
   let flights = []
   itineraryGroups.map(l => {
-    console.log(l.groupDescription.legDescriptions[0].departureDate)
     let departureDate = moment(
       l.groupDescription.legDescriptions[0].departureDate
     ).format('YYYY-MM-DD')
