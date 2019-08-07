@@ -550,7 +550,6 @@ const hotelbedsCreateOrder = async (req, res, next) => {
 }
 const sabreCreatePNR = async (req, res, next) => {
   const trip = req.trip
-  console.log(req.sabreToken)
   if (_.get(trip, 'flight.supplier') !== 'sabre') {
     next()
     return
@@ -562,7 +561,6 @@ const sabreCreatePNR = async (req, res, next) => {
         targetCity: '5EJJ',
         version: '2.2.0',
         haltOnAirPriceError: true,
-        haltOnHotelBookError: true,
         TravelItineraryAddInfo: {
           AgencyInfo: {
             Ticketing: {
@@ -588,35 +586,8 @@ const sabreCreatePNR = async (req, res, next) => {
           }
         },
         AirBook: {
-          HaltOnStatus: [
-            {
-              Code: 'HL'
-            },
-            {
-              Code: 'KK'
-            },
-            {
-              Code: 'LL'
-            },
-            {
-              Code: 'NN'
-            },
-            {
-              Code: 'NO'
-            },
-            {
-              Code: 'UC'
-            },
-            {
-              Code: 'US'
-            }
-          ],
           OriginDestinationInformation: {
             FlightSegment: []
-          },
-          RedisplayReservation: {
-            NumAttempts: 2,
-            WaitInterval: 5000
           }
         },
         AirPrice: [
@@ -683,16 +654,10 @@ const sabreCreatePNR = async (req, res, next) => {
         }
       )
     })
-    console.log('data: ', data)
-
     logger.info('createPNR', data)
     let sabrePNRres = await apiSabre.createPNR(data, req.sabreToken)
-    console.log('sabrePNRres: ', sabrePNRres.data)
     req.flightOrder = sabrePNRres.data
-    req.log =
-      data.CreatePassengerNameRecordRQ.AirBook.OriginDestinationInformation.FlightSegment
   } catch (error) {
-    console.log('error: ', error.response.data)
     req.checkoutError = error
   }
 
@@ -717,7 +682,6 @@ router.post(
     const trip = req.trip
     let flightOrder = req.flightOrder
     let hotelOrder = req.hotelOrder
-    let log = req.log
 
     // const charge = req.charge
     const charge = req.charge
@@ -733,8 +697,7 @@ router.post(
         status: charge.status,
         trip: _.pick(trip, ['_id']),
         flightOrder,
-        hotelOrder,
-        log
+        hotelOrder
       })
     } catch (error) {
       // update order status to failed if something went wrong
@@ -752,8 +715,7 @@ router.post(
         ...error,
         trip: _.pick(trip, ['_id']),
         flightOrder,
-        hotelOrder,
-        log
+        hotelOrder
       })
     }
   }
