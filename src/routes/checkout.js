@@ -4,11 +4,17 @@ const Card = require('../models/card')
 const Trip = require('../models/trip')
 const Order = require('../models/order')
 const api = require('../modules/api')
-const { makeSegmentsData, makeRoomGuestDetails } = require('../modules/utils')
+const apiHotelbeds = require('../modules/apiHotelbeds')
+const {
+  makeSegmentsData,
+  makeRoomGuestDetails,
+  makeHtbRoomPaxes
+} = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
 const { USD, VND, SGD } = require('../config/currency')
+const { logger } = require('../config/winston')
 
 const createOrFindTrip = async (req, res, next) => {
   const { trip, checkoutAgain } = req.body
@@ -54,6 +60,7 @@ const createOrFindTrip = async (req, res, next) => {
         ...trip,
         _creator: req.user._id
       })
+
       await foundTrip.save()
       trip._id = foundTrip._id
     } // end outer if
@@ -163,6 +170,7 @@ const createOrFindHotelOrder = async (req, res, next) => {
           hotel: trip.hotel,
           _customer: req.user._id,
           passengers: trip.passengers,
+          childrenInfo: trip.childrenInfo,
           contactInfo: trip.contactInfo
         })
       }
@@ -374,6 +382,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
 
   if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'pkfare') {
     next()
+    return
   }
 
   let hotelOrder = req.hotelOrder
@@ -411,6 +420,13 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
         languageCode: 'en_US'
       }
 
+      const ageOfChildren = _.get(trip, 'childrenInfo', []).map(
+        child => child.age
+      )
+      if (ageOfChildren.length > 0) {
+        request['ageOfChildren'] = ageOfChildren
+      }
+
       let holteOrderRes = await api.createHotelOrder(request)
       let orderData = holteOrderRes.data
 
@@ -443,15 +459,105 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
   next()
 }
 
+const hotelbedsCheckRate = async (req, res, next) => {
+  const trip = req.trip
+  const supplier = _.get(trip, 'hotel.supplier')
+  const rateType = _.get(trip, 'hotel.rateType')
+
+  if (supplier !== 'hotelbeds' || rateType !== 'RECHECK') {
+    next()
+    return
+  }
+
+  try {
+    let request = {
+      rooms: [
+        {
+          rateKey: trip.hotel.ratePlanCode
+        }
+      ]
+    }
+
+    logger.info('CheckRateRQ', request)
+
+    let rateRes = await apiHotelbeds.checkRate(request)
+
+    logger.info('CheckRateRS', rateRes.data)
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const hotelbedsCreateOrder = async (req, res, next) => {
+  const trip = req.trip
+
+  if (_.get(trip, 'hotel.supplier') !== 'hotelbeds') {
+    next()
+    return
+  }
+
+  let hotelOrder = req.hotelOrder
+  let childrenInfo = _.get(trip, 'childrenInfo', [])
+
+  try {
+    let request = {
+      holder: {
+        name: trip.contactInfo.name,
+        surname: trip.contactInfo.lastName
+      },
+      rooms: makeHtbRoomPaxes(
+        trip.passengers,
+        childrenInfo,
+        trip.hotel.numberOfRoom,
+        trip.hotel.ratePlanCode
+      ),
+      clientReference: 'EzBizTrip',
+      remark: '',
+      tolerance: 2.0
+    }
+
+    logger.info('BookingRQ', request)
+
+    let hotelOrderRes = await apiHotelbeds.createHotelbedsOrder(request)
+    let orderData = hotelOrderRes.data
+
+    logger.info('BookingRS', orderData)
+
+    // create hotel order
+    hotelOrder.customerCode = orderData.booking.reference
+    hotelOrder.number = orderData.booking.reference
+    hotelOrder.supplierInfo = {
+      rooms: _.get(orderData, 'booking.hotel.rooms'),
+      vat: _.get(orderData, 'booking.hotel.supplier.vatNumber')
+    }
+    hotelOrder.status = 'completed'
+    hotelOrder.canCancel = true
+    await hotelOrder.save()
+
+    req.hotelOrder = hotelOrder
+  } catch (error) {
+    req.checkoutError = {
+      message: _.get(error, 'response.data.error.message'),
+      hotel: true
+    }
+  }
+
+  next()
+}
+
 router.post(
   '/card',
   createOrFindTrip,
   createOrFindFlightOrder,
   createOrFindHotelOrder,
   pkfareFlightPreBooking,
+  hotelbedsCheckRate,
   stripeCharging,
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
   async (req, res, next) => {
     // from createOrFindTrip
     const trip = req.trip

@@ -6,6 +6,7 @@ const axios = require('axios')
 const { authentication } = require('../config/pkfare')
 const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
+const apiHotelbeds = require('../modules/apiHotelbeds')
 
 router.get('/', function(req, res, next) {
   Order.find({
@@ -120,6 +121,18 @@ router.post('/cancel', async (req, res) => {
               await order.save()
               return res.status(200).send({ order, result: cancelRes.data })
             }
+            break
+
+          case 'hotelbeds':
+            let cancelHotelbedsRes = await apiHotelbeds.cancelHotelbedsOrder(
+              order.customerCode
+            )
+            order.status = 'cancelled'
+            order.canCancel = false
+            await order.save()
+            return res
+              .status(200)
+              .send({ order, result: cancelHotelbedsRes.data })
             break
         }
         break
