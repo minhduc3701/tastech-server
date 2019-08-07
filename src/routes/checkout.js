@@ -420,6 +420,13 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
         languageCode: 'en_US'
       }
 
+      const ageOfChildren = _.get(trip, 'childrenInfo', []).map(
+        child => child.age
+      )
+      if (ageOfChildren.length > 0) {
+        request['ageOfChildren'] = ageOfChildren
+      }
+
       let holteOrderRes = await api.createHotelOrder(request)
       let orderData = holteOrderRes.data
 
@@ -531,7 +538,6 @@ const hotelbedsCreateOrder = async (req, res, next) => {
 
     req.hotelOrder = hotelOrder
   } catch (error) {
-    console.log(error)
     req.checkoutError = {
       message: _.get(error, 'response.data.error.message'),
       hotel: true
