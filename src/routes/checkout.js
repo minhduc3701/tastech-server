@@ -7,11 +7,16 @@ const api = require('../modules/api')
 const apiSabre = require('../modules/apiSabre')
 
 const apiHotelbeds = require('../modules/apiHotelbeds')
-const { makeSegmentsData, makeRoomGuestDetails } = require('../modules/utils')
+const {
+  makeSegmentsData,
+  makeRoomGuestDetails,
+  makeHtbRoomPaxes
+} = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
 const { USD, VND, SGD } = require('../config/currency')
+const { logger } = require('../config/winston')
 
 const createOrFindTrip = async (req, res, next) => {
   const { trip, checkoutAgain } = req.body
@@ -57,6 +62,7 @@ const createOrFindTrip = async (req, res, next) => {
         ...trip,
         _creator: req.user._id
       })
+
       await foundTrip.save()
       trip._id = foundTrip._id
     } // end outer if
@@ -166,6 +172,7 @@ const createOrFindHotelOrder = async (req, res, next) => {
           hotel: trip.hotel,
           _customer: req.user._id,
           passengers: trip.passengers,
+          childrenInfo: trip.childrenInfo,
           contactInfo: trip.contactInfo
         })
       }
@@ -298,21 +305,20 @@ const stripeCharging = async (req, res, next) => {
     }
 
     // find the card
-    // let foundCard = await Card.findOne({
-    //   _id: cardId,
-    //   owner: req.user._id
-    // })
+    let foundCard = await Card.findOne({
+      _id: cardId,
+      owner: req.user._id
+    })
 
-    // if (!foundCard) {
-    //   throw { message: 'Cannot find card' }
-    // }
+    if (!foundCard) {
+      throw { message: 'Cannot find card' }
+    }
 
     // charge the customer
     const charge = await stripe.charges.create({
       amount,
       currency,
-      customer: 'cus_FV5Esb02bVBt4D'
-      // customer: foundCard.customer.id // Previously stored, then retrieved
+      customer: foundCard.customer.id // Previously stored, then retrieved
     })
 
     req.charge = charge
@@ -416,6 +422,13 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
         languageCode: 'en_US'
       }
 
+      const ageOfChildren = _.get(trip, 'childrenInfo', []).map(
+        child => child.age
+      )
+      if (ageOfChildren.length > 0) {
+        request['ageOfChildren'] = ageOfChildren
+      }
+
       let holteOrderRes = await api.createHotelOrder(request)
       let orderData = holteOrderRes.data
 
@@ -450,8 +463,10 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
 
 const hotelbedsCheckRate = async (req, res, next) => {
   const trip = req.trip
+  const supplier = _.get(trip, 'hotel.supplier')
+  const rateType = _.get(trip, 'hotel.rateType')
 
-  if (_.get(trip, 'hotel.supplier') !== 'hotelbeds') {
+  if (supplier !== 'hotelbeds' || rateType !== 'RECHECK') {
     next()
     return
   }
@@ -465,7 +480,11 @@ const hotelbedsCheckRate = async (req, res, next) => {
       ]
     }
 
+    logger.info('CheckRateRQ', request)
+
     let rateRes = await apiHotelbeds.checkRate(request)
+
+    logger.info('CheckRateRS', rateRes.data)
   } catch (error) {
     req.checkoutError = error
   }
@@ -482,6 +501,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
   }
 
   let hotelOrder = req.hotelOrder
+  let childrenInfo = _.get(trip, 'childrenInfo', [])
 
   try {
     let request = {
@@ -489,40 +509,37 @@ const hotelbedsCreateOrder = async (req, res, next) => {
         name: trip.contactInfo.name,
         surname: trip.contactInfo.lastName
       },
-      rooms: [
-        {
-          rateKey: trip.hotel.ratePlanCode,
-          paxes: [
-            {
-              roomId: 1,
-              type: 'AD',
-              name: trip.passengers[0].firstName,
-              surname: trip.passengers[0].lastName
-            }
-          ]
-        }
-      ],
-      clientReference: `EzBizTrip${hotelOrder._id.toHexString()}`.substring(
-        0,
-        20
+      rooms: makeHtbRoomPaxes(
+        trip.passengers,
+        childrenInfo,
+        trip.hotel.numberOfRoom,
+        trip.hotel.ratePlanCode
       ),
-      remark: 'Booking remarks are to be written here.',
+      clientReference: 'EzBizTrip',
+      remark: '',
       tolerance: 2.0
     }
+
+    logger.info('BookingRQ', request)
 
     let hotelOrderRes = await apiHotelbeds.createHotelbedsOrder(request)
     let orderData = hotelOrderRes.data
 
+    logger.info('BookingRS', orderData)
+
     // create hotel order
     hotelOrder.customerCode = orderData.booking.reference
     hotelOrder.number = orderData.booking.reference
+    hotelOrder.supplierInfo = {
+      rooms: _.get(orderData, 'booking.hotel.rooms'),
+      vat: _.get(orderData, 'booking.hotel.supplier.vatNumber')
+    }
     hotelOrder.status = 'completed'
     hotelOrder.canCancel = true
     await hotelOrder.save()
 
     req.hotelOrder = hotelOrder
   } catch (error) {
-    // console.log(error)
     req.checkoutError = {
       message: _.get(error, 'response.data.error.message'),
       hotel: true
@@ -548,16 +565,6 @@ const sabreCreatePNR = async (req, res, next) => {
         haltOnHotelBookError: true,
         TravelItineraryAddInfo: {
           AgencyInfo: {
-            Address: {
-              AddressLine: 'SABRE TRAVEL',
-              CityName: 'SOUTHLAKE',
-              CountryCode: 'US',
-              PostalCode: '76092',
-              StateCountyProv: {
-                StateCode: 'TX'
-              },
-              StreetNmbr: '3150 SABRE DRIVE'
-            },
             Ticketing: {
               TicketType: '7TAW'
             }
@@ -566,15 +573,13 @@ const sabreCreatePNR = async (req, res, next) => {
             ContactNumbers: {
               ContactNumber: [
                 {
-                  NameNumber: '1.1',
-                  Phone: `"${trip.contactInfo.phone}"`,
+                  Phone: trip.contactInfo.phone,
                   PhoneUseType: 'H'
                 }
               ]
             },
             Email: [
               {
-                NameNumber: '1.1',
                 Address: trip.contactInfo.email,
                 Type: 'TO'
               }
@@ -622,7 +627,7 @@ const sabreCreatePNR = async (req, res, next) => {
                   PassengerType: [
                     {
                       Code: 'ADT',
-                      Quantity: `"${trip.numberPassengers}"`
+                      Quantity: trip.numberPassengers.toString()
                     }
                   ]
                 }
@@ -646,11 +651,9 @@ const sabreCreatePNR = async (req, res, next) => {
     trip.passengers.map((p, index) => {
       data.CreatePassengerNameRecordRQ.TravelItineraryAddInfo.CustomerInfo.PersonName.push(
         {
-          NameNumber: `${index + 1}.1`,
           PassengerType: 'ADT',
           GivenName: p.firstName,
-          Surname: p.lastName,
-          Infant: false
+          Surname: p.lastName
         }
       )
     })
@@ -681,140 +684,8 @@ const sabreCreatePNR = async (req, res, next) => {
       )
     })
     console.log('data: ', data)
-    data = {
-      CreatePassengerNameRecordRQ: {
-        targetCity: '5EJJ',
-        version: '2.2.0',
-        haltOnAirPriceError: true,
-        haltOnHotelBookError: true,
-        TravelItineraryAddInfo: {
-          AgencyInfo: {
-            Address: {
-              AddressLine: 'SABRE TRAVEL',
-              CityName: 'SOUTHLAKE',
-              CountryCode: 'US',
-              PostalCode: '76092',
-              StateCountyProv: {
-                StateCode: 'TX'
-              },
-              StreetNmbr: '3150 SABRE DRIVE'
-            },
-            Ticketing: {
-              TicketType: '7TAW'
-            }
-          },
-          CustomerInfo: {
-            ContactNumbers: {
-              ContactNumber: [
-                {
-                  NameNumber: '1.1',
-                  Phone: '817-555-1212',
-                  PhoneUseType: 'H'
-                }
-              ]
-            },
-            Email: [
-              {
-                Address: 'WEBSERVICES.SUPPORT@SABRE.COM',
-                NameNumber: '1.1',
-                Type: 'TO'
-              }
-            ],
-            PersonName: [
-              {
-                NameNumber: '1.1',
-                PassengerType: 'ADT',
-                Infant: false,
-                GivenName: 'JOHN',
-                Surname: 'TEST'
-              }
-            ]
-          }
-        },
-        AirBook: {
-          HaltOnStatus: [
-            {
-              Code: 'HL'
-            },
-            {
-              Code: 'KK'
-            },
-            {
-              Code: 'LL'
-            },
-            {
-              Code: 'NN'
-            },
-            {
-              Code: 'NO'
-            },
-            {
-              Code: 'UC'
-            },
-            {
-              Code: 'US'
-            }
-          ],
-          OriginDestinationInformation: {
-            FlightSegment: [
-              {
-                DepartureDateTime: '2019-09-12T07:00:00',
-                FlightNumber: '1363',
-                ArrivalDateTime: '2019-09-12T10:25:00',
-                Status: 'NN',
-                ResBookDesigCode: 'Y',
-                NumberInParty: '1',
-                MarketingAirline: {
-                  Code: 'AS',
-                  FlightNumber: '1363'
-                },
-                MarriageGrp: 'O',
-                OperatingAirline: {
-                  Code: 'AS'
-                },
-                OriginLocation: {
-                  LocationCode: 'BOS'
-                },
-                DestinationLocation: {
-                  LocationCode: 'LAX'
-                }
-              }
-            ]
-          },
-          RedisplayReservation: {
-            NumAttempts: 2,
-            WaitInterval: 5000
-          }
-        },
-        AirPrice: [
-          {
-            PriceRequestInformation: {
-              OptionalQualifiers: {
-                PricingQualifiers: {
-                  PassengerType: [
-                    {
-                      Code: 'ADT',
-                      Quantity: '1'
-                    }
-                  ]
-                }
-              },
-              Retain: true
-            }
-          }
-        ],
-        PostProcessing: {
-          EndTransaction: {
-            Source: {
-              ReceivedFrom: 'SWSTEST'
-            }
-          },
-          RedisplayReservation: {
-            waitInterval: 100
-          }
-        }
-      }
-    }
+
+    logger.info('createPNR', data)
     let sabrePNRres = await apiSabre.createPNR(data, req.sabreToken)
     console.log('sabrePNRres: ', sabrePNRres.data)
     req.flightOrder = sabrePNRres.data
@@ -835,7 +706,7 @@ router.post(
   createOrFindHotelOrder,
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
-  // stripeCharging,
+  stripeCharging,
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
@@ -849,6 +720,7 @@ router.post(
     let log = req.log
 
     // const charge = req.charge
+    const charge = req.charge
 
     let bookingResponse = req.bookingResponse
 
@@ -858,15 +730,13 @@ router.post(
       }
 
       res.status(200).send({
-        // status: charge.status,
+        status: charge.status,
         trip: _.pick(trip, ['_id']),
         flightOrder,
         hotelOrder,
         log
       })
     } catch (error) {
-      // console.log(error)
-
       // update order status to failed if something went wrong
       if (trip.flight && flightOrder) {
         flightOrder.status = 'failed'

@@ -310,73 +310,102 @@ const makeHotelbedsHotelsData = (
   hotelFacilities,
   hotelFacilityGroups
 ) => {
-  return hotelbedsRooms.map(hotelRooms => {
-    let matchingHotel = hotelbedsHotels.find(
-      hotel => hotel.code === hotelRooms.code
-    )
-
-    if (matchingHotel) {
-      const images = _.get(matchingHotel, 'images', []).map(image => {
-        let newImage = {
-          ...image,
-          url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
-        }
-        return newImage
-      })
-
-      let facilitites = _.get(matchingHotel, 'facilities', []).map(facility => {
-        let matchingFacility = hotelFacilities.find(
-          hotelFacility => hotelFacility.code === facility.facilityCode
-        )
-        let matchingGroup = hotelFacilityGroups.find(
-          group => group.code === facility.facilityGroupCode
-        )
-
-        let facilityName = matchingFacility.description.content
-        if (facility.number > 0) {
-          facilityName += ': ' + facility.number
-        }
-
-        if (matchingFacility.description.content !== '1') {
-          return {
-            ...facility,
-            groupName: matchingGroup.description.content,
-            name: facilityName
-          }
-        } else return null
-      })
-      facilitites = facilitites.filter(facility => facility !== null)
-
-      let transportations = _.get(matchingHotel, 'interestPoints', []).map(
-        point => {
-          return `${point.poiName} - ${point.distance} meters`
-        }
+  // no available rooms
+  if (hotelbedsRooms.length > 0) {
+    return hotelbedsRooms.map(hotelRooms => {
+      let matchingHotel = hotelbedsHotels.find(
+        hotel => hotel.code === hotelRooms.code
       )
 
-      return {
-        hotelId: matchingHotel.code,
-        name: matchingHotel.name.content,
-        starRating: parseInt(matchingHotel.categoryCode.charAt(0)),
-        country: matchingHotel.countryCode,
-        cityName: matchingHotel.city.content,
-        address: matchingHotel.address.content,
-        zip: matchingHotel.postalCode,
-        longitude: matchingHotel.coordinates.longitude,
-        latitude: matchingHotel.coordinates.latitude,
-        summary: matchingHotel.description.content,
-        description: matchingHotel.description.content,
-        amenities: facilitites,
+      if (matchingHotel) {
+        const images = _.get(matchingHotel, 'images', []).map(image => {
+          let newImage = {
+            ...image,
+            url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
+          }
+          return newImage
+        })
+
+        let facilitites = []
+        if (hotelFacilities && hotelFacilityGroups) {
+          facilitites = _.get(matchingHotel, 'facilities', []).map(facility => {
+            let matchingFacility = hotelFacilities.find(
+              hotelFacility => hotelFacility.code === facility.facilityCode
+            )
+            let matchingGroup = hotelFacilityGroups.find(
+              group => group.code === facility.facilityGroupCode
+            )
+
+            let facilityName = matchingFacility.description.content
+            if (facility.number > 0) {
+              facilityName += ': ' + facility.number
+            }
+
+            if (matchingFacility.description.content !== '1') {
+              return {
+                ...facility,
+                groupName: matchingGroup.description.content,
+                name: facilityName
+              }
+            } else return null
+          })
+          facilitites = facilitites.filter(facility => facility !== null)
+        }
+
+        let transportations = _.get(matchingHotel, 'interestPoints', []).map(
+          point => {
+            return `${point.poiName} - ${point.distance} meters`
+          }
+        )
+
+        return {
+          hotelId: matchingHotel.code,
+          name: matchingHotel.name.content,
+          starRating: parseInt(matchingHotel.categoryCode.charAt(0)),
+          country: matchingHotel.countryCode,
+          cityName: matchingHotel.city.content,
+          address: matchingHotel.address.content,
+          zip: matchingHotel.postalCode,
+          longitude: matchingHotel.coordinates.longitude,
+          latitude: matchingHotel.coordinates.latitude,
+          summary: matchingHotel.description.content,
+          description: matchingHotel.description.content,
+          amenities: facilitites,
+          policies: [],
+          transportations: transportations,
+          images: images,
+          lowestPrice: hotelRooms.lowestPrice,
+          ratePlans: hotelRooms.ratePlans,
+          supplier: 'hotelbeds',
+          currency: currency.code
+        }
+      }
+      return null
+    })
+  } else {
+    // has availabile rooms
+    let hotel = hotelbedsHotels[0]
+    return [
+      {
+        hotelId: hotel.code,
+        name: hotel.name.content,
+        starRating: parseInt(hotel.categoryCode.charAt(0)),
+        country: hotel.countryCode,
+        cityName: hotel.city.content,
+        address: hotel.address.content,
+        zip: hotel.postalCode,
+        longitude: hotel.coordinates.longitude,
+        latitude: hotel.coordinates.latitude,
+        summary: hotel.description.content,
+        description: hotel.description.content,
+        amenities: [],
         policies: [],
-        transportations: transportations,
-        images: images,
-        lowestPrice: hotelRooms.lowestPrice,
-        ratePlans: hotelRooms.ratePlans,
+        transportations: [],
         supplier: 'hotelbeds',
         currency: currency.code
       }
-    }
-    return null
-  })
+    ]
+  }
 }
 
 const makeHotelbedsRoomsData = (hotels, currency) => {
@@ -386,6 +415,16 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
       room.rates
         .filter(rate => rate.paymentType === 'AT_WEB')
         .forEach(rate => {
+          const price = rate.sellingRate || rate.net
+          const cancelRules = _.get(rate, 'cancellationPolicies', []).map(
+            rule => {
+              return {
+                cancelCharge: rule.amount * currency.rate,
+                from: rule.from
+              }
+            }
+          )
+
           rooms.push({
             paymentType: rate.paymentType,
             ratePlanCode: room.rateKey,
@@ -393,10 +432,13 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
             roomName: room.name,
             currency: currency.code,
             rawCurrency: hotel.currency,
-            totalPrice: Number(rate.net) * currency.rate,
+            rawNet: rate.net,
+            rawSellingRate: rate.sellingRate,
+            totalPrice: Number(price) * currency.rate,
             rawTotalPrice: rate.net,
-            cancelRules: rate.cancellationPolicies,
+            cancelRules: cancelRules,
             ratePlanCode: rate.rateKey,
+            rateType: rate.rateType,
             boardName: rate.boardName,
             bedTypes: []
           })
@@ -418,10 +460,42 @@ const makeHotelbedsRoomsData = (hotels, currency) => {
   })
 }
 
+const makeHtbRoomPaxes = (passengers, children, numberOfRoom, rateKey) => {
+  let rooms = [
+    {
+      rateKey: rateKey,
+      paxes: []
+    }
+  ]
+
+  passengers.forEach((passenger, index) => {
+    let passengerInfo = {
+      roomId: (index % numberOfRoom) + 1,
+      type: 'AD',
+      name: passenger.firstName,
+      surName: passenger.lastName
+    }
+    rooms[0]['paxes'].push(passengerInfo)
+  })
+
+  children.forEach((child, index) => {
+    let childInfo = {
+      roomId: (index % numberOfRoom) + 1,
+      type: 'CH',
+      name: child.firstName,
+      surName: child.lastName
+    }
+    rooms[0]['paxes'].push(childInfo)
+  })
+
+  return rooms
+}
+
 module.exports = {
   makeSegmentsData,
   makeSabreFlightsData,
   makeRoomGuestDetails,
+  makeHtbRoomPaxes,
   removeSpaces,
   makeFlightsData,
   makeHotelbedsHotelsData,

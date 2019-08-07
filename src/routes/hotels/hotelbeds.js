@@ -7,11 +7,13 @@ const {
   makeHotelbedsRoomsData
 } = require('../../modules/utils')
 const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
+const { logger } = require('../../config/winston')
 
 router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
   try {
     // get available hotelbeds rooms
     let { roomRequest } = req.body
+
     let hotelbedsRoomsRes = await api.getRooms(roomRequest)
 
     let hotelbedsRoomsData = makeHotelbedsRoomsData(
@@ -26,16 +28,12 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
     }`
     let hotelbedsHotelsRes = await api.getHotels(queryString)
 
-    let hotelFacilityRes = await api.getFacilities()
-    let hotelFacilityGroupRes = await api.getFacilityGroups()
-
     let hotelbedsHotelsData = makeHotelbedsHotelsData(
       hotelbedsHotelsRes.data.hotels,
       hotelbedsRoomsData,
-      req.currency,
-      hotelFacilityRes.data.facilities,
-      hotelFacilityGroupRes.data.facilityGroups
+      req.currency
     )
+    hotelbedsHotelsData = hotelbedsHotelsData.filter(hotel => hotel !== null)
 
     if (hotelbedsRoomsRes.data) {
       res.status(200).send({
@@ -45,20 +43,6 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
   } catch (error) {
     res.status(400).send()
   }
-})
-
-router.get('/hotels/:id', (req, res) => {
-  const hotelCode = req.params.id
-  api
-    .getHotelDetail(hotelCode)
-    .then(response => {
-      if (response.data) {
-        res.status(200).send({ hotel: response.data.hotel })
-      }
-    })
-    .catch(error => {
-      res.status(400).send()
-    })
 })
 
 router.post('/rooms', hotelbedsCurrencyExchange, (req, res) => {
@@ -81,32 +65,49 @@ router.post('/rooms', hotelbedsCurrencyExchange, (req, res) => {
     })
 })
 
-router.post('/checkRate', (req, res) => {
-  const request = req.body
-  api
-    .checkRate(request)
-    .then(response => {
-      if (response.data) {
-        res.status(200).send({ hotel: response.data.hotel })
-      }
-    })
-    .catch(error => {
-      res.status(400).send()
-    })
-})
+router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
+  hotelId = req.params.id
+  try {
+    // get available hotelbeds rooms
+    let roomRequest = req.body.roomRequest
 
-router.post('/bookings', (req, res) => {
-  const request = req.body
-  api
-    .createHotelbedsOrder(request)
-    .then(response => {
-      if (response.data) {
-        res.status(200).send({ data: response.data })
-      }
-    })
-    .catch(error => {
-      res.status(400).send(error.response.data)
-    })
+    // get appropriate hotelbeds hotel content, merge to available hotel
+    const queryString = `fields=all&codes=${hotelId}`
+    let hotelbedsHotelsRes = await api.getHotels(queryString)
+
+    logger.info('AvailibilityRQ', roomRequest)
+
+    let hotelbedsRoomsRes = await api.getRooms(roomRequest)
+
+    logger.info('AvailibilityRS', hotelbedsRoomsRes.data)
+
+    let hotelbedsRoomsData = []
+    if (hotelbedsRoomsRes.data.hotels.total > 0) {
+      hotelbedsRoomsData = makeHotelbedsRoomsData(
+        hotelbedsRoomsRes.data.hotels.hotels,
+        req.currency
+      )
+    }
+
+    let hotelFacilityRes = await api.getFacilities()
+    let hotelFacilityGroupRes = await api.getFacilityGroups()
+
+    let hotelbedsHotelsData = makeHotelbedsHotelsData(
+      hotelbedsHotelsRes.data.hotels,
+      hotelbedsRoomsData,
+      req.currency,
+      hotelFacilityRes.data.facilities,
+      hotelFacilityGroupRes.data.facilityGroups
+    )
+
+    if (hotelbedsHotelsRes.data) {
+      res.status(200).send({
+        hotel: hotelbedsHotelsData[0]
+      })
+    }
+  } catch (error) {
+    res.status(400).send()
+  }
 })
 
 module.exports = router

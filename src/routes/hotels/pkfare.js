@@ -127,8 +127,8 @@ router.post('/hotelList', currencyExchange, (req, res) => {
           images,
           policies,
           amenities,
-          summary: summary.description,
-          description: description.description,
+          summary: _.get(summary, 'description'),
+          description: _.get(description, 'description'),
           transportations
         }
       })
@@ -266,6 +266,107 @@ router.post('/createOrder', (req, res) => {
       }
 
       return Promise.reject()
+    })
+    .catch(error => {
+      res.status(400).send()
+    })
+})
+
+router.get('/:id', currencyExchange, async (req, res) => {
+  hotelId = req.params.id
+
+  Promise.all([
+    Hotel.findOne({
+      hotelId: hotelId,
+      language: 'en_US'
+    }),
+    HotelImage.find({
+      hotelId: hotelId
+    }),
+    HotelPolicy.find({
+      hotelId: hotelId
+    }),
+    HotelAmenity.find({
+      hotelId: hotelId
+    }),
+    HotelDescription.find({
+      hotelId: hotelId
+    }),
+    HotelTransportation.find({
+      hotelId: hotelId
+    })
+  ])
+    .then(results => {
+      let amenityIds = _.uniq(results[3].map(amenity => amenity.amenityId))
+
+      return Promise.all([
+        ...results,
+        HotelAmenityType.find({
+          amenityId: { $in: amenityIds }
+        })
+      ])
+    })
+    .then(results => {
+      let hotel = results[0]
+      let hotelImages = results[1]
+      let hotelPolicies = results[2]
+      let hotelAmenities = results[3]
+      let hotelDescriptions = results[4]
+      let hotelTransportations = results[5]
+      let hotelAmenityTypes = results[6]
+
+      let images = hotelImages.filter(image => image.hotelId === hotel.hotelId)
+      let policies = hotelPolicies.filter(
+        policy => policy.hotelId === hotel.hotelId
+      )
+      let amenities = hotelAmenities.filter(
+        amenity => amenity.hotelId === hotel.hotelId
+      )
+      amenities = _.uniqBy(amenities, amenity => amenity.amenityId)
+      amenities = amenities.map(amenity => {
+        let type = hotelAmenityTypes.find(
+          type => type.amenityId === amenity.amenityId
+        )
+
+        if (!type) {
+          type = {
+            groupId: 0,
+            groupName: 'Others',
+            groupType: 'others'
+          }
+        } else {
+          type = type.toObject()
+        }
+
+        return {
+          ...amenity.toObject(),
+          ...type
+        }
+      })
+      let descriptions = hotelDescriptions.filter(
+        desc => desc.hotelId === hotel.hotelId
+      )
+      let summary = descriptions.find(desc => desc.type === 'LocationIntroduce')
+      let description = descriptions.find(
+        desc => desc.type === 'HotelIntroduce'
+      )
+      let transportations = hotelTransportations.filter(
+        trans => trans.hotelId === hotel.hotelId
+      )
+
+      let newHotels = {
+        ...hotel.toObject(),
+        currency: req.currency.code,
+        supplier: 'pkfare',
+        images,
+        policies,
+        amenities,
+        summary: _.get(summary, 'description'),
+        description: _.get(description, 'description'),
+        transportations
+      }
+
+      res.status(200).send({ hotel: newHotels })
     })
     .catch(error => {
       res.status(400).send()
