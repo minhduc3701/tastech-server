@@ -478,7 +478,11 @@ const hotelbedsCheckRate = async (req, res, next) => {
       ]
     }
 
+    logger.info('CheckRateRQ', request)
+
     let rateRes = await apiHotelbeds.checkRate(request)
+
+    logger.info('CheckRateRS', rateRes.data)
   } catch (error) {
     req.checkoutError = error
   }
@@ -514,8 +518,12 @@ const hotelbedsCreateOrder = async (req, res, next) => {
       tolerance: 2.0
     }
 
+    logger.info('BookingRQ', request)
+
     let hotelOrderRes = await apiHotelbeds.createHotelbedsOrder(request)
     let orderData = hotelOrderRes.data
+
+    logger.info('BookingRS', orderData)
 
     // create hotel order
     hotelOrder.customerCode = orderData.booking.reference
