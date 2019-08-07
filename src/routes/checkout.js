@@ -559,7 +559,7 @@ const sabreCreatePNR = async (req, res, next) => {
   try {
     let data = {
       CreatePassengerNameRecordRQ: {
-        targetCity: '5EJJ',
+        targetCity: process.env.SABRE_USER_ID,
         version: '2.2.0',
         haltOnAirPriceError: true,
         TravelItineraryAddInfo: {
@@ -673,7 +673,7 @@ const sabreCreatePNR = async (req, res, next) => {
       await flightOrder.save()
       req.flightOrder = flightOrder
     } else {
-      throw 'Create PNR failed!'
+      throw { message: 'Create PNR failed!' }
     }
   } catch (error) {
     req.checkoutError = error
@@ -689,11 +689,11 @@ router.post(
   createOrFindHotelOrder,
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
+  sabreCreatePNR,
   stripeCharging,
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
-  sabreCreatePNR,
 
   async (req, res, next) => {
     // from createOrFindTrip
@@ -702,7 +702,6 @@ router.post(
     let hotelOrder = req.hotelOrder
 
     // const charge = req.charge
-    const charge = req.charge
 
     let bookingResponse = req.bookingResponse
 
