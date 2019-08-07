@@ -420,6 +420,13 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
         languageCode: 'en_US'
       }
 
+      const ageOfChildren = _.get(trip, 'childrenInfo', []).map(
+        child => child.age
+      )
+      if (ageOfChildren.length > 0) {
+        request['ageOfChildren'] = ageOfChildren
+      }
+
       let holteOrderRes = await api.createHotelOrder(request)
       let orderData = holteOrderRes.data
 
@@ -471,11 +478,7 @@ const hotelbedsCheckRate = async (req, res, next) => {
       ]
     }
 
-    logger.info('CheckRateRQ', request)
-
     let rateRes = await apiHotelbeds.checkRate(request)
-
-    logger.info('CheckRateRS', rateRes.data)
   } catch (error) {
     req.checkoutError = error
   }
@@ -511,12 +514,8 @@ const hotelbedsCreateOrder = async (req, res, next) => {
       tolerance: 2.0
     }
 
-    logger.info('BookingRQ', request)
-
     let hotelOrderRes = await apiHotelbeds.createHotelbedsOrder(request)
     let orderData = hotelOrderRes.data
-
-    logger.info('BookingRS', orderData)
 
     // create hotel order
     hotelOrder.customerCode = orderData.booking.reference
@@ -531,7 +530,6 @@ const hotelbedsCreateOrder = async (req, res, next) => {
 
     req.hotelOrder = hotelOrder
   } catch (error) {
-    console.log(error)
     req.checkoutError = {
       message: _.get(error, 'response.data.error.message'),
       hotel: true
