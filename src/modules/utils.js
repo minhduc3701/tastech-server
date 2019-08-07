@@ -144,11 +144,11 @@ const getSegmentForFlight = (fareComponents, index) => {
   for (let i = 0; i < fareComponents.length; i++) {
     for (let j = 0; j < fareComponents[i].segments.length; j++) {
       if (startIndex + j === index) {
-        let cabinClass =
-          mapClassOptions[fareComponents[i].segments[j].segment.cabinCode]
+        let cabinCode = fareComponents[i].segments[j].segment.cabinCode
+        let cabinClass = mapClassOptions[cabinCode]
         let seatsAvailable =
           fareComponents[i].segments[j].segment.seatsAvailable
-        return { cabinClass, seatsAvailable }
+        return { cabinClass, seatsAvailable, cabinCode }
       }
     }
     startIndex += fareComponents[i].segments.length
@@ -157,6 +157,10 @@ const getSegmentForFlight = (fareComponents, index) => {
 const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
   let flights = []
   itineraryGroups.map(l => {
+    console.log(l.groupDescription.legDescriptions[0].departureDate)
+    let departureDate = moment(
+      l.groupDescription.legDescriptions[0].departureDate
+    ).format('YYYY-MM-DD')
     l.itineraries.map(i => {
       let obj = {
         legs: i.legs
@@ -168,16 +172,11 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
       )
       obj.departureSegments = []
       obj.departureDescs.schedules.map((s, index) => {
-        let cabinClass = getSegmentForFlight(
+        let segmentInfor = getSegmentForFlight(
           i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
             .fareComponents,
           index
-        ).cabinClass
-        let seatsAvailable = getSegmentForFlight(
-          i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
-            .fareComponents,
-          index
-        ).seatsAvailable
+        )
         let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
         let toDayText = moment().format('YYYY-MM-DDT')
         let nextDayText = moment()
@@ -191,17 +190,31 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
             .utc(`${nextDayText}${data.arrival.time}`)
             .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
         }
+        let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
+        let arrivalDate = moment(departureDate)
+          .add(dateAdjustment, 'days')
+          .format('YYYY-MM-DDT')
         obj.departureSegments.push({
           id: data.id,
-          cabinClass,
+          cabinClass: segmentInfor.cabinClass,
           departure: data.departure.airport,
           arrival: data.arrival.airport,
+          DepartureDateTime: `${departureDate}T${data.departure.time.substring(
+            0,
+            8
+          )}`,
           strDepartureTime: data.departure.time.substring(0, 5),
+          ArrivalDateTime: `${arrivalDate}${data.arrival.time.substring(0, 8)}`,
           strArrivalTime: data.arrival.time.substring(0, 5),
           flightNum: data.carrier.marketingFlightNumber,
           flightTime,
-          seatsAvailable,
-          airline: data.carrier.marketing
+          seatsAvailable: segmentInfor.seatsAvailable,
+          cabinCode: segmentInfor.cabinCode,
+          airline: data.carrier.operating,
+          marketing: data.carrier.marketing,
+          marketingFlightNumber: data.carrier.marketingFlightNumber,
+          operating: data.carrier.operating,
+          operatingFlightNumber: data.carrier.operatingFlightNumber
         })
       })
       obj.departureFlight = {
@@ -219,36 +232,51 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
       obj.returnSegments = []
       obj.returnFlight = {}
       if (i.legs.length === 2) {
+        let departureDate = moment(
+          l.groupDescription.legDescriptions[1].departureDate
+        ).format('YYYY-MM-DD')
         obj.returnDescs = sabreRes.legDescs.find(
           leg => leg.id === i.legs[1].ref
         )
         obj.returnSegments = []
         obj.returnDescs.schedules.map((s, index) => {
           let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
-          let cabinClass = getSegmentForFlight(
+          let segmentInfor = getSegmentForFlight(
             i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
               .fareComponents,
             index + obj.departureDescs.schedules.length
-          ).cabinClass
-          let seatsAvailable = getSegmentForFlight(
-            i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
-              .fareComponents,
-            index + obj.departureDescs.schedules.length
-          ).seatsAvailable
+          )
+          let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
+          let arrivalDate = moment(departureDate)
+            .add(dateAdjustment, 'days')
+            .format('YYYY-MM-DDT')
           obj.returnSegments.push({
             id: data.id,
-            cabinClass,
+            cabinClass: segmentInfor.cabinClass,
             departure: data.departure.airport,
             arrival: data.arrival.airport,
+            DepartureDateTime: `${departureDate}T${data.departure.time.substring(
+              0,
+              8
+            )}`,
             strDepartureTime: data.departure.time.substring(0, 5),
+            ArrivalDateTime: `${arrivalDate}${data.arrival.time.substring(
+              0,
+              8
+            )}`,
             strArrivalTime: data.arrival.time.substring(0, 5),
             flightNum: data.carrier.marketingFlightNumber,
             flightTime: moment(data.arrival.time.substring(0, 5), 'hh:mm').diff(
               moment(data.departure.time.substring(0, 5), 'hh:mm'),
               'minutes'
             ),
-            seatsAvailable,
-            airline: data.carrier.marketing
+            seatsAvailable: segmentInfor.seatsAvailable,
+            cabinCode: segmentInfor.cabinCode,
+            airline: data.carrier.operating,
+            marketing: data.carrier.marketing,
+            marketingFlightNumber: data.carrier.marketingFlightNumber,
+            operating: data.carrier.operating,
+            operatingFlightNumber: data.carrier.operatingFlightNumber
           })
         })
         obj.returnFlight = {

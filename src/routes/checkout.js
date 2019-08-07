@@ -4,6 +4,8 @@ const Card = require('../models/card')
 const Trip = require('../models/trip')
 const Order = require('../models/order')
 const api = require('../modules/api')
+const apiSabre = require('../modules/apiSabre')
+
 const apiHotelbeds = require('../modules/apiHotelbeds')
 const { makeSegmentsData, makeRoomGuestDetails } = require('../modules/utils')
 const moment = require('moment')
@@ -185,6 +187,7 @@ const pkfareFlightPreBooking = async (req, res, next) => {
 
   if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
     next()
+    return
   }
 
   try {
@@ -324,11 +327,10 @@ const stripeCharging = async (req, res, next) => {
 
 const pkfareFlightTicketing = async (req, res, next) => {
   const trip = req.trip
-
   if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
     next()
+    return
   }
-
   let flightOrder = req.flightOrder
   let bookingResponse = req.bookingResponse
 
@@ -520,11 +522,307 @@ const hotelbedsCreateOrder = async (req, res, next) => {
 
     req.hotelOrder = hotelOrder
   } catch (error) {
-    console.log(error)
+    // console.log(error)
     req.checkoutError = {
       message: _.get(error, 'response.data.error.message'),
       hotel: true
     }
+  }
+
+  next()
+}
+const sabreCreatePNR = async (req, res, next) => {
+  const trip = req.trip
+  console.log(req.sabreToken)
+  if (_.get(trip, 'flight.supplier') !== 'sabre') {
+    next()
+    return
+  }
+
+  try {
+    let data = {
+      CreatePassengerNameRecordRQ: {
+        targetCity: '5EJJ',
+        version: '2.2.0',
+        haltOnAirPriceError: true,
+        haltOnHotelBookError: true,
+        TravelItineraryAddInfo: {
+          AgencyInfo: {
+            Address: {
+              AddressLine: 'SABRE TRAVEL',
+              CityName: 'SOUTHLAKE',
+              CountryCode: 'US',
+              PostalCode: '76092',
+              StateCountyProv: {
+                StateCode: 'TX'
+              },
+              StreetNmbr: '3150 SABRE DRIVE'
+            },
+            Ticketing: {
+              TicketType: '7TAW'
+            }
+          },
+          CustomerInfo: {
+            ContactNumbers: {
+              ContactNumber: [
+                {
+                  NameNumber: '1.1',
+                  Phone: `"${trip.contactInfo.phone}"`,
+                  PhoneUseType: 'H'
+                }
+              ]
+            },
+            Email: [
+              {
+                NameNumber: '1.1',
+                Address: trip.contactInfo.email,
+                Type: 'TO'
+              }
+            ],
+            PersonName: []
+          }
+        },
+        AirBook: {
+          HaltOnStatus: [
+            {
+              Code: 'HL'
+            },
+            {
+              Code: 'KK'
+            },
+            {
+              Code: 'LL'
+            },
+            {
+              Code: 'NN'
+            },
+            {
+              Code: 'NO'
+            },
+            {
+              Code: 'UC'
+            },
+            {
+              Code: 'US'
+            }
+          ],
+          OriginDestinationInformation: {
+            FlightSegment: []
+          },
+          RedisplayReservation: {
+            NumAttempts: 2,
+            WaitInterval: 5000
+          }
+        },
+        AirPrice: [
+          {
+            PriceRequestInformation: {
+              OptionalQualifiers: {
+                PricingQualifiers: {
+                  PassengerType: [
+                    {
+                      Code: 'ADT',
+                      Quantity: `"${trip.numberPassengers}"`
+                    }
+                  ]
+                }
+              },
+              Retain: true
+            }
+          }
+        ],
+        PostProcessing: {
+          EndTransaction: {
+            Source: {
+              ReceivedFrom: 'SWSTEST'
+            }
+          },
+          RedisplayReservation: {
+            waitInterval: 100
+          }
+        }
+      }
+    }
+    trip.passengers.map((p, index) => {
+      data.CreatePassengerNameRecordRQ.TravelItineraryAddInfo.CustomerInfo.PersonName.push(
+        {
+          NameNumber: `${index + 1}.1`,
+          PassengerType: 'ADT',
+          GivenName: p.firstName,
+          Surname: p.lastName,
+          Infant: false
+        }
+      )
+    })
+    trip.flight.departureSegments.map(segment => {
+      data.CreatePassengerNameRecordRQ.AirBook.OriginDestinationInformation.FlightSegment.push(
+        {
+          DepartureDateTime: segment.DepartureDateTime,
+          FlightNumber: `${segment.operatingFlightNumber}`,
+          ArrivalDateTime: segment.ArrivalDateTime,
+          Status: 'NN',
+          ResBookDesigCode: segment.cabinCode,
+          NumberInParty: `${trip.passengers.length}`,
+          MarketingAirline: {
+            Code: `${segment.marketing}`,
+            FlightNumber: `${segment.marketingFlightNumber}`
+          },
+          MarriageGrp: 'O',
+          OperatingAirline: {
+            Code: `${segment.operating}`
+          },
+          OriginLocation: {
+            LocationCode: `${segment.departure}`
+          },
+          DestinationLocation: {
+            LocationCode: `${segment.arrival}`
+          }
+        }
+      )
+    })
+    console.log('data: ', data)
+    data = {
+      CreatePassengerNameRecordRQ: {
+        targetCity: '5EJJ',
+        version: '2.2.0',
+        haltOnAirPriceError: true,
+        haltOnHotelBookError: true,
+        TravelItineraryAddInfo: {
+          AgencyInfo: {
+            Address: {
+              AddressLine: 'SABRE TRAVEL',
+              CityName: 'SOUTHLAKE',
+              CountryCode: 'US',
+              PostalCode: '76092',
+              StateCountyProv: {
+                StateCode: 'TX'
+              },
+              StreetNmbr: '3150 SABRE DRIVE'
+            },
+            Ticketing: {
+              TicketType: '7TAW'
+            }
+          },
+          CustomerInfo: {
+            ContactNumbers: {
+              ContactNumber: [
+                {
+                  NameNumber: '1.1',
+                  Phone: '817-555-1212',
+                  PhoneUseType: 'H'
+                }
+              ]
+            },
+            Email: [
+              {
+                Address: 'WEBSERVICES.SUPPORT@SABRE.COM',
+                NameNumber: '1.1',
+                Type: 'TO'
+              }
+            ],
+            PersonName: [
+              {
+                NameNumber: '1.1',
+                PassengerType: 'ADT',
+                Infant: false,
+                GivenName: 'JOHN',
+                Surname: 'TEST'
+              }
+            ]
+          }
+        },
+        AirBook: {
+          HaltOnStatus: [
+            {
+              Code: 'HL'
+            },
+            {
+              Code: 'KK'
+            },
+            {
+              Code: 'LL'
+            },
+            {
+              Code: 'NN'
+            },
+            {
+              Code: 'NO'
+            },
+            {
+              Code: 'UC'
+            },
+            {
+              Code: 'US'
+            }
+          ],
+          OriginDestinationInformation: {
+            FlightSegment: [
+              {
+                DepartureDateTime: '2019-09-12T07:00:00',
+                FlightNumber: '1363',
+                ArrivalDateTime: '2019-09-12T10:25:00',
+                Status: 'NN',
+                ResBookDesigCode: 'Y',
+                NumberInParty: '1',
+                MarketingAirline: {
+                  Code: 'AS',
+                  FlightNumber: '1363'
+                },
+                MarriageGrp: 'O',
+                OperatingAirline: {
+                  Code: 'AS'
+                },
+                OriginLocation: {
+                  LocationCode: 'BOS'
+                },
+                DestinationLocation: {
+                  LocationCode: 'LAX'
+                }
+              }
+            ]
+          },
+          RedisplayReservation: {
+            NumAttempts: 2,
+            WaitInterval: 5000
+          }
+        },
+        AirPrice: [
+          {
+            PriceRequestInformation: {
+              OptionalQualifiers: {
+                PricingQualifiers: {
+                  PassengerType: [
+                    {
+                      Code: 'ADT',
+                      Quantity: '1'
+                    }
+                  ]
+                }
+              },
+              Retain: true
+            }
+          }
+        ],
+        PostProcessing: {
+          EndTransaction: {
+            Source: {
+              ReceivedFrom: 'SWSTEST'
+            }
+          },
+          RedisplayReservation: {
+            waitInterval: 100
+          }
+        }
+      }
+    }
+    let sabrePNRres = await apiSabre.createPNR(data, req.sabreToken)
+    console.log('sabrePNRres: ', sabrePNRres.data)
+    req.flightOrder = sabrePNRres.data
+    req.log =
+      data.CreatePassengerNameRecordRQ.AirBook.OriginDestinationInformation.FlightSegment
+  } catch (error) {
+    console.log('error: ', error.response.data)
+    req.checkoutError = error
   }
 
   next()
@@ -541,11 +839,15 @@ router.post(
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
+  sabreCreatePNR,
+
   async (req, res, next) => {
     // from createOrFindTrip
     const trip = req.trip
     let flightOrder = req.flightOrder
     let hotelOrder = req.hotelOrder
+    let log = req.log
+
     // const charge = req.charge
 
     let bookingResponse = req.bookingResponse
@@ -559,27 +861,29 @@ router.post(
         // status: charge.status,
         trip: _.pick(trip, ['_id']),
         flightOrder,
-        hotelOrder
+        hotelOrder,
+        log
       })
     } catch (error) {
-      console.log(error)
+      // console.log(error)
 
       // update order status to failed if something went wrong
       if (trip.flight && flightOrder) {
         flightOrder.status = 'failed'
-        await flightOrder.save()
+        // await flightOrder.save()
       }
 
       if (trip.hotel && hotelOrder) {
         hotelOrder.status = 'failed'
-        await hotelOrder.save()
+        // await hotelOrder.save()
       }
 
       res.status(400).send({
         ...error,
         trip: _.pick(trip, ['_id']),
         flightOrder,
-        hotelOrder
+        hotelOrder,
+        log
       })
     }
   }

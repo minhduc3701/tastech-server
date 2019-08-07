@@ -41,7 +41,7 @@ const cardsRouter = require('./routes/cards')
 const checkoutRouter = require('./routes/checkout')
 const ordersRouter = require('./routes/orders')
 const reportsRouter = require('./routes/reports')
-
+const { sabreToken } = require('./middleware/sabre')
 const {
   authenticateTasAdmin,
   authenticateAdmin
@@ -162,7 +162,7 @@ app.use('/regions', jwtAuthenticate, regionsRouter)
 // checkout
 app.use('/cards', jwtAuthenticate, cardsRouter)
 
-app.use('/checkout', jwtAuthenticate, checkoutRouter)
+app.use('/checkout', jwtAuthenticate, sabreToken, checkoutRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
