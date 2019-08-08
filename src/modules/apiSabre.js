@@ -13,6 +13,13 @@ const apiSabre = {
       }
     })
   },
+  createPNR: (data, sabreToken) => {
+    return flightHttp.post(`/v2.2.0/passenger/records?mode=create`, data, {
+      headers: {
+        Authorization: `Bearer ${sabreToken}`
+      }
+    })
+  },
   getToken: encodeToken => {
     return flightHttp.post(
       `/v2/auth/token`,

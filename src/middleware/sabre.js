@@ -3,6 +3,10 @@ const { debugServer } = require('../config/debug')
 const apiSabre = require('../modules/apiSabre')
 
 const sabreToken = async (req, res, next) => {
+  if (req.trip && _.get(req.trip, 'flight.supplier') !== 'sabre') {
+    next()
+    return
+  }
   try {
     let encodeId = Buffer.from(process.env.SABRE_CLIENT_ID).toString('base64')
     let encodeKey = Buffer.from(process.env.SABRE_SECRETE_KEY).toString(

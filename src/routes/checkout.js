@@ -4,6 +4,8 @@ const Card = require('../models/card')
 const Trip = require('../models/trip')
 const Order = require('../models/order')
 const api = require('../modules/api')
+const apiSabre = require('../modules/apiSabre')
+const { sabreToken } = require('../middleware/sabre')
 const apiHotelbeds = require('../modules/apiHotelbeds')
 const {
   makeSegmentsData,
@@ -192,6 +194,7 @@ const pkfareFlightPreBooking = async (req, res, next) => {
 
   if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
     next()
+    return
   }
 
   try {
@@ -330,11 +333,10 @@ const stripeCharging = async (req, res, next) => {
 
 const pkfareFlightTicketing = async (req, res, next) => {
   const trip = req.trip
-
   if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
     next()
+    return
   }
-
   let flightOrder = req.flightOrder
   let bookingResponse = req.bookingResponse
 
@@ -546,18 +548,159 @@ const hotelbedsCreateOrder = async (req, res, next) => {
 
   next()
 }
+const sabreCreatePNR = async (req, res, next) => {
+  const trip = req.trip
+  let flightOrder = req.flightOrder
+  if (_.get(trip, 'flight.supplier') !== 'sabre') {
+    next()
+    return
+  }
+
+  try {
+    let data = {
+      CreatePassengerNameRecordRQ: {
+        targetCity: process.env.SABRE_USER_ID,
+        version: '2.2.0',
+        haltOnAirPriceError: true,
+        TravelItineraryAddInfo: {
+          AgencyInfo: {
+            Ticketing: {
+              TicketType: '7TAW'
+            }
+          },
+          CustomerInfo: {
+            ContactNumbers: {
+              ContactNumber: [
+                {
+                  Phone: trip.contactInfo.phone,
+                  PhoneUseType: 'H'
+                }
+              ]
+            },
+            Email: [
+              {
+                Address: trip.contactInfo.email,
+                Type: 'TO'
+              }
+            ],
+            PersonName: []
+          }
+        },
+        AirBook: {
+          OriginDestinationInformation: {
+            FlightSegment: []
+          },
+          RedisplayReservation: {
+            NumAttempts: 2,
+            WaitInterval: 5000
+          }
+        },
+        AirPrice: [
+          {
+            PriceRequestInformation: {
+              OptionalQualifiers: {
+                PricingQualifiers: {
+                  PassengerType: [
+                    {
+                      Code: 'ADT',
+                      Quantity: trip.numberPassengers.toString()
+                    }
+                  ]
+                }
+              },
+              Retain: true
+            }
+          }
+        ],
+        PostProcessing: {
+          EndTransaction: {
+            Source: {
+              ReceivedFrom: 'EzBizTrip'
+            }
+          },
+          RedisplayReservation: {
+            waitInterval: 100
+          }
+        }
+      }
+    }
+    trip.passengers.map((p, index) => {
+      data.CreatePassengerNameRecordRQ.TravelItineraryAddInfo.CustomerInfo.PersonName.push(
+        {
+          PassengerType: 'ADT',
+          GivenName: p.firstName,
+          Surname: p.lastName
+        }
+      )
+    })
+    trip.flight.departureSegments.map(segment => {
+      data.CreatePassengerNameRecordRQ.AirBook.OriginDestinationInformation.FlightSegment.push(
+        {
+          DepartureDateTime: segment.DepartureDateTime,
+          FlightNumber: `${segment.operatingFlightNumber}`,
+          ArrivalDateTime: segment.ArrivalDateTime,
+          Status: 'NN',
+          ResBookDesigCode: segment.cabinCode,
+          NumberInParty: `${trip.passengers.length}`,
+          MarketingAirline: {
+            Code: `${segment.marketing}`,
+            FlightNumber: `${segment.marketingFlightNumber}`
+          },
+          MarriageGrp: 'O',
+          OperatingAirline: {
+            Code: `${segment.operating}`
+          },
+          OriginLocation: {
+            LocationCode: `${segment.departure}`
+          },
+          DestinationLocation: {
+            LocationCode: `${segment.arrival}`
+          }
+        }
+      )
+    })
+    logger.info('createPNR request', data)
+    let sabrePNRres = await apiSabre.createPNR(data, req.sabreToken)
+    let status = _.get(
+      sabrePNRres,
+      ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
+      'failed'
+    )
+    logger.info('createPNR response', sabrePNRres.data)
+    if (status === 'Complete') {
+      flightOrder.customerCode = _.get(
+        sabrePNRres,
+        ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
+        ''
+      )
+      flightOrder.status = 'processing'
+      await flightOrder.save()
+      req.flightOrder = flightOrder
+    } else {
+      throw { message: 'Create PNR failed!' }
+    }
+  } catch (error) {
+    logger.info('error', error)
+    req.checkoutError = error
+  }
+
+  next()
+}
 
 router.post(
   '/card',
+  sabreToken, // get token for sabre api
   createOrFindTrip,
   createOrFindFlightOrder,
   createOrFindHotelOrder,
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
+  sabreCreatePNR,
   stripeCharging,
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
+
   async (req, res, next) => {
     // from createOrFindTrip
     const trip = req.trip
@@ -566,12 +709,10 @@ router.post(
     const charge = req.charge
 
     let bookingResponse = req.bookingResponse
-
     try {
       if (req.checkoutError) {
         throw req.checkoutError
       }
-
       res.status(200).send({
         status: charge.status,
         trip: _.pick(trip, ['_id']),
