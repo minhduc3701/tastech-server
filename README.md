@@ -24,6 +24,7 @@ Add config/config.json with the content like below:
     "PKFARE_PARTNER_KEY": <PKFARE_PARTNER_KEY>,
     "PKFARE_HOTEL_ORDER_SECRET": <dev.ezbiztrip or local.thanh>,
     "SABRE_URI":"https://api-crt.cert.havail.sabre.com",
+    "SABRE_USER_ID":"<SABRE_CLIENT_ID>",
     "SABRE_CLIENT_ID":"<SABRE_CLIENT_ID>",
     "SABRE_SECRETE_KEY":"<SABRE_SECRETE_KEY>",
     "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>,
