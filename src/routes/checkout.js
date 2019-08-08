@@ -589,6 +589,10 @@ const sabreCreatePNR = async (req, res, next) => {
         AirBook: {
           OriginDestinationInformation: {
             FlightSegment: []
+          },
+          RedisplayReservation: {
+            NumAttempts: 2,
+            WaitInterval: 5000
           }
         },
         AirPrice: [
@@ -676,6 +680,7 @@ const sabreCreatePNR = async (req, res, next) => {
       throw { message: 'Create PNR failed!' }
     }
   } catch (error) {
+    logger.info('error', error)
     req.checkoutError = error
   }
 
@@ -701,15 +706,13 @@ router.post(
     const trip = req.trip
     let flightOrder = req.flightOrder
     let hotelOrder = req.hotelOrder
-    // const charge = req.charge
+    const charge = req.charge
 
     let bookingResponse = req.bookingResponse
-
     try {
       if (req.checkoutError) {
         throw req.checkoutError
       }
-
       res.status(200).send({
         status: charge.status,
         trip: _.pick(trip, ['_id']),
