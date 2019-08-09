@@ -318,7 +318,6 @@ const makeHotelbedsHotelsData = (
 
       if (matchingHotel) {
         let images = _.get(matchingHotel, 'images', [])
-
         let featuredImage =
           images.find(image => image.imageTypeCode === 'GEN') || images[0]
         let featuredImageLink = featuredImage
@@ -327,7 +326,7 @@ const makeHotelbedsHotelsData = (
         let thumbnailLink = featuredImage
           ? 'http://photos.hotelbeds.com/giata/' + featuredImage.path
           : ''
-        const imageLinks = _.get(matchingHotel, 'images', []).map(image => {
+        const imageLinks = images.map(image => {
           let newImage = {
             ...image,
             url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
