@@ -359,6 +359,8 @@ router.get('/:id', currencyExchange, async (req, res) => {
         currency: req.currency.code,
         supplier: 'pkfare',
         images,
+        featuredImage: _.get(images, '[0].url'),
+        thumbnail: _.get(images, '[0].url'),
         policies,
         amenities,
         summary: _.get(summary, 'description'),

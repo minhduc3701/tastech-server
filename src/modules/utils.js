@@ -317,7 +317,16 @@ const makeHotelbedsHotelsData = (
       )
 
       if (matchingHotel) {
-        const images = _.get(matchingHotel, 'images', []).map(image => {
+        let images = _.get(matchingHotel, 'images', [])
+        let featuredImage =
+          images.find(image => image.imageTypeCode === 'GEN') || images[0]
+        let featuredImageLink = featuredImage
+          ? 'http://photos.hotelbeds.com/giata/bigger/' + featuredImage.path
+          : ''
+        let thumbnailLink = featuredImage
+          ? 'http://photos.hotelbeds.com/giata/' + featuredImage.path
+          : ''
+        const imageLinks = images.map(image => {
           let newImage = {
             ...image,
             url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
@@ -373,7 +382,9 @@ const makeHotelbedsHotelsData = (
           amenities: facilitites,
           policies: [],
           transportations: transportations,
-          images: images,
+          featuredImage: featuredImageLink,
+          thumbnail: thumbnailLink,
+          images: imageLinks,
           lowestPrice: hotelRooms.lowestPrice,
           ratePlans: hotelRooms.ratePlans,
           supplier: 'hotelbeds',
