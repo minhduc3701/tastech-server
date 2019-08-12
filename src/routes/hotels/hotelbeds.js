@@ -46,26 +46,6 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
   }
 })
 
-router.post('/rooms', hotelbedsCurrencyExchange, (req, res) => {
-  const request = req.body
-  api
-    .getRooms(request)
-    .then(response => {
-      if (response.data) {
-        hotelbedsHotelsData = makeHotelbedsRoomsData(
-          response.data.hotels.hotels,
-          req.currency
-        )
-        res.status(200).send({
-          hotels: hotelbedsHotelsData
-        })
-      }
-    })
-    .catch(error => {
-      res.status(400).send({ message: '404 Bad request' })
-    })
-})
-
 router.post('/checkRate', (req, res) => {
   const request = req.body
   api
