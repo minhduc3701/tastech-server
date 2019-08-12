@@ -94,9 +94,9 @@ router.post('/voidResult', bodyParser.text({ type: '*/*' }), (req, res) => {
       },
       {
         $set: {
-          // status: voidSuccess ? 'cancelled' : 'completed',
-          rejectedReason: voidSuccess ? null : remark
-          // canCancel: false
+          status: voidSuccess ? 'cancelled' : 'completed',
+          rejectedReason: voidSuccess ? null : remark,
+          canCancel: false
         }
       }
     )

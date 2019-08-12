@@ -17,7 +17,9 @@ const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
 const { USD, VND, SGD } = require('../config/currency')
 const { logger } = require('../config/winston')
-
+// Set your secret key: remember to change this to your live secret key in production
+// See your keys here: https://dashboard.stripe.com/account/apikeys
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const createOrFindTrip = async (req, res, next) => {
   const { trip, checkoutAgain } = req.body
   let foundTrip
@@ -126,6 +128,7 @@ const createOrFindFlightOrder = async (req, res, next) => {
 
     req.flightOrder = flightOrder
   } catch (error) {
+    console.log('err 131: ', error)
     req.checkoutError = error
   }
 
@@ -250,6 +253,7 @@ const pkfareFlightPreBooking = async (req, res, next) => {
       }
     } // end trip.flight
   } catch (error) {
+    console.log('err 256: ', error)
     req.checkoutError = error
   }
 
@@ -267,10 +271,6 @@ const stripeCharging = async (req, res, next) => {
 
     const { card } = req.body
     let cardId = card.id
-
-    // Set your secret key: remember to change this to your live secret key in production
-    // See your keys here: https://dashboard.stripe.com/account/apikeys
-    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
     // START CHARGING =======
 
@@ -322,9 +322,9 @@ const stripeCharging = async (req, res, next) => {
     })
 
     req.charge = charge
-
     // AFTER CHARGING =======
   } catch (error) {
+    console.log('err 329: ', error)
     req.checkoutError = error
   }
 
@@ -339,7 +339,6 @@ const pkfareFlightTicketing = async (req, res, next) => {
   }
   let flightOrder = req.flightOrder
   let bookingResponse = req.bookingResponse
-
   try {
     if (req.checkoutError) {
       throw req.checkoutError
@@ -359,9 +358,11 @@ const pkfareFlightTicketing = async (req, res, next) => {
         PNR: pnr,
         telNum: `+${trip.contactInfo.callingCode} ${trip.contactInfo.phone}`
       })
+
       if (ticketingRes.errorCode !== '0') {
-        throw { message: ticketingRes.errorMsg }
+        throw { message: ticketingRes.errorMsg, flight: true }
       }
+
       flightUpdateData = {
         customerCode: pnr,
         number: orderNum
@@ -377,6 +378,7 @@ const pkfareFlightTicketing = async (req, res, next) => {
     } // end trip.flight
   } catch (error) {
     req.checkoutError = error
+    console.log('err 381: ', error)
   }
 
   next()
@@ -691,6 +693,31 @@ const sabreCreatePNR = async (req, res, next) => {
   next()
 }
 
+const refundFlightOrder = async (req, res, next) => {
+  try {
+    if (req.checkoutError.flight) {
+      let flightOrder = req.flightOrder
+      let amount = flightOrder.flight.totalPrice
+      switch (flightOrder.flight.currency) {
+        case USD:
+        case SGD:
+          amount = Math.floor(amount * 100)
+          break
+        case VND:
+          amount = Math.floor(amount)
+          break
+      }
+      await stripe.refunds.create({
+        charge: req.charge.id,
+        amount
+      })
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+  next()
+}
+
 router.post(
   '/card',
   sabreToken, // get token for sabre api
@@ -704,6 +731,7 @@ router.post(
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
+  refundFlightOrder,
 
   async (req, res, next) => {
     // from createOrFindTrip
