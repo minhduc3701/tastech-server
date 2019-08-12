@@ -2,10 +2,7 @@ const express = require('express')
 const router = express.Router()
 const api = require('../../modules/apiHotelbeds')
 const axios = require('axios')
-const {
-  makeHotelbedsHotelsData,
-  makeHotelbedsSingleHotelContent
-} = require('../../modules/utils')
+const { makeHotelbedsHotelsData } = require('../../modules/utils')
 const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
 const { logger } = require('../../config/winston')
 

@@ -316,7 +316,14 @@ const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
         ratePlans: ratePlans
       }
     } else {
-      return hotel
+      return {
+        ...hotel,
+        lowestPrice: 0,
+        ratePlans: {
+          bedTypeList: [],
+          ratePlanList: []
+        }
+      }
     }
   })
 }
@@ -377,7 +384,7 @@ const makeHotelbedsHotelsData = (
       pointInfo +=
         point.distance >= 1000
           ? point.distance / 1000 + ' km'
-          : point.distance + ' meters'
+          : point.distance + ' m'
       return pointInfo
     })
 
