@@ -22,19 +22,11 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
     }`
     let hotelbedsHotelsRes = await api.getHotels(queryString)
 
-    let hotelbedsHotelsData = []
-    if (hotelbedsRoomsRes.data.hotels.total > 0) {
-      hotelbedsHotelsData = makeHotelbedsHotelsData(
-        hotelbedsHotelsRes.data.hotels,
-        hotelbedsRoomsRes.data.hotels.hotels,
-        req.currency
-      )
-    } else {
-      hotelbedsHotelsData = makeHotelbedsSingleHotelContent(
-        hotelbedsHotelsRes.data.hotels,
-        req.currency
-      )
-    }
+    let hotelbedsHotelsData = makeHotelbedsHotelsData(
+      hotelbedsHotelsRes.data.hotels,
+      hotelbedsRoomsRes.data.hotels,
+      req.currency
+    )
 
     if (hotelbedsRoomsRes.data) {
       res.status(200).send({
@@ -79,21 +71,13 @@ router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
     let hotelFacilityRes = await api.getFacilities()
     let hotelFacilityGroupRes = await api.getFacilityGroups()
 
-    let hotelbedsHotelsData = []
-    if (hotelbedsRoomsRes.data.hotels.total > 0) {
-      hotelbedsHotelsData = makeHotelbedsHotelsData(
-        hotelbedsHotelsRes.data.hotels,
-        hotelbedsRoomsRes.data.hotels.hotels,
-        req.currency,
-        hotelFacilityRes.data.facilities,
-        hotelFacilityGroupRes.data.facilityGroups
-      )
-    } else {
-      hotelbedsHotelsData = makeHotelbedsSingleHotelContent(
-        hotelbedsHotelsRes.data.hotels,
-        req.currency
-      )
-    }
+    let hotelbedsHotelsData = makeHotelbedsHotelsData(
+      hotelbedsHotelsRes.data.hotels,
+      hotelbedsRoomsRes.data.hotels,
+      req.currency,
+      hotelFacilityRes.data.facilities,
+      hotelFacilityGroupRes.data.facilityGroups
+    )
 
     if (hotelbedsHotelsRes.data) {
       res.status(200).send({
