@@ -315,14 +315,14 @@ const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
         lowestPrice: matchingHotel.minRate * currency.rate,
         ratePlans: ratePlans
       }
-    } else {
-      return {
-        ...hotel,
-        lowestPrice: 0,
-        ratePlans: {
-          bedTypeList: [],
-          ratePlanList: []
-        }
+    }
+
+    return {
+      ...hotel,
+      lowestPrice: 0,
+      ratePlans: {
+        bedTypeList: [],
+        ratePlanList: []
       }
     }
   })
@@ -403,7 +403,7 @@ const makeHotelbedsHotelsData = (
       description: hotel.description.content,
       amenities: facilitites,
       policies: [],
-      transportations: transportations,
+      transportations,
       featuredImage: featuredImageLink,
       thumbnail: thumbnailLink,
       images: imageLinks,
@@ -412,9 +412,7 @@ const makeHotelbedsHotelsData = (
     }
   })
 
-  if (roomHotelsData.total > 0) {
-    hotelsData = addRoomsToHotels(hotelsData, roomHotelsData, currency)
-  }
+  hotelsData = addRoomsToHotels(hotelsData, roomHotelsData, currency)
   return hotelsData
 }
 
