@@ -128,7 +128,6 @@ const createOrFindFlightOrder = async (req, res, next) => {
 
     req.flightOrder = flightOrder
   } catch (error) {
-    console.log('err 131: ', error)
     req.checkoutError = error
   }
 
@@ -253,7 +252,6 @@ const pkfareFlightPreBooking = async (req, res, next) => {
       }
     } // end trip.flight
   } catch (error) {
-    console.log('err 256: ', error)
     req.checkoutError = error
   }
 
@@ -324,7 +322,6 @@ const stripeCharging = async (req, res, next) => {
     req.charge = charge
     // AFTER CHARGING =======
   } catch (error) {
-    console.log('err 329: ', error)
     req.checkoutError = error
   }
 
@@ -378,7 +375,6 @@ const pkfareFlightTicketing = async (req, res, next) => {
     } // end trip.flight
   } catch (error) {
     req.checkoutError = error
-    console.log('err 381: ', error)
   }
 
   next()
