@@ -5,7 +5,9 @@ const VoidTicket = require('../../models/voidTicket')
 const Order = require('../../models/order')
 const bodyParser = require('body-parser')
 const _ = require('lodash')
-
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const { logger } = require('../../config/winston')
+const api = require('../../modules/api')
 // @see http://open.pkfare.com/documents/show?id=2352d3737b0442d6a402fea86ed8bda2uk
 // @see https://stackoverflow.com/a/30099608
 router.post('/', bodyParser.text({ type: '*/*' }), (req, res) => {
@@ -92,14 +94,23 @@ router.post('/voidResult', bodyParser.text({ type: '*/*' }), (req, res) => {
       },
       {
         $set: {
-          status: voidSuccess ? 'cancelled' : 'completed',
-          rejectedReason: voidSuccess ? null : remark,
-          canCancel: false
+          // status: voidSuccess ? 'cancelled' : 'completed',
+          rejectedReason: voidSuccess ? null : remark
+          // canCancel: false
         }
       }
     )
   ])
-    .then(() => {
+    .then(async result => {
+      let resRate = await api.exchangeCurrency(
+        result[1].rawCurrency,
+        result[1].currency
+      )
+      let rate = resRate.data[0].rate
+      await stripe.refunds.create({
+        charge: result[1].chargeId,
+        amount: voidTicket.voidResult.reimburseAmount * rate
+      })
       res.status(200).send({
         errorCode: 0,
         errorMsg: 'ok'

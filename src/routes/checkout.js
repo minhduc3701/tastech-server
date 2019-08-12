@@ -359,7 +359,9 @@ const pkfareFlightTicketing = async (req, res, next) => {
         PNR: pnr,
         telNum: `+${trip.contactInfo.callingCode} ${trip.contactInfo.phone}`
       })
-
+      if (ticketingRes.errorCode !== '0') {
+        throw { message: ticketingRes.errorMsg }
+      }
       flightUpdateData = {
         customerCode: pnr,
         number: orderNum
@@ -368,6 +370,7 @@ const pkfareFlightTicketing = async (req, res, next) => {
       flightOrder.customerCode = flightUpdateData.customerCode
       flightOrder.number = flightUpdateData.number
       flightOrder.status = 'processing'
+      flightOrder.chargeId = req.charge.id
       await flightOrder.save()
 
       req.flightOrder = flightOrder
@@ -450,6 +453,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
       hotelOrder.number = hotelUpdateData.number
       hotelOrder.status = 'completed'
       hotelOrder.canCancel = true
+      hotelOrder.chargeId = req.charge.id
       await hotelOrder.save()
 
       req.hotelOrder = hotelOrder

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const validator = require('validator')
+const _ = require('lodash')
 
 const OrderSchema = new Schema(
   {
@@ -136,11 +137,19 @@ const OrderSchema = new Schema(
         trim: true
       }
     },
-    supplierInfo: {}
+    supplierInfo: {},
+    chargeId: String
   },
   {
     timestamps: true
   }
 )
+OrderSchema.methods.toJSON = function() {
+  var user = this
+  var userObject = user.toObject()
+
+  userObject = _.omit(userObject, ['chargeId'])
+  return userObject
+}
 
 module.exports = mongoose.model('Order', OrderSchema)
