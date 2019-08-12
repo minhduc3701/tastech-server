@@ -373,7 +373,12 @@ const makeHotelbedsHotelsData = (
     }
 
     const transportations = _.get(hotel, 'interestPoints', []).map(point => {
-      return `${point.poiName} - ${point.distance} meters`
+      let pointInfo = point.poiName + ' - '
+      pointInfo +=
+        point.distance >= 1000
+          ? point.distance / 1000 + ' km'
+          : point.distance + ' meters'
+      return pointInfo
     })
 
     return {
