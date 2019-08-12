@@ -304,7 +304,7 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
 
 const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
   return hotels.map(hotel => {
-    let matchingHotel = roomHotelsData.hotels.find(
+    let matchingHotel = _.get(roomHotelsData, 'hotels', []).find(
       roomHotel => roomHotel.code === hotel.hotelId
     )
 
