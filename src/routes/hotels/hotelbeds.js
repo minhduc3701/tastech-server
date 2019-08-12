@@ -4,7 +4,7 @@ const api = require('../../modules/apiHotelbeds')
 const axios = require('axios')
 const {
   makeHotelbedsHotelsData,
-  makeHotelbedsRoomsData
+  makeHotelbedsSingleHotelContent
 } = require('../../modules/utils')
 const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
 const { logger } = require('../../config/winston')
@@ -13,13 +13,7 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
   try {
     // get available hotelbeds rooms
     let { roomRequest } = req.body
-
     let hotelbedsRoomsRes = await api.getRooms(roomRequest)
-
-    let hotelbedsRoomsData = makeHotelbedsRoomsData(
-      hotelbedsRoomsRes.data.hotels.hotels,
-      req.currency
-    )
 
     // get appropriate hotelbeds hotel content, merge to available hotels
     let hotelIds = hotelbedsRoomsRes.data.hotels.hotels.map(hotel => hotel.code)
@@ -28,12 +22,19 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
     }`
     let hotelbedsHotelsRes = await api.getHotels(queryString)
 
-    let hotelbedsHotelsData = makeHotelbedsHotelsData(
-      hotelbedsHotelsRes.data.hotels,
-      hotelbedsRoomsData,
-      req.currency
-    )
-    hotelbedsHotelsData = hotelbedsHotelsData.filter(hotel => hotel !== null)
+    let hotelbedsHotelsData = []
+    if (hotelbedsRoomsRes.data.hotels.total > 0) {
+      hotelbedsHotelsData = makeHotelbedsHotelsData(
+        hotelbedsHotelsRes.data.hotels,
+        hotelbedsRoomsRes.data.hotels.hotels,
+        req.currency
+      )
+    } else {
+      hotelbedsHotelsData = makeHotelbedsSingleHotelContent(
+        hotelbedsHotelsRes.data.hotels,
+        req.currency
+      )
+    }
 
     if (hotelbedsRoomsRes.data) {
       res.status(200).send({
@@ -95,24 +96,24 @@ router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
 
     logger.info('AvailibilityRS', hotelbedsRoomsRes.data)
 
-    let hotelbedsRoomsData = []
-    if (hotelbedsRoomsRes.data.hotels.total > 0) {
-      hotelbedsRoomsData = makeHotelbedsRoomsData(
-        hotelbedsRoomsRes.data.hotels.hotels,
-        req.currency
-      )
-    }
-
     let hotelFacilityRes = await api.getFacilities()
     let hotelFacilityGroupRes = await api.getFacilityGroups()
 
-    let hotelbedsHotelsData = makeHotelbedsHotelsData(
-      hotelbedsHotelsRes.data.hotels,
-      hotelbedsRoomsData,
-      req.currency,
-      hotelFacilityRes.data.facilities,
-      hotelFacilityGroupRes.data.facilityGroups
-    )
+    let hotelbedsHotelsData = []
+    if (hotelbedsRoomsRes.data.hotels.total > 0) {
+      hotelbedsHotelsData = makeHotelbedsHotelsData(
+        hotelbedsHotelsRes.data.hotels,
+        hotelbedsRoomsRes.data.hotels.hotels,
+        req.currency,
+        hotelFacilityRes.data.facilities,
+        hotelFacilityGroupRes.data.facilityGroups
+      )
+    } else {
+      hotelbedsHotelsData = makeHotelbedsSingleHotelContent(
+        hotelbedsHotelsRes.data.hotels,
+        req.currency
+      )
+    }
 
     if (hotelbedsHotelsRes.data) {
       res.status(200).send({
