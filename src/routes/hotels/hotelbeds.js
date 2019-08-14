@@ -2,10 +2,7 @@ const express = require('express')
 const router = express.Router()
 const api = require('../../modules/apiHotelbeds')
 const axios = require('axios')
-const {
-  makeHotelbedsHotelsData,
-  makeHotelbedsRoomsData
-} = require('../../modules/utils')
+const { makeHotelbedsHotelsData } = require('../../modules/utils')
 const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
 const { logger } = require('../../config/winston')
 
@@ -13,13 +10,7 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
   try {
     // get available hotelbeds rooms
     let { roomRequest } = req.body
-
     let hotelbedsRoomsRes = await api.getRooms(roomRequest)
-
-    let hotelbedsRoomsData = makeHotelbedsRoomsData(
-      hotelbedsRoomsRes.data.hotels.hotels,
-      req.currency
-    )
 
     // get appropriate hotelbeds hotel content, merge to available hotels
     let hotelIds = hotelbedsRoomsRes.data.hotels.hotels.map(hotel => hotel.code)
@@ -30,10 +21,9 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
 
     let hotelbedsHotelsData = makeHotelbedsHotelsData(
       hotelbedsHotelsRes.data.hotels,
-      hotelbedsRoomsData,
+      hotelbedsRoomsRes.data.hotels,
       req.currency
     )
-    hotelbedsHotelsData = hotelbedsHotelsData.filter(hotel => hotel !== null)
 
     if (hotelbedsRoomsRes.data) {
       res.status(200).send({
@@ -43,26 +33,6 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
   } catch (error) {
     res.status(400).send()
   }
-})
-
-router.post('/rooms', hotelbedsCurrencyExchange, (req, res) => {
-  const request = req.body
-  api
-    .getRooms(request)
-    .then(response => {
-      if (response.data) {
-        hotelbedsHotelsData = makeHotelbedsRoomsData(
-          response.data.hotels.hotels,
-          req.currency
-        )
-        res.status(200).send({
-          hotels: hotelbedsHotelsData
-        })
-      }
-    })
-    .catch(error => {
-      res.status(400).send({ message: '404 Bad request' })
-    })
 })
 
 router.post('/checkRate', (req, res) => {
@@ -95,20 +65,12 @@ router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
 
     logger.info('AvailibilityRS', hotelbedsRoomsRes.data)
 
-    let hotelbedsRoomsData = []
-    if (hotelbedsRoomsRes.data.hotels.total > 0) {
-      hotelbedsRoomsData = makeHotelbedsRoomsData(
-        hotelbedsRoomsRes.data.hotels.hotels,
-        req.currency
-      )
-    }
-
     let hotelFacilityRes = await api.getFacilities()
     let hotelFacilityGroupRes = await api.getFacilityGroups()
 
     let hotelbedsHotelsData = makeHotelbedsHotelsData(
       hotelbedsHotelsRes.data.hotels,
-      hotelbedsRoomsData,
+      hotelbedsRoomsRes.data.hotels,
       req.currency,
       hotelFacilityRes.data.facilities,
       hotelFacilityGroupRes.data.facilityGroups

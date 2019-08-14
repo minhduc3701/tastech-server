@@ -302,173 +302,160 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
   return flights
 }
 
+const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
+  return hotels.map(hotel => {
+    let matchingHotel = _.get(roomHotelsData, 'hotels', []).find(
+      roomHotel => roomHotel.code === hotel.hotelId
+    )
+
+    if (matchingHotel) {
+      const ratePlans = makeHotelbedsRoomsRatePlans(matchingHotel, currency)
+      return {
+        ...hotel,
+        lowestPrice: matchingHotel.minRate * currency.rate,
+        ratePlans: ratePlans
+      }
+    }
+
+    return {
+      ...hotel,
+      lowestPrice: 0,
+      ratePlans: {
+        bedTypeList: [],
+        ratePlanList: []
+      }
+    }
+  })
+}
+
 const makeHotelbedsHotelsData = (
-  hotelbedsHotels,
-  hotelbedsRooms,
+  hotels,
+  roomHotelsData,
   currency,
   hotelFacilities,
   hotelFacilityGroups
 ) => {
-  // no available rooms
-  if (hotelbedsRooms.length > 0) {
-    return hotelbedsRooms.map(hotelRooms => {
-      let matchingHotel = hotelbedsHotels.find(
-        hotel => hotel.code === hotelRooms.code
-      )
+  let hotelsData = hotels.map(hotel => {
+    let images = _.get(hotel, 'images', [])
+    let featuredImage =
+      images.find(image => image.imageTypeCode === 'GEN') || images[0]
+    let featuredImageLink = featuredImage
+      ? 'http://photos.hotelbeds.com/giata/original/' + featuredImage.path
+      : ''
+    let thumbnailLink = featuredImage
+      ? 'http://photos.hotelbeds.com/giata/' + featuredImage.path
+      : ''
+    const imageLinks = images.map(image => {
+      let newImage = {
+        ...image,
+        url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
+      }
+      return newImage
+    })
 
-      if (matchingHotel) {
-        let images = _.get(matchingHotel, 'images', [])
-        let featuredImage =
-          images.find(image => image.imageTypeCode === 'GEN') || images[0]
-        let featuredImageLink = featuredImage
-          ? 'http://photos.hotelbeds.com/giata/original/' + featuredImage.path
-          : ''
-        let thumbnailLink = featuredImage
-          ? 'http://photos.hotelbeds.com/giata/' + featuredImage.path
-          : ''
-        const imageLinks = images.map(image => {
-          let newImage = {
-            ...image,
-            url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
-          }
-          return newImage
-        })
+    let facilitites = []
+    if (hotelFacilities && hotelFacilityGroups) {
+      _.get(hotel, 'facilities', []).forEach(facility => {
+        let matchingFacility = hotelFacilities.find(
+          hotelFacility => hotelFacility.code === facility.facilityCode
+        )
+        let matchingGroup = hotelFacilityGroups.find(
+          group => group.code === facility.facilityGroupCode
+        )
 
-        let facilitites = []
-        if (hotelFacilities && hotelFacilityGroups) {
-          facilitites = _.get(matchingHotel, 'facilities', []).map(facility => {
-            let matchingFacility = hotelFacilities.find(
-              hotelFacility => hotelFacility.code === facility.facilityCode
-            )
-            let matchingGroup = hotelFacilityGroups.find(
-              group => group.code === facility.facilityGroupCode
-            )
-
-            let facilityName = matchingFacility.description.content
-            if (facility.number > 0) {
-              facilityName += ': ' + facility.number
-            }
-
-            if (matchingFacility.description.content !== '1') {
-              return {
-                ...facility,
-                groupName: matchingGroup.description.content,
-                name: facilityName
-              }
-            } else return null
-          })
-          facilitites = facilitites.filter(facility => facility !== null)
+        let facilityName = matchingFacility.description.content
+        if (facility.number > 0) {
+          facilityName += ': ' + facility.number
         }
 
-        let transportations = _.get(matchingHotel, 'interestPoints', []).map(
-          point => {
-            return `${point.poiName} - ${point.distance} meters`
+        if (matchingFacility.description.content !== '1') {
+          let facilityItem = {
+            ...facility,
+            groupName: matchingGroup.description.content,
+            name: facilityName
+          }
+          facilitites.push(facilityItem)
+        }
+      })
+    }
+
+    const transportations = _.get(hotel, 'interestPoints', []).map(point => {
+      let pointInfo = point.poiName + ' - '
+      pointInfo +=
+        point.distance >= 1000
+          ? point.distance / 1000 + ' km'
+          : point.distance + ' m'
+      return pointInfo
+    })
+
+    return {
+      hotelId: hotel.code,
+      name: hotel.name.content,
+      starRating: parseInt(hotel.categoryCode.charAt(0)),
+      country: hotel.countryCode,
+      cityName: hotel.city.content,
+      address: hotel.address.content,
+      phones: hotel.phones,
+      zip: hotel.postalCode,
+      longitude: hotel.coordinates.longitude,
+      latitude: hotel.coordinates.latitude,
+      summary: hotel.description.content,
+      description: hotel.description.content,
+      amenities: facilitites,
+      policies: [],
+      transportations,
+      featuredImage: featuredImageLink,
+      thumbnail: thumbnailLink,
+      images: imageLinks,
+      supplier: 'hotelbeds',
+      currency: currency.code
+    }
+  })
+
+  hotelsData = addRoomsToHotels(hotelsData, roomHotelsData, currency)
+  return hotelsData
+}
+
+const makeHotelbedsRoomsRatePlans = (hotel, currency) => {
+  const rooms = []
+  hotel.rooms.forEach(room => {
+    room.rates
+      .filter(rate => rate.paymentType === 'AT_WEB')
+      .forEach(rate => {
+        const price = rate.sellingRate || rate.net
+        const cancelRules = _.get(rate, 'cancellationPolicies', []).map(
+          rule => {
+            return {
+              cancelCharge: rule.amount * currency.rate,
+              from: rule.from
+            }
           }
         )
 
-        return {
-          hotelId: matchingHotel.code,
-          name: matchingHotel.name.content,
-          starRating: parseInt(matchingHotel.categoryCode.charAt(0)),
-          country: matchingHotel.countryCode,
-          cityName: matchingHotel.city.content,
-          address: matchingHotel.address.content,
-          phones: matchingHotel.phones,
-          zip: matchingHotel.postalCode,
-          longitude: matchingHotel.coordinates.longitude,
-          latitude: matchingHotel.coordinates.latitude,
-          summary: matchingHotel.description.content,
-          description: matchingHotel.description.content,
-          amenities: facilitites,
-          policies: [],
-          transportations: transportations,
-          featuredImage: featuredImageLink,
-          thumbnail: thumbnailLink,
-          images: imageLinks,
-          lowestPrice: hotelRooms.lowestPrice,
-          ratePlans: hotelRooms.ratePlans,
-          supplier: 'hotelbeds',
-          currency: currency.code
-        }
-      }
-      return null
-    })
-  } else {
-    // has availabile rooms
-    let hotel = hotelbedsHotels[0]
-    return [
-      {
-        hotelId: hotel.code,
-        name: hotel.name.content,
-        starRating: parseInt(hotel.categoryCode.charAt(0)),
-        country: hotel.countryCode,
-        cityName: hotel.city.content,
-        address: hotel.address.content,
-        zip: hotel.postalCode,
-        longitude: hotel.coordinates.longitude,
-        latitude: hotel.coordinates.latitude,
-        summary: hotel.description.content,
-        description: hotel.description.content,
-        amenities: [],
-        policies: [],
-        transportations: [],
-        supplier: 'hotelbeds',
-        currency: currency.code
-      }
-    ]
-  }
-}
-
-const makeHotelbedsRoomsData = (hotels, currency) => {
-  return hotels.map(hotel => {
-    const rooms = []
-    hotel.rooms.forEach(room => {
-      room.rates
-        .filter(rate => rate.paymentType === 'AT_WEB')
-        .forEach(rate => {
-          const price = rate.sellingRate || rate.net
-          const cancelRules = _.get(rate, 'cancellationPolicies', []).map(
-            rule => {
-              return {
-                cancelCharge: rule.amount * currency.rate,
-                from: rule.from
-              }
-            }
-          )
-
-          rooms.push({
-            paymentType: rate.paymentType,
-            ratePlanCode: room.rateKey,
-            roomCode: room.code,
-            roomName: room.name,
-            currency: currency.code,
-            rawCurrency: hotel.currency,
-            rawNet: rate.net,
-            rawSellingRate: rate.sellingRate,
-            totalPrice: Number(price) * currency.rate,
-            rawTotalPrice: rate.net,
-            cancelRules: cancelRules,
-            ratePlanCode: rate.rateKey,
-            rateType: rate.rateType,
-            boardName: rate.boardName,
-            bedTypes: []
-          })
+        rooms.push({
+          paymentType: rate.paymentType,
+          ratePlanCode: room.rateKey,
+          roomCode: room.code,
+          roomName: room.name,
+          currency: currency.code,
+          rawCurrency: hotel.currency,
+          rawNet: rate.net,
+          rawSellingRate: rate.sellingRate,
+          totalPrice: Number(price) * currency.rate,
+          rawTotalPrice: rate.net,
+          cancelRules: cancelRules,
+          ratePlanCode: rate.rateKey,
+          rateType: rate.rateType,
+          boardName: rate.boardName,
+          bedTypes: []
         })
-    })
-    const lowestPrice = Number(hotel.minRate) * currency.rate
-    const highestPrice = Number(hotel.maxRate) * currency.rate
-
-    return {
-      ...hotel,
-      currency: currency.code,
-      lowestPrice,
-      highestPrice,
-      ratePlans: {
-        bedTypeList: [],
-        ratePlanList: rooms
-      }
-    }
+      })
   })
+
+  return {
+    bedTypeList: [],
+    ratePlanList: rooms
+  }
 }
 
 const makeHtbRoomPaxes = (passengers, children, numberOfRoom, rateKey) => {
@@ -509,6 +496,5 @@ module.exports = {
   makeHtbRoomPaxes,
   removeSpaces,
   makeFlightsData,
-  makeHotelbedsHotelsData,
-  makeHotelbedsRoomsData
+  makeHotelbedsHotelsData
 }
