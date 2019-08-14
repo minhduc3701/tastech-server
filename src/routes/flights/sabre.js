@@ -10,6 +10,7 @@ const _ = require('lodash')
 const { currencyExchange } = require('../../middleware/currency')
 const { sabreToken } = require('../../middleware/sabre')
 const { makeSabreFlightsData } = require('../../modules/utils')
+const { logger } = require('../../config/winston')
 
 router.post('/shopping', currencyExchange, sabreToken, async (req, res) => {
   let isRoundTrip = req.body.searchAirLegs.length === 2
@@ -62,6 +63,14 @@ router.post('/shopping', currencyExchange, sabreToken, async (req, res) => {
           }
         ]
       },
+      TravelPreferences: {
+        Baggage: {
+          RequestType: 'C', // C: charge and allownce, A: only allownce
+          Description: true,
+          RequestedPieces: 2,
+          FreePieceRequired: true
+        }
+      },
       TravelerInfoSummary: {
         AirTravelerAvail: [
           {
@@ -81,7 +90,7 @@ router.post('/shopping', currencyExchange, sabreToken, async (req, res) => {
   try {
     let sabreRes = await apiSabre.shopping(data, req.sabreToken)
     sabreRes = sabreRes.data.groupedItineraryResponse
-
+    // logger.info("res", sabreRes)
     let { itineraryGroups } = sabreRes
     let flights = makeSabreFlightsData(itineraryGroups, sabreRes, req)
     let airlines = []
