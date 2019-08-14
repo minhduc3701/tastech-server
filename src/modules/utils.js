@@ -171,7 +171,6 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
   let flights = []
   try {
     // logger.info("sabreRes: ", sabreRes)
-
     itineraryGroups.map(l => {
       let departureDate = moment(
         l.groupDescription.legDescriptions[0].departureDate
@@ -248,7 +247,6 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
             if (baggageDecsKeys.includes('description2')) {
               baggageInfor.push(baggageDecs.description2.toLowerCase())
             }
-            console.log('departure: ', baggageInfor)
           }
 
           obj.departureSegments.push({
@@ -339,7 +337,6 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
               if (baggageDecsKeys.includes('description2')) {
                 baggageInfor.push(baggageDecs.description2.toLowerCase())
               }
-              console.log('return: ', baggageInfor)
             }
 
             obj.returnSegments.push({
