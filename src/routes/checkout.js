@@ -464,7 +464,6 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
     console.log('pkfareHotelCreateOrder: ', error)
     req.checkoutError = error
   }
-
   next()
 }
 
@@ -694,12 +693,29 @@ const sabreCreatePNR = async (req, res, next) => {
   next()
 }
 
-const refundFlightOrder = async (req, res, next) => {
+const refundFailedOrder = async (req, res, next) => {
   try {
     if (req.checkoutError && req.checkoutError.flight) {
       let flightOrder = req.flightOrder
       let amount = flightOrder.flight.totalPrice
       switch (flightOrder.flight.currency) {
+        case USD:
+        case SGD:
+          amount = Math.floor(amount * 100)
+          break
+        case VND:
+          amount = Math.floor(amount)
+          break
+      }
+      await stripe.refunds.create({
+        charge: req.charge.id,
+        amount
+      })
+    }
+    if (req.checkoutError && req.checkoutError.hotel) {
+      let hotelOrder = req.hotelOrder
+      let amount = hotelOrder.hotel.totalPrice
+      switch (hotelOrder.hotel.currency) {
         case USD:
         case SGD:
           amount = Math.floor(amount * 100)
@@ -733,7 +749,7 @@ router.post(
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
-  refundFlightOrder,
+  refundFailedOrder,
 
   async (req, res, next) => {
     // from createOrFindTrip
