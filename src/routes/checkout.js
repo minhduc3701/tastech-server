@@ -529,7 +529,7 @@ const sabreCreatePNR = async (req, res, next) => {
       await flightOrder.save()
       req.flightOrder = flightOrder
     } else {
-      throw { message: 'Create PNR failed!' }
+      throw { message: 'Create PNR failed!', flight: true }
     }
   } catch (error) {
     logger.info('error', error)
