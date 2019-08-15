@@ -125,7 +125,7 @@ router.post('/cancel', currencyExchange, async (req, res) => {
                     amount: cancelRes.data.body.cancelCharge * req.currency.rate
                   })
                 } catch (error) {
-                  return res.status(400).send({ msg: 'Refund failed' })
+                  return res.status(400)
                 }
               }
               order.status = 'cancelled'
@@ -139,13 +139,26 @@ router.post('/cancel', currencyExchange, async (req, res) => {
             let cancelHotelbedsRes = await apiHotelbeds.cancelHotelbedsOrder(
               order.customerCode
             )
+            if (
+              cancelHotelbedsRes.data.booking.hotel.cancellationAmount !== 0
+            ) {
+              try {
+                await stripe.refunds.create({
+                  charge: order.chargeId,
+                  amount:
+                    cancelHotelbedsRes.data.booking.hotel.cancellationAmount *
+                    req.currency.rate
+                })
+              } catch (error) {
+                return res.status(400)
+              }
+            }
             order.status = 'cancelled'
             order.canCancel = false
             await order.save()
             return res
               .status(200)
               .send({ order, result: cancelHotelbedsRes.data })
-            break
         }
         break
 
@@ -182,7 +195,6 @@ router.post('/cancel', currencyExchange, async (req, res) => {
         break
     }
   } catch (e) {}
-
   res.status(400).send()
 })
 

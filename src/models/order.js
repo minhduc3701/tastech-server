@@ -144,6 +144,7 @@ const OrderSchema = new Schema(
     timestamps: true
   }
 )
+
 OrderSchema.methods.toJSON = function() {
   var user = this
   var userObject = user.toObject()

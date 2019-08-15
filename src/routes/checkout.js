@@ -17,9 +17,11 @@ const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
 const { USD, VND, SGD } = require('../config/currency')
 const { logger } = require('../config/winston')
+
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+
 const createOrFindTrip = async (req, res, next) => {
   const { trip, checkoutAgain } = req.body
   let foundTrip
@@ -252,7 +254,6 @@ const pkfareFlightPreBooking = async (req, res, next) => {
       }
     } // end trip.flight
   } catch (error) {
-    console.log('pkfareFlightPreBooking: ', error)
     req.checkoutError = error
   }
 
@@ -323,7 +324,6 @@ const stripeCharging = async (req, res, next) => {
     req.charge = charge
     // AFTER CHARGING =======
   } catch (error) {
-    console.log('stripeCharging: ', error)
     req.checkoutError = error
   }
 
@@ -376,7 +376,6 @@ const pkfareFlightTicketing = async (req, res, next) => {
       req.flightOrder = flightOrder
     } // end trip.flight
   } catch (error) {
-    console.log('pkfareFlightTicketing: ', error)
     req.checkoutError = error
   }
 
@@ -461,7 +460,6 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
       req.hotelOrder = hotelOrder
     }
   } catch (error) {
-    console.log('pkfareHotelCreateOrder: ', error)
     req.checkoutError = error
   }
   next()
@@ -542,6 +540,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
     }
     hotelOrder.status = 'completed'
     hotelOrder.canCancel = true
+    hotelOrder.chargeId = req.charge.id
     await hotelOrder.save()
 
     req.hotelOrder = hotelOrder
@@ -730,7 +729,6 @@ const refundFailedOrder = async (req, res, next) => {
       })
     }
   } catch (error) {
-    console.log('pkfareHotelCreateOrder: ', error)
     req.checkoutError = error
   }
   next()
@@ -761,7 +759,6 @@ router.post(
     let bookingResponse = req.bookingResponse
     try {
       if (req.checkoutError) {
-        console.log(req.checkoutError)
         throw req.checkoutError
       }
       res.status(200).send({
