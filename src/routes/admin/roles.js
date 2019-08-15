@@ -5,6 +5,7 @@ const User = require('../../models/user')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { permissions } = require('../../config/roles')
+const { getImageUri } = require('../../modules/utils')
 
 let projectUsersFields = {
   'users.hash': 0,
@@ -17,6 +18,14 @@ let projectUsersFields = {
   'users._department': 0,
   'users.__v': 0
 }
+
+const roleParser = role => ({
+  ...role,
+  users: role.users.map(user => ({
+    ...user,
+    avatar: getImageUri(user.avatar)
+  }))
+})
 
 router.get('/', function(req, res) {
   Role.aggregate([
@@ -38,6 +47,7 @@ router.get('/', function(req, res) {
     }
   ])
     .then(roles => {
+      roles = roles.map(roleParser)
       res.status(200).send({ roles })
     })
     .catch(e => res.status(400).send())
@@ -72,6 +82,7 @@ router.get('/:id', function(req, res) {
     }
   ])
     .then(roles => {
+      roles = roles.map(roleParser)
       res.status(200).send({ role: roles[0], permissions })
     })
     .catch(e => res.status(400).send())
