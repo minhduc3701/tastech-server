@@ -252,6 +252,7 @@ const pkfareFlightPreBooking = async (req, res, next) => {
       }
     } // end trip.flight
   } catch (error) {
+    console.log('pkfareFlightPreBooking: ', error)
     req.checkoutError = error
   }
 
@@ -322,6 +323,7 @@ const stripeCharging = async (req, res, next) => {
     req.charge = charge
     // AFTER CHARGING =======
   } catch (error) {
+    console.log('stripeCharging: ', error)
     req.checkoutError = error
   }
 
@@ -374,6 +376,7 @@ const pkfareFlightTicketing = async (req, res, next) => {
       req.flightOrder = flightOrder
     } // end trip.flight
   } catch (error) {
+    console.log('pkfareFlightTicketing: ', error)
     req.checkoutError = error
   }
 
@@ -431,6 +434,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
       }
 
       let holteOrderRes = await api.createHotelOrder(request)
+      // logger.info("holteOrderRes: ", { "res": holteOrderRes })
       let orderData = holteOrderRes.data
 
       if (orderData.header.code !== 'S00000') {
@@ -457,6 +461,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
       req.hotelOrder = hotelOrder
     }
   } catch (error) {
+    console.log('pkfareHotelCreateOrder: ', error)
     req.checkoutError = error
   }
 
@@ -691,7 +696,7 @@ const sabreCreatePNR = async (req, res, next) => {
 
 const refundFlightOrder = async (req, res, next) => {
   try {
-    if (req.checkoutError.flight) {
+    if (req.checkoutError && req.checkoutError.flight) {
       let flightOrder = req.flightOrder
       let amount = flightOrder.flight.totalPrice
       switch (flightOrder.flight.currency) {
@@ -709,6 +714,7 @@ const refundFlightOrder = async (req, res, next) => {
       })
     }
   } catch (error) {
+    console.log('pkfareHotelCreateOrder: ', error)
     req.checkoutError = error
   }
   next()
@@ -739,6 +745,7 @@ router.post(
     let bookingResponse = req.bookingResponse
     try {
       if (req.checkoutError) {
+        console.log(req.checkoutError)
         throw req.checkoutError
       }
       res.status(200).send({

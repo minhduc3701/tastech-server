@@ -7,7 +7,9 @@ const { authentication } = require('../config/pkfare')
 const _ = require('lodash')
 const { removeSpaces } = require('../modules/utils')
 const apiHotelbeds = require('../modules/apiHotelbeds')
-
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const { currencyExchange } = require('../middleware/currency')
+const { logger } = require('../config/winston')
 router.get('/', function(req, res, next) {
   Order.find({
     _customer: req.user._id
@@ -82,7 +84,7 @@ router.patch('/:id', function(req, res, next) {
     })
 })
 
-router.post('/cancel', async (req, res) => {
+router.post('/cancel', currencyExchange, async (req, res) => {
   let id = req.body.id
 
   if (!ObjectID.isValid(id)) {
@@ -114,8 +116,18 @@ router.post('/cancel', async (req, res) => {
                 }
               }
             )
-
+            // logger.info("cancelRes", { "res": cancelRes })
             if (cancelRes.data.header.code === 'S00000') {
+              if (cancelRes.data.body.cancelCharge !== 0) {
+                try {
+                  await stripe.refunds.create({
+                    charge: order.chargeId,
+                    amount: cancelRes.data.body.cancelCharge * req.currency.rate
+                  })
+                } catch (error) {
+                  return res.status(400).send({ msg: 'Refund failed' })
+                }
+              }
               order.status = 'cancelled'
               order.canCancel = false
               await order.save()
