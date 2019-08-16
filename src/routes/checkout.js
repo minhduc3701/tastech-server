@@ -738,12 +738,21 @@ const refundFailedOrder = async (req, res, next) => {
         hotelOrder.totalPrice,
         hotelOrder.currency
       )
+
+      // success flight and fail hotel
+      if (req.flightOrder) {
+        req.checkoutError = undefined
+
+        // change status of hotel to failed
+        hotelOrder.status = 'failed'
+        await hotelOrder.save()
+      }
     }
 
     // refund via stripe
     await stripe.refunds.create({
       charge: req.charge.id,
-      refundAmount
+      amount: refundAmount
     })
   } catch (error) {
     req.checkoutError = error
