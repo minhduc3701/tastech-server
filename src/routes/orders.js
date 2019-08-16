@@ -5,11 +5,12 @@ const { ObjectID } = require('mongodb')
 const axios = require('axios')
 const { authentication } = require('../config/pkfare')
 const _ = require('lodash')
-const { removeSpaces } = require('../modules/utils')
+const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
 const apiHotelbeds = require('../modules/apiHotelbeds')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const { currencyExchange } = require('../middleware/currency')
 const { logger } = require('../config/winston')
+
 router.get('/', function(req, res, next) {
   Order.find({
     _customer: req.user._id
@@ -84,7 +85,7 @@ router.patch('/:id', function(req, res, next) {
     })
 })
 
-router.post('/cancel', currencyExchange, async (req, res) => {
+router.post('/cancel', async (req, res) => {
   let id = req.body.id
 
   if (!ObjectID.isValid(id)) {
@@ -103,6 +104,8 @@ router.post('/cancel', currencyExchange, async (req, res) => {
       return res.status(404).send()
     }
 
+    let currencyRate = order.totalPrice / order.rawTotalPrice
+
     switch (order.type) {
       case 'hotel':
         switch (order[order.type].supplier) {
@@ -118,16 +121,21 @@ router.post('/cancel', currencyExchange, async (req, res) => {
             )
             // logger.info("cancelRes", { "res": cancelRes })
             if (cancelRes.data.header.code === 'S00000') {
-              if (cancelRes.data.body.cancelCharge !== 0) {
+              let cancellationAmount = cancelRes.data.body.cancelCharge
+              let refundAmount =
+                (order.rawTotalPrice - cancellationAmount) * currencyRate
+              if (refundAmount > 0) {
                 try {
                   await stripe.refunds.create({
                     charge: order.chargeId,
-                    amount: cancelRes.data.body.cancelCharge * req.currency.rate
+                    amount: roundingAmountStripe(refundAmount, order.currency)
                   })
                 } catch (error) {
                   return res.status(400)
                 }
               }
+              order.cancelCharge = cancellationAmount * currencyRate
+              order.rawCancelCharge = cancellationAmount
               order.status = 'cancelled'
               order.canCancel = false
               await order.save()
@@ -139,20 +147,22 @@ router.post('/cancel', currencyExchange, async (req, res) => {
             let cancelHotelbedsRes = await apiHotelbeds.cancelHotelbedsOrder(
               order.customerCode
             )
-            if (
-              cancelHotelbedsRes.data.booking.hotel.cancellationAmount !== 0
-            ) {
+            let cancellationAmount =
+              cancelHotelbedsRes.data.booking.hotel.cancellationAmount
+            let refundAmount =
+              (order.rawTotalPrice - cancellationAmount) * currencyRate
+            if (refundAmount > 0) {
               try {
                 await stripe.refunds.create({
                   charge: order.chargeId,
-                  amount:
-                    cancelHotelbedsRes.data.booking.hotel.cancellationAmount *
-                    req.currency.rate
+                  amount: roundingAmountStripe(refundAmount, order.currency)
                 })
               } catch (error) {
                 return res.status(400)
               }
             }
+            order.cancelCharge = cancellationAmount * currencyRate
+            order.rawCancelCharge = cancellationAmount
             order.status = 'cancelled'
             order.canCancel = false
             await order.save()

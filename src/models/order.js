@@ -138,7 +138,9 @@ const OrderSchema = new Schema(
       }
     },
     supplierInfo: {},
-    chargeId: String
+    chargeId: String,
+    cancelCharge: Number,
+    rawCancelCharge: Number
   },
   {
     timestamps: true

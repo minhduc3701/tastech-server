@@ -14,26 +14,13 @@ const {
 } = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
-const { removeSpaces } = require('../modules/utils')
-const { USD, VND, SGD } = require('../config/currency')
+const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
 const { logger } = require('../config/winston')
 
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
-const roundingAmountStripe = (amount, currency) => {
-  switch (currency) {
-    case USD:
-    case SGD:
-      amount = Math.floor(amount * 100)
-      break
-    case VND:
-      amount = Math.floor(amount)
-      break
-  }
-  return amount
-}
 const createOrFindTrip = async (req, res, next) => {
   const { trip, checkoutAgain } = req.body
   let foundTrip
@@ -306,16 +293,8 @@ const stripeCharging = async (req, res, next) => {
       currency = hotelOrder.hotel.currency
     }
 
-    switch (currency) {
-      case USD:
-      case SGD:
-        amount = Math.floor(amount * 100)
-        break
-
-      case VND:
-        amount = Math.floor(amount)
-        break
-    }
+    // rounding amount
+    amount = roundingAmountStripe(amount, currency)
 
     // find the card
     let foundCard = await Card.findOne({
@@ -373,7 +352,7 @@ const pkfareFlightTicketing = async (req, res, next) => {
         telNum: `+${trip.contactInfo.callingCode} ${trip.contactInfo.phone}`
       })
 
-      if (ticketingRes.errorCode !== '0') {
+      if (ticketingRes.data.errorCode !== '0') {
         throw { message: ticketingRes.errorMsg, flight: true }
       }
 
@@ -396,6 +375,7 @@ const pkfareFlightTicketing = async (req, res, next) => {
 
   next()
 }
+
 const sabreCreatePNR = async (req, res, next) => {
   const trip = req.trip
   let flightOrder = req.flightOrder
@@ -554,6 +534,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
     if (req.checkoutError) {
       throw req.checkoutError
     }
+
     // update data for trip
     let hotelUpdateData = {}
 
@@ -641,6 +622,7 @@ const hotelbedsCheckRate = async (req, res, next) => {
     if (req.checkoutError) {
       throw req.checkoutError
     }
+
     let request = {
       rooms: [
         {
@@ -677,6 +659,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
     if (req.checkoutError) {
       throw req.checkoutError
     }
+
     let request = {
       holder: {
         name: trip.contactInfo.name,
@@ -725,40 +708,87 @@ const hotelbedsCreateOrder = async (req, res, next) => {
 }
 
 const refundFailedOrder = async (req, res, next) => {
+  // exit if no checkout errors
+  if (!req.checkoutError) {
+    next()
+    return
+  }
+
   try {
+    let refundAmount = 0
+
     // refund for flight booking failed
     if (req.checkoutError && req.checkoutError.flight) {
       let flightOrder = req.flightOrder
-      let amount = flightOrder.flight.totalPrice
+      refundAmount += flightOrder.totalPrice
 
       // refund for combo (flight & hotel) if flight booking failed
       let hotelOrder = req.hotelOrder
       if (!_.isEmpty(hotelOrder)) {
-        amount += hotelOrder.hotel.totalPrice
+        refundAmount += hotelOrder.totalPrice
       }
 
-      amount = roundingAmountStripe(amount, flightOrder.flight.currency)
-      await stripe.refunds.create({
-        charge: req.charge.id,
-        amount
-      })
+      refundAmount = roundingAmountStripe(refundAmount, flightOrder.currency)
+
+      // if only hotel failed
     } else if (req.checkoutError && req.checkoutError.hotel) {
       // refund for hotel booking failed
       let hotelOrder = req.hotelOrder
-      let amount = roundingAmountStripe(
-        hotelOrder.hotel.totalPrice,
-        hotelOrder.hotel.currency
+      refundAmount += roundingAmountStripe(
+        hotelOrder.totalPrice,
+        hotelOrder.currency
       )
-
-      await stripe.refunds.create({
-        charge: req.charge.id,
-        amount
-      })
     }
+
+    // refund via stripe
+    await stripe.refunds.create({
+      charge: req.charge.id,
+      refundAmount
+    })
   } catch (error) {
     req.checkoutError = error
   }
+
   next()
+}
+
+const responseCheckout = async (req, res, next) => {
+  // from createOrFindTrip
+  const trip = req.trip
+  let flightOrder = req.flightOrder
+  let hotelOrder = req.hotelOrder
+  const charge = req.charge
+
+  let bookingResponse = req.bookingResponse
+  try {
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+    res.status(200).send({
+      status: charge.status,
+      trip: _.pick(trip, ['_id']),
+      flightOrder,
+      hotelOrder
+    })
+  } catch (error) {
+    // update order status to failed if something went wrong
+    if (trip.flight && flightOrder) {
+      flightOrder.status = 'failed'
+      await flightOrder.save()
+    }
+
+    if (trip.hotel && hotelOrder) {
+      hotelOrder.status = 'failed'
+      await hotelOrder.save()
+    }
+
+    res.status(400).send({
+      ...error,
+      trip: _.pick(trip, ['_id']),
+      flightOrder,
+      hotelOrder
+    })
+  }
 }
 
 router.post(
@@ -775,45 +805,7 @@ router.post(
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
   refundFailedOrder,
-
-  async (req, res, next) => {
-    // from createOrFindTrip
-    const trip = req.trip
-    let flightOrder = req.flightOrder
-    let hotelOrder = req.hotelOrder
-    const charge = req.charge
-
-    let bookingResponse = req.bookingResponse
-    try {
-      if (req.checkoutError) {
-        throw req.checkoutError
-      }
-      res.status(200).send({
-        status: charge.status,
-        trip: _.pick(trip, ['_id']),
-        flightOrder,
-        hotelOrder
-      })
-    } catch (error) {
-      // update order status to failed if something went wrong
-      if (trip.flight && flightOrder) {
-        flightOrder.status = 'failed'
-        await flightOrder.save()
-      }
-
-      if (trip.hotel && hotelOrder) {
-        hotelOrder.status = 'failed'
-        await hotelOrder.save()
-      }
-
-      res.status(400).send({
-        ...error,
-        trip: _.pick(trip, ['_id']),
-        flightOrder,
-        hotelOrder
-      })
-    }
-  }
+  responseCheckout
 )
 
 router.post('/password', (req, res) => {

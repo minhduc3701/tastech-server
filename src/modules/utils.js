@@ -6,6 +6,8 @@ const mapClassOptions = {
   C: 'BUSINESS',
   F: 'FIRST CLASS'
 }
+const { USD, VND, SGD } = require('../config/currency')
+
 const makeSegmentsData = segment => {
   let data = _.pick(segment, [
     'airline',
@@ -489,6 +491,19 @@ const makeHtbRoomPaxes = (passengers, children, numberOfRoom, rateKey) => {
   return rooms
 }
 
+const roundingAmountStripe = (amount, currency) => {
+  switch (currency) {
+    case USD:
+    case SGD:
+      amount = amount * 100
+      break
+    case VND:
+      amount = amount * 1
+      break
+  }
+  return Math.round(amount)
+}
+
 module.exports = {
   makeSegmentsData,
   makeSabreFlightsData,
@@ -496,5 +511,6 @@ module.exports = {
   makeHtbRoomPaxes,
   removeSpaces,
   makeFlightsData,
-  makeHotelbedsHotelsData
+  makeHotelbedsHotelsData,
+  roundingAmountStripe
 }
