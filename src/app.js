@@ -41,10 +41,7 @@ const cardsRouter = require('./routes/cards')
 const checkoutRouter = require('./routes/checkout')
 const ordersRouter = require('./routes/orders')
 const reportsRouter = require('./routes/reports')
-const {
-  authenticateTasAdmin,
-  authenticateAdmin
-} = require('./middleware/authenticate')
+const { authenticateRole } = require('./middleware/authenticate')
 
 const jwtAuthenticate = passport.authenticate('jwt', { session: false })
 
@@ -82,26 +79,26 @@ app.use('/reports', jwtAuthenticate, reportsRouter)
 app.use(
   '/tas-admin/requests',
   jwtAuthenticate,
-  authenticateTasAdmin,
+  authenticateRole('tas-admin'),
   tasAdminRequestsRouter
 )
 app.use(
   '/tas-admin/users',
   jwtAuthenticate,
-  authenticateTasAdmin,
+  authenticateRole('tas-admin'),
   tasAdminUsersRouter
 )
 app.use(
   '/tas-admin/companies',
   jwtAuthenticate,
-  authenticateTasAdmin,
+  authenticateRole('tas-admin'),
   tasAdminCompaniesRouter
 )
 
 app.use(
   '/tas-admin/orders',
   jwtAuthenticate,
-  authenticateTasAdmin,
+  authenticateRole('tas-admin'),
   tasAdminOrdersRouter
 )
 
@@ -109,35 +106,50 @@ app.use(
 app.use(
   '/admin/company',
   jwtAuthenticate,
-  authenticateAdmin,
+  authenticateRole('admin'),
   adminCompanyRouter
 )
-app.use('/admin/users', jwtAuthenticate, authenticateAdmin, adminUsersRouter)
-app.use('/admin/roles', jwtAuthenticate, authenticateAdmin, adminRolesRouter)
-app.use('/admin/trips', jwtAuthenticate, authenticateAdmin, adminTripsRouter)
+app.use(
+  '/admin/users',
+  jwtAuthenticate,
+  authenticateRole('admin'),
+  adminUsersRouter
+)
+app.use(
+  '/admin/roles',
+  jwtAuthenticate,
+  authenticateRole('admin'),
+  adminRolesRouter
+)
+app.use(
+  '/admin/trips',
+  jwtAuthenticate,
+  authenticateRole('admin'),
+  adminTripsRouter
+)
 app.use(
   '/admin/expenses',
   jwtAuthenticate,
-  authenticateAdmin,
+  authenticateRole('admin'),
   adminExpensesRouter
 )
 app.use(
   '/admin/policies',
   jwtAuthenticate,
-  authenticateAdmin,
+  authenticateRole('admin'),
   adminPolicyRouter
 )
 app.use(
   '/admin/departments',
   jwtAuthenticate,
-  authenticateAdmin,
+  authenticateRole('admin'),
   adminDepartmentRouter
 )
 
 app.use(
   '/admin/reports',
   jwtAuthenticate,
-  authenticateAdmin,
+  authenticateRole('admin'),
   adminReportsRouter
 )
 
