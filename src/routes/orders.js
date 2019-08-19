@@ -9,7 +9,6 @@ const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
 const apiHotelbeds = require('../modules/apiHotelbeds')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const { currencyExchange } = require('../middleware/currency')
-const { logger } = require('../config/winston')
 
 router.get('/', function(req, res, next) {
   Order.find({
@@ -119,7 +118,6 @@ router.post('/cancel', async (req, res) => {
                 }
               }
             )
-            // logger.info("cancelRes", { "res": cancelRes })
             if (cancelRes.data.header.code === 'S00000') {
               let cancellationAmount = cancelRes.data.body.cancelCharge
               let refundAmount =

@@ -575,7 +575,6 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
       }
 
       let holteOrderRes = await api.createHotelOrder(request)
-      // logger.info("holteOrderRes: ", { "res": holteOrderRes })
       let orderData = holteOrderRes.data
 
       if (orderData.header.code !== 'S00000') {
