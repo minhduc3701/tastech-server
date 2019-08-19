@@ -80,7 +80,8 @@ router.patch('/me', async (req, res) => {
     'dateOfBirth',
     'callingCode',
     'passports',
-    'allowSearch'
+    'allowSearch',
+    'allowNotification'
   ])
 
   User.findByIdAndUpdate(

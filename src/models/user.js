@@ -37,6 +37,7 @@ var UserSchema = new Schema({
     }
   ],
   allowSearch: false,
+  allowNotification: false,
   _company: {
     type: 'ObjectId',
     ref: 'Company'
@@ -90,6 +91,7 @@ UserSchema.methods.toJSON = function() {
     'dateOfBirth',
     'passports',
     'allowSearch',
+    'allowNotification',
     'callingCode'
   ])
 
