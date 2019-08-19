@@ -236,7 +236,9 @@ router.get('/', (req, res) => {
         currency
       })
     })
-    .catch(e => res.status(400).send())
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 router.get('/trips/:id', (req, res) => {
