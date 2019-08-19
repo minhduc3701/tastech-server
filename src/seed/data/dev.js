@@ -45,6 +45,10 @@ const adminRoleId3 = new ObjectID()
 const employeeRoleId = new ObjectID('5cc2d7a24c72b61214af0060')
 const employeeRoleId2 = new ObjectID()
 const employeeRoleId3 = new ObjectID()
+const managerId = new ObjectID()
+const managerRoleId = new ObjectID()
+const accountantId = new ObjectID()
+const accountantRoleId = new ObjectID()
 const password = '12345678'
 const defaultPolicyId = new ObjectID()
 const defaultPolicyId2 = new ObjectID()
@@ -80,6 +84,34 @@ const users = [
     _company: companyId,
     avatar: `http://i.pravatar.cc/150?img=3`,
     _role: employeeRoleId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    _department: departmentId,
+    phone: '0819020695',
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'VN'
+  },
+  {
+    _id: managerId,
+    username: 'manager@tastech.asia',
+    email: 'manager@tastech.asia',
+    _company: companyId,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: managerRoleId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    _department: departmentId,
+    phone: '0819020695',
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'VN'
+  },
+  {
+    _id: accountantId,
+    username: 'accountant@tastech.asia',
+    email: 'accountant@tastech.asia',
+    _company: companyId,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: accountantRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
     _department: departmentId,
@@ -199,30 +231,47 @@ const roles = [
     _id: adminRoleId,
     name: 'Admin',
     type: 'admin',
-    permissions: ['CAN_EDIT_USER'],
+    permissions: ['CAN_ACCESS_COMPANY'],
     _company: companyId
   },
   {
     _id: employeeRoleId,
     name: 'Employee',
     type: 'employee',
-    permissions: ['CAN_CLAIM_EXPRENSE'],
+    permissions: ['CAN_ACCESS_BOOKING'],
     _company: companyId
   },
-
+  {
+    _id: managerRoleId,
+    name: 'Manager',
+    type: 'manager',
+    permissions: [
+      'CAN_ACCESS_APPROVAL',
+      'CAN_ACCESS_ANALYTICS',
+      'CAN_ACCESS_BOOKING'
+    ],
+    _company: companyId
+  },
+  {
+    _id: accountantRoleId,
+    name: 'Accountant',
+    type: 'accountant',
+    permissions: ['CAN_ACCESS_BOOKING', 'CAN_ACCESS_APPROVAL'],
+    _company: companyId
+  },
   // company 2 roles
   {
     _id: adminRoleId2,
     name: 'Admin',
     type: 'admin',
-    permissions: ['CAN_EDIT_USER'],
+    permissions: ['CAN_ACCESS_COMPANY'],
     _company: companyId2
   },
   {
     _id: employeeRoleId2,
     name: 'Employee',
     type: 'employee',
-    permissions: ['CAN_CLAIM_EXPRENSE'],
+    permissions: ['CAN_ACCESS_BOOKING'],
     _company: companyId2
   },
 
@@ -231,14 +280,14 @@ const roles = [
     _id: adminRoleId3,
     name: 'Admin',
     type: 'admin',
-    permissions: ['CAN_EDIT_USER'],
+    permissions: ['CAN_ACCESS_COMPANY'],
     _company: companyId3
   },
   {
     _id: employeeRoleId3,
     name: 'Employee',
     type: 'employee',
-    permissions: ['CAN_CLAIM_EXPRENSE'],
+    permissions: ['CAN_ACCESS_BOOKING'],
     _company: companyId3
   }
 ]

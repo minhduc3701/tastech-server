@@ -222,9 +222,9 @@ router.get('/', (req, res) => {
       let spendingByUsers = results[3]
       let spendingByTrips = results[4]
       let totalSpendingResults = results[5]
-      let totalBudget = totalBudgetResults[0].totalBudget
-      let totalSpending = totalSpendingResults[0].totalSpending
-      let currency = totalBudgetResults[0].currency
+      let totalBudget = _.get(totalBudgetResults, '[0].totalBudget', 0)
+      let totalSpending = _.get(totalSpendingResults, '[0].totalSpending', 0)
+      let currency = _.get(totalBudgetResults, '[0].currency')
 
       res.status(200).send({
         totalBudget,
@@ -236,7 +236,9 @@ router.get('/', (req, res) => {
         currency
       })
     })
-    .catch(e => res.status(400).send())
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 router.get('/trips/:id', (req, res) => {

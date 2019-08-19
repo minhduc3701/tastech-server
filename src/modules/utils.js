@@ -1,12 +1,23 @@
 const _ = require('lodash')
 const moment = require('moment')
+const { logger } = require('../config/winston')
+const validator = require('validator')
+const { USD, VND, SGD } = require('../config/currency')
+
+const getImageUri = uriString => {
+  if (uriString && !validator.isURL(_.toString(uriString))) {
+    return process.env.AWS_S3_URI + '/' + uriString
+  }
+
+  return uriString
+}
+
 const mapClassOptions = {
   Y: 'ECONOMY',
   S: 'PREMIUM ECONOMY',
   C: 'BUSINESS',
   F: 'FIRST CLASS'
 }
-const { USD, VND, SGD } = require('../config/currency')
 
 const makeSegmentsData = segment => {
   let data = _.pick(segment, [
@@ -141,7 +152,7 @@ const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
   flightsData = _.sortBy(flightsData, ['price'])
   return flightsData
 }
-const getSegmentForFlight = (fareComponents, index) => {
+const getSegmentForSabreFlight = (fareComponents, index) => {
   let startIndex = 0
   for (let i = 0; i < fareComponents.length; i++) {
     for (let j = 0; j < fareComponents[i].segments.length; j++) {
@@ -156,106 +167,105 @@ const getSegmentForFlight = (fareComponents, index) => {
     startIndex += fareComponents[i].segments.length
   }
 }
+const getBaggageForSabreFlight = (baggageInformation, index) => {
+  let startIndex = 0
+  for (let i = 0; i < baggageInformation.length; i++) {
+    for (let j = 0; j < baggageInformation[i].segments.length; j++) {
+      if (startIndex + j === index) {
+        return baggageInformation[i].allowance.ref
+      }
+    }
+    startIndex += baggageInformation[i].segments.length
+  }
+}
 const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
   let flights = []
-  itineraryGroups.map(l => {
-    let departureDate = moment(
-      l.groupDescription.legDescriptions[0].departureDate
-    ).format('YYYY-MM-DD')
-    l.itineraries.map(i => {
-      let obj = {
-        legs: i.legs
-      }
-      obj.refundable = !i.pricingInformation[0].fare.passengerInfoList[0]
-        .passengerInfo.nonRefundable
-      obj.departureDescs = sabreRes.legDescs.find(
-        leg => leg.id === i.legs[0].ref
-      )
-      obj.departureSegments = []
-      obj.departureDescs.schedules.map((s, index) => {
-        let segmentInfor = getSegmentForFlight(
-          i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
-            .fareComponents,
-          index
-        )
-        let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
-        let toDayText = moment().format('YYYY-MM-DDT')
-        let nextDayText = moment()
-          .add(1, 'days')
-          .format('YYYY-MM-DDT')
-        let flightTime = moment
-          .utc(`${toDayText}${data.arrival.time}`)
-          .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
-        if (flightTime < 0) {
-          flightTime = moment
-            .utc(`${nextDayText}${data.arrival.time}`)
-            .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
+  try {
+    // logger.info("sabreRes: ", sabreRes)
+    itineraryGroups.map(l => {
+      let departureDate = moment(
+        l.groupDescription.legDescriptions[0].departureDate
+      ).format('YYYY-MM-DD')
+      l.itineraries.map(i => {
+        let obj = {
+          legs: i.legs
         }
-        let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
-        let arrivalDate = moment(departureDate)
-          .add(dateAdjustment, 'days')
-          .format('YYYY-MM-DDT')
-        obj.departureSegments.push({
-          id: data.id,
-          cabinClass: segmentInfor.cabinClass,
-          departure: data.departure.airport,
-          arrival: data.arrival.airport,
-          DepartureDateTime: `${departureDate}T${data.departure.time.substring(
-            0,
-            8
-          )}`,
-          strDepartureTime: data.departure.time.substring(0, 5),
-          ArrivalDateTime: `${arrivalDate}${data.arrival.time.substring(0, 8)}`,
-          strArrivalTime: data.arrival.time.substring(0, 5),
-          flightNum: data.carrier.marketingFlightNumber,
-          flightTime,
-          seatsAvailable: segmentInfor.seatsAvailable,
-          cabinCode: segmentInfor.cabinCode,
-          airline: data.carrier.operating,
-          marketing: data.carrier.marketing,
-          marketingFlightNumber: data.carrier.marketingFlightNumber,
-          operating: data.carrier.operating,
-          operatingFlightNumber: data.carrier.operatingFlightNumber
-        })
-      })
-      obj.departureFlight = {
-        flightId: ''
-      }
-      obj.departureSegments.forEach(s => {
-        if (obj.departureFlight.flightId === '') {
-          obj.departureFlight.flightId += `${s.flightNum}-${s.airline}`
-        } else {
-          obj.departureFlight.flightId += `-${s.flightNum}-${s.airline}`
+        obj.refundable = !i.pricingInformation[0].fare.passengerInfoList[0]
+          .passengerInfo.nonRefundable
+        // check baggage allowance
+        obj.baggageAllowance = true
+        let {
+          baggageInformation
+        } = i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
+        for (let index = 0; index < baggageInformation.length; index++) {
+          if (baggageInformation[index].provisionType !== 'A') {
+            obj.baggageAllowance = false
+            break
+          }
         }
-      })
 
-      obj.returnDescs = {}
-      obj.returnSegments = []
-      obj.returnFlight = {}
-      if (i.legs.length === 2) {
-        let departureDate = moment(
-          l.groupDescription.legDescriptions[1].departureDate
-        ).format('YYYY-MM-DD')
-        obj.returnDescs = sabreRes.legDescs.find(
-          leg => leg.id === i.legs[1].ref
+        obj.departureDescs = sabreRes.legDescs.find(
+          leg => leg.id === i.legs[0].ref
         )
-        obj.returnSegments = []
-        obj.returnDescs.schedules.map((s, index) => {
-          let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
-          let segmentInfor = getSegmentForFlight(
+        obj.departureSegments = []
+        obj.departureDescs.schedules.map((s, index) => {
+          let segmentInfor = getSegmentForSabreFlight(
             i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
               .fareComponents,
-            index + obj.departureDescs.schedules.length
+            index
           )
+          let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
+          let toDayText = moment().format('YYYY-MM-DDT')
+          let nextDayText = moment()
+            .add(1, 'days')
+            .format('YYYY-MM-DDT')
+          let flightTime = moment
+            .utc(`${toDayText}${data.arrival.time}`)
+            .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
+          if (flightTime < 0) {
+            flightTime = moment
+              .utc(`${nextDayText}${data.arrival.time}`)
+              .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
+          }
           let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
           let arrivalDate = moment(departureDate)
             .add(dateAdjustment, 'days')
             .format('YYYY-MM-DDT')
-          obj.returnSegments.push({
+          let baggageInfor = false
+          if (obj.baggageAllowance) {
+            baggageInfor = []
+            let baggageDecs = sabreRes.baggageAllowanceDescs.find(
+              decs =>
+                decs.id ===
+                getBaggageForSabreFlight(
+                  i.pricingInformation[0].fare.passengerInfoList[0]
+                    .passengerInfo.baggageInformation,
+                  index
+                )
+            )
+            let baggageDecsKeys = Object.keys(baggageDecs)
+            if (
+              baggageDecsKeys.includes('unit') &&
+              baggageDecsKeys.includes('weight')
+            ) {
+              baggageInfor.push(
+                `Up to ${baggageDecs.weight} ${baggageDecs.unit}`
+              )
+            }
+            if (baggageDecsKeys.includes('description1')) {
+              baggageInfor.push(baggageDecs.description1.toLowerCase())
+            }
+            if (baggageDecsKeys.includes('description2')) {
+              baggageInfor.push(baggageDecs.description2.toLowerCase())
+            }
+          }
+
+          obj.departureSegments.push({
             id: data.id,
             cabinClass: segmentInfor.cabinClass,
             departure: data.departure.airport,
             arrival: data.arrival.airport,
+            baggageInfor,
             DepartureDateTime: `${departureDate}T${data.departure.time.substring(
               0,
               8
@@ -267,10 +277,7 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
             )}`,
             strArrivalTime: data.arrival.time.substring(0, 5),
             flightNum: data.carrier.marketingFlightNumber,
-            flightTime: moment(data.arrival.time.substring(0, 5), 'hh:mm').diff(
-              moment(data.departure.time.substring(0, 5), 'hh:mm'),
-              'minutes'
-            ),
+            flightTime,
             seatsAvailable: segmentInfor.seatsAvailable,
             cabinCode: segmentInfor.cabinCode,
             airline: data.carrier.operating,
@@ -280,27 +287,127 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
             operatingFlightNumber: data.carrier.operatingFlightNumber
           })
         })
-        obj.returnFlight = {
+        obj.departureFlight = {
           flightId: ''
         }
-        obj.returnSegments.forEach(s => {
-          if (obj.returnFlight.flightId === '') {
-            obj.returnFlight.flightId += `${s.flightNum}-${s.airline}`
+        obj.departureSegments.forEach(s => {
+          if (obj.departureFlight.flightId === '') {
+            obj.departureFlight.flightId += `${s.flightNum}-${s.airline}`
           } else {
-            obj.returnFlight.flightId += `-${s.flightNum}-${s.airline}`
+            obj.departureFlight.flightId += `-${s.flightNum}-${s.airline}`
           }
         })
-      }
-      obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
-      obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
-      obj.currency = req.currency.code
-      obj.totalPrice = obj.rawTotalPrice * req.currency.rate
-      obj.price = obj.rawTotalPrice * req.currency.rate
-      obj.supplier = 'sabre'
 
-      flights.push(obj)
+        obj.returnDescs = {}
+        obj.returnSegments = []
+        obj.returnFlight = {}
+        if (i.legs.length === 2) {
+          let departureDate = moment(
+            l.groupDescription.legDescriptions[1].departureDate
+          ).format('YYYY-MM-DD')
+          obj.returnDescs = sabreRes.legDescs.find(
+            leg => leg.id === i.legs[1].ref
+          )
+
+          obj.returnSegments = []
+          obj.returnDescs.schedules.map((s, index) => {
+            let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
+            let segmentInfor = getSegmentForSabreFlight(
+              i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
+                .fareComponents,
+              index + obj.departureDescs.schedules.length
+            )
+            let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
+            let arrivalDate = moment(departureDate)
+              .add(dateAdjustment, 'days')
+              .format('YYYY-MM-DDT')
+            let baggageInfor = false
+            if (obj.baggageAllowance) {
+              baggageInfor = []
+              let baggageDecs = sabreRes.baggageAllowanceDescs.find(
+                decs =>
+                  decs.id ===
+                  getBaggageForSabreFlight(
+                    i.pricingInformation[0].fare.passengerInfoList[0]
+                      .passengerInfo.baggageInformation,
+                    index + obj.departureDescs.schedules.length
+                  )
+              )
+              let baggageDecsKeys = Object.keys(baggageDecs)
+              if (
+                baggageDecsKeys.includes('unit') &&
+                baggageDecsKeys.includes('weight')
+              ) {
+                baggageInfor.push(
+                  `Up to ${baggageDecs.weight} ${baggageDecs.unit}`
+                )
+              }
+              if (baggageDecsKeys.includes('description1')) {
+                baggageInfor.push(baggageDecs.description1.toLowerCase())
+              }
+              if (baggageDecsKeys.includes('description2')) {
+                baggageInfor.push(baggageDecs.description2.toLowerCase())
+              }
+            }
+
+            obj.returnSegments.push({
+              id: data.id,
+              cabinClass: segmentInfor.cabinClass,
+              departure: data.departure.airport,
+              arrival: data.arrival.airport,
+              baggageInfor,
+              DepartureDateTime: `${departureDate}T${data.departure.time.substring(
+                0,
+                8
+              )}`,
+              strDepartureTime: data.departure.time.substring(0, 5),
+              ArrivalDateTime: `${arrivalDate}${data.arrival.time.substring(
+                0,
+                8
+              )}`,
+              strArrivalTime: data.arrival.time.substring(0, 5),
+              flightNum: data.carrier.marketingFlightNumber,
+              flightTime: moment(
+                data.arrival.time.substring(0, 5),
+                'hh:mm'
+              ).diff(
+                moment(data.departure.time.substring(0, 5), 'hh:mm'),
+                'minutes'
+              ),
+              seatsAvailable: segmentInfor.seatsAvailable,
+              cabinCode: segmentInfor.cabinCode,
+              airline: data.carrier.operating,
+              marketing: data.carrier.marketing,
+              marketingFlightNumber: data.carrier.marketingFlightNumber,
+              operating: data.carrier.operating,
+              operatingFlightNumber: data.carrier.operatingFlightNumber
+            })
+          })
+          obj.returnFlight = {
+            flightId: ''
+          }
+          obj.returnSegments.forEach(s => {
+            if (obj.returnFlight.flightId === '') {
+              obj.returnFlight.flightId += `${s.flightNum}-${s.airline}`
+            } else {
+              obj.returnFlight.flightId += `-${s.flightNum}-${s.airline}`
+            }
+          })
+        }
+        obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
+        obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
+        obj.currency = req.currency.code
+        obj.totalPrice = obj.rawTotalPrice * req.currency.rate
+        obj.price = obj.rawTotalPrice * req.currency.rate
+        obj.supplier = 'sabre'
+
+        flights.push(obj)
+      })
     })
-  })
+    console.log('baggageAllowanceDescs: ', sabreRes.baggageAllowanceDescs)
+  } catch (error) {
+    console.log(error)
+  }
   return flights
 }
 
@@ -505,6 +612,7 @@ const roundingAmountStripe = (amount, currency) => {
 }
 
 module.exports = {
+  getImageUri,
   makeSegmentsData,
   makeSabreFlightsData,
   makeRoomGuestDetails,

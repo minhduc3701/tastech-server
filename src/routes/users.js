@@ -72,12 +72,15 @@ router.get('/me/policy', function(req, res, next) {
 router.patch('/me', async (req, res) => {
   const body = _.pick(req.body, [
     'country',
+    'displayName',
     'title',
     'firstName',
     'lastName',
     'phone',
     'dateOfBirth',
-    'callingCode'
+    'callingCode',
+    'passports',
+    'allowSearch'
   ])
 
   User.findByIdAndUpdate(
