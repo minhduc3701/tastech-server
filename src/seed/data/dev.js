@@ -243,7 +243,7 @@ const roles = [
   },
   {
     _id: managerRoleId,
-    name: 'manager',
+    name: 'Manager',
     type: 'manager',
     permissions: [
       'CAN_ACCESS_APPROVAL',
@@ -254,7 +254,7 @@ const roles = [
   },
   {
     _id: accountantRoleId,
-    name: 'accountant',
+    name: 'Accountant',
     type: 'accountant',
     permissions: ['CAN_ACCESS_BOOKING', 'CAN_ACCESS_APPROVAL'],
     _company: companyId
