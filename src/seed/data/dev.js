@@ -231,7 +231,7 @@ const roles = [
     _id: adminRoleId,
     name: 'Admin',
     type: 'admin',
-    permissions: ['CAN_ACCESS_COMPANY'],
+    permissions: ['CAN_ACCESS_COMPANY', 'CAN_ACCESS_REWARD'],
     _company: companyId
   },
   {
