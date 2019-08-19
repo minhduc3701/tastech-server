@@ -21,12 +21,22 @@ var UserSchema = new Schema({
   resetPasswordExpires: Date,
   dateOfBirth: Date,
   country: String,
+  displayName: String,
   title: String,
   firstName: String,
   lastName: String,
   phone: String,
   age: Number,
   avatar: String,
+  passports: [
+    {
+      number: String,
+      country: String,
+      expiryDate: Date,
+      active: false
+    }
+  ],
+  allowSearch: false,
   _company: {
     type: 'ObjectId',
     ref: 'Company'
@@ -63,6 +73,7 @@ UserSchema.methods.toJSON = function() {
     'email',
     'type',
     'country',
+    'displayName',
     'title',
     'firstName',
     'lastName',
@@ -77,6 +88,8 @@ UserSchema.methods.toJSON = function() {
     'disabled',
     'point',
     'dateOfBirth',
+    'passports',
+    'allowSearch',
     'callingCode'
   ])
 
