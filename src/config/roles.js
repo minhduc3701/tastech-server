@@ -1,43 +1,41 @@
+const CAN_ACCESS_BOOKING = 'CAN_ACCESS_BOOKING'
+const CAN_ACCESS_APPROVAL = 'CAN_ACCESS_APPROVAL'
+const CAN_ACCESS_ANALYTICS = 'CAN_ACCESS_ANALYTICS'
+const CAN_ACCESS_REWARD = 'CAN_ACCESS_REWARD'
+const CAN_ACCESS_COMPANY = 'CAN_ACCESS_COMPANY'
+
 const permissions = [
   {
-    permission: 'CAN_VIEW_SETTING',
-    category: 'setting'
+    permission: CAN_ACCESS_BOOKING,
+    category: 'employee'
   },
   {
-    permission: 'CAN_EDIT_SETTING',
-    category: 'setting'
+    permission: CAN_ACCESS_BOOKING,
+    category: 'accountant'
   },
   {
-    permission: 'CAN_APPROVE_ESTIMATION_CREATION',
-    category: 'approval'
+    permission: CAN_ACCESS_APPROVAL,
+    category: 'accountant'
   },
   {
-    permission: 'CAN_APPROVE_EXPENSE',
-    category: 'approval'
+    permission: CAN_ACCESS_BOOKING,
+    category: 'manager'
   },
   {
-    permission: 'CAN_CREATE_TRIP',
-    category: 'booking'
+    permission: CAN_ACCESS_ANALYTICS,
+    category: 'manager'
   },
   {
-    permission: 'CAN_MANAGE_TRAVEL',
-    category: 'booking'
+    permission: CAN_ACCESS_APPROVAL,
+    category: 'manager'
   },
   {
-    permission: 'CAN_CLAIM_EXPRENSE',
-    category: 'booking'
+    permission: CAN_ACCESS_REWARD,
+    category: 'admin'
   },
   {
-    permission: 'CAN_VIEW_USER',
-    category: 'administration'
-  },
-  {
-    permission: 'CAN_EDIT_USER',
-    category: 'administration'
-  },
-  {
-    permission: 'CAN_EDIT_BOOKING',
-    category: 'administration'
+    permission: CAN_ACCESS_COMPANY,
+    category: 'admin'
   }
 ]
 
@@ -45,12 +43,30 @@ const roles = [
   {
     name: 'Admin',
     type: 'admin',
-    permissions: ['CAN_EDIT_USER']
+    permissions: permissions
+      .filter(p => p.category === 'admin')
+      .map(p => p.permission)
+  },
+  {
+    name: 'Manager',
+    type: 'manager',
+    permissions: permissions
+      .filter(p => p.category === 'manager')
+      .map(p => p.permission)
+  },
+  {
+    name: 'Accountant',
+    type: 'accountant',
+    permissions: permissions
+      .filter(p => p.category === 'accountant')
+      .map(p => p.permission)
   },
   {
     name: 'Employee',
     type: 'employee',
-    permissions: ['CAN_CLAIM_EXPRENSE']
+    permissions: permissions
+      .filter(p => p.category === 'employee')
+      .map(p => p.permission)
   }
 ]
 

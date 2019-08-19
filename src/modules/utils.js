@@ -1,6 +1,15 @@
 const _ = require('lodash')
 const moment = require('moment')
 const { logger } = require('../config/winston')
+const validator = require('validator')
+
+const getImageUri = uriString => {
+  if (uriString && !validator.isURL(_.toString(uriString))) {
+    return process.env.AWS_S3_URI + '/' + uriString
+  }
+
+  return uriString
+}
 
 const mapClassOptions = {
   Y: 'ECONOMY',
@@ -8,6 +17,7 @@ const mapClassOptions = {
   C: 'BUSINESS',
   F: 'FIRST CLASS'
 }
+
 const makeSegmentsData = segment => {
   let data = _.pick(segment, [
     'airline',
@@ -588,6 +598,7 @@ const makeHtbRoomPaxes = (passengers, children, numberOfRoom, rateKey) => {
 }
 
 module.exports = {
+  getImageUri,
   makeSegmentsData,
   makeSabreFlightsData,
   makeRoomGuestDetails,

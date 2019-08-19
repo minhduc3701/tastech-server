@@ -45,7 +45,7 @@ router.post('/login', function(req, res, next) {
       )
 
       User.findById(user.id)
-        .populate('_role', 'type')
+        .populate('_role')
         .then(user => {
           return res.json({
             user,
