@@ -57,10 +57,25 @@ function forgotPassword(user, token) {
     `
   }
 }
+function submitTrip(user) {
+  return {
+    to: user.email,
+    from: `EzBizTrip <${noReplyEmail}>`,
+    subject: `Your trip request has been submitted`,
+    text: `Well done,  ${user.firstName}! \n\n
+    Your trip request has been submitted successfully. Our system shall let you know immediately once the your request is approved or not. 
+    Still need help?
+    Please feel free to contact us if you have any questions, comments or suggestions.
+    - Happy travels,
+    - The EzBizTrip team
+    `
+  }
+}
 
 module.exports = {
   register,
   forgotPassword,
   contact,
-  requestDemo
+  requestDemo,
+  submitTrip
 }
