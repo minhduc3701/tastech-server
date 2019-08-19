@@ -1,5 +1,6 @@
 const CAN_ACCESS_BOOKING = 'CAN_ACCESS_BOOKING'
-const CAN_ACCESS_APPROVAL = 'CAN_ACCESS_APPROVAL'
+const CAN_ACCESS_BUDGET = 'CAN_ACCESS_BUDGET'
+const CAN_ACCESS_EXPENSE = 'CAN_ACCESS_EXPENSE'
 const CAN_ACCESS_ANALYTICS = 'CAN_ACCESS_ANALYTICS'
 const CAN_ACCESS_REWARD = 'CAN_ACCESS_REWARD'
 const CAN_ACCESS_COMPANY = 'CAN_ACCESS_COMPANY'
@@ -14,7 +15,7 @@ const permissions = [
     category: 'accountant'
   },
   {
-    permission: CAN_ACCESS_APPROVAL,
+    permission: CAN_ACCESS_EXPENSE,
     category: 'accountant'
   },
   {
@@ -26,7 +27,7 @@ const permissions = [
     category: 'manager'
   },
   {
-    permission: CAN_ACCESS_APPROVAL,
+    permission: CAN_ACCESS_BUDGET,
     category: 'manager'
   },
   {
