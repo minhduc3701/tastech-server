@@ -21,12 +21,23 @@ var UserSchema = new Schema({
   resetPasswordExpires: Date,
   dateOfBirth: Date,
   country: String,
+  displayName: String,
   title: String,
   firstName: String,
   lastName: String,
   phone: String,
   age: Number,
   avatar: String,
+  passports: [
+    {
+      number: String,
+      country: String,
+      expiryDate: Date,
+      active: false
+    }
+  ],
+  allowSearch: false,
+  allowNotification: false,
   _company: {
     type: 'ObjectId',
     ref: 'Company'
@@ -59,7 +70,6 @@ UserSchema.methods.toJSON = function() {
   var userObject = user.toObject()
 
   userObject = _.omit(userObject, ['hash', 'salt'])
-
   userObject.avatar = getImageUri(userObject.avatar)
 
   return userObject

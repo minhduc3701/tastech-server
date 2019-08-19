@@ -85,6 +85,18 @@ const api = {
         }
       }
     )
+  },
+  exchangeCurrency: (sourceCurrency, destinationCurrency) => {
+    return axios.get(
+      `${
+        process.env.TRANSFERWISE_URI
+      }/v1/rates?source=${sourceCurrency}&target=${destinationCurrency}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.TRANSFERWISE_API_KEY}`
+        }
+      }
+    )
   }
 }
 

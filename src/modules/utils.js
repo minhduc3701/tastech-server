@@ -2,6 +2,7 @@ const _ = require('lodash')
 const moment = require('moment')
 const { logger } = require('../config/winston')
 const validator = require('validator')
+const { USD, VND, SGD } = require('../config/currency')
 
 const getImageUri = uriString => {
   if (uriString && !validator.isURL(_.toString(uriString))) {
@@ -597,6 +598,19 @@ const makeHtbRoomPaxes = (passengers, children, numberOfRoom, rateKey) => {
   return rooms
 }
 
+const roundingAmountStripe = (amount, currency) => {
+  switch (currency) {
+    case USD:
+    case SGD:
+      amount = amount * 100
+      break
+    case VND:
+      amount = amount * 1
+      break
+  }
+  return Math.round(amount)
+}
+
 module.exports = {
   getImageUri,
   makeSegmentsData,
@@ -605,5 +619,6 @@ module.exports = {
   makeHtbRoomPaxes,
   removeSpaces,
   makeFlightsData,
-  makeHotelbedsHotelsData
+  makeHotelbedsHotelsData,
+  roundingAmountStripe
 }

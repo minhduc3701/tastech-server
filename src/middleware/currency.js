@@ -26,6 +26,7 @@ const currencyExchange = async (req, res, next) => {
         }
       }
     )
+
     if (_.isArray(rateRes.data)) {
       // save the rate
       req.currency = {
