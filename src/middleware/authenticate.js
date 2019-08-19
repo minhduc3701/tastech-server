@@ -4,13 +4,18 @@ const authenticateRole = requireRole => {
   return (req, res, next) => {
     Role.findById(req.user._role)
       .then(role => {
+        let currentRole = role.type
+
+        // force push accountant and manager to admin but less permissions
         if (['accountant', 'manager'].includes(role.type)) {
-          role.type = 'admin'
+          currentRole = 'admin'
         }
-        if (role.type === requireRole) {
+
+        if (currentRole === requireRole) {
           req.admin = req.user
           return next()
         }
+
         res.status(401).send('Unauthorized')
       })
       .catch(e => {
