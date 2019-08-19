@@ -5,6 +5,10 @@ const VoidTicket = require('../../models/voidTicket')
 const Order = require('../../models/order')
 const bodyParser = require('body-parser')
 const _ = require('lodash')
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const { logger } = require('../../config/winston')
+const api = require('../../modules/api')
+const { roundingAmountStripe } = require('../../modules/utils')
 
 // @see http://open.pkfare.com/documents/show?id=2352d3737b0442d6a402fea86ed8bda2uk
 // @see https://stackoverflow.com/a/30099608
@@ -99,11 +103,31 @@ router.post('/voidResult', bodyParser.text({ type: '*/*' }), (req, res) => {
       }
     )
   ])
-    .then(() => {
+    .then(result => {
       res.status(200).send({
         errorCode: 0,
         errorMsg: 'ok'
       })
+
+      return result[1]
+    })
+    .then(async order => {
+      let currencyRate = order.totalPrice / order.rawTotalPrice
+      let rawRefundAmount = Number(
+        _.get(voidTicket, 'voidResult.reimburseAmount', 0)
+      )
+      let refundAmount = rawRefundAmount * currencyRate
+
+      if (refundAmount > 0) {
+        await stripe.refunds.create({
+          charge: order.chargeId,
+          amount: roundingAmountStripe(refundAmount, order.currency)
+        })
+      }
+
+      order.cancelCharge = order.totalPrice - refundAmount
+      order.rawCancelCharge = order.rawTotalPrice - rawRefundAmount
+      await order.save()
     })
     .catch(e => {
       res.status(400).send({
