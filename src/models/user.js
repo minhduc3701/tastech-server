@@ -37,6 +37,7 @@ var UserSchema = new Schema({
     }
   ],
   allowSearch: false,
+  allowNotification: false,
   _company: {
     type: 'ObjectId',
     ref: 'Company'
@@ -69,7 +70,6 @@ UserSchema.methods.toJSON = function() {
   var userObject = user.toObject()
 
   userObject = _.omit(userObject, ['hash', 'salt'])
-
   userObject.avatar = getImageUri(userObject.avatar)
 
   return userObject
