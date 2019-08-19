@@ -3,7 +3,7 @@ const router = express.Router()
 const Trip = require('../../models/trip')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
-const { changeTripStatus } = require('../../middleware/email')
+const { emailEmployeeChangeTripStatus } = require('../../middleware/email')
 
 router.get('/', (req, res) => {
   Trip.find({
@@ -81,7 +81,7 @@ router.patch(
         res.status(400).send()
       })
   },
-  changeTripStatus
+  emailEmployeeChangeTripStatus
 )
 
 module.exports = router

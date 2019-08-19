@@ -2,7 +2,7 @@ const { logger } = require('../config/winston')
 const { mail } = require('../config/mail')
 const mailTemplates = require('../config/mailTemplates.js')
 
-const submitTrip = async (req, res) => {
+const emailEmployeeSubmitTrip = async (req, res) => {
   let mailOptions = mailTemplates.submitTrip(req.user)
   mail.sendMail(mailOptions, function(err, info) {
     if (err) {
@@ -11,7 +11,7 @@ const submitTrip = async (req, res) => {
   })
 }
 
-const changeTripStatus = async (req, res) => {
+const emailEmployeeChangeTripStatus = async (req, res) => {
   if (req.trip) {
     console.log(req.trip)
     let mailOptions = mailTemplates.changeTripStatus(req.user, req.trip)
@@ -27,6 +27,6 @@ const changeTripStatus = async (req, res) => {
 }
 
 module.exports = {
-  submitTrip,
-  changeTripStatus
+  emailEmployeeSubmitTrip,
+  emailEmployeeChangeTripStatus
 }
