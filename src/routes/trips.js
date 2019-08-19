@@ -18,6 +18,7 @@ const { currencyExchange } = require('../middleware/currency')
 const { makeFlightsData } = require('../modules/utils')
 const api = require('../modules/api')
 const { submitTrip } = require('../middleware/email')
+
 router.get('/', function(req, res, next) {
   Trip.find({
     _creator: req.user._id,
