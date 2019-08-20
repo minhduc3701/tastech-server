@@ -231,7 +231,7 @@ const roles = [
     _id: adminRoleId,
     name: 'Admin',
     type: 'admin',
-    permissions: ['CAN_ACCESS_COMPANY'],
+    permissions: ['CAN_ACCESS_COMPANY', 'CAN_ACCESS_REWARD'],
     _company: companyId
   },
   {
@@ -246,7 +246,7 @@ const roles = [
     name: 'Manager',
     type: 'manager',
     permissions: [
-      'CAN_ACCESS_APPROVAL',
+      'CAN_ACCESS_BUDGET',
       'CAN_ACCESS_ANALYTICS',
       'CAN_ACCESS_BOOKING'
     ],
@@ -256,7 +256,7 @@ const roles = [
     _id: accountantRoleId,
     name: 'Accountant',
     type: 'accountant',
-    permissions: ['CAN_ACCESS_BOOKING', 'CAN_ACCESS_APPROVAL'],
+    permissions: ['CAN_ACCESS_BOOKING', 'CAN_ACCESS_EXPENSE'],
     _company: companyId
   },
   // company 2 roles
