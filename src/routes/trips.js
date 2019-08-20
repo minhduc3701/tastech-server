@@ -17,7 +17,10 @@ const moment = require('moment')
 const { currencyExchange } = require('../middleware/currency')
 const { makeFlightsData } = require('../modules/utils')
 const api = require('../modules/api')
-const { emailEmployeeSubmitTrip } = require('../middleware/email')
+const {
+  emailEmployeeSubmitTrip,
+  emailManagerSubmitTrip
+} = require('../middleware/email')
 
 router.get('/', function(req, res, next) {
   Trip.find({
@@ -250,6 +253,9 @@ router.post(
       res.status(400).send()
     }
 
+    // store for email
+    req.trip = trip
+
     // error or not, must update isBudgetUpdated to true to show
     await Trip.findByIdAndUpdate(trip._id, {
       $set: {
@@ -259,7 +265,8 @@ router.post(
     })
     next()
   },
-  emailEmployeeSubmitTrip
+  emailEmployeeSubmitTrip,
+  emailManagerSubmitTrip
 )
 
 router.patch('/:id', function(req, res, next) {
