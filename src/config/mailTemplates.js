@@ -64,10 +64,6 @@ function submitTrip(user) {
     subject: `Your trip request has been submitted`,
     text: `Well done,  ${user.firstName}! \n\n
     Your trip request has been submitted successfully. Our system shall let you know immediately once the your request is approved or not. 
-    Still need help?
-    Please feel free to contact us if you have any questions, comments or suggestions.
-    - Happy travels,
-    - The EzBizTrip team
     `
   }
 }
@@ -168,6 +164,46 @@ function changeTripStatus(user, trip) {
       }
   }
 }
+
+function claimExpense(user) {
+  return {
+    to: user.email,
+    from: `EzBizTrip <${noReplyEmail}>`,
+    subject: `Your Expense Claim has been submitted`,
+    text: `Well done,  ${user.firstName}! \n\n
+    Your expense claim has been sent to your accounting department successfully. 
+    Please wait for their process.
+    In the mean time, you can check the status any time.
+    `
+  }
+}
+
+function pendingExpense(accountants, expenses, trip, employee) {
+  let text = `Hello! \n\n
+  ${employee.firstName} (${
+    employee.email
+  }) has sent an expense claim for reimbursement as below:
+  ${trip.name}
+  ------------------------------------------------`
+  expenses.map(expense => {
+    text += ` 
+    Name of expense:  ${expense.name}
+    Expense category: ${expense.category}
+    Transaction date: ${expense.transactionDate}
+    Amount: ${expense.amount} ${expense.currency}
+    Description: ${expense.message}
+    --------------------------------------------------
+    `
+  })
+  return {
+    to: accountants[0].email,
+    cc: accountants.map(e => e.email).splice(1),
+    from: `EzBizTrip <${noReplyEmail}>`,
+    subject: `Please review your colleague's expense claim`,
+    text
+  }
+}
+
 module.exports = {
   register,
   forgotPassword,
@@ -175,5 +211,7 @@ module.exports = {
   requestDemo,
   submitTrip,
   changeTripStatus,
-  pendingTrip
+  pendingTrip,
+  claimExpense,
+  pendingExpense
 }

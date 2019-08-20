@@ -404,7 +404,6 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
         flights.push(obj)
       })
     })
-    console.log('baggageAllowanceDescs: ', sabreRes.baggageAllowanceDescs)
   } catch (error) {
     console.log(error)
   }
