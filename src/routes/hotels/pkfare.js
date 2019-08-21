@@ -125,6 +125,8 @@ router.post('/hotelList', currencyExchange, (req, res) => {
           lowestPrice: matchingHotel.lowestPrice * req.currency.rate,
           supplier: 'pkfare',
           images,
+          featuredImage: _.get(images, '[0].url'),
+          thumbnail: _.get(images, '[0].url'),
           policies,
           amenities,
           summary: _.get(summary, 'description'),
