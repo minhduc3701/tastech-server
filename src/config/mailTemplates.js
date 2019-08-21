@@ -178,12 +178,12 @@ function claimExpense(user) {
   }
 }
 
-function pendingExpense(accountants, expenses, trip, employee) {
+function pendingExpense(accountants, expenses, employee) {
   let text = `Hello! \n\n
   ${employee.firstName} (${
     employee.email
   }) has sent an expense claim for reimbursement as below:
-  ${trip.name}
+  ${expenses[0]._trip.name}
   ------------------------------------------------`
   expenses.map(expense => {
     text += ` 
@@ -204,6 +204,39 @@ function pendingExpense(accountants, expenses, trip, employee) {
   }
 }
 
+function changeExpenseStatus(user, expense) {
+  switch (expense.status) {
+    case 'approved':
+      return {
+        to: user.email,
+        from: `EzBizTrip <${noReplyEmail}>`,
+        subject: `Your trip request has been approved`,
+        text: `Congratulation,  ${user.firstName}! \n\n
+        A reimbursement payment for your expense has been marked as Paid by your accountant. Detail:
+        Trip: ${expense._trip.name}
+        Payment date: ${expense.transactionDate}
+        Payment amount: ${expense.amount} ${expense.currency}
+        `
+      }
+    case 'rejected':
+    default:
+      return {
+        to: user.email,
+        from: `EzBizTrip <${noReplyEmail}>`,
+        subject: `Your trip request has been rejected`,
+        text: `Dear ${user.firstName}! \n\n
+        Your following expense claim was rejected:
+        Date incurred: ${Date.now()}
+        Trip: ${expense._trip.name}
+        Type: ${expense.category}
+        Description: ${expense.message}
+        Amount:  ${expense.amount} ${expense.currency}
+        Accountant comment:  ${expense.adminMessage}
+        `
+      }
+  }
+}
+
 module.exports = {
   register,
   forgotPassword,
@@ -213,5 +246,6 @@ module.exports = {
   changeTripStatus,
   pendingTrip,
   claimExpense,
-  pendingExpense
+  pendingExpense,
+  changeExpenseStatus
 }

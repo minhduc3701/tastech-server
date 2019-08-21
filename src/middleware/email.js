@@ -7,6 +7,24 @@ const Expense = require('../models/expense')
 const Trip = require('../models/trip')
 const _ = require('lodash')
 
+const emailEmployeeChangeExpenseStatus = async (req, res) => {
+  if (!_.isEmpty(req.expense)) {
+    Expense.findById(req.expense._id)
+      .populate('_trip')
+      .then(expense => {
+        let mailOptions = mailTemplates.changeExpenseStatus(req.user, expense)
+        mail.sendMail(mailOptions, function(err, info) {
+          if (err) {
+            debugMail(error)
+            logger.info('mail: ', { err: err })
+          }
+        })
+      })
+  } else {
+    logger.info('trip: ', { err: 'No trip' })
+  }
+}
+
 const emailEmployeeClaimExpense = async (req, res, next) => {
   let mailOptions = mailTemplates.claimExpense(req.user)
   mail.sendMail(mailOptions, function(err, info) {
@@ -24,7 +42,7 @@ const emailAccountantClaimExpense = async (req, res) => {
       Expense.find({
         _creator: req.user.id,
         _id: { $in: req.expenseIds }
-      }),
+      }).populate('_trip'),
       Role.findOne({
         _company: req.user._company,
         type: 'accountant'
@@ -33,22 +51,16 @@ const emailAccountantClaimExpense = async (req, res) => {
       .then(results => {
         req.expenses = results[0]
         let role = results[1]
-        return Promise.all([
-          // find trip infor and  accountant account
-          Trip.findById(req.expenses[0]._trip),
-          User.find({
-            _role: role._id
-          })
-        ])
+        // find trip infor and  accountant account
+        return User.find({
+          _role: role._id
+        })
       })
-      .then(results => {
-        let trip = results[0]
-        let accountants = results[1]
+      .then(accountants => {
         if (!_.isEmpty(accountants)) {
           let mailOptions = mailTemplates.pendingExpense(
             accountants,
             req.expenses,
-            trip,
             req.user
           )
           mail.sendMail(mailOptions, function(err, info) {
@@ -113,5 +125,6 @@ module.exports = {
   emailEmployeeChangeTripStatus,
   emailManagerSubmitTrip,
   emailEmployeeClaimExpense,
-  emailAccountantClaimExpense
+  emailAccountantClaimExpense,
+  emailEmployeeChangeExpenseStatus
 }
