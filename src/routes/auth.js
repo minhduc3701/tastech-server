@@ -3,13 +3,11 @@ var router = express.Router()
 var passport = require('passport')
 var User = require('../models/user')
 var jwt = require('jsonwebtoken')
-const { ObjectID } = require('mongodb')
 const crypto = require('crypto')
 const async = require('async')
 const { mail } = require('../config/mail')
-const mailTemplates = require('../config/mailTemplates.js')
 const { debugMail } = require('../config/debug')
-
+const { forgotPassword } = require('../mailTemplates/forgotPassword')
 router.post('/login', function(req, res, next) {
   if (!req.body.email || !req.body.password) {
     return res.status(400).json({
@@ -98,8 +96,7 @@ router.post('/forgot-password', function(req, res) {
           })
       },
       function(token, user, done) {
-        let mailOptions = mailTemplates.forgotPassword(user, token)
-
+        let mailOptions = forgotPassword(user, token)
         mail.sendMail(mailOptions, function(err, info) {
           done(err, user)
         })

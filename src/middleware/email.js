@@ -1,18 +1,22 @@
 const { logger } = require('../config/winston')
 const { mail } = require('../config/mail')
-const mailTemplates = require('../config/mailTemplates.js')
 const User = require('../models/user')
 const Role = require('../models/role')
 const Expense = require('../models/expense')
-const Trip = require('../models/trip')
 const _ = require('lodash')
+const { submitTrip } = require('../mailTemplates/submitTrip')
+const { pendingTrip } = require('../mailTemplates/pendingTrip')
+const { claimExpense } = require('../mailTemplates/claimExpense')
+const { pendingExpense } = require('../mailTemplates/pendingExpense')
+const { changeExpenseStatus } = require('../mailTemplates/changeExpenseStatus')
+const { changeTripStatus } = require('../mailTemplates/changeTripStatus')
 
 const emailEmployeeChangeExpenseStatus = async (req, res) => {
   if (!_.isEmpty(req.expense)) {
     Expense.findById(req.expense._id)
       .populate('_trip')
       .then(expense => {
-        let mailOptions = mailTemplates.changeExpenseStatus(req.user, expense)
+        let mailOptions = changeExpenseStatus(req.user, expense)
         mail.sendMail(mailOptions, function(err, info) {
           if (err) {
             debugMail(error)
@@ -26,7 +30,7 @@ const emailEmployeeChangeExpenseStatus = async (req, res) => {
 }
 
 const emailEmployeeClaimExpense = async (req, res, next) => {
-  let mailOptions = mailTemplates.claimExpense(req.user)
+  let mailOptions = claimExpense(req.user)
   mail.sendMail(mailOptions, function(err, info) {
     if (err) {
       debugMail(error)
@@ -58,11 +62,7 @@ const emailAccountantClaimExpense = async (req, res) => {
       })
       .then(accountants => {
         if (!_.isEmpty(accountants)) {
-          let mailOptions = mailTemplates.pendingExpense(
-            accountants,
-            req.expenses,
-            req.user
-          )
+          let mailOptions = pendingExpense(accountants, req.expenses, req.user)
           mail.sendMail(mailOptions, function(err, info) {
             if (err) {
               debugMail(error)
@@ -76,7 +76,7 @@ const emailAccountantClaimExpense = async (req, res) => {
 }
 
 const emailEmployeeSubmitTrip = async (req, res, next) => {
-  let mailOptions = mailTemplates.submitTrip(req.user)
+  let mailOptions = submitTrip(req.user)
   mail.sendMail(mailOptions, function(err, info) {
     if (err) {
       debugMail(error)
@@ -97,7 +97,7 @@ const emailManagerSubmitTrip = async (req, res) => {
     })
     .then(users => {
       if (!_.isEmpty(users)) {
-        let mailOptions = mailTemplates.pendingTrip(users, req.trip, req.user)
+        let mailOptions = pendingTrip(users, req.trip, req.user)
         mail.sendMail(mailOptions, function(err, info) {
           if (err) {
             debugMail(error)
@@ -108,7 +108,7 @@ const emailManagerSubmitTrip = async (req, res) => {
 }
 const emailEmployeeChangeTripStatus = async (req, res) => {
   if (req.trip) {
-    let mailOptions = mailTemplates.changeTripStatus(req.user, req.trip)
+    let mailOptions = changeTripStatus(req.user, req.trip)
     mail.sendMail(mailOptions, function(err, info) {
       if (err) {
         debugMail(error)
