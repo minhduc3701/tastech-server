@@ -16,7 +16,7 @@ const moment = require('moment')
 const _ = require('lodash')
 const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
 const { logger } = require('../config/winston')
-
+const { emailEmployeeCheckoutFailed } = require('../middleware/email')
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
@@ -72,6 +72,7 @@ const createOrFindTrip = async (req, res, next) => {
 
     req.trip = trip
   } catch (error) {
+    console.log('createOrFindTrip: ', error)
     req.checkoutError = error
   }
 
@@ -129,6 +130,7 @@ const createOrFindFlightOrder = async (req, res, next) => {
 
     req.flightOrder = flightOrder
   } catch (error) {
+    console.log('createOrFindTrip: ', error)
     req.checkoutError = error
   }
 
@@ -253,6 +255,7 @@ const pkfareFlightPreBooking = async (req, res, next) => {
       }
     } // end trip.flight
   } catch (error) {
+    console.log('pkfareFlightPreBooking: ', error)
     req.checkoutError = error
   }
 
@@ -316,6 +319,7 @@ const stripeCharging = async (req, res, next) => {
     req.charge = charge
     // AFTER CHARGING =======
   } catch (error) {
+    console.log('stripeCharging: ', error)
     req.checkoutError = error
   }
 
@@ -351,9 +355,8 @@ const pkfareFlightTicketing = async (req, res, next) => {
         PNR: pnr,
         telNum: `+${trip.contactInfo.callingCode} ${trip.contactInfo.phone}`
       })
-
       if (ticketingRes.data.errorCode !== '0') {
-        throw { message: ticketingRes.errorMsg, flight: true }
+        throw { message: ticketingRes.data.errorMsg, flight: true }
       }
 
       flightUpdateData = {
@@ -370,6 +373,7 @@ const pkfareFlightTicketing = async (req, res, next) => {
       req.flightOrder = flightOrder
     } // end trip.flight
   } catch (error) {
+    console.log('pkfareFlightTicketing: ', error)
     req.checkoutError = error
   }
 
@@ -779,6 +783,7 @@ const responseCheckout = async (req, res, next) => {
       hotelOrder
     })
   } catch (error) {
+    console.log(error)
     // update order status to failed if something went wrong
     if (trip.flight && flightOrder) {
       flightOrder.status = 'failed'
@@ -796,6 +801,7 @@ const responseCheckout = async (req, res, next) => {
       flightOrder,
       hotelOrder
     })
+    next() // next for sent email checkout failed
   }
 }
 
@@ -813,7 +819,8 @@ router.post(
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
   refundFailedOrder,
-  responseCheckout
+  responseCheckout,
+  emailEmployeeCheckoutFailed
 )
 
 router.post('/password', (req, res) => {

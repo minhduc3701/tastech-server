@@ -10,6 +10,7 @@ const { claimExpense } = require('../mailTemplates/claimExpense')
 const { pendingExpense } = require('../mailTemplates/pendingExpense')
 const { changeExpenseStatus } = require('../mailTemplates/changeExpenseStatus')
 const { changeTripStatus } = require('../mailTemplates/changeTripStatus')
+const { checkoutFail } = require('../mailTemplates/checkoutFail')
 
 const emailEmployeeChangeExpenseStatus = async (req, res) => {
   if (!_.isEmpty(req.expense)) {
@@ -120,11 +121,22 @@ const emailEmployeeChangeTripStatus = async (req, res) => {
   }
 }
 
+const emailEmployeeCheckoutFailed = async (req, res) => {
+  let mailOptions = checkoutFail(req)
+  mail.sendMail(mailOptions, function(err, info) {
+    if (err) {
+      debugMail(error)
+      logger.info('mail: ', { err: err })
+    }
+  })
+}
+
 module.exports = {
   emailEmployeeSubmitTrip,
   emailEmployeeChangeTripStatus,
   emailManagerSubmitTrip,
   emailEmployeeClaimExpense,
   emailAccountantClaimExpense,
-  emailEmployeeChangeExpenseStatus
+  emailEmployeeChangeExpenseStatus,
+  emailEmployeeCheckoutFailed
 }

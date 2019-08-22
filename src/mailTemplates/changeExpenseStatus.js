@@ -16,9 +16,9 @@ function changeExpenseStatus(user, expense) {
     default:
       return {
         to: user.email,
-        from: `EzBizTrip <${noReplyEmail}>`,
+        from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
         subject: `Your trip request has been rejected`,
-        text: `Dear ${user.firstName}! \n\n
+        html: `Dear ${user.firstName}! <br/>
           Your following expense claim was rejected:
           Date incurred: ${Date.now()}
           Trip: ${expense._trip.name}
