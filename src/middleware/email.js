@@ -3,7 +3,8 @@ const { mail } = require('../config/mail')
 const User = require('../models/user')
 const Role = require('../models/role')
 const Expense = require('../models/expense')
-const Orders = require('../models/order')
+const Order = require('../models/order')
+const Users = require('../models/user')
 const _ = require('lodash')
 const { submitTrip } = require('../mailTemplates/submitTrip')
 const { pendingTrip } = require('../mailTemplates/pendingTrip')
@@ -137,16 +138,40 @@ const emailEmployeeCheckoutFailed = async (req, res, next) => {
   })
 }
 
-const emailEmployeeIntinerary = async (req, res, next) => {
+const emailEmployeeItinerary = async (req, res, next) => {
   if (!req.checkoutError) {
     let trip = req.trip
-    Orders.find({
+    Order.find({
       _trip: trip._id,
       status: {
         $in: ['completed', 'processing']
       }
     }).then(orders => {
       let mailOptions = tripItinerary(req.user, orders)
+      return mail.sendMail(mailOptions, function(err, info) {
+        if (err) {
+          debugMail(err)
+          logger.info('mail: ', { err: err })
+        }
+      })
+    })
+  }
+}
+const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
+  let order = req.order
+  if (order) {
+    Promise.all([
+      Order.find({
+        _trip: order._trip,
+        status: {
+          $in: ['completed', 'processing']
+        }
+      }),
+      User.findById(order._customer)
+    ]).then(results => {
+      let orders = results[0]
+      let user = results[1]
+      let mailOptions = tripItinerary(user, orders)
       return mail.sendMail(mailOptions, function(err, info) {
         if (err) {
           debugMail(err)
@@ -165,5 +190,6 @@ module.exports = {
   emailAccountantClaimExpense,
   emailEmployeeChangeExpenseStatus,
   emailEmployeeCheckoutFailed,
-  emailEmployeeIntinerary
+  emailEmployeeItinerary,
+  emailEmployeeItineraryPkfareTickiting
 }

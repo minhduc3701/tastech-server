@@ -18,7 +18,7 @@ const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
 const { logger } = require('../config/winston')
 const {
   emailEmployeeCheckoutFailed,
-  emailEmployeeIntinerary
+  emailEmployeeItinerary
 } = require('../middleware/email')
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
@@ -824,7 +824,7 @@ router.post(
   refundFailedOrder,
   responseCheckout,
   emailEmployeeCheckoutFailed,
-  emailEmployeeIntinerary
+  emailEmployeeItinerary
 )
 
 router.post('/password', (req, res) => {

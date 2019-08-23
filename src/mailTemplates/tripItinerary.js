@@ -20,7 +20,7 @@ function tripItinerary(user, orders) {
           segment.strDepartureTime
         } <br/>
         Arrival date: ${segment.strArrivalDate} <br/>
-        departure: ${segment.arrival} - time: ${segment.strArrivalTime} <br/>
+        Arrival: ${segment.arrival} - time: ${segment.strArrivalTime} <br/>
         Class: ${segment.cabinClass} <hr/>
         `
       })
@@ -31,7 +31,7 @@ function tripItinerary(user, orders) {
             segment.strDepartureTime
           } <br/>
           Arrival date: ${segment.strArrivalDate} <br/>
-          departure: ${segment.arrival} - time: ${segment.strArrivalTime} <br/>
+          Arrival: ${segment.arrival} - time: ${segment.strArrivalTime} <br/>
           Class: ${segment.cabinClass} <hr/>
           `
         })
