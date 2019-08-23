@@ -230,7 +230,7 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
           let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
           let arrivalDate = moment(departureDate)
             .add(dateAdjustment, 'days')
-            .format('YYYY-MM-DDT')
+            .format('YYYY-MM-DD')
           let baggageInfor = false
           if (obj.baggageAllowance) {
             baggageInfor = []
@@ -270,11 +270,13 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
               0,
               8
             )}`,
+            strDepartureDate: departureDate,
             strDepartureTime: data.departure.time.substring(0, 5),
-            ArrivalDateTime: `${arrivalDate}${data.arrival.time.substring(
+            ArrivalDateTime: `${arrivalDate}T${data.arrival.time.substring(
               0,
               8
             )}`,
+            strArrivalDate: arrivalDate,
             strArrivalTime: data.arrival.time.substring(0, 5),
             flightNum: data.carrier.marketingFlightNumber,
             flightTime,
@@ -320,7 +322,7 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
             let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
             let arrivalDate = moment(departureDate)
               .add(dateAdjustment, 'days')
-              .format('YYYY-MM-DDT')
+              .format('YYYY-MM-DD')
             let baggageInfor = false
             if (obj.baggageAllowance) {
               baggageInfor = []
@@ -360,11 +362,13 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
                 0,
                 8
               )}`,
+              strDepartureDate: departureDate,
               strDepartureTime: data.departure.time.substring(0, 5),
-              ArrivalDateTime: `${arrivalDate}${data.arrival.time.substring(
+              ArrivalDateTime: `${arrivalDate}T${data.arrival.time.substring(
                 0,
                 8
               )}`,
+              strArrivalDate: arrivalDate,
               strArrivalTime: data.arrival.time.substring(0, 5),
               flightNum: data.carrier.marketingFlightNumber,
               flightTime: moment(

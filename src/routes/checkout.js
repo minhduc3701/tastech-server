@@ -498,14 +498,14 @@ const sabreCreatePNR = async (req, res, next) => {
         }
       )
     })
-    logger.info('createPNR request', data)
+    // logger.info('createPNR request', data)
     let sabrePNRres = await apiSabre.createPNR(data, req.sabreToken)
     let status = _.get(
       sabrePNRres,
       ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
       'failed'
     )
-    logger.info('createPNR response', sabrePNRres.data)
+    logger.info('createPNR response', sabrePNRres)
     if (status === 'Complete') {
       flightOrder.customerCode = _.get(
         sabrePNRres,
