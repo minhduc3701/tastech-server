@@ -16,7 +16,10 @@ const moment = require('moment')
 const _ = require('lodash')
 const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
 const { logger } = require('../config/winston')
-
+const {
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary
+} = require('../middleware/email')
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
@@ -351,9 +354,8 @@ const pkfareFlightTicketing = async (req, res, next) => {
         PNR: pnr,
         telNum: `+${trip.contactInfo.callingCode} ${trip.contactInfo.phone}`
       })
-
       if (ticketingRes.data.errorCode !== '0') {
-        throw { message: ticketingRes.errorMsg, flight: true }
+        throw { message: ticketingRes.data.errorMsg, flight: true }
       }
 
       flightUpdateData = {
@@ -498,7 +500,7 @@ const sabreCreatePNR = async (req, res, next) => {
       ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
       'failed'
     )
-    logger.info('createPNR response', sabrePNRres.data)
+    logger.info('createPNR response', sabrePNRres)
     if (status === 'Complete') {
       flightOrder.customerCode = _.get(
         sabrePNRres,
@@ -797,6 +799,7 @@ const responseCheckout = async (req, res, next) => {
       hotelOrder
     })
   }
+  next() // next for sent email
 }
 
 router.post(
@@ -813,7 +816,9 @@ router.post(
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
   refundFailedOrder,
-  responseCheckout
+  responseCheckout,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary
 )
 
 router.post('/password', (req, res) => {

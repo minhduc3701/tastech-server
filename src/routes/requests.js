@@ -2,9 +2,10 @@ var express = require('express')
 var router = express.Router()
 var Request = require('../models/request')
 const _ = require('lodash')
-const mailTemplates = require('../config/mailTemplates')
 const { mail } = require('../config/mail')
 const { debugMail } = require('../config/debug')
+const { requestDemo } = require('../mailTemplates/requestDemo')
+const { contact } = require('../mailTemplates/contact')
 
 router.post('/', function(req, res, next) {
   const request = new Request(req.body)
@@ -12,7 +13,7 @@ router.post('/', function(req, res, next) {
     .save()
     .then(() => {
       res.status(200).json({ request })
-      let mailOptions = mailTemplates.requestDemo(request)
+      let mailOptions = requestDemo(request)
       mail.sendMail(mailOptions, function(err, info) {
         if (err) {
           debugMail(error)
@@ -21,6 +22,7 @@ router.post('/', function(req, res, next) {
       })
     })
     .catch(e => {
+      console.log(e)
       res.status(400).send()
     })
 })
@@ -28,7 +30,7 @@ router.post('/contact', function(req, res) {
   try {
     let { data } = req.body
     data = _.pick(data, ['firstName', 'lastName', 'email', 'phone', 'message'])
-    let mailOptions = mailTemplates.contact(data)
+    let mailOptions = contact(data)
     mail.sendMail(mailOptions, function(err, info) {
       if (err) {
         debugMail(error)

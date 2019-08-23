@@ -6,6 +6,10 @@ const { ObjectID } = require('mongodb')
 const { upload } = require('../config/aws')
 const _ = require('lodash')
 const { currencyExchange } = require('../middleware/currency')
+const {
+  emailEmployeeClaimExpense,
+  emailAccountantClaimExpense
+} = require('../middleware/email')
 
 router.post('/', currencyExchange, upload.array('receipts'), function(
   req,
@@ -35,7 +39,6 @@ router.post('/', currencyExchange, upload.array('receipts'), function(
       })
     })
     .catch(e => {
-      console.log(e)
       return res.status(400).send()
     })
 })
@@ -142,24 +145,32 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
     })
 })
 
-router.patch('/', function(req, res, next) {
-  let { expenseIds } = req.body
-  try {
-    Expense.updateMany(
-      {
-        _creator: req.user.id,
-        _id: { $in: expenseIds }
-      },
-      { $set: { status: 'claiming' } },
-      function(err, result) {
-        if (err) return res.status(400).send()
-        res.status(200).json({ expenseIds, status: 'claiming' })
-      }
-    )
-  } catch (error) {
-    res.status(400).send()
-  }
-})
+router.patch(
+  '/',
+  function(req, res, next) {
+    let { expenseIds } = req.body
+    // save for sending email
+    req.expenseIds = expenseIds
+    try {
+      Expense.updateMany(
+        {
+          _creator: req.user.id,
+          _id: { $in: expenseIds }
+        },
+        { $set: { status: 'claiming' } },
+        function(err, result) {
+          if (err) return res.status(400).send()
+          res.status(200).json({ expenseIds, status: 'claiming' })
+        }
+      )
+      next()
+    } catch (error) {
+      res.status(400).send()
+    }
+  },
+  emailEmployeeClaimExpense,
+  emailAccountantClaimExpense
+)
 
 router.delete('/', function(req, res) {
   let { expenseIds } = req.body
