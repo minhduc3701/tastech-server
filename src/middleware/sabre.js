@@ -9,9 +9,7 @@ const sabreToken = async (req, res, next) => {
   }
   try {
     let encodeId = Buffer.from(process.env.SABRE_CLIENT_ID).toString('base64')
-    let encodeKey = Buffer.from(process.env.SABRE_SECRETE_KEY).toString(
-      'base64'
-    )
+    let encodeKey = Buffer.from(process.env.SABRE_SECRET_KEY).toString('base64')
     let encodeToken = Buffer.from(`${encodeId}:${encodeKey}`).toString('base64')
     let sabreRes = await apiSabre.getToken(encodeToken)
     req.sabreToken = sabreRes.data.access_token

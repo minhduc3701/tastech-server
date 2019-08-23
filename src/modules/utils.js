@@ -217,19 +217,23 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
           let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
 
           // calculate flight time
+          let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
           let toDayText = moment().format('YYYY-MM-DDT')
-          let nextDayText = moment()
-            .add(1, 'days')
-            .format('YYYY-MM-DDT')
-          let flightTime = moment
-            .utc(`${toDayText}${data.arrival.time}`)
-            .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
-          if (flightTime < 0) {
+          let flightTime = ''
+
+          if (dateAdjustment === 0) {
             flightTime = moment
-              .utc(`${nextDayText}${data.arrival.time}`)
+              .utc(`${toDayText}${data.arrival.time}`)
+              .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
+          } else {
+            let arrivalDayText = moment()
+              .add(dateAdjustment, 'days')
+              .format('YYYY-MM-DDT')
+            flightTime = moment
+              .utc(`${arrivalDayText}${data.arrival.time}`)
               .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
           }
-          let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
+
           let arrivalDate = moment(departureDate)
             .add(dateAdjustment, 'days')
             .format('YYYY-MM-DD')
@@ -317,26 +321,34 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
           obj.returnDescs.schedules.map((s, index) => {
             let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
             // calculate flight time
-            let nextDayText = moment()
-              .add(1, 'days')
-              .format('YYYY-MM-DDT')
-            let flightTime = moment
-              .utc(`${toDayText}${data.arrival.time}`)
-              .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
-            if (flightTime < 0) {
+            let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
+            let toDayText = moment().format('YYYY-MM-DDT')
+            let flightTime = ''
+
+            if (dateAdjustment === 0) {
               flightTime = moment
-                .utc(`${nextDayText}${data.arrival.time}`)
+                .utc(`${toDayText}${data.arrival.time}`)
+                .diff(
+                  moment.utc(`${toDayText}${data.departure.time}`),
+                  'minutes'
+                )
+            } else {
+              let arrivalDayText = moment()
+                .add(dateAdjustment, 'days')
+                .format('YYYY-MM-DDT')
+              flightTime = moment
+                .utc(`${arrivalDayText}${data.arrival.time}`)
                 .diff(
                   moment.utc(`${toDayText}${data.departure.time}`),
                   'minutes'
                 )
             }
+
             let segmentInfor = getSegmentForSabreFlight(
               i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
                 .fareComponents,
               index + obj.departureDescs.schedules.length
             )
-            let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
             let arrivalDate = moment(departureDate)
               .add(dateAdjustment, 'days')
               .format('YYYY-MM-DD')
