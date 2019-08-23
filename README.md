@@ -139,11 +139,20 @@ export PKFARE_HOTEL_URI=https://hotelapi.pkfare.com/hotel
 export PKFARE_PARTNER_ID=<PKFARE_PARTNER_ID>
 export PKFARE_PARTNER_KEY=<PKFARE_PARTNER_KEY>
 export PKFARE_HOTEL_ORDER_SECRET=<production hotel order secret>
+export SABRE_URI=https://api-crt.cert.havail.sabre.com",
+export SABRE_USER_ID=<SABRE_USER_ID>
+export SABRE_CLIENT_ID=<SABRE_CLIENT_ID>
+export SABRE_SECRET_KEY=<SABRE_SECRET_KEY>
 export STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY>
 export BASE_CURRENCY=SGD
+export HOTELBEDS_BASE_CURRENCY=EUR
+export HOTELBEDS_URI=https://api.test.hotelbeds.com
+export HOTELBEDS_HOTEL_KEY=<HOTELBEDS_KEY>
+export HOTELBEDS_HOTEL_SECRET=<HOTELBEDS_SECRET>
 export TRANSFERWISE_URI=https://api.transferwise.com
 export TRANSFERWISE_API_KEY=<TRANSFERWISE_LIVE_KEY>
-export SABRE_USER_ID=<SABRE_USER_ID>
+export EMAIL_CONTACT=support@ezbiztrip.com
+export EMAIL_NO_REPLY=no-reply@ezbiztrip.com
 ```
 
 Now you ready to run your app

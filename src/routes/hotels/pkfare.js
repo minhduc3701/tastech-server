@@ -119,14 +119,23 @@ router.post('/hotelList', currencyExchange, (req, res) => {
           trans => trans.hotelId === hotel.hotelId
         )
 
+        // get first image of type 'Hotel Exterior'
+        let exteriorImages = images.filter(
+          image => image.type === 'Hotel Exterior'
+        )
+        // random exterior image
+        let featuredImage =
+          exteriorImages[_.random(0, exteriorImages.length - 1)]
+        let firstImageUrl = _.get(images, '[0].url')
+
         return {
           ...hotel.toObject(),
           currency: req.currency.code,
           lowestPrice: matchingHotel.lowestPrice * req.currency.rate,
           supplier: 'pkfare',
           images,
-          featuredImage: _.get(images, '[0].url'),
-          thumbnail: _.get(images, '[0].url'),
+          featuredImage: _.get(featuredImage, 'url', firstImageUrl),
+          thumbnail: _.get(featuredImage, 'url', firstImageUrl),
           policies,
           amenities,
           summary: _.get(summary, 'description'),
