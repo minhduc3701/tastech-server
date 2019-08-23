@@ -215,6 +215,8 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
             index
           )
           let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
+
+          // calculate flight time
           let toDayText = moment().format('YYYY-MM-DDT')
           let nextDayText = moment()
             .add(1, 'days')
@@ -314,6 +316,21 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
           obj.returnSegments = []
           obj.returnDescs.schedules.map((s, index) => {
             let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
+            // calculate flight time
+            let nextDayText = moment()
+              .add(1, 'days')
+              .format('YYYY-MM-DDT')
+            let flightTime = moment
+              .utc(`${toDayText}${data.arrival.time}`)
+              .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
+            if (flightTime < 0) {
+              flightTime = moment
+                .utc(`${nextDayText}${data.arrival.time}`)
+                .diff(
+                  moment.utc(`${toDayText}${data.departure.time}`),
+                  'minutes'
+                )
+            }
             let segmentInfor = getSegmentForSabreFlight(
               i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
                 .fareComponents,
@@ -371,13 +388,7 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
               strArrivalDate: arrivalDate,
               strArrivalTime: data.arrival.time.substring(0, 5),
               flightNum: data.carrier.marketingFlightNumber,
-              flightTime: moment(
-                data.arrival.time.substring(0, 5),
-                'hh:mm'
-              ).diff(
-                moment(data.departure.time.substring(0, 5), 'hh:mm'),
-                'minutes'
-              ),
+              flightTime,
               seatsAvailable: segmentInfor.seatsAvailable,
               cabinCode: segmentInfor.cabinCode,
               airline: data.carrier.operating,

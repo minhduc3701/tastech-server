@@ -75,7 +75,6 @@ const createOrFindTrip = async (req, res, next) => {
 
     req.trip = trip
   } catch (error) {
-    console.log('createOrFindTrip: ')
     req.checkoutError = error
   }
 
@@ -133,7 +132,6 @@ const createOrFindFlightOrder = async (req, res, next) => {
 
     req.flightOrder = flightOrder
   } catch (error) {
-    console.log('createOrFindTrip: ')
     req.checkoutError = error
   }
 
@@ -258,7 +256,6 @@ const pkfareFlightPreBooking = async (req, res, next) => {
       }
     } // end trip.flight
   } catch (error) {
-    console.log('pkfareFlightPreBooking: ')
     req.checkoutError = error
   }
 
@@ -322,7 +319,6 @@ const stripeCharging = async (req, res, next) => {
     req.charge = charge
     // AFTER CHARGING =======
   } catch (error) {
-    console.log('stripeCharging: ')
     req.checkoutError = error
   }
 
@@ -376,7 +372,6 @@ const pkfareFlightTicketing = async (req, res, next) => {
       req.flightOrder = flightOrder
     } // end trip.flight
   } catch (error) {
-    console.log('pkfareFlightTicketing: ')
     req.checkoutError = error
   }
 
@@ -786,7 +781,6 @@ const responseCheckout = async (req, res, next) => {
       hotelOrder
     })
   } catch (error) {
-    console.log(error)
     // update order status to failed if something went wrong
     if (trip.flight && flightOrder) {
       flightOrder.status = 'failed'
