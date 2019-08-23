@@ -615,7 +615,7 @@ for (let i = 0; i < 50; i++) {
     namePrefix = 'Personal Trip'
   }
 
-  let startDate = chance.date({ year: 2019 })
+  let startDate = chance.date({ month: 8, year: 2019 })
   let startDateObj = new Date(startDate)
   let duration = chance.integer({ min: 1, max: 10 })
   let endDateObj = new Date(startDateObj.getTime() + duration * 86400000)
