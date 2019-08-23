@@ -40,7 +40,7 @@ Add config/config.json with the content like below:
     "SMTP_USER": "<your mailtrap user>",
     "SMTP_PASSWORD": "<your mailtrap password>",
     "EMAIL_CONTACT": "support@ezbiztrip.com",
-    "EMAIL_NO_REPLY": "no_reply@ezbiztrip.com"
+    "EMAIL_NO_REPLY": "no-reply@ezbiztrip.com"
   }
 }
 
