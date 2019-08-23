@@ -2,7 +2,7 @@ const passport = require('passport')
 const User = require('../models/user')
 const async = require('async')
 const { mail } = require('../config/mail')
-const mailTemplates = require('../config/mailTemplates.js')
+const { register } = require('../mailTemplates/register')
 const { debugMail } = require('../config/debug')
 const crypto = require('crypto')
 
@@ -53,7 +53,7 @@ const createUser = function(req, res, next) {
           })
       },
       function(user, token, done) {
-        let mailOptions = mailTemplates.register(user, token)
+        let mailOptions = register(user, token)
         mail.sendMail(mailOptions, function(err, info) {
           return done(err, user)
         })

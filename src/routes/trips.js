@@ -17,6 +17,10 @@ const moment = require('moment')
 const { currencyExchange } = require('../middleware/currency')
 const { makeFlightsData } = require('../modules/utils')
 const api = require('../modules/api')
+const {
+  emailEmployeeSubmitTrip,
+  emailManagerSubmitTrip
+} = require('../middleware/email')
 
 router.get('/', function(req, res, next) {
   Trip.find({
@@ -76,180 +80,194 @@ router.get('/:id', function(req, res, next) {
     })
 })
 
-router.post('/', currencyExchange, async (req, res, next) => {
-  const trip = new Trip(req.body)
-  trip._creator = req.user._id
-  trip._company = req.user._company
-  trip.businessTrip = true
-  trip.currency = req.currency.code
-  let countDays =
-    moment(req.body.endDate).diff(moment(req.body.startDate), 'days') + 1
-  trip.daysOfTrip = countDays
-  trip.isBudgetUpdated = false
+router.post(
+  '/',
+  currencyExchange,
+  async (req, res, next) => {
+    const trip = new Trip(req.body)
+    trip._creator = req.user._id
+    trip._company = req.user._company
+    trip.businessTrip = true
+    trip.currency = req.currency.code
+    let countDays =
+      moment(req.body.endDate).diff(moment(req.body.startDate), 'days') + 1
+    trip.daysOfTrip = countDays
+    trip.isBudgetUpdated = false
 
-  try {
-    // save and send back trip
-    await trip.save()
-    res.status(200).send({ trip })
+    try {
+      // save and send back trip
+      await trip.save()
+      res.status(200).send({ trip })
 
-    let budget = req.body.budgetPassengers[0]
-    // get Policy
-    let companyPolicies = await Policy.find({
-      _company: req.user._company
-    })
-    let policy = await Policy.findById(req.user._policy)
-    if (!policy || policy.status === 'disabled') {
-      for (let index = 0; index < companyPolicies.length; index++) {
-        if (companyPolicies[index]._doc.status === 'default') {
-          policy = companyPolicies[index]
-          break
+      let budget = req.body.budgetPassengers[0]
+      // get Policy
+      let companyPolicies = await Policy.find({
+        _company: req.user._company
+      })
+      let policy = await Policy.findById(req.user._policy)
+      if (!policy || policy.status === 'disabled') {
+        for (let index = 0; index < companyPolicies.length; index++) {
+          if (companyPolicies[index]._doc.status === 'default') {
+            policy = companyPolicies[index]
+            break
+          }
         }
       }
-    }
 
-    trip.budgetPassengers[0].totalPrice = 0
-    // calcuate transportation budget
-    if (
-      policy.setTransportLimit &&
-      trip.budgetPassengers[0].transportation.selected
-    ) {
-      trip.budgetPassengers[0].transportation.price = Number(
-        policy.transportLimit * countDays
-      )
-      trip.budgetPassengers[0].transportation.limit = policy.transportLimit
-      trip.budgetPassengers[0].totalPrice += Number(
-        policy.transportLimit * countDays
-      )
-    } else {
-      trip.budgetPassengers[0].transportation.price = 0
-    }
-
-    // calcuate meal budget
-    if (policy.setMealLimit && trip.budgetPassengers[0].meal.selected) {
-      trip.budgetPassengers[0].meal.price = Number(policy.mealLimit * countDays)
-      trip.budgetPassengers[0].meal.limit = policy.mealLimit
-      trip.budgetPassengers[0].totalPrice += Number(
-        policy.mealLimit * countDays
-      )
-    } else {
-      trip.budgetPassengers[0].meal.price = 0
-    }
-    //update travel other
-    if (trip.budgetPassengers[0].others.selected) {
-      trip.budgetPassengers[0].totalPrice += Number(
-        trip.budgetPassengers[0].others.amount
-      )
-    }
-    if (trip.budgetPassengers[0].flight.selected) {
-      // calculate Flight budget
-      let searchAirLegs = []
-      if (trip.budgetPassengers[0].flight.flightType === 'round-trip') {
-        searchAirLegs = [
-          {
-            cabinClass: policy.flightClass, // Capitalize the First Letter
-            departureDate: budget.flight.departDate,
-            destination: budget.flight.returnDestinationCode,
-            origin: budget.flight.departDestinationCode
-          },
-          {
-            cabinClass: policy.flightClass, // Capitalize the First Letter
-            departureDate: budget.flight.returnDate,
-            destination: budget.flight.departDestinationCode,
-            origin: budget.flight.returnDestinationCode
-          }
-        ]
+      trip.budgetPassengers[0].totalPrice = 0
+      // calcuate transportation budget
+      if (
+        policy.setTransportLimit &&
+        trip.budgetPassengers[0].transportation.selected
+      ) {
+        trip.budgetPassengers[0].transportation.price = Number(
+          policy.transportLimit * countDays
+        )
+        trip.budgetPassengers[0].transportation.limit = policy.transportLimit
+        trip.budgetPassengers[0].totalPrice += Number(
+          policy.transportLimit * countDays
+        )
       } else {
-        searchAirLegs = [
-          {
-            cabinClass: policy.flightClass, // Capitalize the First Letter
-            departureDate: budget.flight.departDate,
-            destination: budget.flight.returnDestinationCode,
-            origin: budget.flight.departDestinationCode
-          }
-        ]
+        trip.budgetPassengers[0].transportation.price = 0
       }
-      let search = {
-        adults: 1,
-        children: 0,
-        infants: 0,
-        nonstop: 0,
-        searchAirLegs,
-        solutions: 0
-      }
-      trip.budgetPassengers[0].flight.class = policy.flightClass
-      let flights = await api.shopping(search)
-      let isRoundTrip = searchAirLegs.length === 2
-      flights = makeFlightsData(flights, {
-        isRoundTrip,
-        currency: req.currency,
-        numberOfAdults: 1
-      })
 
-      let sumPrice = 0
-      flights.forEach(flight => {
-        sumPrice += Number(flight.price)
-      })
-      trip.budgetPassengers[0].flight.price = Number(sumPrice / flights.length)
-      trip.budgetPassengers[0].totalPrice += Number(sumPrice / flights.length)
-    }
-    if (trip.budgetPassengers[0].lodging.selected) {
-      trip.budgetPassengers[0].lodging.class = policy.hotelClass
-      //  Calculate Hotel budget
-      let request = {
-        checkInDate: budget.lodging.checkInDate,
-        checkOutDate: budget.lodging.checkOutDate,
-        regionId: parseInt(budget.lodging.regionId),
-        numberOfAdult: 1,
-        numberOfRoom: 1,
-        languageCode: 'en_US'
+      // calcuate meal budget
+      if (policy.setMealLimit && trip.budgetPassengers[0].meal.selected) {
+        trip.budgetPassengers[0].meal.price = Number(
+          policy.mealLimit * countDays
+        )
+        trip.budgetPassengers[0].meal.limit = policy.mealLimit
+        trip.budgetPassengers[0].totalPrice += Number(
+          policy.mealLimit * countDays
+        )
+      } else {
+        trip.budgetPassengers[0].meal.price = 0
       }
-      let responseHotel = await axios({
-        method: 'post',
-        url: `${process.env.PKFARE_HOTEL_URI}/queryHotelList`,
-        data: {
-          authentication,
-          request
+      //update travel other
+      if (trip.budgetPassengers[0].others.selected) {
+        trip.budgetPassengers[0].totalPrice += Number(
+          trip.budgetPassengers[0].others.amount
+        )
+      }
+      if (trip.budgetPassengers[0].flight.selected) {
+        // calculate Flight budget
+        let searchAirLegs = []
+        if (trip.budgetPassengers[0].flight.flightType === 'round-trip') {
+          searchAirLegs = [
+            {
+              cabinClass: policy.flightClass, // Capitalize the First Letter
+              departureDate: budget.flight.departDate,
+              destination: budget.flight.returnDestinationCode,
+              origin: budget.flight.departDestinationCode
+            },
+            {
+              cabinClass: policy.flightClass, // Capitalize the First Letter
+              departureDate: budget.flight.returnDate,
+              destination: budget.flight.departDestinationCode,
+              origin: budget.flight.returnDestinationCode
+            }
+          ]
+        } else {
+          searchAirLegs = [
+            {
+              cabinClass: policy.flightClass, // Capitalize the First Letter
+              departureDate: budget.flight.departDate,
+              destination: budget.flight.returnDestinationCode,
+              origin: budget.flight.departDestinationCode
+            }
+          ]
         }
-      })
-      let { data } = responseHotel
-      let { hotelInfoList } = data.body
-      let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
-      let hotels = await Hotel.find({
-        hotelId: { $in: hotelIds },
-        starRating: { $lte: policy.hotelClass },
-        language: 'en_US'
-      })
-      let hotelPolicyIds = hotels.map(hotel => parseInt(hotel.hotelId))
-      let newHotelList = hotelInfoList.filter(hotel =>
-        hotelPolicyIds.includes(parseInt(hotel.hotelId))
+        let search = {
+          adults: 1,
+          children: 0,
+          infants: 0,
+          nonstop: 0,
+          searchAirLegs,
+          solutions: 0
+        }
+        trip.budgetPassengers[0].flight.class = policy.flightClass
+        let flights = await api.shopping(search)
+        let isRoundTrip = searchAirLegs.length === 2
+        flights = makeFlightsData(flights, {
+          isRoundTrip,
+          currency: req.currency,
+          numberOfAdults: 1
+        })
+
+        let sumPrice = 0
+        flights.forEach(flight => {
+          sumPrice += Number(flight.price)
+        })
+        trip.budgetPassengers[0].flight.price = Number(
+          sumPrice / flights.length
+        )
+        trip.budgetPassengers[0].totalPrice += Number(sumPrice / flights.length)
+      }
+      if (trip.budgetPassengers[0].lodging.selected) {
+        trip.budgetPassengers[0].lodging.class = policy.hotelClass
+        //  Calculate Hotel budget
+        let request = {
+          checkInDate: budget.lodging.checkInDate,
+          checkOutDate: budget.lodging.checkOutDate,
+          regionId: parseInt(budget.lodging.regionId),
+          numberOfAdult: 1,
+          numberOfRoom: 1,
+          languageCode: 'en_US'
+        }
+        let responseHotel = await axios({
+          method: 'post',
+          url: `${process.env.PKFARE_HOTEL_URI}/queryHotelList`,
+          data: {
+            authentication,
+            request
+          }
+        })
+        let { data } = responseHotel
+        let { hotelInfoList } = data.body
+        let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
+        let hotels = await Hotel.find({
+          hotelId: { $in: hotelIds },
+          starRating: { $lte: policy.hotelClass },
+          language: 'en_US'
+        })
+        let hotelPolicyIds = hotels.map(hotel => parseInt(hotel.hotelId))
+        let newHotelList = hotelInfoList.filter(hotel =>
+          hotelPolicyIds.includes(parseInt(hotel.hotelId))
+        )
+        let sumPriceHotelRoom = 0
+        newHotelList.forEach(hotel => {
+          sumPriceHotelRoom += Number(hotel.lowestPrice * req.currency.rate)
+        })
+        trip.budgetPassengers[0].lodging.price = Number(
+          sumPriceHotelRoom / hotelInfoList.length
+        )
+        trip.budgetPassengers[0].totalPrice +=
+          trip.budgetPassengers[0].lodging.price
+      }
+
+      //Update trip information
+      trip.budgetPassengers[0].totalPrice = Number(
+        trip.budgetPassengers[0].totalPrice
       )
-      let sumPriceHotelRoom = 0
-      newHotelList.forEach(hotel => {
-        sumPriceHotelRoom += Number(hotel.lowestPrice * req.currency.rate)
-      })
-      trip.budgetPassengers[0].lodging.price = Number(
-        sumPriceHotelRoom / hotelInfoList.length
-      )
-      trip.budgetPassengers[0].totalPrice +=
-        trip.budgetPassengers[0].lodging.price
+    } catch (error) {
+      res.status(400).send()
     }
 
-    //Update trip information
-    trip.budgetPassengers[0].totalPrice = Number(
-      trip.budgetPassengers[0].totalPrice
-    )
-  } catch (error) {
-    res.status(400).send()
-  }
+    // store for email
+    req.trip = trip
 
-  // error or not, must update isBudgetUpdated to true to show
-  await Trip.findByIdAndUpdate(trip._id, {
-    $set: {
-      isBudgetUpdated: true,
-      budgetPassengers: trip.budgetPassengers
-    }
-  })
-})
+    // error or not, must update isBudgetUpdated to true to show
+    await Trip.findByIdAndUpdate(trip._id, {
+      $set: {
+        isBudgetUpdated: true,
+        budgetPassengers: trip.budgetPassengers
+      }
+    })
+    next()
+  },
+  emailEmployeeSubmitTrip,
+  emailManagerSubmitTrip
+)
 
 router.patch('/:id', function(req, res, next) {
   let id = req.params.id

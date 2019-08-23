@@ -106,6 +106,19 @@ const users = [
     country: 'VN'
   },
   {
+    username: 'manager2@tastech.asia',
+    email: 'manager2@tastech.asia',
+    _company: companyId,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: managerRoleId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    _department: departmentId,
+    phone: '123546456',
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'CN'
+  },
+  {
     _id: accountantId,
     username: 'accountant@tastech.asia',
     email: 'accountant@tastech.asia',
@@ -118,6 +131,19 @@ const users = [
     phone: '0819020695',
     dateOfBirth: new Date('1996-07-02'),
     country: 'VN'
+  },
+  {
+    username: 'accountant2@tastech.asia',
+    email: 'accountant2@tastech.asia',
+    _company: companyId,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: accountantRoleId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    _department: departmentId,
+    phone: '1239871',
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'EN'
   },
   {
     _id: employeeId2,
@@ -589,7 +615,7 @@ for (let i = 0; i < 50; i++) {
     namePrefix = 'Personal Trip'
   }
 
-  let startDate = chance.date({ year: 2019 })
+  let startDate = chance.date({ month: 8, year: 2019 })
   let startDateObj = new Date(startDate)
   let duration = chance.integer({ min: 1, max: 10 })
   let endDateObj = new Date(startDateObj.getTime() + duration * 86400000)
