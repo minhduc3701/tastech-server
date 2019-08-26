@@ -5,13 +5,16 @@ const hotelbedsHttp = axios.create({
   baseURL: process.env.HOTELBEDS_URI
 })
 
+const HOTELBEDS_CONTENT_VERSION = process.env.HOTELBEDS_CONTENT_VERSION
+const HOTELBEDS_BOOKING_VERSION = process.env.HOTELBEDS_BOOKING_VERSION
+
 const endpoints = {
-  hotels: '/hotel-api/1.0/hotels',
-  hotelContents: '/hotel-content-api/1.0/hotels',
-  checkRate: '/hotel-api/1.0/checkrates',
-  bookings: '/hotel-api/1.0/bookings',
-  facilities: '/hotel-content-api/1.0/types/facilities',
-  facilityGroups: '/hotel-content-api/1.0/types/facilitygroups'
+  hotelContents: `/hotel-content-api/${HOTELBEDS_CONTENT_VERSION}/hotels`,
+  facilities: `/hotel-content-api/${HOTELBEDS_CONTENT_VERSION}/types/facilities`,
+  facilityGroups: `/hotel-content-api/${HOTELBEDS_CONTENT_VERSION}/types/facilitygroups`,
+  hotels: `/hotel-api/${HOTELBEDS_CONTENT_VERSION}/hotels`,
+  checkRate: `/hotel-api/${HOTELBEDS_CONTENT_VERSION}/checkrates`,
+  bookings: `/hotel-api/${HOTELBEDS_BOOKING_VERSION}/bookings` // required version 1.2 on production
 }
 
 const api = {
