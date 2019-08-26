@@ -71,6 +71,7 @@ router.get('/me/policy', function(req, res, next) {
 
 router.patch('/me', async (req, res) => {
   const body = _.pick(req.body, [
+    'profileStrength',
     'country',
     'displayName',
     'title',
@@ -81,7 +82,21 @@ router.patch('/me', async (req, res) => {
     'callingCode',
     'passports',
     'allowSearch',
-    'allowNotification'
+    'allowNotification',
+    'homeAirport',
+    'homeAirportName',
+    'notExceedBudget',
+    'prefFlightSeat',
+    'prefAirline',
+    'prefFlightClass',
+    'prefFlightDuration',
+    'prefDepartureTime',
+    'prefArrivalTime',
+    'prefFlightMeal',
+    'prefHotelClass',
+    'prefHotelFacility',
+    'flyerPrograms',
+    'hotelPrograms'
   ])
 
   User.findByIdAndUpdate(
