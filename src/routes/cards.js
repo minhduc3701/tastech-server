@@ -3,7 +3,7 @@ const router = express.Router()
 const Card = require('../models/card')
 const { ObjectID } = require('mongodb')
 
-router.post('/', function(req, res, next) {
+router.post('/', async (req, res, next) => {
   const token = req.body.token
 
   if (!token) {
@@ -14,7 +14,7 @@ router.post('/', function(req, res, next) {
   // See your keys here: https://dashboard.stripe.com/account/apikeys
   const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
-  ;(async () => {
+  try {
     // Create a Customer:
     const customer = await stripe.customers.create({
       source: token.id,
@@ -27,21 +27,18 @@ router.post('/', function(req, res, next) {
       info: token.card
     })
 
-    card
-      .save()
-      .then(card => {
-        res.status(200).send({
-          card: {
-            id: card._id,
-            brand: card.info.brand,
-            last4: card.info.last4
-          }
-        })
-      })
-      .catch(e => {
-        res.status(400).send()
-      })
-  })()
+    await card.save()
+
+    res.status(200).send({
+      card: {
+        id: card._id,
+        brand: card.info.brand,
+        last4: card.info.last4
+      }
+    })
+  } catch (e) {
+    res.status(400).send()
+  }
 })
 
 router.get('/', (req, res) => {
