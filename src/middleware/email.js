@@ -18,17 +18,20 @@ const { debugMail } = require('../config/debug')
 
 const emailEmployeeChangeExpenseStatus = async (req, res) => {
   if (!_.isEmpty(req.expense)) {
-    Expense.findById(req.expense._id)
-      .populate('_trip')
-      .then(expense => {
-        let mailOptions = changeExpenseStatus(req.user, expense)
-        mail.sendMail(mailOptions, function(err, info) {
-          if (err) {
-            debugMail(err)
-            logger.info('mail: ', { err: err })
-          }
-        })
+    Promise.all([
+      User.findById(req.expense._creator),
+      Expense.findById(req.expense._id).populate('_trip')
+    ]).then(results => {
+      let user = results[0]
+      let expense = results[1]
+      let mailOptions = changeExpenseStatus(user, expense)
+      mail.sendMail(mailOptions, function(err, info) {
+        if (err) {
+          debugMail(err)
+          logger.info('mail: ', { err: err })
+        }
       })
+    })
   } else {
     logger.info('trip: ', { err: 'No trip' })
   }
@@ -113,12 +116,14 @@ const emailManagerSubmitTrip = async (req, res) => {
 }
 const emailEmployeeChangeTripStatus = async (req, res) => {
   if (req.trip) {
-    let mailOptions = changeTripStatus(req.user, req.trip)
-    mail.sendMail(mailOptions, function(err, info) {
-      if (err) {
-        debugMail(err)
-        logger.info('mail: ', { err: err })
-      }
+    Users.findById(req.trip._creator).then(user => {
+      let mailOptions = changeTripStatus(user, req.trip)
+      mail.sendMail(mailOptions, function(err, info) {
+        if (err) {
+          debugMail(err)
+          logger.info('mail: ', { err: err })
+        }
+      })
     })
   } else {
     logger.info('trip: ', { err: 'No trip' })
