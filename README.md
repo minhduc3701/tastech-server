@@ -31,6 +31,8 @@ Add config/config.json with the content like below:
     "BASE_CURRENCY": "USD",
     "HOTELBEDS_BASE_CURRENCY": "EUR",
     "HOTELBEDS_URI": "https://api.test.hotelbeds.com",
+    "HOTELBEDS_CONTENT_VERSION": "1.0",
+    "HOTELBEDS_BOOKING_VERSION": "1.2",
     "HOTELBEDS_HOTEL_KEY": <HOTELBEDS_KEY>,
     "HOTELBEDS_HOTEL_SECRET": <HOTELBEDS_SECRET>,
     "TRANSFERWISE_URI": "https://api.sandbox.transferwise.tech",
@@ -147,6 +149,8 @@ export STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY>
 export BASE_CURRENCY=SGD
 export HOTELBEDS_BASE_CURRENCY=EUR
 export HOTELBEDS_URI=https://api.test.hotelbeds.com
+export HOTELBEDS_CONTENT_VERSION=1.0
+export HOTELBEDS_BOOKING_VERSION=1.2
 export HOTELBEDS_HOTEL_KEY=<HOTELBEDS_KEY>
 export HOTELBEDS_HOTEL_SECRET=<HOTELBEDS_SECRET>
 export TRANSFERWISE_URI=https://api.transferwise.com
