@@ -3,6 +3,7 @@ const router = express.Router()
 const Expense = require('../../models/expense')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
+const { emailEmployeeChangeExpenseStatus } = require('../../middleware/email')
 
 router.get('/', (req, res) => {
   Expense.find({
@@ -45,33 +46,40 @@ router.get('/:id', function(req, res) {
     })
 })
 
-router.patch('/:id', (req, res) => {
-  let id = req.params.id
+router.patch(
+  '/:id',
+  (req, res, next) => {
+    let id = req.params.id
 
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send()
-  }
+    if (!ObjectID.isValid(id)) {
+      return res.status(404).send()
+    }
 
-  const body = _.pick(req.body, ['status', 'adminMessage'])
+    const body = _.pick(req.body, ['status', 'adminMessage'])
 
-  Expense.findOneAndUpdate(
-    {
-      _id: id,
-      _company: req.user._company
-    },
-    { $set: body },
-    { new: true }
-  )
-    .then(expense => {
-      if (!expense) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ expense })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
-})
+    Expense.findOneAndUpdate(
+      {
+        _id: id,
+        _company: req.user._company
+      },
+      { $set: body },
+      { new: true }
+    )
+      .then(expense => {
+        if (!expense) {
+          return res.status(404).send()
+        }
+        res.status(200).send({ expense })
+        // save for sending email to employee
+        req.expense = expense
+        next()
+      })
+      .catch(e => {
+        console.log(e)
+        res.status(400).send()
+      })
+  },
+  emailEmployeeChangeExpenseStatus
+)
 
 module.exports = router

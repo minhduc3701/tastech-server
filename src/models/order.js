@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const validator = require('validator')
+const _ = require('lodash')
 
 const OrderSchema = new Schema(
   {
@@ -92,8 +93,28 @@ const OrderSchema = new Schema(
         }
       }
     ],
+    childrenInfo: [
+      {
+        age: {
+          type: Number,
+          required: true
+        },
+        firstName: {
+          type: String,
+          trim: true
+        },
+        lastName: {
+          type: String,
+          trim: true
+        }
+      }
+    ],
     contactInfo: {
       name: {
+        type: String,
+        trim: true
+      },
+      lastName: {
         type: String,
         trim: true
       },
@@ -115,11 +136,23 @@ const OrderSchema = new Schema(
         type: String,
         trim: true
       }
-    }
+    },
+    supplierInfo: {},
+    chargeId: String,
+    cancelCharge: Number,
+    rawCancelCharge: Number
   },
   {
     timestamps: true
   }
 )
+
+OrderSchema.methods.toJSON = function() {
+  var user = this
+  var userObject = user.toObject()
+
+  userObject = _.omit(userObject, ['chargeId'])
+  return userObject
+}
 
 module.exports = mongoose.model('Order', OrderSchema)

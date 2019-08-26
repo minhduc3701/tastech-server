@@ -5,7 +5,10 @@ const { ObjectID } = require('mongodb')
 const axios = require('axios')
 const { authentication } = require('../config/pkfare')
 const _ = require('lodash')
-const { removeSpaces } = require('../modules/utils')
+const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
+const apiHotelbeds = require('../modules/apiHotelbeds')
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const { currencyExchange } = require('../middleware/currency')
 
 router.get('/', function(req, res, next) {
   Order.find({
@@ -100,6 +103,8 @@ router.post('/cancel', async (req, res) => {
       return res.status(404).send()
     }
 
+    let currencyRate = order.totalPrice / order.rawTotalPrice
+
     switch (order.type) {
       case 'hotel':
         switch (order[order.type].supplier) {
@@ -113,14 +118,55 @@ router.post('/cancel', async (req, res) => {
                 }
               }
             )
-
             if (cancelRes.data.header.code === 'S00000') {
+              let cancellationAmount = cancelRes.data.body.cancelCharge
+              let refundAmount =
+                (order.rawTotalPrice - cancellationAmount) * currencyRate
+              if (refundAmount > 0) {
+                try {
+                  await stripe.refunds.create({
+                    charge: order.chargeId,
+                    amount: roundingAmountStripe(refundAmount, order.currency)
+                  })
+                } catch (error) {
+                  return res.status(400)
+                }
+              }
+              order.cancelCharge = cancellationAmount * currencyRate
+              order.rawCancelCharge = cancellationAmount
               order.status = 'cancelled'
               order.canCancel = false
               await order.save()
               return res.status(200).send({ order, result: cancelRes.data })
             }
             break
+
+          case 'hotelbeds':
+            let cancelHotelbedsRes = await apiHotelbeds.cancelHotelbedsOrder(
+              order.customerCode
+            )
+            let cancellationAmount =
+              cancelHotelbedsRes.data.booking.hotel.cancellationAmount
+            let refundAmount =
+              (order.rawTotalPrice - cancellationAmount) * currencyRate
+            if (refundAmount > 0) {
+              try {
+                await stripe.refunds.create({
+                  charge: order.chargeId,
+                  amount: roundingAmountStripe(refundAmount, order.currency)
+                })
+              } catch (error) {
+                return res.status(400)
+              }
+            }
+            order.cancelCharge = cancellationAmount * currencyRate
+            order.rawCancelCharge = cancellationAmount
+            order.status = 'cancelled'
+            order.canCancel = false
+            await order.save()
+            return res
+              .status(200)
+              .send({ order, result: cancelHotelbedsRes.data })
         }
         break
 
@@ -142,6 +188,7 @@ router.post('/cancel', async (req, res) => {
             let base64 = Buffer.from(JSON.stringify(data)).toString('base64')
             let cancelRes = await axios.get(
               `${process.env.PKFARE_URI}/voiding?param=${base64}`
+              // `http://localhost:5050/voiding?param=${base64}`
             )
 
             if (cancelRes.data.errorCode === '0') {
@@ -156,7 +203,6 @@ router.post('/cancel', async (req, res) => {
         break
     }
   } catch (e) {}
-
   res.status(400).send()
 })
 

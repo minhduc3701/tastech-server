@@ -4,21 +4,29 @@ const Card = require('../models/card')
 const Trip = require('../models/trip')
 const Order = require('../models/order')
 const api = require('../modules/api')
-const { makeSegmentsData, makeRoomGuestDetails } = require('../modules/utils')
+const apiSabre = require('../modules/apiSabre')
+const { sabreToken } = require('../middleware/sabre')
+const apiHotelbeds = require('../modules/apiHotelbeds')
+const {
+  makeSegmentsData,
+  makeRoomGuestDetails,
+  makeHtbRoomPaxes
+} = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
-const { removeSpaces } = require('../modules/utils')
-const { USD, VND, SGD } = require('../config/currency')
+const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
+const { logger } = require('../config/winston')
+const {
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary
+} = require('../middleware/email')
+// Set your secret key: remember to change this to your live secret key in production
+// See your keys here: https://dashboard.stripe.com/account/apikeys
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
-router.post('/card', async (req, res, next) => {
-  const { card, trip, checkoutAgain, orderId } = req.body
-  let cardId = card.id
-  let foundTrip, flightOrder, hotelOrder, bookingResponse
-  let { contactInfo } = trip
-
-  // Set your secret key: remember to change this to your live secret key in production
-  // See your keys here: https://dashboard.stripe.com/account/apikeys
-  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const createOrFindTrip = async (req, res, next) => {
+  const { trip, checkoutAgain } = req.body
+  let foundTrip
 
   try {
     if (trip._id) {
@@ -60,9 +68,32 @@ router.post('/card', async (req, res, next) => {
         ...trip,
         _creator: req.user._id
       })
+
       await foundTrip.save()
       trip._id = foundTrip._id
     } // end outer if
+
+    req.trip = trip
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const createOrFindFlightOrder = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const { checkoutAgain, orderId } = req.body
+
+    // from createOrFindTrip
+    const trip = req.trip
+
+    let flightOrder
 
     // flight order
     if (trip.flight) {
@@ -99,6 +130,28 @@ router.post('/card', async (req, res, next) => {
       }
     }
 
+    req.flightOrder = flightOrder
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const createOrFindHotelOrder = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const { checkoutAgain, orderId } = req.body
+
+    // from createOrFindTrip
+    const trip = req.trip
+
+    let hotelOrder
+
     // hotel order
     if (trip.hotel) {
       if (checkoutAgain) {
@@ -125,11 +178,35 @@ router.post('/card', async (req, res, next) => {
           hotel: trip.hotel,
           _customer: req.user._id,
           passengers: trip.passengers,
+          childrenInfo: trip.childrenInfo,
           contactInfo: trip.contactInfo
         })
       }
 
       await hotelOrder.save()
+
+      req.hotelOrder = hotelOrder
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const pkfareFlightPreBooking = async (req, res, next) => {
+  const trip = req.trip
+  let bookingResponse
+
+  if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
+    next()
+    return
+  }
+
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
     }
 
     // booking
@@ -167,14 +244,36 @@ router.post('/card', async (req, res, next) => {
 
       bookingResponse = await api.preciseBooking(data)
 
+      // save for using later in ticketing
+      req.bookingResponse = bookingResponse
+
       if (bookingResponse.data.errorCode !== '0') {
-        throw {
+        req.checkoutError = {
           ...bookingResponse.data,
           message: bookingResponse.data.errorMsg,
           flight: true
         }
       }
     } // end trip.flight
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const stripeCharging = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const flightOrder = req.flightOrder
+    const hotelOrder = req.hotelOrder
+
+    const { card } = req.body
+    let cardId = card.id
 
     // START CHARGING =======
 
@@ -197,16 +296,8 @@ router.post('/card', async (req, res, next) => {
       currency = hotelOrder.hotel.currency
     }
 
-    switch (currency) {
-      case USD:
-      case SGD:
-        amount = Math.floor(amount * 100)
-        break
-
-      case VND:
-        amount = Math.floor(amount)
-        break
-    }
+    // rounding amount
+    amount = roundingAmountStripe(amount, currency)
 
     // find the card
     let foundCard = await Card.findOne({
@@ -225,29 +316,229 @@ router.post('/card', async (req, res, next) => {
       customer: foundCard.customer.id // Previously stored, then retrieved
     })
 
+    req.charge = charge
     // AFTER CHARGING =======
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const pkfareFlightTicketing = async (req, res, next) => {
+  const trip = req.trip
+
+  if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
+    next()
+    return
+  }
+  let flightOrder = req.flightOrder
+  let bookingResponse = req.bookingResponse
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
 
     // update data for trip
     let flightUpdateData = {}
-    let hotelUpdateData = {}
 
     // ticketing
     if (trip.flight) {
       let { pnr, orderNum } = bookingResponse.data.data
 
       let ticketingRes = await api.ticketing({
-        email: contactInfo.email,
-        name: removeSpaces(contactInfo.name),
+        email: trip.contactInfo.email,
+        name: removeSpaces(trip.contactInfo.name),
         orderNum,
         PNR: pnr,
-        telNum: `+${contactInfo.callingCode} ${contactInfo.phone}`
+        telNum: `+${trip.contactInfo.callingCode} ${trip.contactInfo.phone}`
       })
+      if (ticketingRes.data.errorCode !== '0') {
+        throw { message: ticketingRes.data.errorMsg, flight: true }
+      }
 
       flightUpdateData = {
         customerCode: pnr,
         number: orderNum
       }
+
+      flightOrder.customerCode = flightUpdateData.customerCode
+      flightOrder.number = flightUpdateData.number
+      flightOrder.status = 'processing'
+      flightOrder.chargeId = req.charge.id
+      await flightOrder.save()
+
+      req.flightOrder = flightOrder
     } // end trip.flight
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const sabreCreatePNR = async (req, res, next) => {
+  const trip = req.trip
+  let flightOrder = req.flightOrder
+  if (_.get(trip, 'flight.supplier') !== 'sabre') {
+    next()
+    return
+  }
+
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+    let data = {
+      CreatePassengerNameRecordRQ: {
+        targetCity: process.env.SABRE_USER_ID,
+        version: '2.2.0',
+        haltOnAirPriceError: true,
+        TravelItineraryAddInfo: {
+          AgencyInfo: {
+            Ticketing: {
+              TicketType: '7TAW'
+            }
+          },
+          CustomerInfo: {
+            ContactNumbers: {
+              ContactNumber: [
+                {
+                  Phone: trip.contactInfo.phone,
+                  PhoneUseType: 'H'
+                }
+              ]
+            },
+            Email: [
+              {
+                Address: trip.contactInfo.email,
+                Type: 'TO'
+              }
+            ],
+            PersonName: []
+          }
+        },
+        AirBook: {
+          OriginDestinationInformation: {
+            FlightSegment: []
+          },
+          RedisplayReservation: {
+            NumAttempts: 2,
+            WaitInterval: 5000
+          }
+        },
+        AirPrice: [
+          {
+            PriceRequestInformation: {
+              OptionalQualifiers: {
+                PricingQualifiers: {
+                  PassengerType: [
+                    {
+                      Code: 'ADT',
+                      Quantity: trip.numberPassengers.toString()
+                    }
+                  ]
+                }
+              },
+              Retain: true
+            }
+          }
+        ],
+        PostProcessing: {
+          EndTransaction: {
+            Source: {
+              ReceivedFrom: 'EzBizTrip'
+            }
+          },
+          RedisplayReservation: {
+            waitInterval: 100
+          }
+        }
+      }
+    }
+    trip.passengers.map((p, index) => {
+      data.CreatePassengerNameRecordRQ.TravelItineraryAddInfo.CustomerInfo.PersonName.push(
+        {
+          PassengerType: 'ADT',
+          GivenName: p.firstName,
+          Surname: p.lastName
+        }
+      )
+    })
+    trip.flight.departureSegments.map(segment => {
+      data.CreatePassengerNameRecordRQ.AirBook.OriginDestinationInformation.FlightSegment.push(
+        {
+          DepartureDateTime: segment.DepartureDateTime,
+          FlightNumber: `${segment.operatingFlightNumber}`,
+          ArrivalDateTime: segment.ArrivalDateTime,
+          Status: 'NN',
+          ResBookDesigCode: segment.cabinCode,
+          NumberInParty: `${trip.passengers.length}`,
+          MarketingAirline: {
+            Code: `${segment.marketing}`,
+            FlightNumber: `${segment.marketingFlightNumber}`
+          },
+          MarriageGrp: 'O',
+          OperatingAirline: {
+            Code: `${segment.operating}`
+          },
+          OriginLocation: {
+            LocationCode: `${segment.departure}`
+          },
+          DestinationLocation: {
+            LocationCode: `${segment.arrival}`
+          }
+        }
+      )
+    })
+    logger.info('createPNR request', data)
+    let sabrePNRres = await apiSabre.createPNR(data, req.sabreToken)
+    let status = _.get(
+      sabrePNRres,
+      ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
+      'failed'
+    )
+    logger.info('createPNR response', sabrePNRres)
+    if (status === 'Complete') {
+      flightOrder.customerCode = _.get(
+        sabrePNRres,
+        ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
+        ''
+      )
+      flightOrder.status = 'processing'
+      await flightOrder.save()
+      req.flightOrder = flightOrder
+    } else {
+      throw { message: 'Create PNR failed!', flight: true }
+    }
+  } catch (error) {
+    logger.info('error', error)
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const pkfareHotelCreateOrder = async (req, res, next) => {
+  const trip = req.trip
+
+  if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'pkfare') {
+    next()
+    return
+  }
+
+  let hotelOrder = req.hotelOrder
+
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    // update data for trip
+    let hotelUpdateData = {}
 
     // create hotel order
     if (trip.hotel) {
@@ -258,9 +549,11 @@ router.post('/card', async (req, res, next) => {
       let request = {
         checkInDate: trip.hotel.checkInDate,
         checkOutDate: trip.hotel.checkOutDate,
-        contactEmail: contactInfo.email,
-        contactName: removeSpaces(contactInfo.name),
-        contactTel: `+${contactInfo.callingCode} ${contactInfo.phone}`,
+        contactEmail: trip.contactInfo.email,
+        contactName: removeSpaces(trip.contactInfo.name),
+        contactTel: `+${trip.contactInfo.callingCode} ${
+          trip.contactInfo.phone
+        }`,
         customerOrderCode,
         numberOfAdult: trip.hotel.numberOfAdult,
         numberOfRoom: trip.hotel.numberOfRoom,
@@ -276,8 +569,15 @@ router.post('/card', async (req, res, next) => {
         languageCode: 'en_US'
       }
 
-      let res = await api.createHotelOrder(request)
-      let orderData = res.data
+      const ageOfChildren = _.get(trip, 'childrenInfo', []).map(
+        child => child.age
+      )
+      if (ageOfChildren.length > 0) {
+        request['ageOfChildren'] = ageOfChildren
+      }
+
+      let holteOrderRes = await api.createHotelOrder(request)
+      let orderData = holteOrderRes.data
 
       if (orderData.header.code !== 'S00000') {
         throw {
@@ -292,24 +592,188 @@ router.post('/card', async (req, res, next) => {
         customerCode: customerOrderCode,
         number: orderData.body.orderCode
       }
-    }
 
-    // update order status
-    if (trip.flight) {
-      flightOrder.customerCode = flightUpdateData.customerCode
-      flightOrder.number = flightUpdateData.number
-      flightOrder.status = 'processing'
-      await flightOrder.save()
-    }
-
-    if (trip.hotel) {
       hotelOrder.customerCode = hotelUpdateData.customerCode
       hotelOrder.number = hotelUpdateData.number
       hotelOrder.status = 'completed'
       hotelOrder.canCancel = true
+      hotelOrder.chargeId = req.charge.id
       await hotelOrder.save()
+
+      req.hotelOrder = hotelOrder
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+  next()
+}
+
+const hotelbedsCheckRate = async (req, res, next) => {
+  const trip = req.trip
+  const supplier = _.get(trip, 'hotel.supplier')
+  const rateType = _.get(trip, 'hotel.rateType')
+
+  if (supplier !== 'hotelbeds' || rateType !== 'RECHECK') {
+    next()
+    return
+  }
+
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
     }
 
+    let request = {
+      rooms: [
+        {
+          rateKey: trip.hotel.ratePlanCode
+        }
+      ]
+    }
+
+    logger.info('CheckRateRQ', request)
+
+    let rateRes = await apiHotelbeds.checkRate(request)
+
+    logger.info('CheckRateRS', rateRes.data)
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const hotelbedsCreateOrder = async (req, res, next) => {
+  const trip = req.trip
+
+  if (_.get(trip, 'hotel.supplier') !== 'hotelbeds') {
+    next()
+    return
+  }
+
+  let hotelOrder = req.hotelOrder
+  let childrenInfo = _.get(trip, 'childrenInfo', [])
+
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    let request = {
+      holder: {
+        name: trip.contactInfo.name,
+        surname: trip.contactInfo.lastName
+      },
+      rooms: makeHtbRoomPaxes(
+        trip.passengers,
+        childrenInfo,
+        trip.hotel.numberOfRoom,
+        trip.hotel.ratePlanCode
+      ),
+      clientReference: 'EzBizTrip',
+      remark: '',
+      tolerance: 2.0
+    }
+
+    logger.info('BookingRQ', request)
+
+    let hotelOrderRes = await apiHotelbeds.createHotelbedsOrder(request)
+    let orderData = hotelOrderRes.data
+
+    logger.info('BookingRS', orderData)
+
+    // create hotel order
+    hotelOrder.customerCode = orderData.booking.reference
+    hotelOrder.number = orderData.booking.reference
+    hotelOrder.supplierInfo = {
+      rooms: _.get(orderData, 'booking.hotel.rooms'),
+      vat: _.get(orderData, 'booking.hotel.supplier.vatNumber')
+    }
+    hotelOrder.status = 'completed'
+    hotelOrder.canCancel = true
+    hotelOrder.chargeId = req.charge.id
+    await hotelOrder.save()
+
+    req.hotelOrder = hotelOrder
+  } catch (error) {
+    req.checkoutError = {
+      ...req.checkoutError,
+      message: _.get(error, 'response.data.error.message'),
+      hotel: true
+    }
+  }
+
+  next()
+}
+
+const refundFailedOrder = async (req, res, next) => {
+  // exit if no checkout errors
+  if (!req.checkoutError) {
+    next()
+    return
+  }
+
+  try {
+    let refundAmount = 0
+
+    // refund for flight booking failed
+    if (req.checkoutError && req.checkoutError.flight) {
+      let flightOrder = req.flightOrder
+      refundAmount += flightOrder.totalPrice
+
+      // refund for combo (flight & hotel) if flight booking failed
+      let hotelOrder = req.hotelOrder
+      if (!_.isEmpty(hotelOrder)) {
+        refundAmount += hotelOrder.totalPrice
+      }
+
+      refundAmount = roundingAmountStripe(refundAmount, flightOrder.currency)
+
+      // if only hotel failed
+    } else if (req.checkoutError && req.checkoutError.hotel) {
+      // refund for hotel booking failed
+      let hotelOrder = req.hotelOrder
+      refundAmount += roundingAmountStripe(
+        hotelOrder.totalPrice,
+        hotelOrder.currency
+      )
+
+      // success flight and fail hotel
+      if (req.flightOrder) {
+        req.checkoutError = undefined
+
+        // change status of hotel to failed
+        hotelOrder.status = 'failed'
+        await hotelOrder.save()
+      }
+    }
+
+    // refund via stripe
+    await stripe.refunds.create({
+      charge: req.charge.id,
+      amount: refundAmount
+    })
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const responseCheckout = async (req, res, next) => {
+  // from createOrFindTrip
+  const trip = req.trip
+  let flightOrder = req.flightOrder
+  let hotelOrder = req.hotelOrder
+  const charge = req.charge
+
+  let bookingResponse = req.bookingResponse
+  try {
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
     res.status(200).send({
       status: charge.status,
       trip: _.pick(trip, ['_id']),
@@ -335,7 +799,27 @@ router.post('/card', async (req, res, next) => {
       hotelOrder
     })
   }
-})
+  next() // next for sent email
+}
+
+router.post(
+  '/card',
+  sabreToken, // get token for sabre api
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  pkfareFlightPreBooking,
+  hotelbedsCheckRate,
+  sabreCreatePNR,
+  stripeCharging,
+  pkfareFlightTicketing,
+  pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
+  refundFailedOrder,
+  responseCheckout,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary
+)
 
 router.post('/password', (req, res) => {
   let password = req.body.password

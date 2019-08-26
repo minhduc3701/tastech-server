@@ -1,8 +1,8 @@
 var mongoose = require('mongoose')
 var Schema = mongoose.Schema
 var passportLocalMongoose = require('passport-local-mongoose')
-var validator = require('validator')
 const _ = require('lodash')
+const { getImageUri } = require('../modules/utils')
 
 var UserSchema = new Schema({
   username: {
@@ -21,12 +21,23 @@ var UserSchema = new Schema({
   resetPasswordExpires: Date,
   dateOfBirth: Date,
   country: String,
+  displayName: String,
   title: String,
   firstName: String,
   lastName: String,
   phone: String,
   age: Number,
   avatar: String,
+  passports: [
+    {
+      number: String,
+      country: String,
+      expiryDate: Date,
+      active: false
+    }
+  ],
+  allowSearch: false,
+  allowNotification: false,
   _company: {
     type: 'ObjectId',
     ref: 'Company'
@@ -48,7 +59,8 @@ var UserSchema = new Schema({
     default: 0
   },
   lastLoginDate: Date,
-  disabled: Boolean
+  disabled: Boolean,
+  callingCode: String
 })
 
 UserSchema.plugin(passportLocalMongoose)
@@ -57,32 +69,8 @@ UserSchema.methods.toJSON = function() {
   var user = this
   var userObject = user.toObject()
 
-  userObject = _.pick(userObject, [
-    '_id',
-    'email',
-    'type',
-    'country',
-    'title',
-    'firstName',
-    'lastName',
-    'phone',
-    'age',
-    'avatar',
-    '_company',
-    '_department',
-    '_role',
-    '_policy',
-    'lastLoginDate',
-    'disabled',
-    'point',
-    'dateOfBirth'
-  ])
-
-  if (!validator.isURL(_.toString(userObject.avatar))) {
-    userObject.avatar = userObject.avatar
-      ? process.env.AWS_S3_URI + '/' + userObject.avatar
-      : null
-  }
+  userObject = _.omit(userObject, ['hash', 'salt'])
+  userObject.avatar = getImageUri(userObject.avatar)
 
   return userObject
 }

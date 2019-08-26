@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer')
 const nodemailerSendgrid = require('nodemailer-sendgrid')
-
+const inLineCss = require('nodemailer-juice')
 let mail
 
 if (process.env.NODE_ENV === 'production') {
@@ -19,6 +19,7 @@ if (process.env.NODE_ENV === 'production') {
     }
   })
 }
+mail.use('compile', inLineCss())
 
 module.exports = {
   mail

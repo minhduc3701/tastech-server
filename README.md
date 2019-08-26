@@ -23,15 +23,26 @@ Add config/config.json with the content like below:
     "PKFARE_PARTNER_ID": <PKFARE_PARTNER_ID>,
     "PKFARE_PARTNER_KEY": <PKFARE_PARTNER_KEY>,
     "PKFARE_HOTEL_ORDER_SECRET": <dev.ezbiztrip or local.thanh>,
+    "SABRE_URI":"https://api-crt.cert.havail.sabre.com",
+    "SABRE_USER_ID":"<SABRE_USER_ID>",
+    "SABRE_CLIENT_ID":"<SABRE_CLIENT_ID>",
+    "SABRE_SECRET_KEY":"<SABRE_SECRET_KEY>",
     "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>,
     "BASE_CURRENCY": "USD",
+    "HOTELBEDS_BASE_CURRENCY": "EUR",
+    "HOTELBEDS_URI": "https://api.test.hotelbeds.com",
+    "HOTELBEDS_CONTENT_VERSION": "1.0",
+    "HOTELBEDS_BOOKING_VERSION": "1.2",
+    "HOTELBEDS_HOTEL_KEY": <HOTELBEDS_KEY>,
+    "HOTELBEDS_HOTEL_SECRET": <HOTELBEDS_SECRET>,
     "TRANSFERWISE_URI": "https://api.sandbox.transferwise.tech",
     "TRANSFERWISE_API_KEY": "",
     "SMTP_HOST": "smtp.mailtrap.io",
     "SMTP_PORT": "2525",
     "SMTP_USER": "<your mailtrap user>",
     "SMTP_PASSWORD": "<your mailtrap password>",
-    "EMAIL_CONTACT": "support@ezbiztrip.com"
+    "EMAIL_CONTACT": "support@ezbiztrip.com",
+    "EMAIL_NO_REPLY": "no-reply@ezbiztrip.com"
   }
 }
 
@@ -130,10 +141,22 @@ export PKFARE_HOTEL_URI=https://hotelapi.pkfare.com/hotel
 export PKFARE_PARTNER_ID=<PKFARE_PARTNER_ID>
 export PKFARE_PARTNER_KEY=<PKFARE_PARTNER_KEY>
 export PKFARE_HOTEL_ORDER_SECRET=<production hotel order secret>
+export SABRE_URI=https://api-crt.cert.havail.sabre.com",
+export SABRE_USER_ID=<SABRE_USER_ID>
+export SABRE_CLIENT_ID=<SABRE_CLIENT_ID>
+export SABRE_SECRET_KEY=<SABRE_SECRET_KEY>
 export STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY>
 export BASE_CURRENCY=SGD
+export HOTELBEDS_BASE_CURRENCY=EUR
+export HOTELBEDS_URI=https://api.test.hotelbeds.com
+export HOTELBEDS_CONTENT_VERSION=1.0
+export HOTELBEDS_BOOKING_VERSION=1.2
+export HOTELBEDS_HOTEL_KEY=<HOTELBEDS_KEY>
+export HOTELBEDS_HOTEL_SECRET=<HOTELBEDS_SECRET>
 export TRANSFERWISE_URI=https://api.transferwise.com
 export TRANSFERWISE_API_KEY=<TRANSFERWISE_LIVE_KEY>
+export EMAIL_CONTACT=support@ezbiztrip.com
+export EMAIL_NO_REPLY=no-reply@ezbiztrip.com
 ```
 
 Now you ready to run your app

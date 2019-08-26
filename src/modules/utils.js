@@ -1,4 +1,23 @@
 const _ = require('lodash')
+const moment = require('moment')
+const { logger } = require('../config/winston')
+const validator = require('validator')
+const { USD, VND, SGD } = require('../config/currency')
+
+const getImageUri = uriString => {
+  if (uriString && !validator.isURL(_.toString(uriString))) {
+    return process.env.AWS_S3_URI + '/' + uriString
+  }
+
+  return uriString
+}
+
+const mapClassOptions = {
+  Y: 'ECONOMY',
+  S: 'PREMIUM ECONOMY',
+  C: 'BUSINESS',
+  F: 'FIRST CLASS'
+}
 
 const makeSegmentsData = segment => {
   let data = _.pick(segment, [
@@ -133,10 +152,499 @@ const makeFlightsData = (data, { isRoundTrip, currency, numberOfAdults }) => {
   flightsData = _.sortBy(flightsData, ['price'])
   return flightsData
 }
+const getSegmentForSabreFlight = (fareComponents, index) => {
+  let startIndex = 0
+  for (let i = 0; i < fareComponents.length; i++) {
+    for (let j = 0; j < fareComponents[i].segments.length; j++) {
+      if (startIndex + j === index) {
+        let cabinCode = fareComponents[i].segments[j].segment.cabinCode
+        let cabinClass = mapClassOptions[cabinCode]
+        let seatsAvailable =
+          fareComponents[i].segments[j].segment.seatsAvailable
+        return { cabinClass, seatsAvailable, cabinCode }
+      }
+    }
+    startIndex += fareComponents[i].segments.length
+  }
+}
+const getBaggageForSabreFlight = (baggageInformation, index) => {
+  let startIndex = 0
+  for (let i = 0; i < baggageInformation.length; i++) {
+    for (let j = 0; j < baggageInformation[i].segments.length; j++) {
+      if (startIndex + j === index) {
+        return baggageInformation[i].allowance.ref
+      }
+    }
+    startIndex += baggageInformation[i].segments.length
+  }
+}
+const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
+  let flights = []
+  try {
+    // logger.info("sabreRes: ", sabreRes)
+    itineraryGroups.map(l => {
+      let departureDate = moment(
+        l.groupDescription.legDescriptions[0].departureDate
+      ).format('YYYY-MM-DD')
+      l.itineraries.map(i => {
+        let obj = {
+          legs: i.legs
+        }
+        obj.refundable = !i.pricingInformation[0].fare.passengerInfoList[0]
+          .passengerInfo.nonRefundable
+        // check baggage allowance
+        obj.baggageAllowance = true
+        let {
+          baggageInformation
+        } = i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
+        for (let index = 0; index < baggageInformation.length; index++) {
+          if (baggageInformation[index].provisionType !== 'A') {
+            obj.baggageAllowance = false
+            break
+          }
+        }
+
+        obj.departureDescs = sabreRes.legDescs.find(
+          leg => leg.id === i.legs[0].ref
+        )
+        obj.departureSegments = []
+        obj.departureDescs.schedules.map((s, index) => {
+          let segmentInfor = getSegmentForSabreFlight(
+            i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
+              .fareComponents,
+            index
+          )
+          let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
+
+          // calculate flight time
+          let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
+          let toDayText = moment().format('YYYY-MM-DDT')
+          let flightTime = ''
+
+          if (dateAdjustment === 0) {
+            flightTime = moment
+              .utc(`${toDayText}${data.arrival.time}`)
+              .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
+          } else {
+            let arrivalDayText = moment()
+              .add(dateAdjustment, 'days')
+              .format('YYYY-MM-DDT')
+            flightTime = moment
+              .utc(`${arrivalDayText}${data.arrival.time}`)
+              .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
+          }
+
+          let arrivalDate = moment(departureDate)
+            .add(dateAdjustment, 'days')
+            .format('YYYY-MM-DD')
+          let baggageInfor = false
+          if (obj.baggageAllowance) {
+            baggageInfor = []
+            let baggageDecs = sabreRes.baggageAllowanceDescs.find(
+              decs =>
+                decs.id ===
+                getBaggageForSabreFlight(
+                  i.pricingInformation[0].fare.passengerInfoList[0]
+                    .passengerInfo.baggageInformation,
+                  index
+                )
+            )
+            let baggageDecsKeys = Object.keys(baggageDecs)
+            if (
+              baggageDecsKeys.includes('unit') &&
+              baggageDecsKeys.includes('weight')
+            ) {
+              baggageInfor.push(
+                `Up to ${baggageDecs.weight} ${baggageDecs.unit}`
+              )
+            }
+            if (baggageDecsKeys.includes('description1')) {
+              baggageInfor.push(baggageDecs.description1.toLowerCase())
+            }
+            if (baggageDecsKeys.includes('description2')) {
+              baggageInfor.push(baggageDecs.description2.toLowerCase())
+            }
+          }
+
+          obj.departureSegments.push({
+            id: data.id,
+            cabinClass: segmentInfor.cabinClass,
+            departure: data.departure.airport,
+            arrival: data.arrival.airport,
+            baggageInfor,
+            DepartureDateTime: `${departureDate}T${data.departure.time.substring(
+              0,
+              8
+            )}`,
+            strDepartureDate: departureDate,
+            strDepartureTime: data.departure.time.substring(0, 5),
+            ArrivalDateTime: `${arrivalDate}T${data.arrival.time.substring(
+              0,
+              8
+            )}`,
+            strArrivalDate: arrivalDate,
+            strArrivalTime: data.arrival.time.substring(0, 5),
+            flightNum: data.carrier.marketingFlightNumber,
+            flightTime,
+            seatsAvailable: segmentInfor.seatsAvailable,
+            cabinCode: segmentInfor.cabinCode,
+            airline: data.carrier.operating,
+            marketing: data.carrier.marketing,
+            marketingFlightNumber: data.carrier.marketingFlightNumber,
+            operating: data.carrier.operating,
+            operatingFlightNumber: data.carrier.operatingFlightNumber
+          })
+        })
+        obj.departureFlight = {
+          flightId: ''
+        }
+        obj.departureSegments.forEach(s => {
+          if (obj.departureFlight.flightId === '') {
+            obj.departureFlight.flightId += `${s.flightNum}-${s.airline}`
+          } else {
+            obj.departureFlight.flightId += `-${s.flightNum}-${s.airline}`
+          }
+        })
+
+        obj.returnDescs = {}
+        obj.returnSegments = []
+        obj.returnFlight = {}
+        if (i.legs.length === 2) {
+          let departureDate = moment(
+            l.groupDescription.legDescriptions[1].departureDate
+          ).format('YYYY-MM-DD')
+          obj.returnDescs = sabreRes.legDescs.find(
+            leg => leg.id === i.legs[1].ref
+          )
+
+          obj.returnSegments = []
+          obj.returnDescs.schedules.map((s, index) => {
+            let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
+            // calculate flight time
+            let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
+            let toDayText = moment().format('YYYY-MM-DDT')
+            let flightTime = ''
+
+            if (dateAdjustment === 0) {
+              flightTime = moment
+                .utc(`${toDayText}${data.arrival.time}`)
+                .diff(
+                  moment.utc(`${toDayText}${data.departure.time}`),
+                  'minutes'
+                )
+            } else {
+              let arrivalDayText = moment()
+                .add(dateAdjustment, 'days')
+                .format('YYYY-MM-DDT')
+              flightTime = moment
+                .utc(`${arrivalDayText}${data.arrival.time}`)
+                .diff(
+                  moment.utc(`${toDayText}${data.departure.time}`),
+                  'minutes'
+                )
+            }
+
+            let segmentInfor = getSegmentForSabreFlight(
+              i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
+                .fareComponents,
+              index + obj.departureDescs.schedules.length
+            )
+            let arrivalDate = moment(departureDate)
+              .add(dateAdjustment, 'days')
+              .format('YYYY-MM-DD')
+            let baggageInfor = false
+            if (obj.baggageAllowance) {
+              baggageInfor = []
+              let baggageDecs = sabreRes.baggageAllowanceDescs.find(
+                decs =>
+                  decs.id ===
+                  getBaggageForSabreFlight(
+                    i.pricingInformation[0].fare.passengerInfoList[0]
+                      .passengerInfo.baggageInformation,
+                    index + obj.departureDescs.schedules.length
+                  )
+              )
+              let baggageDecsKeys = Object.keys(baggageDecs)
+              if (
+                baggageDecsKeys.includes('unit') &&
+                baggageDecsKeys.includes('weight')
+              ) {
+                baggageInfor.push(
+                  `Up to ${baggageDecs.weight} ${baggageDecs.unit}`
+                )
+              }
+              if (baggageDecsKeys.includes('description1')) {
+                baggageInfor.push(baggageDecs.description1.toLowerCase())
+              }
+              if (baggageDecsKeys.includes('description2')) {
+                baggageInfor.push(baggageDecs.description2.toLowerCase())
+              }
+            }
+
+            obj.returnSegments.push({
+              id: data.id,
+              cabinClass: segmentInfor.cabinClass,
+              departure: data.departure.airport,
+              arrival: data.arrival.airport,
+              baggageInfor,
+              DepartureDateTime: `${departureDate}T${data.departure.time.substring(
+                0,
+                8
+              )}`,
+              strDepartureDate: departureDate,
+              strDepartureTime: data.departure.time.substring(0, 5),
+              ArrivalDateTime: `${arrivalDate}T${data.arrival.time.substring(
+                0,
+                8
+              )}`,
+              strArrivalDate: arrivalDate,
+              strArrivalTime: data.arrival.time.substring(0, 5),
+              flightNum: data.carrier.marketingFlightNumber,
+              flightTime,
+              seatsAvailable: segmentInfor.seatsAvailable,
+              cabinCode: segmentInfor.cabinCode,
+              airline: data.carrier.operating,
+              marketing: data.carrier.marketing,
+              marketingFlightNumber: data.carrier.marketingFlightNumber,
+              operating: data.carrier.operating,
+              operatingFlightNumber: data.carrier.operatingFlightNumber
+            })
+          })
+          obj.returnFlight = {
+            flightId: ''
+          }
+          obj.returnSegments.forEach(s => {
+            if (obj.returnFlight.flightId === '') {
+              obj.returnFlight.flightId += `${s.flightNum}-${s.airline}`
+            } else {
+              obj.returnFlight.flightId += `-${s.flightNum}-${s.airline}`
+            }
+          })
+        }
+        obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
+        obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
+        obj.currency = req.currency.code
+        obj.totalPrice = obj.rawTotalPrice * req.currency.rate
+        obj.price = obj.rawTotalPrice * req.currency.rate
+        obj.supplier = 'sabre'
+
+        flights.push(obj)
+      })
+    })
+  } catch (error) {
+    console.log(error)
+  }
+  return flights
+}
+
+const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
+  return hotels.map(hotel => {
+    let matchingHotel = _.get(roomHotelsData, 'hotels', []).find(
+      roomHotel => roomHotel.code === hotel.hotelId
+    )
+
+    if (matchingHotel) {
+      const ratePlans = makeHotelbedsRoomsRatePlans(matchingHotel, currency)
+      return {
+        ...hotel,
+        lowestPrice: matchingHotel.minRate * currency.rate,
+        ratePlans: ratePlans
+      }
+    }
+
+    return {
+      ...hotel,
+      lowestPrice: 0,
+      ratePlans: {
+        bedTypeList: [],
+        ratePlanList: []
+      }
+    }
+  })
+}
+
+const makeHotelbedsHotelsData = (
+  hotels,
+  roomHotelsData,
+  currency,
+  hotelFacilities,
+  hotelFacilityGroups
+) => {
+  let hotelsData = hotels.map(hotel => {
+    let images = _.get(hotel, 'images', [])
+    let featuredImage =
+      images.find(image => image.imageTypeCode === 'GEN') || images[0]
+    let featuredImageLink = featuredImage
+      ? 'http://photos.hotelbeds.com/giata/original/' + featuredImage.path
+      : ''
+    let thumbnailLink = featuredImage
+      ? 'http://photos.hotelbeds.com/giata/' + featuredImage.path
+      : ''
+    const imageLinks = images.map(image => {
+      let newImage = {
+        ...image,
+        url: 'http://photos.hotelbeds.com/giata/bigger/' + image.path
+      }
+      return newImage
+    })
+
+    let facilitites = []
+    if (hotelFacilities && hotelFacilityGroups) {
+      _.get(hotel, 'facilities', []).forEach(facility => {
+        let matchingFacility = hotelFacilities.find(
+          hotelFacility => hotelFacility.code === facility.facilityCode
+        )
+        let matchingGroup = hotelFacilityGroups.find(
+          group => group.code === facility.facilityGroupCode
+        )
+
+        let facilityName = matchingFacility.description.content
+        if (facility.number > 0) {
+          facilityName += ': ' + facility.number
+        }
+
+        if (matchingFacility.description.content !== '1') {
+          let facilityItem = {
+            ...facility,
+            groupName: matchingGroup.description.content,
+            name: facilityName
+          }
+          facilitites.push(facilityItem)
+        }
+      })
+    }
+
+    const transportations = _.get(hotel, 'interestPoints', []).map(point => {
+      let pointInfo = point.poiName + ' - '
+      pointInfo +=
+        point.distance >= 1000
+          ? point.distance / 1000 + ' km'
+          : point.distance + ' m'
+      return pointInfo
+    })
+
+    return {
+      hotelId: hotel.code,
+      name: hotel.name.content,
+      starRating: parseInt(hotel.categoryCode.charAt(0)),
+      country: hotel.countryCode,
+      cityName: hotel.city.content,
+      address: hotel.address.content,
+      phones: hotel.phones,
+      zip: hotel.postalCode,
+      longitude: hotel.coordinates.longitude,
+      latitude: hotel.coordinates.latitude,
+      summary: hotel.description.content,
+      description: hotel.description.content,
+      amenities: facilitites,
+      policies: [],
+      transportations,
+      featuredImage: featuredImageLink,
+      thumbnail: thumbnailLink,
+      images: imageLinks,
+      supplier: 'hotelbeds',
+      currency: currency.code
+    }
+  })
+
+  hotelsData = addRoomsToHotels(hotelsData, roomHotelsData, currency)
+  return hotelsData
+}
+
+const makeHotelbedsRoomsRatePlans = (hotel, currency) => {
+  const rooms = []
+  hotel.rooms.forEach(room => {
+    room.rates
+      .filter(rate => rate.paymentType === 'AT_WEB')
+      .forEach(rate => {
+        const price = rate.net
+        const cancelRules = _.get(rate, 'cancellationPolicies', []).map(
+          rule => {
+            return {
+              cancelCharge: rule.amount * currency.rate,
+              from: rule.from
+            }
+          }
+        )
+
+        rooms.push({
+          paymentType: rate.paymentType,
+          ratePlanCode: room.rateKey,
+          roomCode: room.code,
+          roomName: room.name,
+          currency: currency.code,
+          rawCurrency: hotel.currency,
+          rawNet: rate.net,
+          totalPrice: Number(price) * currency.rate,
+          rawTotalPrice: rate.net,
+          cancelRules: cancelRules,
+          ratePlanCode: rate.rateKey,
+          rateType: rate.rateType,
+          boardName: rate.boardName,
+          bedTypes: [],
+          rateClass: rate.rateClass
+        })
+      })
+  })
+
+  return {
+    bedTypeList: [],
+    ratePlanList: rooms
+  }
+}
+
+const makeHtbRoomPaxes = (passengers, children, numberOfRoom, rateKey) => {
+  let rooms = [
+    {
+      rateKey: rateKey,
+      paxes: []
+    }
+  ]
+
+  passengers.forEach((passenger, index) => {
+    let passengerInfo = {
+      roomId: (index % numberOfRoom) + 1,
+      type: 'AD',
+      name: passenger.firstName,
+      surName: passenger.lastName
+    }
+    rooms[0]['paxes'].push(passengerInfo)
+  })
+
+  children.forEach((child, index) => {
+    let childInfo = {
+      roomId: (index % numberOfRoom) + 1,
+      type: 'CH',
+      name: child.firstName,
+      surName: child.lastName
+    }
+    rooms[0]['paxes'].push(childInfo)
+  })
+
+  return rooms
+}
+
+const roundingAmountStripe = (amount, currency) => {
+  switch (currency) {
+    case USD:
+    case SGD:
+      amount = amount * 100
+      break
+    case VND:
+      amount = amount * 1
+      break
+  }
+  return Math.round(amount)
+}
 
 module.exports = {
+  getImageUri,
   makeSegmentsData,
+  makeSabreFlightsData,
   makeRoomGuestDetails,
+  makeHtbRoomPaxes,
   removeSpaces,
-  makeFlightsData
+  makeFlightsData,
+  makeHotelbedsHotelsData,
+  roundingAmountStripe
 }
