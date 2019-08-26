@@ -6,7 +6,9 @@ function register(user, token) {
       /^https?:\/\//,
       ''
     )}`,
-    text: `Congratulation!\n\nYour new account has been created successfully.\n\nPlease set your new password via this link: ${appUrl}/reset-password/${token}\n\nThe link will be expire next 1 hour.\n\nIf you have any questions, please contact our Travel Concierge for support.\n
+    text: `Congratulation!\n\nYour new account has been created successfully.\n\nPlease set your new password via this link: ${
+      process.env.APP_URI
+    }/reset-password/${token}\n\nThe link will be expire next 1 hour.\n\nIf you have any questions, please contact our Travel Concierge for support.\n
       `
   }
 }
