@@ -63,82 +63,86 @@ var UserSchema = new Schema({
   disabled: Boolean,
   callingCode: String,
   // preferences
-  homeAirport: String,
-  homeAirportName: String,
   notExceedBudget: false,
-  prefFlightSeat: String,
-  prefAirline: String,
-  prefFlightClass: String,
-  prefFlightDuration: Number,
-  prefDepartureTime: {
-    min: Number,
-    max: Number
-  },
-  prefArrivalTime: {
-    min: Number,
-    max: Number
-  },
-  // preferences for meal
-  prefFlightMeal: {
-    prefMealTurkish: false,
-    prefMealFrench: false,
-    prefMealItalian: false,
-    prefMealThailand: false,
-    prefMealKorean: false,
-    prefMealJapanese: false,
-    prefMealChinese: false,
-    prefMealIndian: false,
-    prefMealBaby: false,
-    prefMealLowFiber: false,
-    prefMealLowFat: false,
-    prefMealDiabetic: false,
-    prefMealPeanutFree: false,
-    prefMealNonLactose: false,
-    prefMealLowSalt: false,
-    prefMealLowPurine: false,
-    prefMealLowProtein: false,
-    prefMealKosher: false,
-    prefMealHalal: false,
-    prefMealHindu: false,
-    prefMealBuddhist: false,
-    prefMealJainVegeterian: false,
-    prefMealVegeterian: false
+  // preferences for flight
+  preferenceFlight: {
+    homeAirport: String,
+    homeAirportName: String,
+    prefFlightSeat: String,
+    prefAirline: String,
+    prefFlightClass: String,
+    prefFlightDuration: Number,
+    prefDepartureTime: {
+      min: Number,
+      max: Number
+    },
+    prefArrivalTime: {
+      min: Number,
+      max: Number
+    },
+    prefFlightMeal: {
+      prefMealTurkish: false,
+      prefMealFrench: false,
+      prefMealItalian: false,
+      prefMealThailand: false,
+      prefMealKorean: false,
+      prefMealJapanese: false,
+      prefMealChinese: false,
+      prefMealIndian: false,
+      prefMealBaby: false,
+      prefMealLowFiber: false,
+      prefMealLowFat: false,
+      prefMealDiabetic: false,
+      prefMealPeanutFree: false,
+      prefMealNonLactose: false,
+      prefMealLowSalt: false,
+      prefMealLowPurine: false,
+      prefMealLowProtein: false,
+      prefMealKosher: false,
+      prefMealHalal: false,
+      prefMealHindu: false,
+      prefMealBuddhist: false,
+      prefMealJainVegeterian: false,
+      prefMealVegeterian: false
+    },
+    flyerPrograms: [
+      {
+        name: String,
+        number: String,
+        active: false
+      }
+    ]
   },
   // preferences for hotel
-  prefHotelClass: Number,
-  prefHotelFacility: {
-    prefHotelBreakfast: false,
-    prefHotelWifi: false,
-    prefHotelShuttle: false,
-    prefHotelCancel: false,
-    prefHotelNoPrepayment: false,
-    prefHotelHotelType: false,
-    prefHotelApartment: false,
-    prefHotelDisabledGuest: false,
-    prefHotel24hFrontDesk: false,
-    prefHotelRestaurant: false,
-    prefHotelFaxPhoto: false,
-    prefHotelNonSmoking: false,
-    prefHotelFitness: false,
-    prefHotelSwimming: false,
-    prefHotelBathtub: false,
-    prefHotelParking: false,
-    prefHotelTwinBeds: false
-  },
-  flyerPrograms: [
-    {
-      name: String,
-      number: String,
-      active: false
-    }
-  ],
-  hotelPrograms: [
-    {
-      name: String,
-      number: String,
-      active: false
-    }
-  ]
+  preferenceHotel: {
+    prefHotelClass: Number,
+    prefHotelFacility: {
+      prefHotelBreakfast: false,
+      prefHotelWifi: false,
+      prefHotelShuttle: false,
+      prefHotelCancel: false,
+      prefHotelNoPrepayment: false,
+      prefHotelHotelType: false,
+      prefHotelApartment: false,
+      prefHotelDisabledGuest: false,
+      prefHotel24hFrontDesk: false,
+      prefHotelRestaurant: false,
+      prefHotelFaxPhoto: false,
+      prefHotelNonSmoking: false,
+      prefHotelFitness: false,
+      prefHotelSwimming: false,
+      prefHotelBathtub: false,
+      prefHotelParking: false,
+      prefHotelTwinBeds: false
+    },
+    hotelPrograms: [
+      {
+        name: String,
+        number: String,
+        active: false
+      }
+    ]
+  }
 })
 
 UserSchema.plugin(passportLocalMongoose)
