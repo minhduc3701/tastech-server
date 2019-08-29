@@ -7,8 +7,10 @@ const { authentication } = require('../config/pkfare')
 const _ = require('lodash')
 const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
 const apiHotelbeds = require('../modules/apiHotelbeds')
+const api = require('../modules/api')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const { currencyExchange } = require('../middleware/currency')
+const { logger } = require('../config/winston')
 
 router.get('/', function(req, res, next) {
   Order.find({
@@ -173,23 +175,21 @@ router.post('/cancel', async (req, res) => {
       case 'flight':
         switch (order[order.type].supplier) {
           case 'pkfare':
-            let data = {
-              authentication,
-              voidRequest: {
-                orderNum: order.number,
-                passengers: order.passengers.map(passenger => ({
-                  cardType: 'P',
-                  cardNum: passenger.passportNo,
-                  firstName: removeSpaces(passenger.firstName),
-                  lastName: removeSpaces(passenger.lastName)
-                }))
-              }
+            let voidRequest = {
+              orderNum: order.number,
+              passengers: order.passengers.map(passenger => ({
+                cardType: 'P',
+                cardNum: passenger.passportNo,
+                firstName: removeSpaces(passenger.firstName),
+                lastName: removeSpaces(passenger.lastName)
+              }))
             }
-            let base64 = Buffer.from(JSON.stringify(data)).toString('base64')
-            let cancelRes = await axios.get(
-              `${process.env.PKFARE_URI}/voiding?param=${base64}`
-              // `http://localhost:5050/voiding?param=${base64}`
-            )
+
+            logger.info('voidingRQ', voidRequest)
+
+            let cancelRes = await api.voiding(voidRequest)
+
+            logger.info('voidingRS', cancelRes.data)
 
             if (cancelRes.data.errorCode === '0') {
               let voidOrderNum = cancelRes.data.data.voidOrderNum
