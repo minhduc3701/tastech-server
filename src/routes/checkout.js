@@ -198,7 +198,7 @@ const pkfareFlightPreBooking = async (req, res, next) => {
   const trip = req.trip
   let bookingResponse
 
-  if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
+  if (_.get(trip, 'flight.supplier') !== 'pkfare') {
     next()
     return
   }
@@ -328,7 +328,7 @@ const stripeCharging = async (req, res, next) => {
 const pkfareFlightTicketing = async (req, res, next) => {
   const trip = req.trip
 
-  if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
+  if (_.get(trip, 'flight.supplier') !== 'pkfare') {
     next()
     return
   }
@@ -524,7 +524,7 @@ const sabreCreatePNR = async (req, res, next) => {
 const pkfareHotelCreateOrder = async (req, res, next) => {
   const trip = req.trip
 
-  if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'pkfare') {
+  if (_.get(trip, 'hotel.supplier') !== 'pkfare') {
     next()
     return
   }
