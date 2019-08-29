@@ -559,6 +559,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
         numberOfRoom: trip.hotel.numberOfRoom,
         hotelId: trip.hotel.hotelId,
         ratePlanCode: trip.hotel.ratePlanCode,
+        roomCode: trip.hotel.roomCode, // update 29/8/2019
         bedTypeCode: trip.hotel.selectedBedTypeId,
         roomGuestDetails: makeRoomGuestDetails(
           trip.passengers,
@@ -603,7 +604,14 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
       req.hotelOrder = hotelOrder
     }
   } catch (error) {
-    req.checkoutError = error
+    if (error.hotel) {
+      req.checkoutError = error
+    } else {
+      req.checkoutError = {
+        message: _.get(error, 'response.data.header.message'),
+        hotel: true
+      }
+    }
   }
   next()
 }
