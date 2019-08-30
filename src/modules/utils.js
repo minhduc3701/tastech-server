@@ -536,6 +536,7 @@ const makeHotelbedsHotelsData = (
       latitude: hotel.coordinates.latitude,
       summary: hotel.description.content,
       description: hotel.description.content,
+      accommodationTypeCode: hotel.accommodationTypeCode,
       amenities: facilitites,
       policies: [],
       transportations,
