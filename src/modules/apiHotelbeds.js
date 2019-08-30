@@ -14,7 +14,8 @@ const endpoints = {
   facilityGroups: `/hotel-content-api/${HOTELBEDS_CONTENT_VERSION}/types/facilitygroups`,
   hotels: `/hotel-api/${HOTELBEDS_CONTENT_VERSION}/hotels`,
   checkRate: `/hotel-api/${HOTELBEDS_CONTENT_VERSION}/checkrates`,
-  bookings: `/hotel-api/${HOTELBEDS_BOOKING_VERSION}/bookings` // required version 1.2 on production
+  bookings: `/hotel-api/${HOTELBEDS_BOOKING_VERSION}/bookings`, // required version 1.2 on production
+  bookingsCancel: `/hotel-api/${HOTELBEDS_CONTENT_VERSION}/bookings` // 1.0 for cancel
 }
 
 const api = {
@@ -46,7 +47,9 @@ const api = {
   },
   cancelHotelbedsOrder: bookingReference => {
     return hotelbedsHttp.delete(
-      `${endpoints.bookings}/${bookingReference}?cancellationFlag=CANCELLATION`,
+      `${
+        endpoints.bookingsCancel
+      }/${bookingReference}?cancellationFlag=CANCELLATION`,
       {
         headers: generateHeader()
       }

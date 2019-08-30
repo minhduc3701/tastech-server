@@ -6,9 +6,9 @@ function changeTripStatus(user, trip) {
         from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
         subject: `Your trip request has been approved`,
         text: `Congratulation,  ${user.firstName}! \n\n
-          Your trip request has been approved with the following budget limit: ${
+          Your trip request has been approved with the following budget limit: ${Math.round(
             trip.budgetPassengers[0].totalPrice
-          } ${trip.currency}
+          )} ${trip.currency}
           Please book your trip while the deal is still available.
           Book now
           Also, don't forget to download the Ezbiztrip app to access your trips information and claim expense at your fingertips, anytime you want.

@@ -198,7 +198,7 @@ const pkfareFlightPreBooking = async (req, res, next) => {
   const trip = req.trip
   let bookingResponse
 
-  if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
+  if (_.get(trip, 'flight.supplier') !== 'pkfare') {
     next()
     return
   }
@@ -242,7 +242,11 @@ const pkfareFlightPreBooking = async (req, res, next) => {
         }
       }
 
+      logger.info('preBookingRQ', data)
+
       bookingResponse = await api.preciseBooking(data)
+
+      logger.info('preBookingRS', bookingResponse.data)
 
       // save for using later in ticketing
       req.bookingResponse = bookingResponse
@@ -328,7 +332,7 @@ const stripeCharging = async (req, res, next) => {
 const pkfareFlightTicketing = async (req, res, next) => {
   const trip = req.trip
 
-  if (trip.flight && _.get(trip, 'flight.supplier') !== 'pkfare') {
+  if (_.get(trip, 'flight.supplier') !== 'pkfare') {
     next()
     return
   }
@@ -347,13 +351,30 @@ const pkfareFlightTicketing = async (req, res, next) => {
     if (trip.flight) {
       let { pnr, orderNum } = bookingResponse.data.data
 
-      let ticketingRes = await api.ticketing({
+      let orderPricingRequest = {
+        orderNum
+      }
+
+      logger.info('orderPricingRQ', orderPricingRequest)
+
+      let orderPricingRes = await api.orderPricing(orderPricingRequest)
+
+      logger.info('orderPricingRS', orderPricingRes.data)
+
+      let ticketingRequest = {
         email: trip.contactInfo.email,
         name: removeSpaces(trip.contactInfo.name),
         orderNum,
         PNR: pnr,
         telNum: `+${trip.contactInfo.callingCode} ${trip.contactInfo.phone}`
-      })
+      }
+
+      logger.info('ticketingRQ', ticketingRequest)
+
+      let ticketingRes = await api.ticketing(ticketingRequest)
+
+      logger.info('ticketingRS', ticketingRes.data)
+
       if (ticketingRes.data.errorCode !== '0') {
         throw { message: ticketingRes.data.errorMsg, flight: true }
       }
@@ -524,7 +545,7 @@ const sabreCreatePNR = async (req, res, next) => {
 const pkfareHotelCreateOrder = async (req, res, next) => {
   const trip = req.trip
 
-  if (trip.hotel && _.get(trip, 'hotel.supplier') !== 'pkfare') {
+  if (_.get(trip, 'hotel.supplier') !== 'pkfare') {
     next()
     return
   }
@@ -559,6 +580,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
         numberOfRoom: trip.hotel.numberOfRoom,
         hotelId: trip.hotel.hotelId,
         ratePlanCode: trip.hotel.ratePlanCode,
+        roomCode: trip.hotel.roomCode, // update 29/8/2019
         bedTypeCode: trip.hotel.selectedBedTypeId,
         roomGuestDetails: makeRoomGuestDetails(
           trip.passengers,
@@ -603,7 +625,14 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
       req.hotelOrder = hotelOrder
     }
   } catch (error) {
-    req.checkoutError = error
+    if (error.hotel) {
+      req.checkoutError = error
+    } else {
+      req.checkoutError = {
+        message: _.get(error, 'response.data.header.message'),
+        hotel: true
+      }
+    }
   }
   next()
 }

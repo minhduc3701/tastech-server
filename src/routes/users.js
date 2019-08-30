@@ -83,20 +83,9 @@ router.patch('/me', async (req, res) => {
     'passports',
     'allowSearch',
     'allowNotification',
-    'homeAirport',
-    'homeAirportName',
     'notExceedBudget',
-    'prefFlightSeat',
-    'prefAirline',
-    'prefFlightClass',
-    'prefFlightDuration',
-    'prefDepartureTime',
-    'prefArrivalTime',
-    'prefFlightMeal',
-    'prefHotelClass',
-    'prefHotelFacility',
-    'flyerPrograms',
-    'hotelPrograms'
+    'preferenceFlight',
+    'preferenceHotel'
   ])
 
   User.findByIdAndUpdate(
@@ -167,6 +156,13 @@ router.patch('/me/password', (req, res) => {
   if (password !== confirmationPassword) {
     return res.status(400).send({
       message: 'Password mismatch.'
+    })
+  }
+
+  if (oldPassword === password) {
+    return res.status(400).send({
+      message:
+        'Your new password is similar to current password. Please try another password.'
     })
   }
 
