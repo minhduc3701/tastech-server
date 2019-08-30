@@ -355,7 +355,7 @@ const pkfareFlightTicketing = async (req, res, next) => {
         orderNum
       }
 
-      logger.info('orderPricingRequest', orderPricingRequest)
+      logger.info('orderPricingRQ', orderPricingRequest)
 
       let orderPricingRes = await api.orderPricing(orderPricingRequest)
 
