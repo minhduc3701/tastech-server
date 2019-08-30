@@ -4,6 +4,18 @@ const { logger } = require('../config/winston')
 const validator = require('validator')
 const { USD, VND, SGD } = require('../config/currency')
 
+const hotelAccomodations = [
+  { code: 'APARTMENT', text: 'Apartment' },
+  { code: 'APTHOTEL', text: 'Aparthotel' },
+  { code: 'CAMPING', text: 'Camping' },
+  { code: 'HOMES', text: 'Villa' },
+  { code: 'HOSTEL', text: 'Hostel' },
+  { code: 'HOTEL', text: 'Hotel' },
+  { code: 'PENDING', text: 'Pending Category' },
+  { code: 'RESORT', text: 'Resort' },
+  { code: 'RURAL', text: 'Rural' }
+]
+
 const getImageUri = uriString => {
   if (uriString && !validator.isURL(_.toString(uriString))) {
     return process.env.AWS_S3_URI + '/' + uriString
@@ -523,6 +535,10 @@ const makeHotelbedsHotelsData = (
       return pointInfo
     })
 
+    let accommodationTypeName = hotelAccomodations.find(
+      acc => acc.code === hotel.accommodationTypeCode
+    ).text
+
     return {
       hotelId: hotel.code,
       name: hotel.name.content,
@@ -537,6 +553,7 @@ const makeHotelbedsHotelsData = (
       summary: hotel.description.content,
       description: hotel.description.content,
       accommodationTypeCode: hotel.accommodationTypeCode,
+      accommodationTypeName,
       amenities: facilitites,
       policies: [],
       transportations,
