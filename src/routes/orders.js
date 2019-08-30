@@ -207,7 +207,7 @@ router.post('/cancel', async (req, res) => {
   } catch (e) {
     logger.error(
       `cancel ${order.type} ${order[order.type].supplier}`,
-      e.response.data
+      _.get(e, 'response.data')
     )
   }
   res.status(400).send()
