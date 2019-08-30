@@ -93,8 +93,10 @@ router.post('/cancel', async (req, res) => {
     return res.status(404).send()
   }
 
+  let order
+
   try {
-    let order = await Order.findOne({
+    order = await Order.findOne({
       _id: id,
       _customer: req.user._id,
       status: { $eq: 'completed' },
@@ -202,7 +204,12 @@ router.post('/cancel', async (req, res) => {
         }
         break
     }
-  } catch (e) {}
+  } catch (e) {
+    logger.error(
+      `cancel ${order.type} ${order[order.type].supplier}`,
+      e.response.data
+    )
+  }
   res.status(400).send()
 })
 
