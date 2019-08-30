@@ -242,7 +242,11 @@ const pkfareFlightPreBooking = async (req, res, next) => {
         }
       }
 
+      logger.info('preBookingRQ', data)
+
       bookingResponse = await api.preciseBooking(data)
+
+      logger.info('preBookingRS', bookingResponse.data)
 
       // save for using later in ticketing
       req.bookingResponse = bookingResponse
@@ -347,13 +351,30 @@ const pkfareFlightTicketing = async (req, res, next) => {
     if (trip.flight) {
       let { pnr, orderNum } = bookingResponse.data.data
 
-      let ticketingRes = await api.ticketing({
+      let orderPricingRequest = {
+        orderNum
+      }
+
+      logger.info('orderPricingRQ', orderPricingRequest)
+
+      let orderPricingRes = await api.orderPricing(orderPricingRequest)
+
+      logger.info('orderPricingRS', orderPricingRes.data)
+
+      let ticketingRequest = {
         email: trip.contactInfo.email,
         name: removeSpaces(trip.contactInfo.name),
         orderNum,
         PNR: pnr,
         telNum: `+${trip.contactInfo.callingCode} ${trip.contactInfo.phone}`
-      })
+      }
+
+      logger.info('ticketingRQ', ticketingRequest)
+
+      let ticketingRes = await api.ticketing(ticketingRequest)
+
+      logger.info('ticketingRS', ticketingRes.data)
+
       if (ticketingRes.data.errorCode !== '0') {
         throw { message: ticketingRes.data.errorMsg, flight: true }
       }

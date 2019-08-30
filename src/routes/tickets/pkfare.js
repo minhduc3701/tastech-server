@@ -12,6 +12,7 @@ const { roundingAmountStripe } = require('../../modules/utils')
 const {
   emailEmployeeItineraryPkfareTickiting
 } = require('../../middleware/email')
+const JSONbig = require('json-bigint')({ storeAsString: true })
 
 // @see http://open.pkfare.com/documents/show?id=2352d3737b0442d6a402fea86ed8bda2uk
 // @see https://stackoverflow.com/a/30099608
@@ -25,7 +26,7 @@ router.post(
       if (_.isObject(req.body)) {
         body = req.body
       } else {
-        body = JSON.parse(req.body)
+        body = JSONbig.parse(req.body)
       }
     } catch (e) {
       return res.status(400).send({
@@ -79,7 +80,7 @@ router.post('/voidResult', bodyParser.text({ type: '*/*' }), (req, res) => {
     if (_.isObject(req.body)) {
       body = req.body
     } else {
-      body = JSON.parse(req.body)
+      body = JSONbig.parse(req.body)
     }
   } catch (e) {
     return res.status(400).send({
