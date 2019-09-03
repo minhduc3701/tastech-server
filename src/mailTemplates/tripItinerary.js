@@ -56,7 +56,7 @@ function tripItinerary(user, orders) {
       html += `<hr/>`
     })
   }
-  html += `Total price: ${Math.round(totalPrice)} ${currency}`
+  html += `Total price: ${Math.round(totalPrice).toLocaleString()} ${currency}`
   html += `</div>`
   return {
     to: user.email,
