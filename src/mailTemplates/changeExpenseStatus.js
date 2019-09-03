@@ -5,7 +5,7 @@ function changeExpenseStatus(user, expense) {
       return {
         to: user.email,
         from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
-        subject: `Your trip request has been approved`,
+        subject: `Your expense has been reimbursed`,
         html: `Congratulation,  ${user.firstName}! \n\n
           A reimbursement payment for your expense has been marked as Paid by your accountant. Detail:<br/>
           Trip: ${expense._trip.name}<br/>
@@ -18,7 +18,7 @@ function changeExpenseStatus(user, expense) {
       return {
         to: user.email,
         from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
-        subject: `Your trip request has been rejected`,
+        subject: `Your expense claim has been rejected`,
         html: `Dear ${user.firstName}! <br/>
           Your following expense claim was rejected:
           Date incurred: ${moment().format('lll')}<br/>
