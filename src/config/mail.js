@@ -38,7 +38,6 @@ const renderMail = (file, data) => {
       data,
       (err, html) => {
         if (err) {
-          console.log(err)
           reject(err)
         }
         resolve(html)
