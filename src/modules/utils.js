@@ -603,6 +603,7 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
           cancelRules: cancelRules,
           ratePlanCode: rate.rateKey,
           rateType: rate.rateType,
+          boardCode: rate.boardCode,
           boardName: rate.boardName,
           bedTypes: [],
           rateClass: rate.rateClass,
