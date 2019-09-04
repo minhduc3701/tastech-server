@@ -84,7 +84,7 @@ const emailAccountantClaimExpense = async (req, res) => {
 }
 
 const emailEmployeeSubmitTrip = async (req, res, next) => {
-  let mailOptions = submitTrip(req.user)
+  let mailOptions = await submitTrip(req.user)
   mail.sendMail(mailOptions, function(err, info) {
     if (err) {
       debugMail(err)
@@ -93,7 +93,7 @@ const emailEmployeeSubmitTrip = async (req, res, next) => {
   next()
 }
 
-const emailManagerSubmitTrip = async (req, res) => {
+const emailManagerSubmitTrip = (req, res) => {
   Role.findOne({
     _company: req.user._company,
     type: 'manager'
@@ -103,9 +103,9 @@ const emailManagerSubmitTrip = async (req, res) => {
         _role: role._id
       })
     })
-    .then(users => {
+    .then(async users => {
       if (!_.isEmpty(users)) {
-        let mailOptions = pendingTrip(users, req.trip, req.user)
+        let mailOptions = await pendingTrip(users, req.trip, req.user)
         mail.sendMail(mailOptions, function(err, info) {
           if (err) {
             debugMail(err)
@@ -114,10 +114,10 @@ const emailManagerSubmitTrip = async (req, res) => {
       }
     })
 }
-const emailEmployeeChangeTripStatus = async (req, res) => {
+const emailEmployeeChangeTripStatus = (req, res) => {
   if (req.trip) {
-    Users.findById(req.trip._creator).then(user => {
-      let mailOptions = changeTripStatus(user, req.trip)
+    Users.findById(req.trip._creator).then(async user => {
+      let mailOptions = await changeTripStatus(user, req.trip)
       mail.sendMail(mailOptions, function(err, info) {
         if (err) {
           debugMail(err)

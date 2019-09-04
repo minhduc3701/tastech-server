@@ -1,0 +1,13 @@
+extends ../layout.pug
+
+block content
+  p.
+    Dear, #{employeeName}!
+  p.
+    Your following expense claim was rejected:
+  p Date incurred:: #{dateIncurred}
+  p Trip: #{tripName}
+  p Type: #{type}
+  p Description: #{description}
+  p Amount: #{amount}
+  p Accountant comment: #{adminMessage}

@@ -1,4 +1,3 @@
-const pug = require('pug')
 const { renderMail } = require('../config/mail')
 
 async function forgotPassword(user, token) {
