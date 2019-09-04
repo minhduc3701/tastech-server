@@ -139,6 +139,7 @@ const OrderSchema = new Schema(
     },
     supplierInfo: {},
     chargeId: String,
+    chargeInfo: {},
     cancelCharge: Number,
     rawCancelCharge: Number
   },
@@ -151,7 +152,7 @@ OrderSchema.methods.toJSON = function() {
   var user = this
   var userObject = user.toObject()
 
-  userObject = _.omit(userObject, ['chargeId'])
+  userObject = _.omit(userObject, ['chargeId', 'chargeInfo'])
   return userObject
 }
 
