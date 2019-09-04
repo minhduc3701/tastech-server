@@ -24,6 +24,10 @@ var ExpenseSchema = new Schema(
       required: true
     },
     currency: String,
+    rawAmount: {
+      type: Number
+    },
+    rawCurrency: String,
     category: {
       type: String,
       required: true,
@@ -54,7 +58,7 @@ var ExpenseSchema = new Schema(
     account: {
       type: String,
       required: true,
-      enum: ['credit-card', 'cash']
+      enum: ['credit-card', 'cash', 'banking-transfer', 'other']
     },
     receipts: [
       {
