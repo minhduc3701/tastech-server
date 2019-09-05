@@ -13,7 +13,7 @@ async function pendingTrip(managers, trip, employee) {
   let html = await renderMail('trip-pendding', {
     title: '',
     employeeName: employee.firstName,
-    tripName: employee.firstName,
+    tripName: trip.name,
     startDate: moment(trip.startDate).format('ll'),
     endDate: moment(trip.endDate).format('ll'),
     isFlightSelected: flight.selected,
