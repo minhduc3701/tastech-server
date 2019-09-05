@@ -36,7 +36,7 @@ function checkoutFail(req) {
     from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
     subject: `${Math.round(
       amountFail
-    )} ${currency}  payment to EzBizTrip was unsuccessful`,
+    )} ${currency} payment to EzBizTrip was unsuccessful`,
     html
   }
 }
