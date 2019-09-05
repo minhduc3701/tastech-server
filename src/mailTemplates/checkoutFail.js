@@ -31,12 +31,16 @@ function checkoutFail(req) {
     } - checkout ${hotel.checkOutDate}`
   }
 
+  if (currency === 'VND') {
+    amountFail = Math.round(amountFail)
+  } else {
+    amountFail = (Math.round(amountFail * 100) / 100).toFixed(2)
+  }
+
   return {
     to: req.user.email,
     from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
-    subject: `${Math.round(
-      amountFail
-    )} ${currency} payment to EzBizTrip was unsuccessful`,
+    subject: `${amountFail} ${currency} payment to EzBizTrip was unsuccessful`,
     html
   }
 }

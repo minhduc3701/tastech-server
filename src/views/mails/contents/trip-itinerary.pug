@@ -2,70 +2,75 @@ extends ../layout.pug
 
 block content
   
-  h2 Flights
-  each order in flightOrders
-    h3 PNR #{order.pnr}
-    h3 Departure Flights
-    div
-      each segment in order.flight.departureSegments
-        ul
-          li Departure #{segment.departure}
-          li Departure time #{segment.departureTime}
-          li Arrival #{segment.arrival}
-          li Arrival time #{segment.arrivalTime}
+  if (flightOrders.length > 0)
+    h2 Flights
+    each order in flightOrders
+      if (order.pnr)
+        h3 PNR #{order.pnr}
+      h3 Departure Flights
+      div
+        each segment in order.flight.departureSegments
+          ul
+            li Departure #{segment.departure}
+            li Departure time #{segment.departureTime}
+            li Arrival #{segment.arrival}
+            li Arrival time #{segment.arrivalTime}
 
-    h3 Return Flights
-    div
-      each segment in order.flight.returnSegments
-        ul
-          li Departure #{segment.departure}
-          li Departure time #{segment.departureTime}
-          li Arrival #{segment.arrival}
-          li Arrival time #{segment.arrivalTime}
+      if (order.flight.returnSegments.length > 0)
+        h3 Return Flights
+        div
+          each segment in order.flight.returnSegments
+            ul
+              li Departure #{segment.departure}
+              li Departure time #{segment.departureTime}
+              li Arrival #{segment.arrival}
+              li Arrival time #{segment.arrivalTime}
 
-    h3 Passengers
-    ul
-      each passenger in order.passengers
-        li #{passenger.title} #{passenger.lastName} #{passenger.firstName} (#{passenger.businessEmail})
+      h3 Passengers
+      ul
+        each passenger in order.passengers
+          li #{passenger.title} #{passenger.lastName} #{passenger.firstName} (#{passenger.businessEmail})
 
-    h3 Contact
-    p Email #{order.contactInfo.email}
-    p Phone #{order.contactInfo.phone}
-    p name #{order.contactInfo.lastName} #{order.contactInfo.name}
+      h3 Contact
+      p Email #{order.contactInfo.email}
+      p Phone #{order.contactInfo.phone}
+      p name #{order.contactInfo.lastName} #{order.contactInfo.name}
 
-    h3 Total price: #{order.totalPrice} #{order.currency}
+      h3 Total price: #{order.totalPrice} #{order.currency}
 
-    h3 Payment #{order.payment.brand} #{order.payment.last4}
+      h3 Payment #{order.payment.brand} #{order.payment.last4}
 
-    hr
+      hr
 
-  h2 Hotels
-  each order in hotelOrders
-    ul
-      li Confirmation code: #{order.customerCode}
-      li Hotel: #{order.hotel.name}
-      li Address: #{order.hotel.address}
-      li City: #{order.hotel.cityName}, #{order.hotel.country}
-      li Room: #{order.hotel.roomName}
-      li Included: #{order.hotel.boardName}
-      li Phones: 
-        each phone in order.hotel.phones
-          <span>#{phone.phoneNumber}, <span>
-      li Check-in date: #{order.hotel.checkInDate}
-      li Check-out date: #{order.hotel.checkOutDate}
+  if (hotelOrders.length > 0)
+    h2 Hotels
+    each order in hotelOrders
+      ul
+        li Confirmation code: #{order.customerCode}
+        li Hotel: #{order.hotel.name}
+        li Address: #{order.hotel.address}
+        li City: #{order.hotel.cityName}, #{order.hotel.country}
+        li Room: #{order.hotel.roomName}
+        li Included: #{order.hotel.boardName}
+        if (order.hotel.phones)
+          li Phones: 
+            each phone in order.hotel.phones
+              <span>#{phone.phoneNumber}, <span>
+        li Check-in date: #{order.hotel.checkInDate}
+        li Check-out date: #{order.hotel.checkOutDate}
 
-    h3 Passengers
-    ul
-      each passenger in order.passengers
-        li #{passenger.title} #{passenger.lastName} #{passenger.firstName} (#{passenger.businessEmail})
+      h3 Passengers
+      ul
+        each passenger in order.passengers
+          li #{passenger.title} #{passenger.lastName} #{passenger.firstName} (#{passenger.businessEmail})
 
-    h3 Contact
-    p Email #{order.contactInfo.email}
-    p Phone #{order.contactInfo.phone}
-    p name #{order.contactInfo.lastName} #{order.contactInfo.name}
+      h3 Contact
+      p Email #{order.contactInfo.email}
+      p Phone #{order.contactInfo.phone}
+      p name #{order.contactInfo.lastName} #{order.contactInfo.name}
 
-    h3 Total price: #{order.totalPrice} #{order.currency}
+      h3 Total price: #{order.totalPrice} #{order.currency}
 
-    h3 Payment #{order.payment.brand} #{order.payment.last4}
+      h3 Payment #{order.payment.brand} #{order.payment.last4}
 
-    hr
+      hr
