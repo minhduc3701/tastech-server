@@ -456,7 +456,11 @@ const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
     )
 
     if (matchingHotel) {
-      const ratePlans = makeHotelbedsRoomsRatePlans(matchingHotel, currency)
+      const ratePlans = makeHotelbedsRoomsRatePlans(
+        matchingHotel,
+        currency,
+        hotel.images
+      )
       return {
         ...hotel,
         lowestPrice: matchingHotel.minRate * currency.rate,
@@ -569,7 +573,7 @@ const makeHotelbedsHotelsData = (
   return hotelsData
 }
 
-const makeHotelbedsRoomsRatePlans = (hotel, currency) => {
+const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
   const rooms = []
   hotel.rooms.forEach(room => {
     room.rates
@@ -584,6 +588,7 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency) => {
             }
           }
         )
+        const images = hotelImages.filter(image => image.roomCode === room.code)
 
         rooms.push({
           paymentType: rate.paymentType,
@@ -598,9 +603,11 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency) => {
           cancelRules: cancelRules,
           ratePlanCode: rate.rateKey,
           rateType: rate.rateType,
+          boardCode: rate.boardCode,
           boardName: rate.boardName,
           bedTypes: [],
-          rateClass: rate.rateClass
+          rateClass: rate.rateClass,
+          images: images
         })
       })
   })
