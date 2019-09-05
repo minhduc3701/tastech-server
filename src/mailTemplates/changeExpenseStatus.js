@@ -17,7 +17,9 @@ async function changeExpenseStatus(user, expense) {
     tripName: expense._trip.name,
     type: expense.category,
     description: expense.message,
-    amount: `${expense.amount} ${expense.currency}`,
+    amount: `${Math.round(expense.amount).toLocaleString()} ${
+      expense.currency
+    }`,
     adminMessage: expense.adminMessage
   })
 

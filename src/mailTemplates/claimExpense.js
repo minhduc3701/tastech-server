@@ -1,9 +1,9 @@
 const { renderMail } = require('../config/mail')
 
-function claimExpense(user) {
-  let html = renderMail('expense-claimed', {
+async function claimExpense(user) {
+  let html = await renderMail('expense-claimed', {
     title: '',
-    name: user.name
+    name: user.firstName
   })
   return {
     to: user.email,

@@ -21,10 +21,10 @@ const emailEmployeeChangeExpenseStatus = async (req, res) => {
     Promise.all([
       User.findById(req.expense._creator),
       Expense.findById(req.expense._id).populate('_trip')
-    ]).then(results => {
+    ]).then(async results => {
       let user = results[0]
       let expense = results[1]
-      let mailOptions = changeExpenseStatus(user, expense)
+      let mailOptions = await changeExpenseStatus(user, expense)
       mail.sendMail(mailOptions, function(err, info) {
         if (err) {
           debugMail(err)
@@ -38,7 +38,7 @@ const emailEmployeeChangeExpenseStatus = async (req, res) => {
 }
 
 const emailEmployeeClaimExpense = async (req, res, next) => {
-  let mailOptions = claimExpense(req.user)
+  let mailOptions = await claimExpense(req.user)
   mail.sendMail(mailOptions, function(err, info) {
     if (err) {
       debugMail(err)
@@ -68,9 +68,13 @@ const emailAccountantClaimExpense = async (req, res) => {
           _role: role._id
         })
       })
-      .then(accountants => {
+      .then(async accountants => {
         if (!_.isEmpty(accountants)) {
-          let mailOptions = pendingExpense(accountants, req.expenses, req.user)
+          let mailOptions = await pendingExpense(
+            accountants,
+            req.expenses,
+            req.user
+          )
           mail.sendMail(mailOptions, function(err, info) {
             if (err) {
               debugMail(err)
@@ -134,7 +138,7 @@ const emailEmployeeCheckoutFailed = async (req, res, next) => {
   if (!req.checkoutError) {
     return next()
   }
-  let mailOptions = checkoutFail(req)
+  let mailOptions = await checkoutFail(req)
   mail.sendMail(mailOptions, function(err, info) {
     if (err) {
       debugMail(err)
@@ -151,8 +155,8 @@ const emailEmployeeItinerary = async (req, res, next) => {
       status: {
         $in: ['completed', 'processing']
       }
-    }).then(orders => {
-      let mailOptions = tripItinerary(req.user, orders)
+    }).then(async orders => {
+      let mailOptions = await tripItinerary(req.user, orders)
       return mail.sendMail(mailOptions, function(err, info) {
         if (err) {
           debugMail(err)
@@ -173,10 +177,10 @@ const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
         }
       }),
       User.findById(order._customer)
-    ]).then(results => {
+    ]).then(async results => {
       let orders = results[0]
       let user = results[1]
-      let mailOptions = tripItinerary(user, orders)
+      let mailOptions = await tripItinerary(user, orders)
       return mail.sendMail(mailOptions, function(err, info) {
         if (err) {
           debugMail(err)
