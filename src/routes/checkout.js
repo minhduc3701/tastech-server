@@ -388,6 +388,7 @@ const pkfareFlightTicketing = async (req, res, next) => {
       flightOrder.number = flightUpdateData.number
       flightOrder.status = 'processing'
       flightOrder.chargeId = req.charge.id
+      flightOrder.chargeInfo = req.charge
       await flightOrder.save()
 
       req.flightOrder = flightOrder
@@ -620,6 +621,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
       hotelOrder.status = 'completed'
       hotelOrder.canCancel = true
       hotelOrder.chargeId = req.charge.id
+      hotelOrder.chargeInfo = req.charge
       await hotelOrder.save()
 
       req.hotelOrder = hotelOrder
@@ -723,6 +725,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
     hotelOrder.status = 'completed'
     hotelOrder.canCancel = true
     hotelOrder.chargeId = req.charge.id
+    hotelOrder.chargeInfo = req.charge
     await hotelOrder.save()
 
     req.hotelOrder = hotelOrder
