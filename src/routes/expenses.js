@@ -108,6 +108,7 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
     'vendor',
     'oldReceipts'
   ])
+
   body.receipts = []
   if (!_.isEmpty(body.oldReceipts)) {
     body.receipts = body.oldReceipts.split(',')
