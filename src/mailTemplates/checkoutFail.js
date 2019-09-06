@@ -1,41 +1,36 @@
 const _ = require('lodash')
-function checkoutFail(req) {
-  let html = `<style>div { color:red; }</style>
-  <div>We were unable to charge your payment for following trip payment: <br/>`
+const { renderMail } = require('../config/mail')
+const { formatLocaleMoney } = require('../modules/utils')
+
+async function checkoutFail(req) {
   let { trip, flightOrder, hotelOrder } = req
   let amountFail = 0
   let currency = ''
+  let hadFailedFlight =
+    trip.flight && flightOrder && flightOrder.status === 'failed'
+  let hadFailedHotel =
+    trip.hotel && hotelOrder && hotelOrder.status === 'failed'
 
-  if (trip.flight && flightOrder && flightOrder.status === 'failed') {
+  if (hadFailedFlight) {
     let flight = flightOrder.flight
     amountFail += flightOrder.totalPrice
     currency = flight.currency
-    html += `Flight: <br/>
-     (${flight.departureSegments[0].departure}) -  (${
-      flight.departureSegments[flight.departureSegments.length - 1].arrival
-    })
-     departure: ${flight.departureSegments[0].strDepartureDate}
-    `
-    if (!_.isEmpty(flight.returnSegments)) {
-      html += `return: ${flight.returnSegments[0].strDepartureDate}`
-    }
   }
 
-  if (trip.hotel && hotelOrder && hotelOrder.status === 'failed') {
+  if (hadFailedHotel) {
     let hotel = hotelOrder.hotel
     amountFail += hotelOrder.totalPrice
     currency = hotelOrder.hotel.currency
-    html += `<br/> Hotel: <br/> 
-    ${hotel.name} (${hotel.cityName}), checkin: ${
-      hotel.checkInDate
-    } - checkout ${hotel.checkOutDate}`
   }
 
-  if (currency === 'VND') {
-    amountFail = Math.round(amountFail)
-  } else {
-    amountFail = (Math.round(amountFail * 100) / 100).toFixed(2)
-  }
+  amountFail = formatLocaleMoney(amountFail, currency)
+
+  let html = await renderMail('checkout-fail', {
+    hadFailedFlight,
+    hadFailedHotel,
+    flight: _.get(flightOrder, 'flight'),
+    hotel: _.get(hotelOrder, 'hotel')
+  })
 
   return {
     to: req.user.email,

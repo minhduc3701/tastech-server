@@ -662,6 +662,19 @@ const roundingAmountStripe = (amount, currency) => {
   return Math.round(amount)
 }
 
+const formatLocaleMoney = (amount, currency) => {
+  let locale = 'en'
+
+  if (currency === 'VND') {
+    amount = Math.round(amount)
+    locale = 'vi'
+  } else {
+    amount = (Math.round(amount * 100) / 100).toFixed(2)
+  }
+
+  return amount.toLocaleString(locale)
+}
+
 module.exports = {
   getImageUri,
   makeSegmentsData,
@@ -671,5 +684,6 @@ module.exports = {
   removeSpaces,
   makeFlightsData,
   makeHotelbedsHotelsData,
-  roundingAmountStripe
+  roundingAmountStripe,
+  formatLocaleMoney
 }
