@@ -2,7 +2,7 @@ const _ = require('lodash')
 const moment = require('moment')
 const { logger } = require('../config/winston')
 const validator = require('validator')
-const { USD, VND, SGD } = require('../config/currency')
+const { USD, VND, SGD, IDR } = require('../config/currency')
 
 const hotelAccomodations = [
   { code: 'APARTMENT', text: 'Apartment' },
@@ -653,6 +653,7 @@ const roundingAmountStripe = (amount, currency) => {
   switch (currency) {
     case USD:
     case SGD:
+    case IDR:
       amount = amount * 100
       break
     case VND:
