@@ -22,7 +22,6 @@ if (process.env.NODE_ENV === 'production') {
     }
   })
 }
-mail.use('compile', inLineCss())
 
 // render mail template util function
 const MAIL_TEMPLATES_DIRECTORY = path.join(
