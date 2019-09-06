@@ -3,7 +3,7 @@ const router = express.Router()
 const Country = require('../models/country')
 const FlyerProgram = require('../models/flyerProgram')
 const { supportCurrenciesOptions } = require('../config/currency')
-const { currencyExchange } = require('../middleware/currency')
+const { currentCompany } = require('../middleware/company')
 const api = require('../modules/api')
 
 router.get('/supportCurrencies', (req, res) => {
@@ -12,10 +12,10 @@ router.get('/supportCurrencies', (req, res) => {
   })
 })
 
-router.get('/supportCurrenciesWithRate', currencyExchange, (req, res) => {
+router.get('/supportCurrenciesWithRate', currentCompany, (req, res) => {
   Promise.all(
     supportCurrenciesOptions.map(currency => {
-      return api.exchangeCurrency(currency.code, req.currency.code)
+      return api.exchangeCurrency(currency.code, req.company.currency)
     })
   ).then(results => {
     results.map(result => {

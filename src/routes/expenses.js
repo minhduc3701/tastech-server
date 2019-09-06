@@ -97,7 +97,6 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
     'amount',
     'rawAmount',
     'rawCurrency',
-    'currencyRate',
     'category',
     'claimed',
     'transactionDate',
@@ -144,7 +143,6 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
       res.status(200).send({ expense })
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })

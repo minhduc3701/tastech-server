@@ -24,8 +24,6 @@ var ExpenseSchema = new Schema(
       required: true
     },
     currency: String,
-    currencyRate: Number,
-    rawAmount: Number,
     rawCurrency: String,
     category: {
       type: String,
