@@ -3,6 +3,7 @@ const axios = require('axios')
 const _ = require('lodash')
 const Company = require('../models/company')
 const { debugServer } = require('../config/debug')
+const api = require('../modules/api')
 
 const currencyExchange = async (req, res, next) => {
   try {
@@ -16,15 +17,9 @@ const currencyExchange = async (req, res, next) => {
       throw new Error()
     }
 
-    const rateRes = await axios.get(
-      `${process.env.TRANSFERWISE_URI}/v1/rates?source=${
-        process.env.BASE_CURRENCY
-      }&target=${company.currency}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TRANSFERWISE_API_KEY}`
-        }
-      }
+    const rateRes = await api.exchangeCurrency(
+      process.env.BASE_CURRENCY,
+      company.currency
     )
 
     if (_.isArray(rateRes.data)) {
