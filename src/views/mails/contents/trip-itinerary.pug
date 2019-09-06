@@ -53,14 +53,15 @@ block content
       hr
 
   if (hotelOrders.length > 0)
-    h2 Hotels
     each order in hotelOrders
+      h2 #{order.hotel.name}
       ul
         li Confirmation code: #{order.customerCode}
         li Hotel: #{order.hotel.name}
         li Address: #{order.hotel.address}
         li City: #{order.hotel.cityName}, #{order.hotel.country}
         li Room: #{order.hotel.roomName}
+        li Number of rooms: #{order.hotel.numberOfRoom}
         li Included: #{order.hotel.boardName}
         if (order.hotel.phones)
           li Phones: 
@@ -72,7 +73,13 @@ block content
       h3 Passengers
       ul
         each passenger in order.passengers
-          li #{passenger.title} #{passenger.lastName} #{passenger.firstName} (#{passenger.businessEmail})
+          li #{passenger.title} #{passenger.firstName} #{passenger.lastName} (#{passenger.businessEmail})
+
+      if (order.childrenInfo.length > 0)
+        h3 Children Details
+        ul
+          each child in order.childrenInfo
+            li #{child.firstName} #{child.lastName}. Age: #{child.age}
 
       h3 Contact
       p Email #{order.contactInfo.email}
