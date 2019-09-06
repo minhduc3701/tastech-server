@@ -24,30 +24,19 @@ h6 {
   color: #222;
 }
 
-h2 {
+/*h2 {
   font-size: 22px;
 }
 h3 {
   font-size: 20px;
-}
+}*/
 
 p {
   margin: 10px 0;
 }
 
-.pl-40 {
-  padding-left: 40px;
-}
-.pl-80 {
-  padding-left: 80px;
-}
-.mt-20 {
-  margin-top: 20px;
-}
-
-.normal-link {
-  color: #f4b400;
-  word-break: break-all;
+li {
+  margin-bottom: 10px;
 }
 
 .wrapper {
@@ -66,4 +55,32 @@ p {
 .banner {
   text-align: center;
   margin-bottom: 40px;
+}
+
+.banner img {
+  border-radius: 5px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  color: #fff;
+  background-color: #197fc4;
+  border-radius: 5px;
+  transition: all 0.3s ease-in-out;
+  text-decoration: none;
+}
+
+.btn.yellow {
+  background-color: #f4b400;
+}
+
+.link {
+  color: #00a4bd;
+  word-break: break-all;
+  transition: all 0.3s ease-in-out;
 }

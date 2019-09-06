@@ -1,6 +1,16 @@
 extends ../layout.pug
 
 block content
+
+  div.banner
+    img(
+      alt=""
+      src="https://cdn2.hubspot.net/hub/6193707/hubfs/business-travel.jpg?width=550&name=business-travel.jpg")
+
+  h2 Hello, #{name}! Your trip booking is confirmed
+
+  p.text-center
+    a(class='btn yellow' href= tripLink) View trip detail
   
   if (flightOrders.length > 0)
     h2 Flights
@@ -74,3 +84,5 @@ block content
       h3 Payment #{order.payment.brand} #{order.payment.last4}
 
       hr
+    p.text-center
+    a(class='btn' href= tripLink) View hotel detail

@@ -35,7 +35,8 @@ async function pendingTrip(managers, trip, employee) {
     note: others.reason,
     budget: `${Math.round(
       trip.budgetPassengers[0].totalPrice
-    ).toLocaleString()} ${trip.currency}`
+    ).toLocaleString()} ${trip.currency}`,
+    reviewLink: `${process.env.APP_URI}`
   })
 
   return {

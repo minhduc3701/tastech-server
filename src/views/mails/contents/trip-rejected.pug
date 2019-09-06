@@ -1,13 +1,18 @@
 extends ../layout.pug
 
 block content
-  p.
-    Hello, #{name}!
-  p.
-    Unfortunately, your trip request has been rejected with the following reason: #{message}
-  p.
-    Please consider to edit your trip & submit again, or it will be auto closed in 03 days.
-          Still need help?
-          Please feel free to contact us if you have any questions, comments or suggestions.
-          - Happy travels,
-          - The EzBizTrip team
+  div.banner
+    img(
+      alt=""
+      src="https://cdn2.hubspot.net/hub/6193707/hubfs/business-travel.jpg?width=550&name=business-travel.jpg")
+
+  h2 Hello, #{name}!
+  p
+    |Unfortunately, your trip request has been rejected with the following reason: 
+    = " "
+    i #{message}
+  p
+    |Please consider to 
+    = " "
+    a(class='link' href= editTripLink) edit your trip & submit again
+    |, or it will be auto closed in 03 days.

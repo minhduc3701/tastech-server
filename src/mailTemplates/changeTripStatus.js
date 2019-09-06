@@ -6,13 +6,15 @@ async function changeTripStatus(user, trip) {
     name: `${user.firstName}`,
     budget: `${Math.round(trip.budgetPassengers[0].totalPrice)} ${
       trip.currency
-    }`
+    }`,
+    bookLink: `${process.env.APP_URI}`
   })
 
   let htmlTripRejected = await renderMail('trip-rejected', {
     title: '',
     name: `${user.firstName}`,
-    message: `${trip.adminMessage}`
+    message: `${trip.adminMessage}`,
+    editTripLink: `${process.env.APP_URI}`
   })
 
   switch (trip.status) {

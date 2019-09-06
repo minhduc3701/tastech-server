@@ -7,7 +7,8 @@ async function changeExpenseStatus(user, expense) {
     employeeName: user.firstName,
     tripName: expense._trip.name,
     paymentDate: moment(expense.transactionDate).format('ll'),
-    paymentAmount: `${expense.amount} ${expense.currency}`
+    paymentAmount: `${expense.amount} ${expense.currency}`,
+    expenseLink: `${process.env.APP_URI}`
   })
 
   let htmlExpenseRejected = await renderMail('expense-rejected', {
@@ -20,7 +21,8 @@ async function changeExpenseStatus(user, expense) {
     amount: `${Math.round(expense.amount).toLocaleString()} ${
       expense.currency
     }`,
-    adminMessage: expense.adminMessage
+    adminMessage: expense.adminMessage,
+    expenseLink: `${process.env.APP_URI}`
   })
 
   switch (expense.status) {

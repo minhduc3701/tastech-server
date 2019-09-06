@@ -9,46 +9,37 @@ block content
   h2 Hello!
   p.
     #{employeeName} is seeking for your approval on below trip request:
-  div
-    h3 #{tripName}
-    p Start date: #{startDate}
-    p End date: #{endDate}
-    p Service request:
+  
+  h3 #{tripName}
+  p Start date: #{startDate}
+  p End date: #{endDate}
+  p Service request:
 
-    div.pl-40
-      if (isFlightSelected)
-        p.
-          - Flight: #{flight}, departure: #{departDate}
+  ul
+    if (isFlightSelected)
+      li.
+        Flight: #{flight}, departure: #{departDate}
 
-          if (isRoundTrip)
-            |, return: #{returnDate}
+        if (isRoundTrip)
+          |, return: #{returnDate}
 
-      if (isLogingSelected)
-        p.
-          - Lodging: #{regionName},
-          checkin: #{checkInDate}, 
-          checkout: #(checkOutDate)
+    if (isLogingSelected)
+      li.
+        Lodging: #{regionName},
+        checkin: #{checkInDate}, 
+        checkout: #(checkOutDate)
 
-      if (isTransportationSelected)
-        p.
-          - Transportation: #{daysOfTrip} day(s)
+    if (isTransportationSelected)
+      li Transportation: #{daysOfTrip} day(s)
 
-      if (isMealSelected)
-        p.
-          - Daily meal: #{daysOfTrip} day(s)
+    if (isMealSelected)
+      li Daily meal: #{daysOfTrip} day(s)
 
-      if (isOthersSelected)
-        p.
-          - Other: #{other}
-        p.
-          - Note: #{note}
+    if (isOthersSelected)
+      li Other: #{other}
+      li Note: #{note}
 
   h4 Estimated budget: #{budget}
-  h2 Still need help?
-  p
-    | Please feel free to
-    a(href="" class="normal-link") contact us
-    | if you have any questions, comments or suggestions.
-  p.mt-20.
-    - Happy travels
-  p - The EzBizTrip team`
+  br
+  p.text-center
+    a(class='btn' href= reviewLink) Review and give your comment

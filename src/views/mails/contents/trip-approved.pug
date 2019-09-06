@@ -1,14 +1,15 @@
 extends ../layout.pug
 
 block content
-  p.
-    Congratulation, #{employeeName}!
+  div.banner
+    img(
+      alt=""
+      src="https://cdn2.hubspot.net/hub/6193707/hubfs/business-travel.jpg?width=550&name=business-travel.jpg")
+
+  h2 Congratulation, #{name}!
   p.
     Your trip request has been approved with the following budget limit: #{budget}.
     Please book your trip while the deal is still available.
-          Book now
-          Also, don't forget to download the Ezbiztrip app to access your trips information and claim expense at your fingertips, anytime you want.
-          Still need help?
-          Please feel free to contact us if you have any questions, comments or suggestions.
-          - Happy travels,
-          - The EzBizTrip team
+
+  p.text-center
+    a(class='btn' href= bookLink) Book now

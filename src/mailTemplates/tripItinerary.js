@@ -6,7 +6,8 @@ async function tripItinerary(user, orders) {
   orders = orders.map(order => order.toObject())
 
   let html = await renderMail('trip-itinerary', {
-    title: `Hello, ${user.firstName}! Your trip booking is confirmed`,
+    title: '',
+    name: user.name,
     flightOrders: orders
       .filter(order => order.type === 'flight')
       .map(order => {
@@ -51,7 +52,8 @@ async function tripItinerary(user, orders) {
           brand: _.get(order, 'chargeInfo.payment_method_details.card.brand'),
           last4: _.get(order, 'chargeInfo.payment_method_details.card.last4')
         }
-      }))
+      })),
+    tripLink: `${process.env.APP_URI}`
   })
 
   return {

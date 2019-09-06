@@ -1,15 +1,25 @@
 extends ../layout.pug
 
 block content
+  div.banner
+    img(
+      alt=""
+      src="https://cdn2.hubspot.net/hub/6193707/hubfs/business-travel.jpg?width=550&name=business-travel.jpg")
+  h2 Hello!
   p.
-    Hello!
-  p.
-    #{employeeName} (#{employeeEmail}) has sent an expense claim for reimbursement as below: #{tripName}
+    #{employeeName} (#{employeeEmail}) has sent an expense claim for reimbursement as below: 
+  h3 #{tripName}
   
   each e in expenses
     div
+      hr
       p Name of expense:  #{e.name}
       p Expense category: #{e.category}
       p Transaction date: #{e.transactionDate}
       p Amount: #{e.amount} #{e.currency}
       p Description: #{e.message}
+  hr
+  br
+
+  p.text-center
+    a(class='btn' href= reviewkLink) Review and process
