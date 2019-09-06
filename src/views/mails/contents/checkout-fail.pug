@@ -3,14 +3,14 @@ extends ../layout.pug
 block content
   div We were unable to charge your payment for following trip payment:
 
-  if (hadFailedFlight)
+  if (chargedFailedFlight)
     h2 Flight Details
     p #{flight.departureSegments[0].departure} - #{flight.departureSegments[flight.departureSegments.length - 1].arrival}
     p Departure #{flight.departureSegments[0].strDepartureDate}
     if (flight.returnSegments.length > 0)
       p Return #{flight.returnSegments[flight.returnSegments.length - 1].strArrivalDate}
 
-  if (hadFailedHotel)
+  if (chargedFailedHotel)
     h2 Hotel Details
     p #{hotel.name}
     p Check-in: #{hotel.checkInDate}

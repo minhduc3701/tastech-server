@@ -138,6 +138,23 @@ const emailEmployeeCheckoutFailed = async (req, res, next) => {
   if (!req.checkoutError) {
     return next()
   }
+
+  let { trip, flightOrder, hotelOrder } = req
+  let chargedFailedFlight =
+    trip.flight &&
+    flightOrder &&
+    flightOrder.status === 'failed' &&
+    flightOrder.chargeId
+  let chargedFailedHotel =
+    trip.hotel &&
+    hotelOrder &&
+    hotelOrder.status === 'failed' &&
+    hotelOrder.chargeId
+
+  if (!chargedFailedFlight && !chargedFailedHotel) {
+    return next()
+  }
+
   let mailOptions = await checkoutFail(req)
   mail.sendMail(mailOptions, function(err, info) {
     if (err) {

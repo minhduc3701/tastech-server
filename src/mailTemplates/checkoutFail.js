@@ -6,18 +6,24 @@ async function checkoutFail(req) {
   let { trip, flightOrder, hotelOrder } = req
   let amountFail = 0
   let currency = ''
-  let hadFailedFlight =
-    trip.flight && flightOrder && flightOrder.status === 'failed'
-  let hadFailedHotel =
-    trip.hotel && hotelOrder && hotelOrder.status === 'failed'
+  let chargedFailedFlight =
+    trip.flight &&
+    flightOrder &&
+    flightOrder.status === 'failed' &&
+    flightOrder.chargeId
+  let chargedFailedHotel =
+    trip.hotel &&
+    hotelOrder &&
+    hotelOrder.status === 'failed' &&
+    hotelOrder.chargeId
 
-  if (hadFailedFlight) {
+  if (chargedFailedFlight) {
     let flight = flightOrder.flight
     amountFail += flightOrder.totalPrice
     currency = flight.currency
   }
 
-  if (hadFailedHotel) {
+  if (chargedFailedHotel) {
     let hotel = hotelOrder.hotel
     amountFail += hotelOrder.totalPrice
     currency = hotelOrder.hotel.currency
@@ -26,8 +32,8 @@ async function checkoutFail(req) {
   amountFail = formatLocaleMoney(amountFail, currency)
 
   let html = await renderMail('checkout-fail', {
-    hadFailedFlight,
-    hadFailedHotel,
+    chargedFailedFlight,
+    chargedFailedHotel,
     flight: _.get(flightOrder, 'flight'),
     hotel: _.get(hotelOrder, 'hotel')
   })
