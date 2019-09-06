@@ -1,63 +1,64 @@
 const _ = require('lodash')
+const { renderMail } = require('../config/mail')
+const moment = require('moment')
+const { formatLocaleMoney } = require('../modules/utils')
 
-function tripItinerary(user, orders) {
-  let flightOrders = orders.filter(order => order.type === 'flight')
-  let hotelOrders = orders.filter(order => order.type === 'hotel')
-  let totalPrice = 0
-  let currency = ''
-  let html = `<style>div { color:red; }</style> 
-  <div>Hello,  ${user.firstName}! Your trip booking is confirmed`
+async function tripItinerary(user, orders) {
+  orders = orders.map(order => order.toObject())
 
-  if (!_.isEmpty(flightOrders)) {
-    html += `<br/> Flight Itinerary <br/>`
-    html += `<hr/>`
-    flightOrders.map(flightOrder => {
-      totalPrice += flightOrder.totalPrice
-      let flight = flightOrder.flight
-      flight.departureSegments.map(segment => {
-        html += `Departure date: ${segment.strDepartureDate} <br/>
-        departure: ${segment.departure} - time: ${
-          segment.strDepartureTime
-        } <br/>
-        Arrival date: ${segment.strArrivalDate} <br/>
-        Arrival: ${segment.arrival} - time: ${segment.strArrivalTime} <br/>
-        Class: ${segment.cabinClass} <hr/>
-        `
-      })
-      if (!_.isEmpty(flight.returnSegments)) {
-        flight.returnSegments.map(segment => {
-          html += `Departure date: ${segment.strDepartureDate} <br/>
-          departure: ${segment.departure} - time: ${
-            segment.strDepartureTime
-          } <br/>
-          Arrival date: ${segment.strArrivalDate} <br/>
-          Arrival: ${segment.arrival} - time: ${segment.strArrivalTime} <br/>
-          Class: ${segment.cabinClass} <hr/>
-          `
-        })
-      }
-      html += `<hr/>`
-    })
-  }
+  let html = await renderMail('trip-itinerary', {
+    title: '',
+    name: user.firstName,
+    flightOrders: orders
+      .filter(order => order.type === 'flight')
+      .map(order => {
+        return {
+          ...order,
+          totalPrice: formatLocaleMoney(order.totalPrice, order.currency),
+          flight: {
+            departureSegments: _.get(order, 'flight.departureSegments', []).map(
+              segment => ({
+                ...segment,
+                departureTime: moment(segment.departureDate).format(
+                  'HH:mm - ll'
+                ),
+                arrivalTime: moment(segment.arrivalDate).format('HH:mm - ll')
+              })
+            ),
+            returnSegments: _.get(order, 'flight.returnSegments', []).map(
+              segment => ({
+                ...segment,
+                departureTime: moment(segment.departureDate).format(
+                  'HH:mm - ll'
+                ),
+                arrivalTime: moment(segment.arrivalDate).format('HH:mm - ll')
+              })
+            )
+          },
+          payment: {
+            brand: _.get(order, 'chargeInfo.payment_method_details.card.brand'),
+            last4: _.get(order, 'chargeInfo.payment_method_details.card.last4')
+          }
+        }
+      }),
+    hotelOrders: orders
+      .filter(order => order.type === 'hotel')
+      .map(order => ({
+        ...order,
+        hotel: {
+          ...order.hotel,
+          checkInDate: moment(order.hotel.checkInDate).format('ll'),
+          checkOutDate: moment(order.hotel.checkOutDate).format('ll')
+        },
+        payment: {
+          brand: _.get(order, 'chargeInfo.payment_method_details.card.brand'),
+          last4: _.get(order, 'chargeInfo.payment_method_details.card.last4')
+        }
+      })),
+    tripLink: `${process.env.APP_URI}`,
+    hotelLink: `${process.env.APP_URI}`
+  })
 
-  if (!_.isEmpty(hotelOrders)) {
-    currency = hotelOrders[0].currency
-    html += `<br/> Lodging <br/>`
-    hotelOrders.map(hotelOrder => {
-      totalPrice += hotelOrder.totalPrice
-      let hotel = hotelOrder.hotel
-      html += `${hotel.name} <br/> ${hotel.address} <br/> 
-      ${hotel.checkInDate} <br/> ${hotel.checkOutDate} <br/>
-      ${hotel.roomName} <br/> `
-      html += `Guest <br/>`
-      hotelOrder.passengers.map((passenger, index) => {
-        html += `${index + 1}. ${passenger.firstName} ${passenger.lastName}`
-      })
-      html += `<hr/>`
-    })
-  }
-  html += `Total price: ${Math.round(totalPrice).toLocaleString()} ${currency}`
-  html += `</div>`
   return {
     to: user.email,
     from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,

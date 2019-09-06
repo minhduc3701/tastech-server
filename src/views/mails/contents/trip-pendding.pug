@@ -1,0 +1,45 @@
+extends ../layout.pug
+
+block content
+  div.banner
+    img(
+      alt=""
+      src="https://cdn2.hubspot.net/hub/6193707/hubfs/business-travel.jpg?width=550&name=business-travel.jpg")
+
+  h2 Hello!
+  p.
+    #{employeeName} is seeking for your approval on below trip request:
+  
+  h3 #{tripName}
+  p Start date: #{startDate}
+  p End date: #{endDate}
+  p Service request:
+
+  ul
+    if (isFlightSelected)
+      li.
+        Flight: #{flight}, departure: #{departDate}
+
+        if (isRoundTrip)
+          |, return: #{returnDate}
+
+    if (isLogingSelected)
+      li.
+        Lodging: #{regionName},
+        checkin: #{checkInDate}, 
+        checkout: #(checkOutDate)
+
+    if (isTransportationSelected)
+      li Transportation: #{daysOfTrip} day(s)
+
+    if (isMealSelected)
+      li Daily meal: #{daysOfTrip} day(s)
+
+    if (isOthersSelected)
+      li Other: #{other}
+      li Note: #{note}
+
+  h4 Estimated budget: #{budget}
+  br
+  p.text-center
+    a(class='btn' href= reviewLink) Review and give your comment
