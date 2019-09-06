@@ -35,7 +35,8 @@ async function checkoutFail(req) {
     chargedFailedFlight,
     chargedFailedHotel,
     flight: _.get(flightOrder, 'flight'),
-    hotel: _.get(hotelOrder, 'hotel')
+    hotel: _.get(hotelOrder, 'hotel'),
+    title: `${amountFail} ${currency} payment to EzBizTrip was unsuccessful`
   })
 
   return {

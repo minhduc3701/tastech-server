@@ -1,13 +1,20 @@
 extends ../layout.pug
 
 block content
-  p.
-    Dear, #{employeeName}!
-  p.
-    Your following expense claim was rejected:
-  p Date incurred:: #{dateIncurred}
+  div.banner
+    img(
+      alt=""
+      src="https://cdn2.hubspot.net/hub/6193707/hubfs/business-travel.jpg?width=550&name=business-travel.jpg")
+
+  h2 Dear, #{employeeName}!
+  p Your following expense claim was rejected:
+  br
+  p Date incurred: #{dateIncurred}
   p Trip: #{tripName}
   p Type: #{type}
   p Description: #{description}
   p Amount: #{amount}
   p Accountant comment: #{adminMessage}
+
+  p.text-center
+    a(class='btn' href= expenseLink) Submit again or Close this expense

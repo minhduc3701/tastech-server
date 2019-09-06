@@ -1,83 +1,156 @@
 extends ../layout.pug
 
 block content
-  
+
+  div.banner
+    img(
+      alt=""
+      src="https://cdn2.hubspot.net/hub/6193707/hubfs/business-travel.jpg?width=550&name=business-travel.jpg")
+
+  h2.text-center
+    |Hello, #{name}!
+    = ' '
+    span.inline-block Your trip booking is confirmed
+
+  p.text-center
+    a(class='btn yellow' href= tripLink) View trip detail
+  br
+
   if (flightOrders.length > 0)
-    h2 Flights
-    each order in flightOrders
-      if (order.pnr)
-        h3 PNR #{order.pnr}
-      h3 Departure Flights
-      div
-        each segment in order.flight.departureSegments
-          ul
-            li Departure #{segment.departure}
-            li Departure time #{segment.departureTime}
-            li Arrival #{segment.arrival}
-            li Arrival time #{segment.arrivalTime}
+    header
+      h2 Flight Itinerary
 
-      if (order.flight.returnSegments.length > 0)
-        h3 Return Flights
-        div
-          each segment in order.flight.returnSegments
-            ul
-              li Departure #{segment.departure}
-              li Departure time #{segment.departureTime}
-              li Arrival #{segment.arrival}
-              li Arrival time #{segment.arrivalTime}
+    div
+      each order in flightOrders
+        if (order.pnr)
+          h3 
+            |PNR 
+            = ' '
+            span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '3px'})
+              |#{order.pnr}
+        h4 Departure Flights
+        table(style={width: '100%'})
+          each segment in order.flight.departureSegments
+            tr
+              td
+                |#{segment.departure}
+                br
+                |#{segment.departureTime}
+              td
+                <span style='font-size:25px;'>&#8594;</span>
+              td
+                |#{segment.arrival}
+                br
+                |#{segment.arrivalTime}
 
-      h3 Passengers
-      ul
-        each passenger in order.passengers
-          li #{passenger.title} #{passenger.lastName} #{passenger.firstName} (#{passenger.businessEmail})
+        if (order.flight.returnSegments.length > 0)
+          h4 Return Flights
+          table(style={width: '100%'})
+            each segment in order.flight.returnSegments
+              tr
+                td
+                  |#{segment.departure}
+                  br
+                  |#{segment.departureTime}
+                td
+                  <span style='font-size:25px;'>&#8594;</span>
+                td
+                  |#{segment.arrival}
+                  br
+                  |#{segment.arrivalTime}
 
-      h3 Contact
-      p Email #{order.contactInfo.email}
-      p Phone #{order.contactInfo.phone}
-      p name #{order.contactInfo.lastName} #{order.contactInfo.name}
+        h4 Passengers
+        ul
+          each passenger in order.passengers
+            li
+              span.text-capitalize
+                #{passenger.title}.
+              = ' ' 
+              |#{passenger.lastName} #{passenger.firstName} (#{passenger.businessEmail})
 
-      h3 Total price: #{order.totalPrice} #{order.currency}
+        h4 Contact
+        table
+          tr
+            td Email:
+            td #{order.contactInfo.email}
+          tr
+            td Phone:
+            td #{order.contactInfo.phone}
+          tr
+            td Name:
+            td #{order.contactInfo.lastName} #{order.contactInfo.name}
 
-      h3 Payment #{order.payment.brand} #{order.payment.last4}
+        h4
+          |Total price:
+          = ' '
+          span(style={color:'#f4b400'}) #{order.totalPrice} #{order.currency}
 
-      hr
+        h4
+          |Payment: 
+          if (order.payment.brand)
+            | #{order.payment.brand} **** **** **** #{order.payment.last4}
+        hr
+  br
 
   if (hotelOrders.length > 0)
-    each order in hotelOrders
-      h2 #{order.hotel.name}
-      ul
-        li Confirmation code: #{order.customerCode}
-        li Hotel: #{order.hotel.name}
-        li Address: #{order.hotel.address}
-        li City: #{order.hotel.cityName}, #{order.hotel.country}
-        li Room: #{order.hotel.roomName}
-        li Number of rooms: #{order.hotel.numberOfRoom}
-        li Included: #{order.hotel.boardName}
-        if (order.hotel.phones)
-          li Phones: 
-            each phone in order.hotel.phones
-              <span>#{phone.phoneNumber}, <span>
-        li Check-in date: #{order.hotel.checkInDate}
-        li Check-out date: #{order.hotel.checkOutDate}
+    header
+      h2 Lodging
 
-      h3 Passengers
-      ul
-        each passenger in order.passengers
-          li #{passenger.title} #{passenger.firstName} #{passenger.lastName} (#{passenger.businessEmail})
-
-      if (order.childrenInfo.length > 0)
-        h3 Children Details
+    div
+      each order in hotelOrders
+        h3 #{order.hotel.name}
         ul
-          each child in order.childrenInfo
-            li #{child.firstName} #{child.lastName}. Age: #{child.age}
+          li Confirmation code: #{order.customerCode}
+          li Hotel: #{order.hotel.name}
+          li Address: #{order.hotel.address}
+          li City: #{order.hotel.cityName}, #{order.hotel.country}
+          li Room: #{order.hotel.roomName}
+          li Number of rooms: #{order.hotel.numberOfRoom}
+          li Included: #{order.hotel.boardName}
+          if (order.hotel.phones)
+            li Phones: 
+              each phone in order.hotel.phones
+                <span>#{phone.phoneNumber}, <span>
+          li Check-in date: #{order.hotel.checkInDate}
+          li Check-out date: #{order.hotel.checkOutDate}
 
-      h3 Contact
-      p Email #{order.contactInfo.email}
-      p Phone #{order.contactInfo.phone}
-      p name #{order.contactInfo.lastName} #{order.contactInfo.name}
+        h4 Passengers
+        ul
+          each passenger in order.passengers
+            li
+              span.text-capitalize
+                #{passenger.title}.
+              = ' ' 
+              | #{passenger.firstName} #{passenger.lastName} (#{passenger.businessEmail})
 
-      h3 Total price: #{order.totalPrice} #{order.currency}
+        if (order.childrenInfo.length > 0)
+          h3 Children Details
+          ul
+            each child in order.childrenInfo
+              li #{child.firstName} #{child.lastName}. Age: #{child.age}
 
-      h3 Payment #{order.payment.brand} #{order.payment.last4}
+        h4 Contact
+        table
+          tr
+            td Email:
+            td #{order.contactInfo.email}
+          tr
+            td Phone:
+            td #{order.contactInfo.phone}
+          tr
+            td Name:
+            td #{order.contactInfo.lastName} #{order.contactInfo.name}
 
-      hr
+        h4
+          |Total price:
+          = ' '
+          span(style={color:'#f4b400'}) #{order.totalPrice} #{order.currency}
+
+        h4 
+          |Payment: 
+          if (order.payment.brand)
+            |#{order.payment.brand} **** **** **** #{order.payment.last4}
+        hr
+
+    p.text-center
+      a(class='btn' href= hotelLink) View hotel details

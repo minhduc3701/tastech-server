@@ -1,17 +1,20 @@
 const _ = require('lodash')
 const { renderMail } = require('../config/mail')
 const moment = require('moment')
+const { formatLocaleMoney } = require('../modules/utils')
 
 async function tripItinerary(user, orders) {
   orders = orders.map(order => order.toObject())
 
   let html = await renderMail('trip-itinerary', {
-    title: `Hello, ${user.firstName}! Your trip booking is confirmed`,
+    title: '',
+    name: user.firstName,
     flightOrders: orders
       .filter(order => order.type === 'flight')
       .map(order => {
         return {
           ...order,
+          totalPrice: formatLocaleMoney(order.totalPrice, order.currency),
           flight: {
             departureSegments: _.get(order, 'flight.departureSegments', []).map(
               segment => ({
@@ -51,7 +54,9 @@ async function tripItinerary(user, orders) {
           brand: _.get(order, 'chargeInfo.payment_method_details.card.brand'),
           last4: _.get(order, 'chargeInfo.payment_method_details.card.last4')
         }
-      }))
+      })),
+    tripLink: `${process.env.APP_URI}`,
+    hotelLink: `${process.env.APP_URI}`
   })
 
   return {

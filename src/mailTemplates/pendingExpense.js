@@ -14,7 +14,8 @@ async function pendingExpense(accountants, expenses, employee) {
       amount: Math.round(e.amount).toLocaleString(),
       currency: e.currency,
       message: e.message
-    }))
+    })),
+    reviewLink: `${process.env.APP_URI}`
   })
 
   return {
