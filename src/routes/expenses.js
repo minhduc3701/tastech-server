@@ -95,6 +95,8 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
     '_attendees',
     'name',
     'amount',
+    'rawAmount',
+    'rawCurrency',
     'category',
     'claimed',
     'transactionDate',
@@ -106,6 +108,7 @@ router.patch('/:id', upload.array('receipts'), function(req, res, next) {
     'vendor',
     'oldReceipts'
   ])
+
   body.receipts = []
   if (!_.isEmpty(body.oldReceipts)) {
     body.receipts = body.oldReceipts.split(',')

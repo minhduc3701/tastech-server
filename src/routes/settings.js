@@ -3,10 +3,32 @@ const router = express.Router()
 const Country = require('../models/country')
 const FlyerProgram = require('../models/flyerProgram')
 const { supportCurrenciesOptions } = require('../config/currency')
+const { currentCompany } = require('../middleware/company')
+const api = require('../modules/api')
 
 router.get('/supportCurrencies', (req, res) => {
   res.status(200).send({
     currencies: supportCurrenciesOptions
+  })
+})
+
+router.get('/supportCurrenciesWithRate', currentCompany, (req, res) => {
+  Promise.all(
+    supportCurrenciesOptions.map(currency => {
+      return api.exchangeCurrency(currency.code, req.company.currency)
+    })
+  ).then(results => {
+    results.map(result => {
+      for (let index = 0; index < supportCurrenciesOptions.length; index++) {
+        if (supportCurrenciesOptions[index].code === result.data[0].source) {
+          supportCurrenciesOptions[index].rate = result.data[0].rate
+          break
+        }
+      }
+    })
+    res.status(200).send({
+      currencies: supportCurrenciesOptions
+    })
   })
 })
 

@@ -643,12 +643,15 @@ const expenseCategories = ['flight', 'lodging', 'transportation', 'meal']
 const expenseAccounts = ['credit-card', 'cash']
 
 for (let i = 0; i < 150; i++) {
+  let rawAmount = chance.integer({ min: 0, max: 500 })
   expenses.push({
     _creator: employeeId,
     name: `Expense ${i + 1}`,
     status: randomItemInArray(expenseStatuses),
-    amount: chance.integer({ min: 0, max: 500 }),
+    amount: rawAmount,
     currency: 'VND',
+    rawAmount,
+    rawCurrency: 'VND',
     category: randomItemInArray(expenseCategories),
     transactionDate: new Date(chance.date({ year: 2019 })),
     _trip: randomItemInArray(tripIdsUser1),
@@ -663,11 +666,15 @@ for (let i = 0; i < 150; i++) {
 }
 
 for (let i = 150; i < 200; i++) {
+  let rawAmount = chance.integer({ min: 0, max: 500 })
   expenses.push({
     _creator: employeeId2,
     name: `Expense ${i + 1}`,
     status: randomItemInArray(expenseStatuses),
-    amount: chance.integer({ min: 0, max: 500 }),
+    amount: rawAmount,
+    rawAmount,
+    currency: 'VND',
+    rawCurrency: 'VND',
     category: randomItemInArray(expenseCategories),
     transactionDate: new Date(chance.date({ year: 2019 })),
     _trip: randomItemInArray(tripIdsUser2),

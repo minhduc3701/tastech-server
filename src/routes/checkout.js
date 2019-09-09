@@ -322,6 +322,21 @@ const stripeCharging = async (req, res, next) => {
 
     req.charge = charge
     // AFTER CHARGING =======
+
+    // save charge info data
+    if (flightOrder) {
+      flightOrder.chargeId = charge.id
+      flightOrder.chargeInfo = charge
+
+      await flightOrder.save()
+    }
+
+    if (hotelOrder) {
+      hotelOrder.chargeId = charge.id
+      hotelOrder.chargeInfo = charge
+
+      await hotelOrder.save()
+    }
   } catch (error) {
     req.checkoutError = error
   }
@@ -387,7 +402,6 @@ const pkfareFlightTicketing = async (req, res, next) => {
       flightOrder.customerCode = flightUpdateData.customerCode
       flightOrder.number = flightUpdateData.number
       flightOrder.status = 'processing'
-      flightOrder.chargeId = req.charge.id
       await flightOrder.save()
 
       req.flightOrder = flightOrder
@@ -619,19 +633,16 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
       hotelOrder.number = hotelUpdateData.number
       hotelOrder.status = 'completed'
       hotelOrder.canCancel = true
-      hotelOrder.chargeId = req.charge.id
       await hotelOrder.save()
 
       req.hotelOrder = hotelOrder
     }
   } catch (error) {
-    if (error.hotel) {
-      req.checkoutError = error
-    } else {
-      req.checkoutError = {
-        message: _.get(error, 'response.data.header.message'),
-        hotel: true
-      }
+    req.checkoutError = {
+      ...req.checkoutError,
+      message:
+        _.get(error, 'message') || _.get(error, 'response.data.header.message'),
+      hotel: true
     }
   }
   next()
@@ -703,7 +714,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
       ),
       clientReference: 'EzBizTrip',
       remark: '',
-      tolerance: 2.0
+      tolerance: Number(process.env.HOTELBEDS_TOLERANCE) * 1.0
     }
 
     logger.info('BookingRQ', request)
@@ -722,14 +733,16 @@ const hotelbedsCreateOrder = async (req, res, next) => {
     }
     hotelOrder.status = 'completed'
     hotelOrder.canCancel = true
-    hotelOrder.chargeId = req.charge.id
     await hotelOrder.save()
 
     req.hotelOrder = hotelOrder
   } catch (error) {
+    logger.error('hotelbeds create order', _.get(error, 'response.data'))
+
     req.checkoutError = {
       ...req.checkoutError,
-      message: _.get(error, 'response.data.error.message'),
+      message:
+        _.get(error, 'message') || _.get(error, 'response.data.error.message'),
       hotel: true
     }
   }

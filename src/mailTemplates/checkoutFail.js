@@ -1,42 +1,48 @@
 const _ = require('lodash')
-function checkoutFail(req) {
-  let html = `<style>div { color:red; }</style>
-  <div>We were unable to charge your payment for following trip payment: <br/>`
+const { renderMail } = require('../config/mail')
+const { formatLocaleMoney } = require('../modules/utils')
+
+async function checkoutFail(req) {
   let { trip, flightOrder, hotelOrder } = req
   let amountFail = 0
   let currency = ''
+  let chargedFailedFlight =
+    trip.flight &&
+    flightOrder &&
+    flightOrder.status === 'failed' &&
+    flightOrder.chargeId
+  let chargedFailedHotel =
+    trip.hotel &&
+    hotelOrder &&
+    hotelOrder.status === 'failed' &&
+    hotelOrder.chargeId
 
-  if (trip.flight && flightOrder && flightOrder.status === 'failed') {
+  if (chargedFailedFlight) {
     let flight = flightOrder.flight
     amountFail += flightOrder.totalPrice
     currency = flight.currency
-    html += `Flight: <br/>
-     (${flight.departureSegments[0].departure}) -  (${
-      flight.departureSegments[flight.departureSegments.length - 1].arrival
-    })
-     departure: ${flight.departureSegments[0].strDepartureDate}
-    `
-    if (!_.isEmpty(flight.returnSegments)) {
-      html += `return: ${flight.returnSegments[0].strDepartureDate}`
-    }
   }
 
-  if (trip.hotel && hotelOrder && hotelOrder.status === 'failed') {
+  if (chargedFailedHotel) {
     let hotel = hotelOrder.hotel
     amountFail += hotelOrder.totalPrice
     currency = hotelOrder.hotel.currency
-    html += `<br/> Hotel: <br/> 
-    ${hotel.name} (${hotel.cityName}), checkin: ${
-      hotel.checkInDate
-    } - checkout ${hotel.checkOutDate}`
   }
+
+  amountFail = formatLocaleMoney(amountFail, currency)
+
+  let html = await renderMail('checkout-fail', {
+    chargedFailedFlight,
+    chargedFailedHotel,
+    flight: _.get(flightOrder, 'flight'),
+    hotel: _.get(hotelOrder, 'hotel'),
+    title: `${amountFail} ${currency} payment to EzBizTrip was unsuccessful`
+  })
 
   return {
     to: req.user.email,
     from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
-    subject: `${Math.round(
-      amountFail
-    )} ${currency}  payment to EzBizTrip was unsuccessful`,
+    subject: `${amountFail} ${currency} payment to EzBizTrip was unsuccessful`,
     html
   }
 }

@@ -52,8 +52,8 @@ const createUser = function(req, res, next) {
             done(e)
           })
       },
-      function(user, token, done) {
-        let mailOptions = register(user, token)
+      async function(user, token, done) {
+        let mailOptions = await register(user, token)
         mail.sendMail(mailOptions, function(err, info) {
           return done(err, user)
         })

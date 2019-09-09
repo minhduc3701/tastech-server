@@ -1,22 +1,29 @@
-function changeTripStatus(user, trip) {
+const { renderMail } = require('../config/mail')
+
+async function changeTripStatus(user, trip) {
+  let htmlTripApproved = await renderMail('trip-approved', {
+    title: '',
+    name: `${user.firstName}`,
+    budget: `${Math.round(trip.budgetPassengers[0].totalPrice)} ${
+      trip.currency
+    }`,
+    bookLink: `${process.env.APP_URI}`
+  })
+
+  let htmlTripRejected = await renderMail('trip-rejected', {
+    title: '',
+    name: `${user.firstName}`,
+    message: `${trip.adminMessage}`,
+    editTripLink: `${process.env.APP_URI}`
+  })
+
   switch (trip.status) {
     case 'approved':
       return {
         to: user.email,
         from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
         subject: `Your trip request has been approved`,
-        text: `Congratulation,  ${user.firstName}! \n\n
-          Your trip request has been approved with the following budget limit: ${Math.round(
-            trip.budgetPassengers[0].totalPrice
-          )} ${trip.currency}
-          Please book your trip while the deal is still available.
-          Book now
-          Also, don't forget to download the Ezbiztrip app to access your trips information and claim expense at your fingertips, anytime you want.
-          Still need help?
-          Please feel free to contact us if you have any questions, comments or suggestions.
-          - Happy travels,
-          - The EzBizTrip team
-          `
+        html: htmlTripApproved
       }
     case 'rejected':
     default:
@@ -24,16 +31,7 @@ function changeTripStatus(user, trip) {
         to: user.email,
         from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
         subject: `Your trip request has been rejected`,
-        text: `Hello,  ${user.firstName}! \n\n
-          Unfortunately, your trip request has been rejected with the following reason: ${
-            trip.adminMessage
-          }
-          Please consider to edit your trip & submit again, or it will be auto closed in 03 days.
-          Still need help?
-          Please feel free to contact us if you have any questions, comments or suggestions.
-          - Happy travels,
-          - The EzBizTrip team
-          `
+        html: htmlTripRejected
       }
   }
 }

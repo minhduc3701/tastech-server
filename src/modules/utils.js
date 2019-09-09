@@ -2,7 +2,7 @@ const _ = require('lodash')
 const moment = require('moment')
 const { logger } = require('../config/winston')
 const validator = require('validator')
-const { USD, VND, SGD } = require('../config/currency')
+const { USD, VND, SGD, IDR } = require('../config/currency')
 
 const hotelAccomodations = [
   { code: 'APARTMENT', text: 'Apartment' },
@@ -456,7 +456,11 @@ const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
     )
 
     if (matchingHotel) {
-      const ratePlans = makeHotelbedsRoomsRatePlans(matchingHotel, currency)
+      const ratePlans = makeHotelbedsRoomsRatePlans(
+        matchingHotel,
+        currency,
+        hotel.images
+      )
       return {
         ...hotel,
         lowestPrice: matchingHotel.minRate * currency.rate,
@@ -487,7 +491,7 @@ const makeHotelbedsHotelsData = (
     let featuredImage =
       images.find(image => image.imageTypeCode === 'GEN') || images[0]
     let featuredImageLink = featuredImage
-      ? 'http://photos.hotelbeds.com/giata/original/' + featuredImage.path
+      ? 'http://photos.hotelbeds.com/giata/xxl/' + featuredImage.path
       : ''
     let thumbnailLink = featuredImage
       ? 'http://photos.hotelbeds.com/giata/' + featuredImage.path
@@ -569,7 +573,7 @@ const makeHotelbedsHotelsData = (
   return hotelsData
 }
 
-const makeHotelbedsRoomsRatePlans = (hotel, currency) => {
+const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
   const rooms = []
   hotel.rooms.forEach(room => {
     room.rates
@@ -584,6 +588,7 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency) => {
             }
           }
         )
+        const images = hotelImages.filter(image => image.roomCode === room.code)
 
         rooms.push({
           paymentType: rate.paymentType,
@@ -598,9 +603,11 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency) => {
           cancelRules: cancelRules,
           ratePlanCode: rate.rateKey,
           rateType: rate.rateType,
+          boardCode: rate.boardCode,
           boardName: rate.boardName,
           bedTypes: [],
-          rateClass: rate.rateClass
+          rateClass: rate.rateClass,
+          images: images
         })
       })
   })
@@ -646,6 +653,7 @@ const roundingAmountStripe = (amount, currency) => {
   switch (currency) {
     case USD:
     case SGD:
+    case IDR:
       amount = amount * 100
       break
     case VND:
@@ -653,6 +661,19 @@ const roundingAmountStripe = (amount, currency) => {
       break
   }
   return Math.round(amount)
+}
+
+const formatLocaleMoney = (amount, currency) => {
+  let locale = 'en'
+
+  if (currency === 'VND') {
+    amount = Math.round(amount)
+    locale = 'vi'
+  } else {
+    amount = (Math.round(amount * 100) / 100).toFixed(2)
+  }
+
+  return amount.toLocaleString(locale)
 }
 
 module.exports = {
@@ -664,5 +685,6 @@ module.exports = {
   removeSpaces,
   makeFlightsData,
   makeHotelbedsHotelsData,
-  roundingAmountStripe
+  roundingAmountStripe,
+  formatLocaleMoney
 }

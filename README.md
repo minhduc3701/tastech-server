@@ -35,6 +35,7 @@ Add config/config.json with the content like below:
     "HOTELBEDS_BOOKING_VERSION": "1.2",
     "HOTELBEDS_HOTEL_KEY": <HOTELBEDS_KEY>,
     "HOTELBEDS_HOTEL_SECRET": <HOTELBEDS_SECRET>,
+    "HOTELBEDS_TOLERANCE": "5",
     "TRANSFERWISE_URI": "https://api.sandbox.transferwise.tech",
     "TRANSFERWISE_API_KEY": "",
     "SMTP_HOST": "smtp.mailtrap.io",
@@ -153,6 +154,7 @@ export HOTELBEDS_CONTENT_VERSION=1.0
 export HOTELBEDS_BOOKING_VERSION=1.2
 export HOTELBEDS_HOTEL_KEY=<HOTELBEDS_KEY>
 export HOTELBEDS_HOTEL_SECRET=<HOTELBEDS_SECRET>
+export HOTELBEDS_TOLERANCE=2
 export TRANSFERWISE_URI=https://api.transferwise.com
 export TRANSFERWISE_API_KEY=<TRANSFERWISE_LIVE_KEY>
 export EMAIL_CONTACT=support@ezbiztrip.com
