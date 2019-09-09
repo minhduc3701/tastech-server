@@ -737,6 +737,8 @@ const hotelbedsCreateOrder = async (req, res, next) => {
 
     req.hotelOrder = hotelOrder
   } catch (error) {
+    logger.error('hotelbeds create order', _.get(error, 'response.data'))
+
     req.checkoutError = {
       ...req.checkoutError,
       message:
