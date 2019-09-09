@@ -38,12 +38,15 @@ router.get('/', function(req, res, next) {
 
 // response approved trips for booking
 router.get('/booking', (req, res) => {
+  const now = new Date()
+  const today = moment(now).format('YYYY-MM-DD')
   Trip.find({
     _company: req.user._company,
     _creator: req.user._id,
     businessTrip: true,
     archived: false,
-    $or: [{ status: 'approved' }, { status: 'ongoing' }]
+    $or: [{ status: 'approved' }, { status: 'ongoing' }],
+    endDate: { $gte: today }
   })
     .then(trips => res.status(200).send({ trips }))
     .catch(e => res.status(400).send())
