@@ -714,7 +714,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
       ),
       clientReference: 'EzBizTrip',
       remark: '',
-      tolerance: 2.0
+      tolerance: Number(process.env.HOTELBEDS_TOLERANCE) * 1.0
     }
 
     logger.info('BookingRQ', request)
