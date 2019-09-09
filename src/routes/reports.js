@@ -95,7 +95,10 @@ router.get('/trips/spendingsByTrip', currentCompany, (req, res) => {
   ])
     .then(expense => {
       return Expense.populate(expense, [
-        { path: '_trip', select: ['name', 'budgetPassengers'] }
+        {
+          path: '_trip',
+          select: ['name', 'budgetPassengers', 'startDate', 'endDate']
+        }
       ])
     })
     .then(trips => {
