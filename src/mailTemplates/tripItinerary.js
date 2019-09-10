@@ -61,8 +61,6 @@ async function tripItinerary(user, orders, airlines, airports) {
     airports
   })
 
-  console.log(airlines, airports)
-
   return {
     to: user.email,
     from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
