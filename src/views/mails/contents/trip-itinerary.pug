@@ -26,20 +26,24 @@ block content
           h3 
             |PNR 
             = ' '
-            span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '3px'})
+            span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '2px'})
               |#{order.pnr}
         h4 Departure Flights
         table(style={width: '100%'})
           each segment in order.flight.departureSegments
             tr
               td
-                |#{segment.departure}
+                |#{airports[segment.departure].airport_name}
+                = ' '
+                |(#{segment.departure})
                 br
                 |#{segment.departureTime}
               td
                 <span style='font-size:25px;'>&#8594;</span>
               td
-                |#{segment.arrival}
+                |#{airports[segment.arrival].airport_name}
+                = ' '
+                |(#{segment.arrival})
                 br
                 |#{segment.arrivalTime}
 
@@ -100,7 +104,10 @@ block content
       each order in hotelOrders
         h3 #{order.hotel.name}
         ul
-          li Confirmation code: #{order.customerCode}
+          li 
+            strong Confirmation code: 
+            span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '2px'})
+              |#{order.customerCode}
           li Hotel: #{order.hotel.name}
           li Address: #{order.hotel.address}
           li City: #{order.hotel.cityName}, #{order.hotel.country}

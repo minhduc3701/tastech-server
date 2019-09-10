@@ -32,11 +32,12 @@ async function pendingTrip(managers, trip, employee) {
     daysOfTrip: trip.daysOfTrip,
     isMealSelected: meal.selected,
     isOthersSelected: others.selected,
-    other: formatLocaleMoney(Math.round(others.amount), trip.currency),
+    other: formatLocaleMoney(others.amount, trip.currency),
     note: others.reason,
-    budget: `${Math.round(
-      trip.budgetPassengers[0].totalPrice
-    ).toLocaleString()} ${trip.currency}`,
+    budget: formatLocaleMoney(
+      trip.budgetPassengers[0].totalPrice,
+      trip.currency
+    ),
     reviewLink: `${process.env.APP_URI}`
   })
 
