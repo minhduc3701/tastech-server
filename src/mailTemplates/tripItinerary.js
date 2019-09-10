@@ -3,7 +3,7 @@ const { renderMail } = require('../config/mail')
 const moment = require('moment')
 const { formatLocaleMoney } = require('../modules/utils')
 
-async function tripItinerary(user, orders) {
+async function tripItinerary(user, orders, airlines, airports) {
   orders = orders.map(order => order.toObject())
 
   let html = await renderMail('trip-itinerary', {
@@ -56,7 +56,9 @@ async function tripItinerary(user, orders) {
         }
       })),
     tripLink: `${process.env.APP_URI}`,
-    hotelLink: `${process.env.APP_URI}`
+    hotelLink: `${process.env.APP_URI}`,
+    airlines,
+    airports
   })
 
   return {
