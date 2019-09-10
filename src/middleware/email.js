@@ -5,6 +5,8 @@ const Role = require('../models/role')
 const Expense = require('../models/expense')
 const Order = require('../models/order')
 const Users = require('../models/user')
+const Airline = require('../models/airline')
+const Airport = require('../models/airport')
 const _ = require('lodash')
 const { submitTrip } = require('../mailTemplates/submitTrip')
 const { pendingTrip } = require('../mailTemplates/pendingTrip')
@@ -173,18 +175,69 @@ const emailEmployeeItinerary = async (req, res, next) => {
         $in: ['completed', 'processing']
       }
     }).then(async orders => {
-      let mailOptions = await tripItinerary(req.user, orders)
-      return mail.sendMail(mailOptions, function(err, info) {
-        if (err) {
-          debugMail(err)
-          logger.info('mail: ', { err: err })
-        }
+      // get airlines and airports information
+      let airlines = []
+      let airports = []
+      orders
+        .filter(order => order.type === 'flight')
+        .forEach(order => {
+          _.get(order, 'flight.departureSegments', []).forEach(segment => {
+            airlines.push(segment.airline)
+            airports.push(segment.departure)
+            airports.push(segment.arrival)
+          })
+          _.get(order, 'flight.returnSegments', []).forEach(segment => {
+            airlines.push(segment.airline)
+            airports.push(segment.departure)
+            airports.push(segment.arrival)
+          })
+        })
+      airlines = _.uniq(airlines)
+      airports = _.uniq(airports)
+
+      return Promise.all([
+        Airline.find({
+          iata: {
+            $in: airlines
+          }
+        }),
+        Airport.find({
+          airport_code: {
+            $in: airports
+          }
+        })
+      ]).then(async results => {
+        // map arr to object
+        let arrAirline = results[0]
+        let airlines = {}
+        arrAirline.forEach(airline => {
+          airlines[airline._doc.iata] = airline
+        })
+        let arrAirport = results[1]
+        let airports = {}
+        arrAirport.forEach(airport => {
+          airports[airport._doc.airport_code] = airport
+        })
+        let mailOptions = await tripItinerary(
+          req.user,
+          orders,
+          airlines,
+          airports
+        )
+        return mail.sendMail(mailOptions, function(err, info) {
+          if (err) {
+            debugMail(err)
+            logger.info('mail: ', { err: err })
+          }
+        })
       })
     })
   }
 }
 const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
   let order = req.order
+  let user
+
   if (order) {
     Promise.all([
       Order.find({
@@ -196,13 +249,58 @@ const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
       User.findById(order._customer)
     ]).then(async results => {
       let orders = results[0]
-      let user = results[1]
-      let mailOptions = await tripItinerary(user, orders)
-      return mail.sendMail(mailOptions, function(err, info) {
-        if (err) {
-          debugMail(err)
-          logger.info('mail: ', { err: err })
-        }
+      user = results[1]
+
+      // get airlines and airports information
+      let airlines = []
+      let airports = []
+      orders
+        .filter(order => order.type === 'flight')
+        .forEach(order => {
+          _.get(order, 'flight.departureSegments', []).forEach(segment => {
+            airlines.push(segment.airline)
+            airports.push(segment.departure)
+            airports.push(segment.arrival)
+          })
+          _.get(order, 'flight.returnSegments', []).forEach(segment => {
+            airlines.push(segment.airline)
+            airports.push(segment.departure)
+            airports.push(segment.arrival)
+          })
+        })
+      airlines = _.uniq(airlines)
+      airports = _.uniq(airports)
+
+      return Promise.all([
+        Airline.find({
+          iata: {
+            $in: airlines
+          }
+        }),
+        Airport.find({
+          airport_code: {
+            $in: airports
+          }
+        })
+      ]).then(async results => {
+        // map arr to object
+        let arrAirline = results[0]
+        let airlines = {}
+        arrAirline.forEach(airline => {
+          airlines[airline._doc.iata] = airline
+        })
+        let arrAirport = results[1]
+        let airports = {}
+        arrAirport.forEach(airport => {
+          airports[airport._doc.airport_code] = airport
+        })
+        let mailOptions = await tripItinerary(user, orders, airlines, airports)
+        return mail.sendMail(mailOptions, function(err, info) {
+          if (err) {
+            debugMail(err)
+            logger.info('mail: ', { err: err })
+          }
+        })
       })
     })
   }
