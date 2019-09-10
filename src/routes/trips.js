@@ -43,7 +43,8 @@ router.get('/booking', (req, res) => {
     _creator: req.user._id,
     businessTrip: true,
     archived: false,
-    $or: [{ status: 'approved' }, { status: 'ongoing' }]
+    $or: [{ status: 'approved' }, { status: 'ongoing' }],
+    endDate: { $gte: Date.now() }
   })
     .then(trips => res.status(200).send({ trips }))
     .catch(e => res.status(400).send())
