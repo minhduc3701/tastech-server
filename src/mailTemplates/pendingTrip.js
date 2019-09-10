@@ -1,5 +1,6 @@
 const { renderMail } = require('../config/mail')
 const moment = require('moment')
+const { formatLocaleMoney } = require('../modules/utils')
 
 async function pendingTrip(managers, trip, employee) {
   let {
@@ -31,7 +32,7 @@ async function pendingTrip(managers, trip, employee) {
     daysOfTrip: trip.daysOfTrip,
     isMealSelected: meal.selected,
     isOthersSelected: others.selected,
-    other: `${Math.round(others.amount).toLocaleString()} ${trip.currency}`,
+    other: formatLocaleMoney(Math.round(others.amount), trip.currency),
     note: others.reason,
     budget: `${Math.round(
       trip.budgetPassengers[0].totalPrice
