@@ -4,6 +4,7 @@ const User = require('../../models/user')
 const { createUser } = require('../../middleware/users')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
+const { getCache, setCache, deleteCache } = require('../../config/cache')
 
 router.post('/', createUser, (req, res) => {
   User.findOneAndUpdate(
@@ -19,15 +20,24 @@ router.post('/', createUser, (req, res) => {
 })
 
 router.get('/', function(req, res) {
-  User.find({
-    _company: req.user._company,
-    _id: { $ne: req.user._id }
-  })
-    .sort([['_id', -1]])
-    .populate('_department')
-    .populate('_role')
-    .populate('_policy')
-    .then(users => res.status(200).send({ users }))
+  getCache('admin-users')
+    .then(users => users)
+    .catch(e =>
+      User.find({
+        _company: req.user._company,
+        _id: { $ne: req.user._id }
+      })
+        .sort([['_id', -1]])
+        .populate('_department')
+        .populate('_role')
+        .populate('_policy')
+    )
+    .then(users => {
+      res.status(200).send({ users })
+
+      // cache for using later
+      setCache('admin-users', users)
+    })
     .catch(e => res.status(400).send())
 })
 
@@ -106,6 +116,8 @@ router.delete('/:id', function(req, res) {
       }
 
       res.status(200).send({ user })
+
+      deleteCache('admin-users')
     })
     .catch(e => {
       res.status(400).send()
