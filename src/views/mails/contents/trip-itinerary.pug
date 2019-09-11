@@ -45,6 +45,10 @@ block content
                 |(#{segment.arrival})
                 br
                 |#{segment.arrivalTime}
+            tr
+              td #{airlines[segment.airline].name}
+              td #{segment.airline}-#{segment.flightNum}
+              td #{segment.cabinClass}
 
         if (order.flight.returnSegments.length > 0)
           h4 Return Flights
