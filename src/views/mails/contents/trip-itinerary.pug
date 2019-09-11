@@ -110,7 +110,7 @@ block content
         h4
           |Total price:
           = ' '
-          span(style={color:'#f4b400'}) #{order.totalPrice} #{order.currency}
+          span(style={color:'#f4b400'}) #{order.totalPrice}
 
         h4
           |Payment: 
@@ -141,7 +141,7 @@ block content
           if (order.hotel.phones)
             li Phones: 
               each phone in order.hotel.phones
-                <span>#{phone.phoneNumber}, <span>
+                span #{phone.phoneNumber},
           li Check-in date: #{order.hotel.checkInDate}
           li Check-out date: #{order.hotel.checkOutDate}
 
@@ -175,7 +175,7 @@ block content
         h4
           |Total price:
           = ' '
-          span(style={color:'#f4b400'}) #{order.totalPrice} #{order.currency}
+          span(style={color:'#f4b400'}) #{order.totalPrice}
 
         h4 
           |Payment: 
