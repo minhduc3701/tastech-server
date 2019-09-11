@@ -18,20 +18,21 @@ block content
 
   if (flightOrders.length > 0)
     header
-      h2 Flight Itinerary
+      h3 Flight Itinerary
 
     div
       each order in flightOrders
         if (order.pnr)
-            span(style={color: '#707070'}) Pnr
             br
-            span(style={color: '#f4b400', 'font-size': '20px', 'letter-spacing': '1px'})
+            span(style={'font-size': '12px', color: '#707070'}) PNR code
+            br
+            span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '1px', display: 'inline-block', border: '1px solid #f4b400', 'border-radius': '5px', padding: '5px'})
               |#{order.pnr}
         h4 Departure Flights
         table(style={width: '100%'})
           each segment in order.flight.departureSegments
             tr
-              td(style={width: '40%'})
+              td(style={width: '40%', 'vertical-align': 'top'})
                 |#{airports[segment.departure].airport_name}
                 = ' '
                 |(#{segment.departure})
@@ -39,32 +40,51 @@ block content
                 |#{segment.departureTime}
               td(style={width: '20%', 'text-align': 'center'})
                 <span style='font-size:25px;'>&#8594;</span>
-              td(style={width: '40%'})
+              td(style={width: '40%', 'vertical-align': 'top'})
                 |#{airports[segment.arrival].airport_name}
                 = ' '
                 |(#{segment.arrival})
                 br
                 |#{segment.arrivalTime}
             tr
-              td #{airlines[segment.airline].name}
-              td #{segment.airline}-#{segment.flightNum}
-              td #{segment.cabinClass}
+              td(colspan="3")
+                p(style={color: '#3ac9b6'})
+                  strong #{airlines[segment.airline].name}
+                  = ' / '
+                  |#{segment.airline}-#{segment.flightNum}
+                  = ' / '
+                  |#{segment.cabinClass}
+                br
 
         if (order.flight.returnSegments.length > 0)
           h4 Return Flights
           table(style={width: '100%'})
             each segment in order.flight.returnSegments
               tr
-                td(style={width: '40%'})
-                  |#{segment.departure}
+                td(style={width: '40%', 'vertical-align': 'top'})
+                  |#{airports[segment.departure].airport_name}
+                  = ' '
+                  |(#{segment.departure})
                   br
                   |#{segment.departureTime}
                 td(style={width: '20%', 'text-align': 'center'})
                   <span style='font-size:25px;'>&#8594;</span>
-                td(style={width: '40%'})
-                  |#{segment.arrival}
+                td(style={width: '40%', 'vertical-align': 'top'})
+                  |#{airports[segment.arrival].airport_name}
+                  = ' '
+                  |(#{segment.arrival})
                   br
                   |#{segment.arrivalTime}
+
+              tr
+                td(colspan="3")
+                  p(style={color: '#3ac9b6'})
+                    strong #{airlines[segment.airline].name}
+                    = ' / '
+                    |#{segment.airline}-#{segment.flightNum}
+                    = ' / '
+                    |#{segment.cabinClass}
+                  br
 
         h4 Passengers
         ul
@@ -101,15 +121,17 @@ block content
 
   if (hotelOrders.length > 0)
     header
-      h2 Lodging
+      h3 Lodging
 
     div
       each order in hotelOrders
+        br
+        span(style={'font-size': '12px', color: '#707070'}) Confirmation code
+        br
+        span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '1px', display: 'inline-block', border: '1px solid #f4b400', 'border-radius': '5px', padding: '5px'})
+          |#{order.customerCode}
+
         h3 #{order.hotel.name}
-        span(style={color: '#707070'}) Confirmation code
-            br
-            span(style={color: '#f4b400', 'font-size': '20px', 'letter-spacing': '1px'})
-              |#{order.customerCode}
         ul
           li Address: #{order.hotel.address}
           li City: #{order.hotel.cityName}, #{order.hotel.country}
