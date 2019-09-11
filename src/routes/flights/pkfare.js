@@ -15,11 +15,36 @@ const { currencyExchange } = require('../../middleware/currency')
 const { debugPkfare } = require('../../config/debug')
 const { makeFlightsData } = require('../../modules/utils')
 const api = require('../../modules/api')
+const { makePkfareFlightCacheKey } = require('../../modules/cache')
+const { getCache, setCache } = require('../../config/cache')
 
 router.post('/shopping', currencyExchange, async (req, res) => {
+  let isRoundTrip = req.body.search.searchAirLegs.length === 2
+  let cacheKey = makePkfareFlightCacheKey(req.body.search)
+
+  try {
+    let cacheData = await getCache(cacheKey)
+
+    let flights = makeFlightsData(cacheData.flights, {
+      isRoundTrip,
+      currency: req.currency,
+      numberOfAdults: Number(req.body.search.adults)
+    })
+
+    return res.status(200).send({
+      flights,
+      airlines: cacheData.airlines,
+      airports: cacheData.airports
+    })
+  } catch (e) {
+    // do nothing to run the try block below
+  }
+
   try {
     let flights = await api.shopping(req.body.search)
-    let isRoundTrip = req.body.search.searchAirLegs.length === 2
+
+    // save flights to cache
+    let rawFlights = { ...flights }
 
     flights = makeFlightsData(flights, {
       isRoundTrip,
@@ -95,6 +120,17 @@ router.post('/shopping', currencyExchange, async (req, res) => {
           airlines,
           airports
         })
+
+        // save all data for using 1 hour later
+        setCache(
+          cacheKey,
+          {
+            flights: rawFlights,
+            airlines,
+            airports
+          },
+          3600
+        )
       })
       .catch(e => {
         res.status(400).send()
