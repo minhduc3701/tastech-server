@@ -1,5 +1,6 @@
 const { renderMail } = require('../config/mail')
 const moment = require('moment')
+const { formatLocaleMoney } = require('../modules/utils')
 
 async function changeExpenseStatus(user, expense) {
   let htmlExpenseApproved = await renderMail('expense-approved', {
@@ -7,7 +8,7 @@ async function changeExpenseStatus(user, expense) {
     employeeName: user.firstName,
     tripName: expense._trip.name,
     paymentDate: moment(expense.transactionDate).format('ll'),
-    paymentAmount: `${expense.amount} ${expense.currency}`,
+    paymentAmount: formatLocaleMoney(expense.amount, expense.currency),
     expenseLink: `${process.env.APP_URI}`
   })
 
@@ -18,9 +19,7 @@ async function changeExpenseStatus(user, expense) {
     tripName: expense._trip.name,
     type: expense.category,
     description: expense.message,
-    amount: `${Math.round(expense.amount).toLocaleString()} ${
-      expense.currency
-    }`,
+    amount: formatLocaleMoney(expense.amount, expense.currency),
     adminMessage: expense.adminMessage,
     expenseLink: `${process.env.APP_URI}`
   })

@@ -673,7 +673,7 @@ const formatLocaleMoney = (amount, currency) => {
     amount = (Math.round(amount * 100) / 100).toFixed(2)
   }
 
-  return amount.toLocaleString(locale)
+  return amount.toLocaleString(locale) + ' ' + currency
 }
 
 module.exports = {

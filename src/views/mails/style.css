@@ -1,11 +1,10 @@
 /* Common style */
 
 body {
-  background: #f5f5f5;
   font-family: sans-serif;
   font-size: 15px;
   line-height: 1.4;
-  color: #323232;
+  color: #4d4d4d;
 }
 
 img {
@@ -22,6 +21,7 @@ h4,
 h5,
 h6 {
   color: #222;
+  margin: 10px 0;
 }
 
 p {
@@ -39,6 +39,7 @@ header {
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 1px;
+  margin: 10px 0;
 }
 
 header h2,
