@@ -11,7 +11,7 @@ async function pendingTrip(managers, trip, employee) {
     others
   } = trip.budgetPassengers[0]
 
-  let html = await renderMail('trip-pendding', {
+  let html = await renderMail('trip-pending', {
     title: '',
     employeeName: employee.firstName,
     tripName: trip.name,

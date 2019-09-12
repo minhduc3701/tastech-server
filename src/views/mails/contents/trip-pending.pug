@@ -18,11 +18,11 @@ block content
       li.
         Flight: #{flight}, departure: #{departDate}#{isRoundTrip ? ', return: ' + returnDate : ''}
 
-    if (isLogingSelected)
+    if (isLodgingSelected)
       li.
         Lodging: #{regionName},
-        checkin: #{checkInDate}, 
-        checkout: #(checkOutDate)
+        Check-in: #{checkInDate}, 
+        Check-out: #{checkOutDate}
 
     if (isTransportationSelected)
       li Transportation: #{daysOfTrip} day(s)
