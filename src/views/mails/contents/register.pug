@@ -2,11 +2,32 @@ extends ../layout.pug
 
 block content
 
-  h2 Congratulation!
+  h2.text-center Welcome to EzBizTrip!
+
+  h2 Hello, #{user.firstName}.
+
   p.
-    Your new account has been created successfully.
+    You has invited to use EzBizTrip, we have make it super easy to book and manage everything for your work trips.
+
   p.
-    Please set your new password via this link:
-  a(class='link' href= link) #{link}
-  p.
-    The link will be expire next 1 hour.
+    Join the rest of the team by setting up your account and get your first gift today (The link will be expired in one week).
+
+  p.text-center
+    a(class='btn yellow' href= link) Join Now
+
+  br
+
+  h2 Tips for using EzBizTrip
+
+  p Our platform is used by thousands of travel companies & trip organizers to collect payments and manage bookings. Here are some tips for using:
+
+  ul
+    li
+      strong Book flight and hotel:
+      p Book your next business trip and earn rewards along the way. Our flight and hotel search is  based on real-time market rate availability, curated results and no service fee, booking fee or transaction fee.
+    li
+      strong Expense on-the-go:
+      p Snap photo receipts and our technology fills in the rest. When you’re ready, submit your expenses for reimbursement in real time.
+    li
+      strong Your turn to earn:
+      p Enjoy points from booking trip to beating your budget, all redeemable in our rewards store on services.
