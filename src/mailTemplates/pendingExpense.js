@@ -1,5 +1,6 @@
 const { renderMail } = require('../config/mail')
 const moment = require('moment')
+const { formatLocaleMoney } = require('../modules/utils')
 
 async function pendingExpense(accountants, expenses, employee) {
   let html = await renderMail('expense-pending', {
@@ -11,8 +12,7 @@ async function pendingExpense(accountants, expenses, employee) {
       name: e.name,
       category: e.category,
       transactionDate: moment(e.transactionDate).format('ll'),
-      amount: Math.round(e.amount).toLocaleString(),
-      currency: e.currency,
+      amount: formatLocaleMoney(e.amount, e.currency),
       message: e.message
     })),
     reviewLink: `${process.env.APP_URI}`

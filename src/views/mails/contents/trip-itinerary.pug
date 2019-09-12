@@ -18,46 +18,73 @@ block content
 
   if (flightOrders.length > 0)
     header
-      h2 Flight Itinerary
+      h3 Flight Itinerary
 
     div
       each order in flightOrders
         if (order.pnr)
-          h3 
-            |PNR 
-            = ' '
-            span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '3px'})
+            br
+            span(style={'font-size': '12px', color: '#707070'}) PNR code
+            br
+            span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '1px', display: 'inline-block', border: '1px solid #f4b400', 'border-radius': '5px', padding: '5px'})
               |#{order.pnr}
         h4 Departure Flights
         table(style={width: '100%'})
           each segment in order.flight.departureSegments
             tr
-              td
-                |#{segment.departure}
+              td(style={width: '40%', 'vertical-align': 'top'})
+                |#{airports[segment.departure].airport_name}
+                = ' '
+                |(#{segment.departure})
                 br
                 |#{segment.departureTime}
-              td
+              td(style={width: '20%', 'text-align': 'center'})
                 <span style='font-size:25px;'>&#8594;</span>
-              td
-                |#{segment.arrival}
+              td(style={width: '40%', 'vertical-align': 'top'})
+                |#{airports[segment.arrival].airport_name}
+                = ' '
+                |(#{segment.arrival})
                 br
                 |#{segment.arrivalTime}
+            tr
+              td(colspan="3")
+                p(style={color: '#3ac9b6'})
+                  strong #{airlines[segment.airline].name}
+                  = ' / '
+                  |#{segment.airline}-#{segment.flightNum}
+                  = ' / '
+                  |#{segment.cabinClass}
+                br
 
         if (order.flight.returnSegments.length > 0)
           h4 Return Flights
           table(style={width: '100%'})
             each segment in order.flight.returnSegments
               tr
-                td
-                  |#{segment.departure}
+                td(style={width: '40%', 'vertical-align': 'top'})
+                  |#{airports[segment.departure].airport_name}
+                  = ' '
+                  |(#{segment.departure})
                   br
                   |#{segment.departureTime}
-                td
+                td(style={width: '20%', 'text-align': 'center'})
                   <span style='font-size:25px;'>&#8594;</span>
-                td
-                  |#{segment.arrival}
+                td(style={width: '40%', 'vertical-align': 'top'})
+                  |#{airports[segment.arrival].airport_name}
+                  = ' '
+                  |(#{segment.arrival})
                   br
                   |#{segment.arrivalTime}
+
+              tr
+                td(colspan="3")
+                  p(style={color: '#3ac9b6'})
+                    strong #{airlines[segment.airline].name}
+                    = ' / '
+                    |#{segment.airline}-#{segment.flightNum}
+                    = ' / '
+                    |#{segment.cabinClass}
+                  br
 
         h4 Passengers
         ul
@@ -83,7 +110,7 @@ block content
         h4
           |Total price:
           = ' '
-          span(style={color:'#f4b400'}) #{order.totalPrice} #{order.currency}
+          span(style={color:'#f4b400'}) #{order.totalPrice}
 
         h4
           |Payment: 
@@ -94,14 +121,18 @@ block content
 
   if (hotelOrders.length > 0)
     header
-      h2 Lodging
+      h3 Lodging
 
     div
       each order in hotelOrders
+        br
+        span(style={'font-size': '12px', color: '#707070'}) Confirmation code
+        br
+        span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '1px', display: 'inline-block', border: '1px solid #f4b400', 'border-radius': '5px', padding: '5px'})
+          |#{order.customerCode}
+
         h3 #{order.hotel.name}
         ul
-          li Confirmation code: #{order.customerCode}
-          li Hotel: #{order.hotel.name}
           li Address: #{order.hotel.address}
           li City: #{order.hotel.cityName}, #{order.hotel.country}
           li Room: #{order.hotel.roomName}
@@ -110,7 +141,7 @@ block content
           if (order.hotel.phones)
             li Phones: 
               each phone in order.hotel.phones
-                <span>#{phone.phoneNumber}, <span>
+                span #{phone.phoneNumber},
           li Check-in date: #{order.hotel.checkInDate}
           li Check-out date: #{order.hotel.checkOutDate}
 
@@ -144,7 +175,7 @@ block content
         h4
           |Total price:
           = ' '
-          span(style={color:'#f4b400'}) #{order.totalPrice} #{order.currency}
+          span(style={color:'#f4b400'}) #{order.totalPrice}
 
         h4 
           |Payment: 
