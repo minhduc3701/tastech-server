@@ -199,10 +199,11 @@ router.post(
         flights.forEach(flight => {
           sumPrice += Number(flight.price)
         })
-        trip.budgetPassengers[0].flight.price = Number(
-          sumPrice / flights.length
+        trip.budgetPassengers[0].flight.price = Math.round(
+          Number(sumPrice / flights.length)
         )
-        trip.budgetPassengers[0].totalPrice += Number(sumPrice / flights.length)
+        trip.budgetPassengers[0].totalPrice +=
+          trip.budgetPassengers[0].flight.price
       }
       if (trip.budgetPassengers[0].lodging.selected) {
         trip.budgetPassengers[0].lodging.class = policy.hotelClass
@@ -239,8 +240,8 @@ router.post(
         newHotelList.forEach(hotel => {
           sumPriceHotelRoom += Number(hotel.lowestPrice * req.currency.rate)
         })
-        trip.budgetPassengers[0].lodging.price = Number(
-          sumPriceHotelRoom / hotelInfoList.length
+        trip.budgetPassengers[0].lodging.price = Math.round(
+          Number(sumPriceHotelRoom / hotelInfoList.length)
         )
         trip.budgetPassengers[0].totalPrice +=
           trip.budgetPassengers[0].lodging.price
@@ -251,6 +252,7 @@ router.post(
         trip.budgetPassengers[0].totalPrice
       )
     } catch (error) {
+      console.log(error)
       res.status(400).send()
     }
 
