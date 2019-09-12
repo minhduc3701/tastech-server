@@ -21,14 +21,9 @@ router.get('/', function(req, res) {
 })
 
 router.get('/me', currentCompany, function(req, res, next) {
-  user = {
-    ...req.user.toObject(),
-    profileStrength: getUserProfileStrength(req.user.toObject())
-  }
-  console.log('user', req.user)
-  // console.log('new', user)
   res.send({
-    user,
+    user: req.user,
+    profileStrength: getUserProfileStrength(req.user.toObject()),
     currency: req.company.currency
   })
 })
@@ -107,12 +102,9 @@ router.patch('/me', async (req, res) => {
       if (!user) {
         return res.status(404).send()
       }
-      user = {
-        ...user.toObject(),
-        profileStrength: getUserProfileStrength(user.toObject())
-      }
       res.status(200).send({
-        user: user
+        user,
+        profileStrength: getUserProfileStrength(user.toObject())
       })
     })
     .catch(e => {
@@ -150,7 +142,8 @@ router.post('/me/avatar', function(req, res) {
         }
         return res.status(200).send({
           email: user.email,
-          avatar: req.file.location
+          avatar: req.file.location,
+          profileStrength: getUserProfileStrength(user.toObject())
         })
       })
       .catch(e => {
