@@ -676,6 +676,15 @@ const formatLocaleMoney = (amount, currency) => {
   return amount.toLocaleString(locale)
 }
 
+const getUserProfileStrength = user => {
+  let strength = 0
+  strength += user.firstName && user.lastName ? 10 : 0
+  strength += user.dateOfBirth ? 10 : 0
+  strength += user.country ? 10 : 0
+  console.log('strength', strength)
+  return strength
+}
+
 module.exports = {
   getImageUri,
   makeSegmentsData,
@@ -686,5 +695,6 @@ module.exports = {
   makeFlightsData,
   makeHotelbedsHotelsData,
   roundingAmountStripe,
-  formatLocaleMoney
+  formatLocaleMoney,
+  getUserProfileStrength
 }
