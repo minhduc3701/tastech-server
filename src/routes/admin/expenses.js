@@ -18,7 +18,10 @@ router.get('/', (req, res) => {
     })
     .populate('_trip')
     .sort({ updatedAt: -1 })
-    .then(expenses => res.status(200).send({ expenses }))
+    .then(expenses => {
+      expenses = expenses.filter(expense => expense._creator)
+      res.status(200).send({ expenses })
+    })
     .catch(e => res.status(400).send())
 })
 
