@@ -18,7 +18,10 @@ router.get('/', (req, res) => {
       }
     })
     .sort({ updatedAt: -1 })
-    .then(trips => res.status(200).send({ trips }))
+    .then(trips => {
+      trips = trips.filter(trip => trip._creator)
+      res.status(200).send({ trips })
+    })
     .catch(e => res.status(400).send())
 })
 
