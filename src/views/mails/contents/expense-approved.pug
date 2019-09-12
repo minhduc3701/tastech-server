@@ -1,17 +1,13 @@
 extends ../layout.pug
 
 block content
-  div.banner
-    img(
-      alt=""
-      src="https://cdn2.hubspot.net/hub/6193707/hubfs/business-travel.jpg?width=550&name=business-travel.jpg")
 
   h2 Congratulation, #{employeeName}!
   p.
     A reimbursement payment for your expense has been marked as Paid by your accountant. Detail:
   p Trip: #{tripName}
   p Payment date: #{paymentDate}
-  p Payment amount: #{paymentAmout}
+  p Payment amount: #{paymentAmount}
 
   p.text-center
     a(class='btn' href= expenseLink) Manage your expense now

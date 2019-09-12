@@ -1,10 +1,6 @@
 extends ../layout.pug
 
 block content
-  div.banner
-    img(
-      alt=""
-      src="https://cdn2.hubspot.net/hub/6193707/hubfs/business-travel.jpg?width=550&name=business-travel.jpg")
 
   h2 Hello!
   p
@@ -20,16 +16,13 @@ block content
   ul
     if (isFlightSelected)
       li.
-        Flight: #{flight}, departure: #{departDate}
+        Flight: #{flight}, departure: #{departDate}#{isRoundTrip ? ', return: ' + returnDate : ''}
 
-        if (isRoundTrip)
-          |, return: #{returnDate}
-
-    if (isLogingSelected)
+    if (isLodgingSelected)
       li.
         Lodging: #{regionName},
-        checkin: #{checkInDate}, 
-        checkout: #(checkOutDate)
+        Check-in: #{checkInDate}, 
+        Check-out: #{checkOutDate}
 
     if (isTransportationSelected)
       li Transportation: #{daysOfTrip} day(s)
