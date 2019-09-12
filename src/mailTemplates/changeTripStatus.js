@@ -1,12 +1,14 @@
 const { renderMail } = require('../config/mail')
+const { formatLocaleMoney } = require('../modules/utils')
 
 async function changeTripStatus(user, trip) {
   let htmlTripApproved = await renderMail('trip-approved', {
     title: '',
     name: `${user.firstName}`,
-    budget: `${Math.round(trip.budgetPassengers[0].totalPrice)} ${
+    budget: formatLocaleMoney(
+      trip.budgetPassengers[0].totalPrice,
       trip.currency
-    }`,
+    ),
     bookLink: `${process.env.APP_URI}`
   })
 

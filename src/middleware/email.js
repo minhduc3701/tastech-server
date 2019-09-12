@@ -211,12 +211,12 @@ const emailEmployeeItinerary = async (req, res, next) => {
         let arrAirline = results[0]
         let airlines = {}
         arrAirline.forEach(airline => {
-          airlines[airline._doc.iata] = airline
+          airlines[airline._doc.iata] = airline.toObject()
         })
         let arrAirport = results[1]
         let airports = {}
         arrAirport.forEach(airport => {
-          airports[airport._doc.airport_code] = airport
+          airports[airport._doc.airport_code] = airport.toObject()
         })
         let mailOptions = await tripItinerary(
           req.user,
@@ -287,12 +287,12 @@ const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
         let arrAirline = results[0]
         let airlines = {}
         arrAirline.forEach(airline => {
-          airlines[airline._doc.iata] = airline
+          airlines[airline._doc.iata] = airline.toObject()
         })
         let arrAirport = results[1]
         let airports = {}
         arrAirport.forEach(airport => {
-          airports[airport._doc.airport_code] = airport
+          airports[airport._doc.airport_code] = airport.toObject()
         })
         let mailOptions = await tripItinerary(user, orders, airlines, airports)
         return mail.sendMail(mailOptions, function(err, info) {

@@ -45,6 +45,7 @@ async function tripItinerary(user, orders, airlines, airports) {
       .filter(order => order.type === 'hotel')
       .map(order => ({
         ...order,
+        totalPrice: formatLocaleMoney(order.totalPrice, order.currency),
         hotel: {
           ...order.hotel,
           checkInDate: moment(order.hotel.checkInDate).format('ll'),

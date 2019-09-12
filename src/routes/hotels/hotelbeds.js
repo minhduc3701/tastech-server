@@ -5,8 +5,28 @@ const axios = require('axios')
 const { makeHotelbedsHotelsData } = require('../../modules/utils')
 const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
 const { logger } = require('../../config/winston')
+const { makeHotelBedsCacheKey } = require('../../modules/cache')
+const { getCache, setCache } = require('../../config/cache')
 
 router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
+  let cacheKey = makeHotelBedsCacheKey(req.body.roomRequest)
+
+  try {
+    let data = await getCache(cacheKey)
+
+    let hotelbedsHotelsData = makeHotelbedsHotelsData(
+      data.hotels,
+      data.rooms,
+      req.currency
+    )
+
+    return res.status(200).send({
+      hotels: hotelbedsHotelsData
+    })
+  } catch (e) {
+    // do nothing to run below query
+  }
+
   try {
     // get available hotelbeds rooms
     let { roomRequest } = req.body
@@ -30,6 +50,16 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
         hotels: hotelbedsHotelsData
       })
     }
+
+    // cached for using 1 hour later
+    setCache(
+      cacheKey,
+      {
+        hotels: hotelbedsHotelsRes.data.hotels,
+        rooms: hotelbedsRoomsRes.data.hotels
+      },
+      3600
+    )
   } catch (error) {
     res.status(400).send()
   }
@@ -50,7 +80,27 @@ router.post('/checkRate', (req, res) => {
 })
 
 router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
-  hotelId = req.params.id
+  let hotelId = req.params.id
+  let cacheKey = makeHotelBedsCacheKey(req.body.roomRequest)
+
+  try {
+    let data = await getCache(cacheKey)
+
+    let hotelbedsHotelsData = makeHotelbedsHotelsData(
+      data.hotels,
+      data.rooms,
+      req.currency,
+      data.facilities,
+      data.facilityGroups
+    )
+
+    return res.status(200).send({
+      hotel: hotelbedsHotelsData[0]
+    })
+  } catch (e) {
+    // do nothing to run below query
+  }
+
   try {
     // get available hotelbeds rooms
     let roomRequest = req.body.roomRequest
@@ -81,6 +131,18 @@ router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
         hotel: hotelbedsHotelsData[0]
       })
     }
+
+    // cached for using 1 hour later
+    setCache(
+      cacheKey,
+      {
+        hotels: hotelbedsHotelsRes.data.hotels,
+        rooms: hotelbedsRoomsRes.data.hotels,
+        facilities: hotelFacilityRes.data.facilities,
+        facilityGroups: hotelFacilityGroupRes.data.facilityGroups
+      },
+      3600
+    )
   } catch (error) {
     res.status(400).send()
   }

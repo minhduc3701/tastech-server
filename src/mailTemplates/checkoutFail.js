@@ -36,13 +36,13 @@ async function checkoutFail(req) {
     chargedFailedHotel,
     flight: _.get(flightOrder, 'flight'),
     hotel: _.get(hotelOrder, 'hotel'),
-    title: `${amountFail} ${currency} payment to EzBizTrip was unsuccessful`
+    title: `${amountFail} payment to EzBizTrip was unsuccessful`
   })
 
   return {
     to: req.user.email,
     from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
-    subject: `${amountFail} ${currency} payment to EzBizTrip was unsuccessful`,
+    subject: `${amountFail} payment to EzBizTrip was unsuccessful`,
     html
   }
 }
