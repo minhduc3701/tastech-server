@@ -84,6 +84,7 @@ router.get('/trips', (req, res) => {
       ])
     })
     .then(trips => {
+      trips = trips.filter(trip => trip._creator)
       res.status(200).send({ trips })
     })
     .catch(e => res.status(400).send())
@@ -220,6 +221,7 @@ router.get('/', (req, res) => {
       let totalTrips = results[1]
       let totalTravelEmployees = results[2]
       let spendingByUsers = results[3]
+      spendingByUsers = spendingByUsers.filter(user => user._creator)
       let spendingByTrips = results[4]
       let totalSpendingResults = results[5]
       let totalBudget = _.get(totalBudgetResults, '[0].totalBudget', 0)
