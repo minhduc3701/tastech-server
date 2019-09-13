@@ -666,14 +666,75 @@ const roundingAmountStripe = (amount, currency) => {
 const formatLocaleMoney = (amount, currency) => {
   let locale = 'en'
 
+  switch (currency) {
+    case 'VND':
+      locale = 'vi'
+      break
+    case 'IDR':
+      locale = 'id'
+      break
+  }
+
   if (currency === 'VND') {
     amount = Math.round(amount)
-    locale = 'vi'
   } else {
-    amount = (Math.round(amount * 100) / 100).toFixed(2)
+    amount = Number((Math.round(amount * 100) / 100).toFixed(2))
   }
 
   return amount.toLocaleString(locale) + ' ' + currency
+}
+
+const getUserProfileStrength = user => {
+  const profilePoints = {
+    firstName: 5,
+    lastName: 5,
+    avatar: 10,
+    dateOfBirth: 10,
+    country: 5,
+    phone: 10
+  }
+
+  const flightRefPoints = {
+    homeAirport: 5,
+    prefFlightSeat: 5,
+    prefAirline: 5,
+    prefFlightClass: 5,
+    prefFlightDuration: 5
+  }
+
+  let strength = 0
+  strength += user['passports'].length > 0 ? 5 : 0
+  strength += _.get(user, 'preferenceFlight.prefDepartureTime.max') > 0 ? 5 : 0
+  strength += _.get(user, 'preferenceFlight.prefArrivalTime.max') > 0 ? 5 : 0
+  strength += _.get(user, 'preferenceHotel.prefHotelClass') ? 5 : 0
+
+  for (let [key, value] of Object.entries(profilePoints)) {
+    strength += user[key] ? value : 0
+  }
+  for (let [key, value] of Object.entries(flightRefPoints)) {
+    strength += user['preferenceFlight'][key] ? value : 0
+  }
+
+  let isPrefFlightMealSelected = false
+  let isPrefHotelFacilitySelected = false
+  for (let [key, value] of Object.entries(
+    user['preferenceFlight']['prefFlightMeal']
+  )) {
+    if (value) {
+      isPrefFlightMealSelected = true
+    }
+  }
+  for (let [key, value] of Object.entries(
+    user['preferenceHotel']['prefHotelFacility']
+  )) {
+    if (value) {
+      isPrefHotelFacilitySelected = true
+    }
+  }
+  strength += isPrefFlightMealSelected ? 5 : 0
+  strength += isPrefHotelFacilitySelected ? 5 : 0
+
+  return strength
 }
 
 module.exports = {
@@ -686,5 +747,6 @@ module.exports = {
   makeFlightsData,
   makeHotelbedsHotelsData,
   roundingAmountStripe,
-  formatLocaleMoney
+  formatLocaleMoney,
+  getUserProfileStrength
 }
