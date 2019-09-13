@@ -666,11 +666,19 @@ const roundingAmountStripe = (amount, currency) => {
 const formatLocaleMoney = (amount, currency) => {
   let locale = 'en'
 
+  switch (currency) {
+    case 'VND':
+      locale = 'vi'
+      break
+    case 'IDR':
+      locale = 'id'
+      break
+  }
+
   if (currency === 'VND') {
     amount = Math.round(amount)
-    locale = 'vi'
   } else {
-    amount = (Math.round(amount * 100) / 100).toFixed(2)
+    amount = Number((Math.round(amount * 100) / 100).toFixed(2))
   }
 
   return amount.toLocaleString(locale) + ' ' + currency
