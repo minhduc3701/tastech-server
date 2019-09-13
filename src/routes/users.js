@@ -7,6 +7,7 @@ const { upload } = require('../config/aws')
 const singleUpload = upload.single('image')
 const _ = require('lodash')
 const { currentCompany } = require('../middleware/company')
+const { getUserProfileStrength } = require('../modules/utils')
 
 // get list user coworker
 router.get('/', function(req, res) {
@@ -22,6 +23,7 @@ router.get('/', function(req, res) {
 router.get('/me', currentCompany, function(req, res, next) {
   res.send({
     user: req.user,
+    profileStrength: getUserProfileStrength(req.user.toObject()),
     currency: req.company.currency
   })
 })
@@ -71,7 +73,6 @@ router.get('/me/policy', function(req, res, next) {
 
 router.patch('/me', async (req, res) => {
   const body = _.pick(req.body, [
-    'profileStrength',
     'country',
     'displayName',
     'title',
@@ -101,9 +102,9 @@ router.patch('/me', async (req, res) => {
       if (!user) {
         return res.status(404).send()
       }
-
       res.status(200).send({
-        user
+        user,
+        profileStrength: getUserProfileStrength(user.toObject())
       })
     })
     .catch(e => res.status(400).send())
@@ -136,10 +137,10 @@ router.post('/me/avatar', function(req, res) {
         if (!user) {
           return res.status(404).send()
         }
-
         return res.status(200).send({
           email: user.email,
-          avatar: req.file.location
+          avatar: req.file.location,
+          profileStrength: getUserProfileStrength(user.toObject())
         })
       })
       .catch(e => {
