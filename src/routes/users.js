@@ -107,10 +107,7 @@ router.patch('/me', async (req, res) => {
         profileStrength: getUserProfileStrength(user.toObject())
       })
     })
-    .catch(e => {
-      console.log(e)
-      res.status(400).send()
-    })
+    .catch(e => res.status(400).send())
 })
 
 router.post('/me/avatar', function(req, res) {
