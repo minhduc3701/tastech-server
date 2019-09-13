@@ -23,7 +23,7 @@ router.get('/', function(req, res) {
 router.get('/me', currentCompany, function(req, res, next) {
   res.send({
     user: req.user,
-    profileStrength: getUserProfileStrength(req.user.toObject()),
+    profileStrength: getUserProfileStrength(req.user),
     currency: req.company.currency
   })
 })
@@ -104,7 +104,7 @@ router.patch('/me', async (req, res) => {
       }
       res.status(200).send({
         user,
-        profileStrength: getUserProfileStrength(user.toObject())
+        profileStrength: getUserProfileStrength(user)
       })
     })
     .catch(e => res.status(400).send())
@@ -140,7 +140,7 @@ router.post('/me/avatar', function(req, res) {
         return res.status(200).send({
           email: user.email,
           avatar: req.file.location,
-          profileStrength: getUserProfileStrength(user.toObject())
+          profileStrength: getUserProfileStrength(user)
         })
       })
       .catch(e => {
