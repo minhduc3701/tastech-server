@@ -252,7 +252,6 @@ router.post(
         trip.budgetPassengers[0].totalPrice
       )
     } catch (error) {
-      console.log(error)
       res.status(400).send()
     }
 
