@@ -17,6 +17,7 @@ const moment = require('moment')
 const { currencyExchange } = require('../middleware/currency')
 const { makeFlightsData } = require('../modules/utils')
 const api = require('../modules/api')
+const htbApi = require('../modules/apiHotelbeds')
 const {
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
@@ -209,36 +210,35 @@ router.post(
         trip.budgetPassengers[0].lodging.class = policy.hotelClass
         //  Calculate Hotel budget
         let request = {
-          checkInDate: budget.lodging.checkInDate,
-          checkOutDate: budget.lodging.checkOutDate,
-          regionId: parseInt(budget.lodging.regionId),
-          numberOfAdult: 1,
-          numberOfRoom: 1,
-          languageCode: 'en_US'
-        }
-        let responseHotel = await axios({
-          method: 'post',
-          url: `${process.env.PKFARE_HOTEL_URI}/queryHotelList`,
-          data: {
-            authentication,
-            request
+          stay: {
+            checkIn: budget.lodging.checkInDate,
+            checkOut: budget.lodging.checkOutDate
+          },
+          occupancies: [
+            {
+              rooms: 1,
+              adults: 1,
+              children: 0
+            }
+          ],
+          geolocation: {
+            latitude: budget.lodging.regionCoordinates[0],
+            longitude: budget.lodging.regionCoordinates[1],
+            radius: 8,
+            unit: 'km'
+          },
+          filter: {
+            paymentType: 'AT_WEB'
           }
-        })
+        }
+
+        let responseHotel = await htbApi.getRooms(request)
         let { data } = responseHotel
-        let { hotelInfoList } = data.body
-        let hotelIds = hotelInfoList.map(hotel => parseInt(hotel.hotelId))
-        let hotels = await Hotel.find({
-          hotelId: { $in: hotelIds },
-          starRating: { $lte: policy.hotelClass },
-          language: 'en_US'
-        })
-        let hotelPolicyIds = hotels.map(hotel => parseInt(hotel.hotelId))
-        let newHotelList = hotelInfoList.filter(hotel =>
-          hotelPolicyIds.includes(parseInt(hotel.hotelId))
-        )
+        let hotelInfoList = data.hotels.hotels
+
         let sumPriceHotelRoom = 0
-        newHotelList.forEach(hotel => {
-          sumPriceHotelRoom += Number(hotel.lowestPrice * req.currency.rate)
+        hotelInfoList.forEach(hotel => {
+          sumPriceHotelRoom += Number(hotel.minRate * req.currency.rate)
         })
         trip.budgetPassengers[0].lodging.price = Math.round(
           Number(sumPriceHotelRoom / hotelInfoList.length)
