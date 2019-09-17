@@ -73,6 +73,14 @@ body {
 #tas-wrapper .inline-block {
   display: inline-block;
 }
+#tas-wrapper a {
+  color: #f4b400;
+  word-break: break-all;
+  transition: all 0.3s ease-in-out;
+}
+#tas-wrapper a:hover {
+  color: #ff7700;
+}
 #tas-wrapper .btn {
   display: inline-block;
   padding: 10px 20px;
@@ -84,12 +92,4 @@ body {
 }
 #tas-wrapper .btn:hover {
   background-color: #ff7700;
-}
-#tas-wrapper .link {
-  color: #f4b400;
-  word-break: break-all;
-  transition: all 0.3s ease-in-out;
-}
-#tas-wrapper .link:hover {
-  color: #ff7700;
 }
