@@ -30,7 +30,6 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
   try {
     // get available hotelbeds rooms
     let { roomRequest } = req.body
-    console.log(roomRequest)
     let hotelbedsRoomsRes = await api.getRooms(roomRequest)
 
     // get appropriate hotelbeds hotel content, merge to available hotels
