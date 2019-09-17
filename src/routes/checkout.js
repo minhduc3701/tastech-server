@@ -481,6 +481,18 @@ const sabreCreatePNR = async (req, res, next) => {
             }
           }
         ],
+        SpecialReqDetails: {
+          AddRemark: {
+            RemarkInfo: {
+              Remark: [
+                {
+                  Type: 'General',
+                  Text: '5WT-R698/ON'
+                }
+              ]
+            }
+          }
+        },
         PostProcessing: {
           EndTransaction: {
             Source: {
@@ -535,11 +547,11 @@ const sabreCreatePNR = async (req, res, next) => {
       ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
       'failed'
     )
-    logger.info('createPNR response', sabrePNRres)
+    logger.info('createPNR response', sabrePNRres.data)
     if (status === 'Complete') {
       flightOrder.customerCode = _.get(
         sabrePNRres,
-        ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
+        ['data', 'CreatePassengerNameRecordRS', 'ItineraryRef', 'ID'],
         ''
       )
       flightOrder.status = 'processing'
