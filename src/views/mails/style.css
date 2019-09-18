@@ -7,52 +7,7 @@ body {
   color: #4d4d4d;
 }
 
-img {
-  outline: none;
-  text-decoration: none;
-  -ms-interpolation-mode: bicubic;
-  max-width: 100%;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: #222;
-  margin: 10px 0;
-}
-
-p {
-  margin: 10px 0;
-}
-
-li {
-  margin-bottom: 10px;
-}
-
-header {
-  background-color: #f5f5f5;
-  padding: 15px;
-  border-radius: 5px;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 10px 0;
-}
-
-header h2,
-header h3 {
-  margin: 0;
-}
-
-table {
-  font-size: 15px;
-  line-height: 1.4;
-}
-
-.wrapper {
+#tas-wrapper {
   min-width: 200px;
   max-width: 600px;
   width: 100%;
@@ -64,28 +19,69 @@ table {
   border-radius: 10px;
   overflow: hidden;
 }
-
-.banner {
+#tas-wrapper img {
+  outline: none;
+  text-decoration: none;
+  -ms-interpolation-mode: bicubic;
+  max-width: 100%;
+}
+#tas-wrapper h1,
+#tas-wrapper h2,
+#tas-wrapper h3,
+#tas-wrapper h4,
+#tas-wrapper h5,
+#tas-wrapper h6 {
+  color: #222;
+  margin: 10px 0;
+}
+#tas-wrapper p {
+  margin: 10px 0;
+}
+#tas-wrapper li {
+  margin-bottom: 10px;
+}
+#tas-wrapper header {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 5px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 10px 0;
+}
+#tas-wrapper header h2,
+#tas-wrapper header h3 {
+  margin: 0;
+}
+#tas-wrapper table {
+  font-size: 15px;
+  line-height: 1.4;
+}
+#tas-wrapper .banner {
   text-align: center;
   margin-bottom: 40px;
 }
-
-.banner img {
+#tas-wrapper .banner img {
   border-radius: 5px;
 }
-
-.text-center {
+#tas-wrapper .text-center {
   text-align: center;
 }
-
-.text-capitalize {
+#tas-wrapper .text-capitalize {
   text-transform: capitalize;
 }
-.inline-block {
+#tas-wrapper .inline-block {
   display: inline-block;
 }
-
-.btn {
+#tas-wrapper a {
+  color: #f4b400;
+  word-break: break-all;
+  transition: all 0.3s ease-in-out;
+}
+#tas-wrapper a:hover {
+  color: #ff7700;
+}
+#tas-wrapper .btn {
   display: inline-block;
   padding: 10px 20px;
   color: #fff;
@@ -94,17 +90,7 @@ table {
   transition: all 0.3s ease-in-out;
   text-decoration: none;
 }
-
-.btn:hover {
+#tas-wrapper .btn:hover {
   background-color: #ff7700;
-}
-
-.link {
-  color: #f4b400;
-  word-break: break-all;
-  transition: all 0.3s ease-in-out;
-}
-
-.link:hover {
-  color: #ff7700;
+  color: #fff;
 }
