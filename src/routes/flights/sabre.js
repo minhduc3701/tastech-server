@@ -52,7 +52,7 @@ router.post('/shopping', currencyExchange, sabreToken, async (req, res) => {
       POS: {
         Source: [
           {
-            PseudoCityCode: 'F9CE',
+            PseudoCityCode: '5EJJ',
             RequestorID: {
               CompanyName: {
                 Code: 'TN'
@@ -88,9 +88,13 @@ router.post('/shopping', currencyExchange, sabreToken, async (req, res) => {
     }
   }
   try {
+    logger.info('req', data)
+
     let sabreRes = await apiSabre.shopping(data, req.sabreToken)
+    logger.info('sabreRes', sabreRes)
+
     sabreRes = sabreRes.data.groupedItineraryResponse
-    // logger.info("res", sabreRes)
+
     let { itineraryGroups } = sabreRes
     let flights = makeSabreFlightsData(itineraryGroups, sabreRes, req)
     let airlines = []

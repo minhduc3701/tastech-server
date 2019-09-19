@@ -193,7 +193,7 @@ const getBaggageForSabreFlight = (baggageInformation, index) => {
 const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
   let flights = []
   try {
-    // logger.info("sabreRes: ", sabreRes)
+    logger.info('sabreRes: ', itineraryGroups)
     itineraryGroups.map(l => {
       let departureDate = moment(
         l.groupDescription.legDescriptions[0].departureDate
