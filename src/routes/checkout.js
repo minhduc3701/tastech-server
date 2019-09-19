@@ -18,7 +18,8 @@ const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
 const { logger } = require('../config/winston')
 const {
   emailEmployeeCheckoutFailed,
-  emailEmployeeItinerary
+  emailEmployeeItinerary,
+  emailGiamsoIssueTicket
 } = require('../middleware/email')
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
@@ -547,7 +548,10 @@ const sabreCreatePNR = async (req, res, next) => {
       ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
       'failed'
     )
-    logger.info('createPNR response', sabrePNRres.data)
+    logger.info(
+      'createPNR response',
+      sabrePNRres.data.CreatePassengerNameRecordRS
+    )
     if (status === 'Complete') {
       flightOrder.customerCode = _.get(
         sabrePNRres,
@@ -835,6 +839,7 @@ const responseCheckout = async (req, res, next) => {
       hotelOrder
     })
   } catch (error) {
+    logger.info('error', error)
     // update order status to failed if something went wrong
     if (trip.flight && flightOrder) {
       flightOrder.status = 'failed'
@@ -865,6 +870,7 @@ router.post(
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
   sabreCreatePNR,
+  emailGiamsoIssueTicket,
   stripeCharging,
   pkfareFlightTicketing,
   pkfareHotelCreateOrder,

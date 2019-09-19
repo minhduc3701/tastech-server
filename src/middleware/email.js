@@ -246,13 +246,14 @@ const emailGiamsoIssueTicket = async (req, res, next) => {
     return next()
   } else {
     let mailOptions = sendPnrGiamso(req.user, trip.flight)
-    return mail.sendMail(mailOptions, function(err, info) {
+    mail.sendMail(mailOptions, function(err, info) {
       if (err) {
         debugMail(err)
         logger.info('mail: ', { err: err })
       }
     })
   }
+  return next()
 }
 
 const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
