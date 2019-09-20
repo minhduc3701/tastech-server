@@ -352,6 +352,7 @@ const pkfareFlightTicketing = async (req, res, next) => {
     next()
     return
   }
+
   let flightOrder = req.flightOrder
   let bookingResponse = req.bookingResponse
   try {
@@ -541,7 +542,7 @@ const sabreCreatePNR = async (req, res, next) => {
         }
       )
     })
-    logger.info('createPNR request', data)
+    // logger.info('createPNR request', data)
     let sabrePNRres = await apiSabre.createPNR(data, req.sabreToken)
     let status = _.get(
       sabrePNRres,
@@ -553,11 +554,13 @@ const sabreCreatePNR = async (req, res, next) => {
       sabrePNRres.data.CreatePassengerNameRecordRS
     )
     if (status === 'Complete') {
-      flightOrder.customerCode = _.get(
+      let pnr = _.get(
         sabrePNRres,
         ['data', 'CreatePassengerNameRecordRS', 'ItineraryRef', 'ID'],
         ''
       )
+      flightOrder.customerCode = pnr
+      flightOrder.pnr = pnr
       flightOrder.status = 'processing'
       await flightOrder.save()
       req.flightOrder = flightOrder
@@ -772,7 +775,6 @@ const refundFailedOrder = async (req, res, next) => {
     next()
     return
   }
-
   try {
     let refundAmount = 0
 

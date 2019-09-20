@@ -54,6 +54,31 @@ const populateTasAdmin = (email, password) => {
   return Promise.all([populateUsers(users), populateRoles(roles)])
 }
 
+const populateAgent = (email, password) => {
+  const AgentRoleId = new ObjectID()
+
+  const users = [
+    {
+      username: email,
+      email,
+      _role: AgentRoleId,
+      password: String(password)
+    }
+  ]
+
+  const roles = [
+    {
+      _id: AgentRoleId,
+      name: 'Agent',
+      type: 'agent',
+      permissions: []
+    }
+  ]
+
+  return Promise.all([populateUsers(users), populateRoles(roles)])
+}
+
 module.exports = {
-  populateTasAdmin
+  populateTasAdmin,
+  populateAgent
 }

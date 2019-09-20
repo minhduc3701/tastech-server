@@ -8,6 +8,7 @@
     "seed-test-db": "NODE_ENV=test yarn seed-db",
     "seed-dev-db": "NODE_ENV=development yarn seed-db",
     "seed-prod": "node ./src/seed/app-prod.js",
+    "seed-agent": "node ./src/seed/app-agent.js",
     "wipe": "node ./src/seed/wipe.js",
     "debug": "node --inspect bin/www"
   },
