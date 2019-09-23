@@ -15,7 +15,7 @@ async function pendingExpense(accountants, expenses, employee) {
       amount: formatLocaleMoney(e.amount, e.currency),
       message: e.message
     })),
-    reviewLink: `${process.env.APP_URI}`
+    reviewLink: `${process.env.APP_URI}/admin/expenses/${expenses[0]._id}`
   })
 
   return {

@@ -19,10 +19,17 @@ router.get('/', (req, res) => {
     .populate('_trip')
     .sort({ updatedAt: -1 })
     .then(expenses => {
-      expenses = expenses.filter(
-        expense =>
-          expense._creator && _.get(expense, '_trip.status', '') !== 'completed'
-      ) // check status of expense's trip  !== completed
+      expenses = expenses
+        .filter(
+          expense =>
+            // check status of expense's trip  !== completed
+            expense._creator &&
+            _.get(expense, '_trip.status', '') !== 'completed'
+        )
+        .map(expense => ({
+          ...expense.toJSON(),
+          _creator: expense._creator.toJSON()
+        }))
       res.status(200).send({ expenses })
     })
     .catch(e => res.status(400).send())
