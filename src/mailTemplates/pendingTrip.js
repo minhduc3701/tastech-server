@@ -38,7 +38,7 @@ async function pendingTrip(managers, trip, employee) {
       trip.budgetPassengers[0].totalPrice,
       trip.currency
     ),
-    reviewLink: `${process.env.APP_URI}`
+    reviewLink: `${process.env.APP_URI}/admin/trips/${trip._id}`
   })
 
   return {
