@@ -82,17 +82,7 @@ router.post('/shopping', currencyExchange, async (req, res) => {
         airport_code: {
           $in: airports
         }
-      }),
-      IataCity.aggregate([
-        {
-          $lookup: {
-            from: 'cities',
-            localField: 'city_id',
-            foreignField: '_id',
-            as: 'cities'
-          }
-        }
-      ])
+      })
     ])
       .then(results => {
         let arrAirline = results[0]
@@ -105,15 +95,6 @@ router.post('/shopping', currencyExchange, async (req, res) => {
         arrAirport.forEach(airport => {
           airports[airport._doc.airport_code] = airport
         })
-
-        // add more iata city codes to airports
-        results[2]
-          .filter(ic => ic.cities.length > 0)
-          .forEach(ic => {
-            airports[ic.city_code] = {
-              city_name: _.get(ic, 'cities[0].name')
-            }
-          })
 
         res.status(200).send({
           flights,
