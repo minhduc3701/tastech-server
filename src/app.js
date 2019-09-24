@@ -41,6 +41,7 @@ const cardsRouter = require('./routes/cards')
 const checkoutRouter = require('./routes/checkout')
 const ordersRouter = require('./routes/orders')
 const reportsRouter = require('./routes/reports')
+const urboxRouter = require('./routes/urbox')
 const { authenticateRole } = require('./middleware/authenticate')
 
 const jwtAuthenticate = passport.authenticate('jwt', { session: false })
@@ -170,10 +171,13 @@ app.use('/airports', jwtAuthenticate, airportsRouter)
 app.use('/cities', jwtAuthenticate, citiesRouter)
 app.use('/regions', jwtAuthenticate, regionsRouter)
 
+// gifts
+app.use('/urbox', jwtAuthenticate, urboxRouter)
+
 // checkout
 app.use('/cards', jwtAuthenticate, cardsRouter)
 
-app.use('/checkout', jwtAuthenticate, checkoutRouter)
+app.use('/urbox', jwtAuthenticate, checkoutRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

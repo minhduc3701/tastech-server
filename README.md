@@ -43,7 +43,12 @@ Add config/config.json with the content like below:
     "SMTP_USER": "<your mailtrap user>",
     "SMTP_PASSWORD": "<your mailtrap password>",
     "EMAIL_CONTACT": "support@ezbiztrip.com",
-    "EMAIL_NO_REPLY": "no-reply@ezbiztrip.com"
+    "EMAIL_NO_REPLY": "no-reply@ezbiztrip.com",
+    "URBOX_ID": <UR_BOX_ID>,
+    "URBOX_SECRET": <UR_BOX_SECRET>
+    "URBOX_URI": "https://sandapi.urbox.vn",
+    "URBOX_GIFTLIST_VERSION": "4.0",
+    "URBOX_OTHER_API_VERSION": "2.0"
   }
 }
 
@@ -142,7 +147,7 @@ export PKFARE_HOTEL_URI=https://hotelapi.pkfare.com/hotel
 export PKFARE_PARTNER_ID=<PKFARE_PARTNER_ID>
 export PKFARE_PARTNER_KEY=<PKFARE_PARTNER_KEY>
 export PKFARE_HOTEL_ORDER_SECRET=<production hotel order secret>
-export SABRE_URI=https://api-crt.cert.havail.sabre.com",
+export SABRE_URI=https://api-crt.cert.havail.sabre.com"
 export SABRE_USER_ID=<SABRE_USER_ID>
 export SABRE_CLIENT_ID=<SABRE_CLIENT_ID>
 export SABRE_SECRET_KEY=<SABRE_SECRET_KEY>
@@ -159,6 +164,11 @@ export TRANSFERWISE_URI=https://api.transferwise.com
 export TRANSFERWISE_API_KEY=<TRANSFERWISE_LIVE_KEY>
 export EMAIL_CONTACT=support@ezbiztrip.com
 export EMAIL_NO_REPLY=no-reply@ezbiztrip.com
+export URBOX_ID=<UR_BOX_ID>
+export URBOX_SECRET=<UR_BOX_SECRET>
+export URBOX_URI=https://sandapi.urbox.vn
+export URBOX_GIFTLIST_VERSION=4.0
+export URBOX_OTHER_API_VERSION=2.0
 ```
 
 Now you ready to run your app
