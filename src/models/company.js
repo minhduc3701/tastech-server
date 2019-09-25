@@ -25,7 +25,10 @@ const CompanySchema = new Schema({
     type: String,
     required: true,
     enum: supportCurrencies
-  }
+  },
+  language: '',
+  weightUnit: '',
+  lengthUnit: ''
 })
 
 CompanySchema.methods.toJSON = function() {

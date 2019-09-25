@@ -21,7 +21,10 @@ router.patch('/', (req, res) => {
     'timezone',
     'industry',
     'exchangedRate',
-    '_policy'
+    '_policy',
+    'language',
+    'weightUnit',
+    'lengthUnit'
   ])
 
   Company.findByIdAndUpdate(
