@@ -489,7 +489,7 @@ const sabreCreatePNR = async (req, res, next) => {
               Remark: [
                 {
                   Type: 'General',
-                  Text: '5WT-R698/ON'
+                  Text: 'WT-R698/ON'
                 }
               ]
             }
