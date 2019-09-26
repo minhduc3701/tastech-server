@@ -523,7 +523,7 @@ const sabreCreatePNR = async (req, res, next) => {
           FlightNumber: `${segment.operatingFlightNumber}`,
           ArrivalDateTime: segment.ArrivalDateTime,
           Status: 'NN',
-          ResBookDesigCode: segment.cabinCode,
+          ResBookDesigCode: segment.bookingCode,
           NumberInParty: `${trip.passengers.length}`,
           MarketingAirline: {
             Code: `${segment.marketing}`,
@@ -542,17 +542,16 @@ const sabreCreatePNR = async (req, res, next) => {
         }
       )
     })
-    // logger.info('createPNR request', data)
+    logger.info('createPNR request', data)
     let sabrePNRres = await apiSabre.createPNR(data, req.sabreToken)
+    logger.info('createPNR response', sabrePNRres)
+
     let status = _.get(
       sabrePNRres,
       ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
       'failed'
     )
-    logger.info(
-      'createPNR response',
-      sabrePNRres.data.CreatePassengerNameRecordRS
-    )
+
     if (status === 'Complete') {
       let pnr = _.get(
         sabrePNRres,

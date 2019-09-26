@@ -3,8 +3,8 @@ const { renderMail } = require('../config/mail')
 async function sendPnrGiamso(flightOrder) {
   let html = await renderMail('pnr-giamso', {
     pnr: `${flightOrder.pnr}`,
-    price: `${flightOrder.rawCurrency}`,
-    currency: `${flightOrder.rawTotalPrice}`,
+    price: `${flightOrder.rawTotalPrice}`,
+    currency: `${flightOrder.rawCurrency}`,
     passengers: flightOrder.passengers
   })
   return {
