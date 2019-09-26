@@ -4,7 +4,7 @@ const Schema = mongoose.Schema
 const GiftSchema = new Schema({
   giftName: String,
   giftImage: String,
-  giftImages: Array,
+  description: String,
   brandName: String,
   brandImage: String,
   categoryId: String,
@@ -25,7 +25,9 @@ const GiftSchema = new Schema({
   cartTotal: String,
   cartGiftLink: Array,
   cartGiftLinkCoce: Array,
-  supplier: String
+  supplier: String,
+  country: String,
+  expiredDate: Date
 })
 
 module.exports = mongoose.model('Gift', GiftSchema)

@@ -742,14 +742,14 @@ const makeGiftData = gift => {
     giftId: gift.id,
     giftName: gift.title,
     giftImage: gift.image,
-    giftImages: gift.images,
     brandName: gift.brand,
     brandImage: gift.brandImage,
     categoryId: gift.cat_id,
     categoryName: gift.cat_title,
     price: gift.price,
     supplier: 'urbox',
-    currency: 'VND'
+    currency: 'VND',
+    country: 'VN'
   }
 }
 
