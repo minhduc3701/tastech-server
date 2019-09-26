@@ -200,7 +200,8 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
       ).format('YYYY-MM-DD')
       l.itineraries.map(i => {
         let obj = {
-          legs: i.legs
+          legs: i.legs,
+          index: i.id
         }
         obj.refundable = !i.pricingInformation[0].fare.passengerInfoList[0]
           .passengerInfo.nonRefundable

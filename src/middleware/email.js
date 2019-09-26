@@ -242,10 +242,13 @@ const emailGiamsoIssueTicket = async (req, res, next) => {
   }
   const trip = req.trip
 
-  if (_.get(trip, 'flight.supplier') !== 'sabre') {
+  if (
+    _.get(trip, 'flight.supplier') !== 'sabre' ||
+    req.flightOrder !== 'processing'
+  ) {
     return next()
   } else {
-    let mailOptions = sendPnrGiamso(req.user, trip.flight)
+    let mailOptions = sendPnrGiamso(req.user, req.flightOrder)
     mail.sendMail(mailOptions, function(err, info) {
       if (err) {
         debugMail(err)

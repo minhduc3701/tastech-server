@@ -4,6 +4,8 @@ const querystring = require('querystring')
 const flightHttp = axios.create({
   baseURL: process.env.SABRE_URI
 })
+console.log(process.env.SABRE_URI)
+console.log(process.env.SABRE_BASE_CURRENCY)
 
 const apiSabre = {
   shopping: (data, sabreToken) => {
