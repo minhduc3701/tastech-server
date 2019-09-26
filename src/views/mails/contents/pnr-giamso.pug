@@ -2,8 +2,11 @@ extends ../layout.pug
 
 block content
 
-  h4 pnr:#{pnr}
-  h4 passengers:#{pnr}
-  h4 totalFare:#{price}
-  h4 currency:#{currency}
-  
+  h3 pnr: #{pnr}
+  h3 passengers:
+  ul
+    each p in passengers
+      li
+        |#{p.firstName} #{p.lastName}
+  h3 totalFare: #{price}
+  h3 currency: #{currency}

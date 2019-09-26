@@ -240,15 +240,15 @@ const emailGiamsoIssueTicket = async (req, res, next) => {
   if (req.checkoutError && req.checkoutError.flight) {
     return next()
   }
-  const trip = req.trip
+  const flightOrder = req.flightOrder
 
   if (
-    _.get(trip, 'flight.supplier') !== 'sabre' ||
-    req.flightOrder !== 'processing'
+    _.get(flightOrder, 'flight.supplier') !== 'sabre' ||
+    flightOrder.status !== 'processing'
   ) {
     return next()
   } else {
-    let mailOptions = sendPnrGiamso(req.user, req.flightOrder)
+    let mailOptions = await sendPnrGiamso(req.flightOrder)
     mail.sendMail(mailOptions, function(err, info) {
       if (err) {
         debugMail(err)

@@ -1,17 +1,16 @@
-// const { renderMail } = require('../config/mail')
+const { renderMail } = require('../config/mail')
 
-async function sendPnrGiamso(user, flightOrder) {
+async function sendPnrGiamso(flightOrder) {
   let html = await renderMail('pnr-giamso', {
-    title: `Request to issue ticket - ${a}`,
     pnr: `${flightOrder.pnr}`,
     price: `${flightOrder.rawCurrency}`,
     currency: `${flightOrder.rawTotalPrice}`,
-    passengers: `${flightOrder.passengers}`
+    passengers: flightOrder.passengers
   })
   return {
-    to: user.email,
+    to: 'tas@giamso.com.sg',
     from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
-    subject: `Request to issue ticket`,
+    subject: `Request to issue ticket - ${flightOrder.pnr}`,
     html
   }
 }

@@ -93,7 +93,7 @@ router.post(
               ]
             }
           ],
-          SeatsRequested: [1]
+          SeatsRequested: [req.body.adults]
         },
         Version: '1'
       }
@@ -104,7 +104,12 @@ router.post(
       let sabreRes = await apiSabre.shopping(data, req.sabreToken)
       sabreRes = sabreRes.data.groupedItineraryResponse
       let { itineraryGroups } = sabreRes
-      let flights = makeSabreFlightsData(itineraryGroups, sabreRes, req)
+      let flights = makeSabreFlightsData(
+        itineraryGroups,
+        sabreRes,
+        req,
+        req.body.adults
+      )
       let airlines = []
       let airports = []
 

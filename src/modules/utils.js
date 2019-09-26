@@ -190,7 +190,12 @@ const getBaggageForSabreFlight = (baggageInformation, index) => {
     startIndex += baggageInformation[i].segments.length
   }
 }
-const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
+const makeSabreFlightsData = (
+  itineraryGroups,
+  sabreRes,
+  req,
+  numberOfPassengers
+) => {
   let flights = []
   try {
     logger.info('sabreRes: ', itineraryGroups)
@@ -438,7 +443,7 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
         obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
         obj.currency = req.currency.code
         obj.totalPrice = obj.rawTotalPrice * req.currency.rate
-        obj.price = obj.rawTotalPrice * req.currency.rate
+        obj.price = (obj.rawTotalPrice * req.currency.rate) / numberOfPassengers
         obj.supplier = 'sabre'
 
         flights.push(obj)
