@@ -737,6 +737,22 @@ const getUserProfileStrength = user => {
   return strength
 }
 
+const makeGiftData = gift => {
+  return {
+    giftId: gift.id,
+    giftName: gift.title,
+    giftImage: gift.image,
+    giftImages: gift.images,
+    brandName: gift.brand,
+    brandImage: gift.brandImage,
+    categoryId: gift.cat_id,
+    categoryName: gift.cat_title,
+    price: gift.price,
+    supplier: 'urbox',
+    currency: 'VND'
+  }
+}
+
 module.exports = {
   getImageUri,
   makeSegmentsData,
@@ -748,5 +764,6 @@ module.exports = {
   makeHotelbedsHotelsData,
   roundingAmountStripe,
   formatLocaleMoney,
-  getUserProfileStrength
+  getUserProfileStrength,
+  makeGiftData
 }

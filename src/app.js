@@ -177,7 +177,7 @@ app.use('/urbox', jwtAuthenticate, urboxRouter)
 // checkout
 app.use('/cards', jwtAuthenticate, cardsRouter)
 
-app.use('/urbox', jwtAuthenticate, checkoutRouter)
+app.use('/checkout', jwtAuthenticate, checkoutRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

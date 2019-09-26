@@ -4,19 +4,23 @@ const _ = require('lodash')
 const Gift = require('../models/gift')
 const User = require('../models/user')
 const apiUrbox = require('../modules/apiUrbox')
+const { makeGiftData } = require('../modules/utils')
 
-let data = {
+let urboxKey = {
   app_id: process.env.URBOX_ID,
   app_secret: process.env.URBOX_SECRET
 }
 
-router.get('/gifts', async (req, res) => {
+router.post('/gifts', async (req, res) => {
   try {
-    let resData = await apiUrbox.getGifts(data)
+    let reqBody = { ...urboxKey, ...req.body }
+    let resData = await apiUrbox.getGifts(reqBody)
 
     if (resData.data.msg === 'success') {
+      let gifts = resData.data.data.items.map(makeGiftData)
       res.status(200).send({
-        gifts: resData.data.data.items
+        gifts: gifts,
+        totalPage: resData.data.data.totalPage
       })
     }
   } catch (error) {
@@ -27,35 +31,46 @@ router.get('/gifts', async (req, res) => {
 router.post('/voucher', async (req, res) => {
   try {
     const giftPrice = parseInt(req.body.price)
+    const siteUserId = 'ezbiztrip-' + req.user.id
     const transaction = require('order-id')(process.env.URBOX_SECRET)
     const transactionId = transaction.generate()
 
-    data = {
-      ...data,
-      ttphone: req.user.phone,
-      ttemail: req.user.email,
-      fullname: req.user.firstName + ' ' + req.user.lastName,
-      site_user_id: 'ezbiztrip-' + req.user.id,
+    let reqBody = {
+      ...urboxKey,
+      ttphone: req.body.customerInfo.phone,
+      ttemail: req.body.customerInfo.email,
+      fullname: req.body.customerInfo.fullname,
+      site_user_id: siteUserId,
       transaction_id: transactionId,
       dataBuy: [
         {
-          priceId: req.body.id,
+          priceId: req.body.giftId,
           quantity: '1'
         }
       ]
     }
 
     if (req.user.point >= giftPrice) {
-      let resData = await apiUrbox.requestVoucher(data)
-      let remainingPoints = req.user.point - giftPrice
+      let resData = await apiUrbox.requestVoucher(reqBody)
 
       if (resData.data.msg === 'success') {
-        let gift = new Gift({
-          owner: req.user._id,
-          pay: resData.data.data.pay,
-          transactionId: resData.data.data.transaction_id,
-          cart: resData.data.data.cart
-        })
+        let remainingPoints = req.user.point - giftPrice / 1000
+        let giftData = {
+          ...req.body,
+          buyer: req.user.id,
+          site_user_id: siteUserId,
+          transaction_id: transactionId,
+          quantity: 1,
+          pricePoint: giftPrice / 1000,
+          currency: 'VND',
+          cartId: resData.data.data.cart.id,
+          cartNumber: resData.data.data.cart.cartNo,
+          cartTotal: resData.data.data.cart.money_total,
+          cartGiftLink: resData.data.data.cart.link_gift,
+          cartGiftLinkCode: resData.data.data.cart.code_link_gift
+        }
+
+        let gift = new Gift(giftData)
         await gift.save()
 
         User.findByIdAndUpdate(

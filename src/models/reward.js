@@ -20,11 +20,7 @@ const GiftSchema = new Schema({
   quantity: Number,
   pricePoint: Number,
   currency: String,
-  cartId: String,
-  cartNumber: String,
-  cartTotal: String,
-  cartGiftLink: Array,
-  cartGiftLinkCoce: Array,
+  stock: Number,
   supplier: String
 })
 
