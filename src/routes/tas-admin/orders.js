@@ -3,6 +3,7 @@ const router = express.Router()
 const Order = require('../../models/order')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
+const { emailEmployeeItinerary } = require('../../middleware/email')
 router.get('/', function(req, res, next) {
   Order.find({})
     .populate('_trip', ['type', 'name', 'contactInfo'])
@@ -34,33 +35,43 @@ router.get('/:id', function(req, res, next) {
     })
 })
 
-router.patch('/:id', function(req, res) {
-  let id = req.params.id
+router.patch(
+  '/:id',
+  function(req, res, next) {
+    let id = req.params.id
 
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send()
-  }
+    if (!ObjectID.isValid(id)) {
+      return res.status(404).send()
+    }
 
-  const body = _.pick(req.body, ['status', 'pnr'])
+    const body = _.pick(req.body, ['status', 'pnr'])
 
-  Order.findOneAndUpdate(
-    {
-      _id: id
-    },
-    { $set: body },
-    { new: true }
-  )
-    .then(order => {
-      if (!order) {
-        return res.status(404).send()
-      }
-      res.status(200).send({ order })
-      // save for sending email to employee
-    })
-    .catch(e => {
-      console.log(e)
-      res.status(400).send()
-    })
-})
+    Order.findOneAndUpdate(
+      {
+        _id: id
+      },
+      { $set: body },
+      { new: true }
+    )
+      .then(order => {
+        if (!order) {
+          return res.status(404).send()
+        }
+        res.status(200).send({ order })
+        if (order.status === 'completed') {
+          //for sending email to employee
+          req.trip = {
+            _id: order._trip
+          }
+          next()
+        }
+      })
+      .catch(e => {
+        console.log(e)
+        res.status(400).send()
+      })
+  },
+  emailEmployeeItinerary
+)
 
 module.exports = router
