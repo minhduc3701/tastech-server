@@ -170,10 +170,11 @@ const getSegmentForSabreFlight = (fareComponents, index) => {
     for (let j = 0; j < fareComponents[i].segments.length; j++) {
       if (startIndex + j === index) {
         let cabinCode = fareComponents[i].segments[j].segment.cabinCode
+        let bookingCode = fareComponents[i].segments[j].segment.bookingCode
         let cabinClass = mapClassOptions[cabinCode]
         let seatsAvailable =
           fareComponents[i].segments[j].segment.seatsAvailable
-        return { cabinClass, seatsAvailable, cabinCode }
+        return { cabinClass, seatsAvailable, cabinCode, bookingCode }
       }
     }
     startIndex += fareComponents[i].segments.length
@@ -190,10 +191,15 @@ const getBaggageForSabreFlight = (baggageInformation, index) => {
     startIndex += baggageInformation[i].segments.length
   }
 }
-const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
+const makeSabreFlightsData = (
+  itineraryGroups,
+  sabreRes,
+  req,
+  numberOfPassengers
+) => {
   let flights = []
   try {
-    // logger.info("sabreRes: ", sabreRes)
+    logger.info('sabreRes: ', sabreRes)
     itineraryGroups.map(l => {
       let departureDate = moment(
         l.groupDescription.legDescriptions[0].departureDate
@@ -277,29 +283,33 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
               baggageInfor.push(baggageDecs.description2.toLowerCase())
             }
           }
-
+          let DepartureDateTime = `${departureDate}T${data.departure.time.substring(
+            0,
+            8
+          )}`
+          let ArrivalDateTime = `${arrivalDate}T${data.arrival.time.substring(
+            0,
+            8
+          )}`
           obj.departureSegments.push({
             id: data.id,
             cabinClass: segmentInfor.cabinClass,
             departure: data.departure.airport,
             arrival: data.arrival.airport,
             baggageInfor,
-            DepartureDateTime: `${departureDate}T${data.departure.time.substring(
-              0,
-              8
-            )}`,
+            DepartureDateTime: DepartureDateTime,
+            departureDate: DepartureDateTime,
             strDepartureDate: departureDate,
             strDepartureTime: data.departure.time.substring(0, 5),
-            ArrivalDateTime: `${arrivalDate}T${data.arrival.time.substring(
-              0,
-              8
-            )}`,
+            ArrivalDateTime: ArrivalDateTime,
+            arrivalDate: ArrivalDateTime,
             strArrivalDate: arrivalDate,
             strArrivalTime: data.arrival.time.substring(0, 5),
             flightNum: data.carrier.marketingFlightNumber,
             flightTime,
             seatsAvailable: segmentInfor.seatsAvailable,
             cabinCode: segmentInfor.cabinCode,
+            bookingCode: segmentInfor.bookingCode,
             airline: data.carrier.operating,
             marketing: data.carrier.marketing,
             marketingFlightNumber: data.carrier.marketingFlightNumber,
@@ -392,29 +402,33 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
                 baggageInfor.push(baggageDecs.description2.toLowerCase())
               }
             }
-
+            let DepartureDateTime = `${departureDate}T${data.departure.time.substring(
+              0,
+              8
+            )}`
+            let ArrivalDateTime = `${arrivalDate}T${data.arrival.time.substring(
+              0,
+              8
+            )}`
             obj.returnSegments.push({
               id: data.id,
               cabinClass: segmentInfor.cabinClass,
               departure: data.departure.airport,
               arrival: data.arrival.airport,
               baggageInfor,
-              DepartureDateTime: `${departureDate}T${data.departure.time.substring(
-                0,
-                8
-              )}`,
+              DepartureDateTime: DepartureDateTime,
+              departureDate: DepartureDateTime,
               strDepartureDate: departureDate,
               strDepartureTime: data.departure.time.substring(0, 5),
-              ArrivalDateTime: `${arrivalDate}T${data.arrival.time.substring(
-                0,
-                8
-              )}`,
+              ArrivalDateTime: ArrivalDateTime,
+              arrivalDate: ArrivalDateTime,
               strArrivalDate: arrivalDate,
               strArrivalTime: data.arrival.time.substring(0, 5),
               flightNum: data.carrier.marketingFlightNumber,
               flightTime,
               seatsAvailable: segmentInfor.seatsAvailable,
               cabinCode: segmentInfor.cabinCode,
+              bookingCode: segmentInfor.bookingCode,
               airline: data.carrier.operating,
               marketing: data.carrier.marketing,
               marketingFlightNumber: data.carrier.marketingFlightNumber,
@@ -437,7 +451,7 @@ const makeSabreFlightsData = (itineraryGroups, sabreRes, req) => {
         obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
         obj.currency = req.currency.code
         obj.totalPrice = obj.rawTotalPrice * req.currency.rate
-        obj.price = obj.rawTotalPrice * req.currency.rate
+        obj.price = (obj.rawTotalPrice * req.currency.rate) / numberOfPassengers
         obj.supplier = 'sabre'
 
         flights.push(obj)

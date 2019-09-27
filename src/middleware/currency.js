@@ -80,7 +80,43 @@ const hotelbedsCurrencyExchange = async (req, res, next) => {
   next()
 }
 
+const sabreCurrencyExchange = async (req, res, next) => {
+  try {
+    let company = await Company.findById(req.user._company)
+
+    if (
+      !company ||
+      !company.currency ||
+      !supportCurrencies.includes(company.currency)
+    ) {
+      throw new Error()
+    }
+
+    const rateRes = await api.exchangeCurrency(
+      process.env.SABRE_BASE_CURRENCY,
+      company.currency
+    )
+
+    if (_.isArray(rateRes.data)) {
+      // save the rate
+      req.currency = {
+        code: company.currency,
+        rate: rateRes.data[0].rate
+      }
+    }
+  } catch (e) {
+    debugServer(e)
+    req.currency = {
+      code: process.env.SABRE_BASE_CURRENCY,
+      rate: 1
+    }
+  }
+
+  next()
+}
+
 module.exports = {
   currencyExchange,
-  hotelbedsCurrencyExchange
+  hotelbedsCurrencyExchange,
+  sabreCurrencyExchange
 }

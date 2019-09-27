@@ -18,7 +18,8 @@ const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
 const { logger } = require('../config/winston')
 const {
   emailEmployeeCheckoutFailed,
-  emailEmployeeItinerary
+  emailEmployeeItinerary,
+  emailGiamsoIssueTicket
 } = require('../middleware/email')
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
@@ -352,6 +353,7 @@ const pkfareFlightTicketing = async (req, res, next) => {
     next()
     return
   }
+
   let flightOrder = req.flightOrder
   let bookingResponse = req.bookingResponse
   try {
@@ -482,6 +484,18 @@ const sabreCreatePNR = async (req, res, next) => {
             }
           }
         ],
+        SpecialReqDetails: {
+          AddRemark: {
+            RemarkInfo: {
+              Remark: [
+                {
+                  Type: 'General',
+                  Text: process.env.SABRE_GIAMSO_CODE
+                }
+              ]
+            }
+          }
+        },
         PostProcessing: {
           EndTransaction: {
             Source: {
@@ -510,7 +524,7 @@ const sabreCreatePNR = async (req, res, next) => {
           FlightNumber: `${segment.operatingFlightNumber}`,
           ArrivalDateTime: segment.ArrivalDateTime,
           Status: 'NN',
-          ResBookDesigCode: segment.cabinCode,
+          ResBookDesigCode: segment.bookingCode,
           NumberInParty: `${trip.passengers.length}`,
           MarketingAirline: {
             Code: `${segment.marketing}`,
@@ -531,18 +545,22 @@ const sabreCreatePNR = async (req, res, next) => {
     })
     logger.info('createPNR request', data)
     let sabrePNRres = await apiSabre.createPNR(data, req.sabreToken)
+    logger.info('createPNR response', sabrePNRres)
+
     let status = _.get(
       sabrePNRres,
       ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
       'failed'
     )
-    logger.info('createPNR response', sabrePNRres)
+
     if (status === 'Complete') {
-      flightOrder.customerCode = _.get(
+      let pnr = _.get(
         sabrePNRres,
-        ['data', 'CreatePassengerNameRecordRS', 'ApplicationResults', 'status'],
+        ['data', 'CreatePassengerNameRecordRS', 'ItineraryRef', 'ID'],
         ''
       )
+      flightOrder.customerCode = pnr
+      flightOrder.pnr = pnr
       flightOrder.status = 'processing'
       await flightOrder.save()
       req.flightOrder = flightOrder
@@ -757,7 +775,6 @@ const refundFailedOrder = async (req, res, next) => {
     next()
     return
   }
-
   try {
     let refundAmount = 0
 
@@ -824,6 +841,7 @@ const responseCheckout = async (req, res, next) => {
       hotelOrder
     })
   } catch (error) {
+    logger.info('error', error)
     // update order status to failed if something went wrong
     if (trip.flight && flightOrder) {
       flightOrder.status = 'failed'
@@ -853,9 +871,10 @@ router.post(
   createOrFindHotelOrder,
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
-  sabreCreatePNR,
   stripeCharging,
   pkfareFlightTicketing,
+  sabreCreatePNR,
+  emailGiamsoIssueTicket,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
   refundFailedOrder,
