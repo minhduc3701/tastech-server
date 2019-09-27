@@ -64,8 +64,12 @@ const roles = [
 ]
 
 module.exports = {
+  CAN_ACCESS_BOOKING,
   CAN_ACCESS_BUDGET,
   CAN_ACCESS_EXPENSE,
+  CAN_ACCESS_ANALYTICS,
+  CAN_ACCESS_REWARD,
+  CAN_ACCESS_COMPANY,
   permissions,
   roles
 }
