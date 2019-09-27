@@ -103,14 +103,16 @@ router.post('/shopping', currencyExchange, async (req, res) => {
         let arrAirport = results[1]
         let airports = {}
         arrAirport.forEach(airport => {
-          airports[airport._doc.airport_code] = airport
+          airports[airport._doc.airport_code] = airport.toObject()
         })
 
         // add more iata city codes to airports
         results[2]
           .filter(ic => ic.cities.length > 0)
           .forEach(ic => {
+            let airport = _.get(airports, `[${ic.city_code}]`, {})
             airports[ic.city_code] = {
+              ...airport,
               city_name: _.get(ic, 'cities[0].name')
             }
           })

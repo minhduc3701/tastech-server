@@ -38,7 +38,7 @@ async function checkoutFail(req) {
     hotel: _.get(hotelOrder, 'hotel'),
     user: req.user,
     amountFail,
-    appLink: process.env.APP_URI
+    appLink: `${process.env.APP_URI}/employee/travel/${trip._id}?tab=itinerary`
   })
 
   return {

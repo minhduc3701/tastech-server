@@ -318,7 +318,8 @@ const stripeCharging = async (req, res, next) => {
     const charge = await stripe.charges.create({
       amount,
       currency,
-      customer: foundCard.customer.id // Previously stored, then retrieved
+      customer: foundCard.customer.id, // Previously stored, then retrieved
+      capture: false // don't capture to prevent stripe fee
     })
 
     req.charge = charge

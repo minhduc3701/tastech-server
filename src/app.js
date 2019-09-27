@@ -41,7 +41,16 @@ const cardsRouter = require('./routes/cards')
 const checkoutRouter = require('./routes/checkout')
 const ordersRouter = require('./routes/orders')
 const reportsRouter = require('./routes/reports')
-const { authenticateRole } = require('./middleware/authenticate')
+const {
+  authenticateRole,
+  authenticatePermission
+} = require('./middleware/authenticate')
+const {
+  CAN_ACCESS_BUDGET,
+  CAN_ACCESS_EXPENSE,
+  CAN_ACCESS_ANALYTICS,
+  CAN_ACCESS_COMPANY
+} = require('./config/roles')
 
 const jwtAuthenticate = passport.authenticate('jwt', { session: false })
 
@@ -106,50 +115,50 @@ app.use(
 app.use(
   '/admin/company',
   jwtAuthenticate,
-  authenticateRole('admin'),
+  authenticatePermission(CAN_ACCESS_COMPANY),
   adminCompanyRouter
 )
 app.use(
   '/admin/users',
   jwtAuthenticate,
-  authenticateRole('admin'),
+  authenticatePermission(CAN_ACCESS_COMPANY),
   adminUsersRouter
 )
 app.use(
   '/admin/roles',
   jwtAuthenticate,
-  authenticateRole('admin'),
+  authenticatePermission(CAN_ACCESS_COMPANY),
   adminRolesRouter
 )
 app.use(
   '/admin/trips',
   jwtAuthenticate,
-  authenticateRole('admin'),
+  authenticatePermission(CAN_ACCESS_BUDGET),
   adminTripsRouter
 )
 app.use(
   '/admin/expenses',
   jwtAuthenticate,
-  authenticateRole('admin'),
+  authenticatePermission(CAN_ACCESS_EXPENSE),
   adminExpensesRouter
 )
 app.use(
   '/admin/policies',
   jwtAuthenticate,
-  authenticateRole('admin'),
+  authenticatePermission(CAN_ACCESS_COMPANY),
   adminPolicyRouter
 )
 app.use(
   '/admin/departments',
   jwtAuthenticate,
-  authenticateRole('admin'),
+  authenticatePermission(CAN_ACCESS_COMPANY),
   adminDepartmentRouter
 )
 
 app.use(
   '/admin/reports',
   jwtAuthenticate,
-  authenticateRole('admin'),
+  authenticatePermission(CAN_ACCESS_ANALYTICS),
   adminReportsRouter
 )
 

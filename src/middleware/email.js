@@ -18,6 +18,7 @@ const { checkoutFail } = require('../mailTemplates/checkoutFail')
 const { tripItinerary } = require('../mailTemplates/tripItinerary')
 const { sendPnrGiamso } = require('../mailTemplates/sendPnrGiamso')
 const { debugMail } = require('../config/debug')
+const { CAN_ACCESS_BUDGET, CAN_ACCESS_EXPENSE } = require('../config/roles')
 
 const emailEmployeeChangeExpenseStatus = async (req, res) => {
   if (!_.isEmpty(req.expense)) {
@@ -58,17 +59,21 @@ const emailAccountantClaimExpense = async (req, res) => {
         _creator: req.user.id,
         _id: { $in: req.expenseIds }
       }).populate('_trip'),
-      Role.findOne({
+      Role.find({
         _company: req.user._company,
-        type: 'accountant'
+        permissions: {
+          $elemMatch: {
+            $eq: CAN_ACCESS_EXPENSE
+          }
+        }
       })
     ])
       .then(results => {
         req.expenses = results[0]
-        let role = results[1]
+        let roles = results[1]
         // find trip infor and  accountant account
         return User.find({
-          _role: role._id
+          _role: { $in: roles.map(role => role._id) }
         })
       })
       .then(async accountants => {
@@ -101,13 +106,19 @@ const emailEmployeeSubmitTrip = async (req, res, next) => {
 }
 
 const emailManagerSubmitTrip = (req, res) => {
-  Role.findOne({
+  Role.find({
     _company: req.user._company,
-    type: 'manager'
+    permissions: {
+      $elemMatch: {
+        $eq: CAN_ACCESS_BUDGET
+      }
+    }
   })
-    .then(role => {
+    .then(roles => {
       return User.find({
-        _role: role._id
+        _role: {
+          $in: roles.map(role => role._id)
+        }
       })
     })
     .then(async users => {
