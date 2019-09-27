@@ -489,7 +489,7 @@ const sabreCreatePNR = async (req, res, next) => {
               Remark: [
                 {
                   Type: 'General',
-                  Text: 'WT-R698/ON'
+                  Text: process.env.SABRE_GIAMSO_CODE
                 }
               ]
             }
