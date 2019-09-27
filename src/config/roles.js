@@ -63,4 +63,9 @@ const roles = [
   }
 ]
 
-module.exports = { permissions, roles }
+module.exports = {
+  CAN_ACCESS_BUDGET,
+  CAN_ACCESS_EXPENSE,
+  permissions,
+  roles
+}
