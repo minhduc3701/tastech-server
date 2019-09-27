@@ -424,11 +424,12 @@ const sabreCreatePNR = async (req, res, next) => {
     return
   }
 
+  // if error occurs before
+  if (req.checkoutError) {
+    return next()
+  }
+
   try {
-    // if error occurs before
-    if (req.checkoutError) {
-      throw req.checkoutError
-    }
     let data = {
       CreatePassengerNameRecordRQ: {
         targetCity: process.env.SABRE_USER_ID,
@@ -569,7 +570,10 @@ const sabreCreatePNR = async (req, res, next) => {
     }
   } catch (error) {
     logger.info('error', error)
-    req.checkoutError = error
+    req.checkoutError = {
+      ..._.get(error, 'response.data', {}),
+      flight: true
+    }
   }
 
   next()
