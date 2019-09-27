@@ -234,7 +234,7 @@ const companies = [
     name: 'Company 3',
     exchangedRate: 10,
     _policy: defaultPolicyId3,
-    currency: 'USD'
+    currency: 'VND'
   }
 ]
 
@@ -257,7 +257,14 @@ const roles = [
     _id: adminRoleId,
     name: 'Admin',
     type: 'admin',
-    permissions: ['CAN_ACCESS_COMPANY', 'CAN_ACCESS_REWARD'],
+    permissions: [
+      'CAN_ACCESS_COMPANY',
+      'CAN_ACCESS_REWARD',
+      'CAN_ACCESS_BOOKING',
+      'CAN_ACCESS_BUDGET',
+      'CAN_ACCESS_EXPENSE',
+      'CAN_ACCESS_ANALYTICS'
+    ],
     _company: companyId
   },
   {
@@ -290,7 +297,14 @@ const roles = [
     _id: adminRoleId2,
     name: 'Admin',
     type: 'admin',
-    permissions: ['CAN_ACCESS_COMPANY'],
+    permissions: [
+      'CAN_ACCESS_COMPANY',
+      'CAN_ACCESS_REWARD',
+      'CAN_ACCESS_BOOKING',
+      'CAN_ACCESS_BUDGET',
+      'CAN_ACCESS_EXPENSE',
+      'CAN_ACCESS_ANALYTICS'
+    ],
     _company: companyId2
   },
   {
@@ -306,7 +320,14 @@ const roles = [
     _id: adminRoleId3,
     name: 'Admin',
     type: 'admin',
-    permissions: ['CAN_ACCESS_COMPANY'],
+    permissions: [
+      'CAN_ACCESS_COMPANY',
+      'CAN_ACCESS_REWARD',
+      'CAN_ACCESS_BOOKING',
+      'CAN_ACCESS_BUDGET',
+      'CAN_ACCESS_EXPENSE',
+      'CAN_ACCESS_ANALYTICS'
+    ],
     _company: companyId3
   },
   {
