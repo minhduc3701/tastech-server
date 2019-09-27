@@ -5,13 +5,13 @@ const Trip = require('../models/trip')
 const { ObjectID } = require('mongodb')
 const { upload } = require('../config/aws')
 const _ = require('lodash')
-const { currencyExchange } = require('../middleware/currency')
+const { currentCompany } = require('../middleware/company')
 const {
   emailEmployeeClaimExpense,
   emailAccountantClaimExpense
 } = require('../middleware/email')
 
-router.post('/', currencyExchange, upload.array('receipts'), function(
+router.post('/', currentCompany, upload.array('receipts'), function(
   req,
   res,
   next
@@ -19,7 +19,7 @@ router.post('/', currencyExchange, upload.array('receipts'), function(
   const expense = new Expense(req.body)
   expense._creator = req.user._id
   expense._company = req.user._company
-  expense.currency = req.currency.code
+  expense.currency = req.company.currency
   if (!_.isEmpty(req.files)) {
     expense.receipts = req.files.map(file => file.key)
   }

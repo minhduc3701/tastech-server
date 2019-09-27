@@ -1,0 +1,12 @@
+extends ../layout.pug
+
+block content
+
+  h3 pnr: #{pnr}
+  h3 passengers:
+  ul
+    each p in passengers
+      li
+        |#{p.firstName} #{p.lastName}
+  h3 totalFare: #{price}
+  h3 currency: #{currency}
