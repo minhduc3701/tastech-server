@@ -8,7 +8,7 @@ async function sendPnrGiamso(flightOrder) {
     passengers: flightOrder.passengers
   })
   return {
-    to: 'tas@giamso.com.sg',
+    to: `${process.env.EMAIL_GIAMSO}`,
     from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
     subject: `Request to issue ticket - ${flightOrder.pnr}`,
     html
