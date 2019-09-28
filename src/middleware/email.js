@@ -217,7 +217,8 @@ const emailEmployeeItinerary = async (req, res, next) => {
           airport_code: {
             $in: airports
           }
-        })
+        }),
+        User.findById(_.get(orders, '[0]._customer'))
       ]).then(async results => {
         // map arr to object
         let arrAirline = results[0]
@@ -230,12 +231,8 @@ const emailEmployeeItinerary = async (req, res, next) => {
         arrAirport.forEach(airport => {
           airports[airport._doc.airport_code] = airport.toObject()
         })
-        let mailOptions = await tripItinerary(
-          req.user,
-          orders,
-          airlines,
-          airports
-        )
+        let user = results[2]
+        let mailOptions = await tripItinerary(user, orders, airlines, airports)
         return mail.sendMail(mailOptions, function(err, info) {
           if (err) {
             debugMail(err)
