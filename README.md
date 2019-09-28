@@ -45,7 +45,8 @@ Add config/config.json with the content like below:
     "SMTP_USER": "<your mailtrap user>",
     "SMTP_PASSWORD": "<your mailtrap password>",
     "EMAIL_CONTACT": "support@ezbiztrip.com",
-    "EMAIL_NO_REPLY": "no-reply@ezbiztrip.com"
+    "EMAIL_NO_REPLY": "no-reply@ezbiztrip.com",
+    "EMAIL_GIAMSO": "",
   }
 }
 
@@ -148,6 +149,8 @@ export SABRE_URI=https://api-crt.cert.havail.sabre.com",
 export SABRE_USER_ID=<SABRE_USER_ID>
 export SABRE_CLIENT_ID=<SABRE_CLIENT_ID>
 export SABRE_SECRET_KEY=<SABRE_SECRET_KEY>
+export SABRE_GIAMSO_CODE=<SABRE_GIAMSO_CODE>
+export SABRE_BASE_CURRENCY=<SABRE_BASE_CURRENCY>
 export STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY>
 export BASE_CURRENCY=SGD
 export HOTELBEDS_BASE_CURRENCY=EUR
@@ -161,6 +164,7 @@ export TRANSFERWISE_URI=https://api.transferwise.com
 export TRANSFERWISE_API_KEY=<TRANSFERWISE_LIVE_KEY>
 export EMAIL_CONTACT=support@ezbiztrip.com
 export EMAIL_NO_REPLY=no-reply@ezbiztrip.com
+export EMAIL_GIAMSO=<EMAIL_GIAMSO>
 ```
 
 Now you ready to run your app
