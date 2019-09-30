@@ -11,6 +11,7 @@ const { sabreCurrencyExchange } = require('../../middleware/currency')
 const { sabreToken } = require('../../middleware/sabre')
 const { makeSabreFlightsData } = require('../../modules/utils')
 const { logger } = require('../../config/winston')
+const { giamsoAirlines } = require('../../modules/utils')
 
 router.post(
   '/shopping',
@@ -50,6 +51,13 @@ router.post(
         }
       })
     }
+    let VendorPref = []
+    giamsoAirlines.map(airline => {
+      VendorPref.push({
+        Code: airline,
+        PreferLevel: 'Only'
+      })
+    })
     let data = {
       OTA_AirLowFareSearchRQ: {
         OriginDestinationInformation,
@@ -80,7 +88,8 @@ router.post(
             Description: true,
             RequestedPieces: 2,
             FreePieceRequired: true
-          }
+          },
+          VendorPref
         },
         TravelerInfoSummary: {
           AirTravelerAvail: [
