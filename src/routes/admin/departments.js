@@ -9,7 +9,6 @@ let projectEmployeesFields = {
   'employees.hash': 0,
   'employees.salt': 0,
   'employees.username': 0,
-  'employees.lastName': 0,
   'employees._company': 0,
   'employees._policy': 0,
   'employees._role': 0,
