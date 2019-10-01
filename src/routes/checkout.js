@@ -578,12 +578,20 @@ const sabreCreatePNR = async (req, res, next) => {
       await flightOrder.save()
       req.flightOrder = flightOrder
     } else {
-      throw { message: 'Create PNR failed!', flight: true }
+      throw {
+        message: _.get(
+          sabrePNRres,
+          'headers[error-message]',
+          'Create PNR failed!'
+        ),
+        flight: true
+      }
     }
   } catch (error) {
-    logger.info('error', error)
+    logger.error('SabrePNRError', { error })
     req.checkoutError = {
       ..._.get(error, 'response.data', {}),
+      message: _.get(error, 'message'),
       flight: true
     }
   }
@@ -787,7 +795,8 @@ const hotelbedsCreateOrder = async (req, res, next) => {
 
 const refundFailedOrder = async (req, res, next) => {
   // exit if no checkout errors
-  if (!req.checkoutError) {
+  // or no charge, run to another middleware
+  if (!req.checkoutError || !req.charge) {
     next()
     return
   }
