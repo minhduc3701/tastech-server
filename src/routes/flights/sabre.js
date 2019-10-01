@@ -7,161 +7,222 @@ const Airline = require('../../models/airline')
 const Airport = require('../../models/airport')
 const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
-const { currencyExchange } = require('../../middleware/currency')
+const { sabreCurrencyExchange } = require('../../middleware/currency')
 const { sabreToken } = require('../../middleware/sabre')
 const { makeSabreFlightsData } = require('../../modules/utils')
 const { logger } = require('../../config/winston')
+const { giamsoAirlines } = require('../../modules/utils')
+const { makeSabreFlightCacheKey } = require('../../modules/cache')
+const { getCache, setCache } = require('../../config/cache')
 
-router.post('/shopping', currencyExchange, sabreToken, async (req, res) => {
-  let isRoundTrip = req.body.searchAirLegs.length === 2
-  let OriginDestinationInformation = [
-    {
-      DepartureDateTime: req.body.searchAirLegs[0].departureDate,
-      DestinationLocation: {
-        LocationCode: req.body.searchAirLegs[0].destination
-      },
-      OriginLocation: {
-        LocationCode: req.body.searchAirLegs[0].origin
-      },
-      TPA_Extensions: {
-        CabinPref: {
-          Cabin: req.body.cabinClass
-        }
-      }
+router.post(
+  '/shopping',
+  sabreCurrencyExchange,
+  sabreToken,
+  async (req, res) => {
+    let cacheKey = makeSabreFlightCacheKey(req.body)
+
+    try {
+      let cacheData = await getCache(cacheKey)
+
+      let flights = makeSabreFlightsData(
+        cacheData.sabreRes,
+        req.currency,
+        cacheData.numberOfPassengers
+      )
+
+      return res.status(200).send({
+        flights,
+        airlines: cacheData.airlines,
+        airports: cacheData.airports
+      })
+    } catch (e) {
+      // do nothing to run the try block below
     }
-  ]
-  if (isRoundTrip) {
-    OriginDestinationInformation.push({
-      DepartureDateTime: req.body.searchAirLegs[1].departureDate,
-      DestinationLocation: {
-        LocationCode: req.body.searchAirLegs[1].destination
-      },
-      OriginLocation: {
-        LocationCode: req.body.searchAirLegs[1].origin
-      },
-      TPA_Extensions: {
-        CabinPref: {
-          Cabin: req.body.cabinClass
+
+    let isRoundTrip = req.body.searchAirLegs.length === 2
+    let OriginDestinationInformation = [
+      {
+        DepartureDateTime: req.body.searchAirLegs[0].departureDate,
+        DestinationLocation: {
+          LocationCode: req.body.searchAirLegs[0].destination
+        },
+        OriginLocation: {
+          LocationCode: req.body.searchAirLegs[0].origin
+        },
+        TPA_Extensions: {
+          CabinPref: {
+            Cabin: req.body.cabinClass
+          }
         }
       }
+    ]
+    if (isRoundTrip) {
+      OriginDestinationInformation.push({
+        DepartureDateTime: req.body.searchAirLegs[1].departureDate,
+        DestinationLocation: {
+          LocationCode: req.body.searchAirLegs[1].destination
+        },
+        OriginLocation: {
+          LocationCode: req.body.searchAirLegs[1].origin
+        },
+        TPA_Extensions: {
+          CabinPref: {
+            Cabin: req.body.cabinClass
+          }
+        }
+      })
+    }
+    let VendorPref = []
+    giamsoAirlines.map(airline => {
+      VendorPref.push({
+        Code: airline,
+        PreferLevel: 'Only',
+        Type: 'Operating'
+      })
     })
-  }
-  let data = {
-    OTA_AirLowFareSearchRQ: {
-      OriginDestinationInformation,
-      POS: {
-        Source: [
-          {
-            PseudoCityCode: 'F9CE',
-            RequestorID: {
-              CompanyName: {
-                Code: 'TN'
-              },
-              ID: '1',
-              Type: '1'
+    let data = {
+      OTA_AirLowFareSearchRQ: {
+        OriginDestinationInformation,
+        POS: {
+          Source: [
+            {
+              PseudoCityCode: '5EJJ',
+              RequestorID: {
+                CompanyName: {
+                  Code: 'TN'
+                },
+                ID: '1',
+                Type: '1'
+              }
+            }
+          ]
+        },
+        TPA_Extensions: {
+          IntelliSellTransaction: {
+            RequestType: {
+              Name: '50ITINS'
             }
           }
-        ]
-      },
-      TravelPreferences: {
-        Baggage: {
-          RequestType: 'C', // C: charge and allownce, A: only allownce
-          Description: true,
-          RequestedPieces: 2,
-          FreePieceRequired: true
-        }
-      },
-      TravelerInfoSummary: {
-        AirTravelerAvail: [
-          {
-            PassengerTypeQuantity: [
-              {
-                Code: 'ADT',
-                Quantity: req.body.adults
-              }
-            ]
-          }
-        ],
-        SeatsRequested: [1]
-      },
-      Version: '1'
+        },
+        TravelPreferences: {
+          Baggage: {
+            RequestType: 'C', // C: charge and allownce, A: only allownce
+            Description: true,
+            RequestedPieces: 2,
+            FreePieceRequired: true
+          },
+          VendorPref
+        },
+        TravelerInfoSummary: {
+          AirTravelerAvail: [
+            {
+              PassengerTypeQuantity: [
+                {
+                  Code: 'ADT',
+                  Quantity: req.body.adults
+                }
+              ]
+            }
+          ],
+          SeatsRequested: [req.body.adults]
+        },
+        Version: '1'
+      }
     }
-  }
-  try {
-    let sabreRes = await apiSabre.shopping(data, req.sabreToken)
-    sabreRes = sabreRes.data.groupedItineraryResponse
-    // logger.info("res", sabreRes)
-    let { itineraryGroups } = sabreRes
-    let flights = makeSabreFlightsData(itineraryGroups, sabreRes, req)
-    let airlines = []
-    let airports = []
+    try {
+      logger.info('req', data)
 
-    flights.forEach(flight => {
-      flight.departureSegments.forEach(segment => {
-        airlines.push(segment.airline)
-        airports.push(segment.departure)
-        airports.push(segment.arrival)
-      })
-      flight.returnSegments.forEach(segment => {
-        airlines.push(segment.airline)
-        airports.push(segment.departure)
-        airports.push(segment.arrival)
-      })
-    })
+      let sabreRes = await apiSabre.shopping(data, req.sabreToken)
+      sabreRes = sabreRes.data.groupedItineraryResponse
+      let { currency } = req
 
-    airlines = _.uniq(airlines)
-    airports = _.uniq(airports)
-    Promise.all([
-      Airline.find({
-        iata: {
-          $in: airlines
-        }
-      }),
-      Airport.find({
-        airport_code: {
-          $in: airports
-        }
-      }),
-      IataCity.aggregate([
-        {
-          $lookup: {
-            from: 'cities',
-            localField: 'city_id',
-            foreignField: '_id',
-            as: 'cities'
+      let flights = makeSabreFlightsData(sabreRes, currency, req.body.adults)
+
+      let airlines = []
+      let airports = []
+
+      flights.forEach(flight => {
+        flight.departureSegments.forEach(segment => {
+          airlines.push(segment.airline)
+          airports.push(segment.departure)
+          airports.push(segment.arrival)
+        })
+        flight.returnSegments.forEach(segment => {
+          airlines.push(segment.airline)
+          airports.push(segment.departure)
+          airports.push(segment.arrival)
+        })
+      })
+
+      airlines = _.uniq(airlines)
+      airports = _.uniq(airports)
+      Promise.all([
+        Airline.find({
+          iata: {
+            $in: airlines
           }
-        }
-      ])
-    ]).then(results => {
-      let arrAirline = results[0]
-      let airlines = {}
-      arrAirline.forEach(airline => {
-        airlines[airline._doc.iata] = airline
-      })
-      let arrAirport = results[1]
-      let airports = {}
-      arrAirport.forEach(airport => {
-        airports[airport._doc.airport_code] = airport
-      })
-
-      // add more iata city codes to airports
-      results[2]
-        .filter(ic => ic.cities.length > 0)
-        .forEach(ic => {
-          airports[ic.city_code] = {
-            city_name: _.get(ic, 'cities[0].name')
+        }),
+        Airport.find({
+          airport_code: {
+            $in: airports
           }
+        }),
+        IataCity.aggregate([
+          {
+            $lookup: {
+              from: 'cities',
+              localField: 'city_id',
+              foreignField: '_id',
+              as: 'cities'
+            }
+          }
+        ])
+      ]).then(results => {
+        let arrAirline = results[0]
+        let airlines = {}
+        arrAirline.forEach(airline => {
+          airlines[airline._doc.iata] = airline
+        })
+        let arrAirport = results[1]
+        let airports = {}
+        arrAirport.forEach(airport => {
+          airports[airport._doc.airport_code] = airport.toObject()
         })
 
-      res.status(200).send({
-        flights,
-        airlines,
-        airports
+        // add more iata city codes to airports
+        results[2]
+          .filter(ic => ic.cities.length > 0)
+          .forEach(ic => {
+            let airport = _.get(airports, `[${ic.city_code}]`, {})
+            airports[ic.city_code] = {
+              ...airport,
+              city_name: _.get(ic, 'cities[0].name')
+            }
+          })
+
+        res.status(200).send({
+          flights,
+          airlines,
+          airports
+        })
+
+        // save all data for using 1 hour later
+        setCache(
+          cacheKey,
+          {
+            sabreRes,
+            numberOfPassengers: req.body.adults,
+            airlines,
+            airports
+          },
+          3600
+        )
       })
-    })
-  } catch (error) {
-    return res.status(400).send()
+    } catch (error) {
+      return res.status(400).send()
+    }
   }
-})
+)
 
 module.exports = router

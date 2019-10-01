@@ -4,83 +4,112 @@ const _ = require('lodash')
 const Company = require('../models/company')
 const { debugServer } = require('../config/debug')
 const api = require('../modules/api')
+const { logger } = require('../config/winston')
+const { getCache, setCache } = require('../config/cache')
 
-const currencyExchange = async (req, res, next) => {
+const currenciesExchange = async () => {
+  let transferwiseCacheKey = 'transferwiseCurrencies'
+
   try {
-    let company = await Company.findById(req.user._company)
+    let cacheData = await getCache(transferwiseCacheKey)
 
-    if (
-      !company ||
-      !company.currency ||
-      !supportCurrencies.includes(company.currency)
-    ) {
-      throw new Error()
-    }
-
-    const rateRes = await api.exchangeCurrency(
-      process.env.BASE_CURRENCY,
-      company.currency
-    )
-
-    if (_.isArray(rateRes.data)) {
-      // save the rate
-      req.currency = {
-        code: company.currency,
-        rate: rateRes.data[0].rate
-      }
-    }
+    return cacheData
   } catch (e) {
-    debugServer(e)
-    req.currency = {
-      code: process.env.BASE_CURRENCY,
-      rate: 1
-    }
+    // do nothing to run the try block below
   }
 
-  next()
+  let currencies = [
+    ...supportCurrencies,
+    process.env.BASE_CURRENCY,
+    process.env.SABRE_BASE_CURRENCY,
+    process.env.HOTELBEDS_BASE_CURRENCY
+  ]
+
+  currencies = _.uniq(currencies)
+
+  let exchangePromises = []
+
+  currencies.forEach(sourceCurrency => {
+    currencies.forEach(targetCurrency => {
+      exchangePromises.push(
+        api.exchangeCurrency(sourceCurrency, targetCurrency)
+      )
+    })
+  })
+
+  let results = await Promise.all(exchangePromises)
+  let exchangedResults = {}
+
+  results.forEach(result => {
+    let data = result.data[0]
+    exchangedResults[`${data.source}-${data.target}`] = {
+      code: data.target,
+      rate: data.rate
+    }
+  })
+
+  logger.info('currenciesExchange', exchangedResults)
+
+  // save all data for using 1 day later
+  setCache(transferwiseCacheKey, exchangedResults, 3600 * 24)
+
+  return exchangedResults
 }
 
-const hotelbedsCurrencyExchange = async (req, res, next) => {
-  try {
-    let company = await Company.findById(req.user._company)
+const findCurrencyRateBy = context => {
+  return async (req, res, next) => {
+    let source
 
-    if (
-      !company ||
-      !company.currency ||
-      !supportCurrencies.includes(company.currency)
-    ) {
-      throw new Error()
+    switch (context) {
+      case 'sabre':
+        source = process.env.SABRE_BASE_CURRENCY
+        break
+      case 'hotelbeds':
+        source = process.env.HOTELBEDS_BASE_CURRENCY
+        break
+      case 'pkfare':
+      default:
+        source = process.env.BASE_CURRENCY
+        break
     }
 
-    const rateRes = await axios.get(
-      `${process.env.TRANSFERWISE_URI}/v1/rates?source=${
-        process.env.HOTELBEDS_BASE_CURRENCY
-      }&target=${company.currency}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TRANSFERWISE_API_KEY}`
-        }
+    try {
+      let company = await Company.findById(req.user._company)
+
+      let target = company.currency
+
+      if (!company || !target || !supportCurrencies.includes(target)) {
+        throw new Error()
       }
-    )
-    if (_.isArray(rateRes.data)) {
-      // save the rate
+
+      let currencies = await currenciesExchange()
+
+      req.currency = currencies[`${source}-${target}`]
+
+      if (_.isEmpty(req.currency)) {
+        throw new Error()
+      }
+    } catch (e) {
+      debugServer(e)
       req.currency = {
-        code: company.currency,
-        rate: rateRes.data[0].rate
+        code: source,
+        rate: 1
       }
     }
-  } catch (e) {
-    debugServer(e)
-    req.currency = {
-      code: process.env.HOTELBEDS_BASE_CURRENCY,
-      rate: 1
-    }
-  }
 
-  next()
+    next()
+  }
 }
+
+const currencyExchange = findCurrencyRateBy('pkfare')
+
+const hotelbedsCurrencyExchange = findCurrencyRateBy('hotelbeds')
+
+const sabreCurrencyExchange = findCurrencyRateBy('sabre')
 
 module.exports = {
   currencyExchange,
-  hotelbedsCurrencyExchange
+  hotelbedsCurrencyExchange,
+  sabreCurrencyExchange,
+  currenciesExchange
 }

@@ -27,6 +27,8 @@ Add config/config.json with the content like below:
     "SABRE_USER_ID":"<SABRE_USER_ID>",
     "SABRE_CLIENT_ID":"<SABRE_CLIENT_ID>",
     "SABRE_SECRET_KEY":"<SABRE_SECRET_KEY>",
+    "SABRE_BASE_CURRENCY": "SGD",
+    "SABRE_GIAMSO_CODE": "SABRE_GIAMSO_CODE",
     "STRIPE_SECRET_KEY": <STRIPE_SECRET_KEY>,
     "BASE_CURRENCY": "USD",
     "HOTELBEDS_BASE_CURRENCY": "EUR",
@@ -48,7 +50,8 @@ Add config/config.json with the content like below:
     "URBOX_SECRET": <UR_BOX_SECRET>
     "URBOX_URI": "https://sandapi.urbox.vn",
     "URBOX_GIFTLIST_VERSION": "4.0",
-    "URBOX_OTHER_API_VERSION": "2.0"
+    "URBOX_OTHER_API_VERSION": "2.0",
+    "EMAIL_GIAMSO": ""
   }
 }
 
@@ -151,6 +154,8 @@ export SABRE_URI=https://api-crt.cert.havail.sabre.com
 export SABRE_USER_ID=<SABRE_USER_ID>
 export SABRE_CLIENT_ID=<SABRE_CLIENT_ID>
 export SABRE_SECRET_KEY=<SABRE_SECRET_KEY>
+export SABRE_GIAMSO_CODE=<SABRE_GIAMSO_CODE>
+export SABRE_BASE_CURRENCY=<SABRE_BASE_CURRENCY>
 export STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY>
 export BASE_CURRENCY=SGD
 export HOTELBEDS_BASE_CURRENCY=EUR
@@ -164,11 +169,15 @@ export TRANSFERWISE_URI=https://api.transferwise.com
 export TRANSFERWISE_API_KEY=<TRANSFERWISE_LIVE_KEY>
 export EMAIL_CONTACT=support@ezbiztrip.com
 export EMAIL_NO_REPLY=no-reply@ezbiztrip.com
+<<<<<<< HEAD
 export URBOX_ID=<UR_BOX_ID>
 export URBOX_SECRET=<UR_BOX_SECRET>
 export URBOX_URI=https://sandapi.urbox.vn
 export URBOX_GIFTLIST_VERSION=4.0
 export URBOX_OTHER_API_VERSION=2.0
+=======
+export EMAIL_GIAMSO=<EMAIL_GIAMSO>
+>>>>>>> 3e2e350e6cff87f9a5ede7b278dcbfe4fdb81a3d
 ```
 
 Now you ready to run your app

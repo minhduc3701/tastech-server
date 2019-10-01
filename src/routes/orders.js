@@ -9,7 +9,6 @@ const { removeSpaces, roundingAmountStripe } = require('../modules/utils')
 const apiHotelbeds = require('../modules/apiHotelbeds')
 const api = require('../modules/api')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
-const { currencyExchange } = require('../middleware/currency')
 const { logger } = require('../config/winston')
 
 router.get('/', function(req, res, next) {

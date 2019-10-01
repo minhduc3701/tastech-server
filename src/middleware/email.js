@@ -16,7 +16,9 @@ const { changeExpenseStatus } = require('../mailTemplates/changeExpenseStatus')
 const { changeTripStatus } = require('../mailTemplates/changeTripStatus')
 const { checkoutFail } = require('../mailTemplates/checkoutFail')
 const { tripItinerary } = require('../mailTemplates/tripItinerary')
+const { sendPnrGiamso } = require('../mailTemplates/sendPnrGiamso')
 const { debugMail } = require('../config/debug')
+const { CAN_ACCESS_BUDGET, CAN_ACCESS_EXPENSE } = require('../config/roles')
 
 const emailEmployeeChangeExpenseStatus = async (req, res) => {
   if (!_.isEmpty(req.expense)) {
@@ -57,17 +59,21 @@ const emailAccountantClaimExpense = async (req, res) => {
         _creator: req.user.id,
         _id: { $in: req.expenseIds }
       }).populate('_trip'),
-      Role.findOne({
+      Role.find({
         _company: req.user._company,
-        type: 'accountant'
+        permissions: {
+          $elemMatch: {
+            $eq: CAN_ACCESS_EXPENSE
+          }
+        }
       })
     ])
       .then(results => {
         req.expenses = results[0]
-        let role = results[1]
+        let roles = results[1]
         // find trip infor and  accountant account
         return User.find({
-          _role: role._id
+          _role: { $in: roles.map(role => role._id) }
         })
       })
       .then(async accountants => {
@@ -100,13 +106,19 @@ const emailEmployeeSubmitTrip = async (req, res, next) => {
 }
 
 const emailManagerSubmitTrip = (req, res) => {
-  Role.findOne({
+  Role.find({
     _company: req.user._company,
-    type: 'manager'
+    permissions: {
+      $elemMatch: {
+        $eq: CAN_ACCESS_BUDGET
+      }
+    }
   })
-    .then(role => {
+    .then(roles => {
       return User.find({
-        _role: role._id
+        _role: {
+          $in: roles.map(role => role._id)
+        }
       })
     })
     .then(async users => {
@@ -205,7 +217,8 @@ const emailEmployeeItinerary = async (req, res, next) => {
           airport_code: {
             $in: airports
           }
-        })
+        }),
+        User.findById(_.get(orders, '[0]._customer'))
       ]).then(async results => {
         // map arr to object
         let arrAirline = results[0]
@@ -218,12 +231,8 @@ const emailEmployeeItinerary = async (req, res, next) => {
         arrAirport.forEach(airport => {
           airports[airport._doc.airport_code] = airport.toObject()
         })
-        let mailOptions = await tripItinerary(
-          req.user,
-          orders,
-          airlines,
-          airports
-        )
+        let user = results[2]
+        let mailOptions = await tripItinerary(user, orders, airlines, airports)
         return mail.sendMail(mailOptions, function(err, info) {
           if (err) {
             debugMail(err)
@@ -234,6 +243,30 @@ const emailEmployeeItinerary = async (req, res, next) => {
     })
   }
 }
+
+const emailGiamsoIssueTicket = async (req, res, next) => {
+  if (req.checkoutError && req.checkoutError.flight) {
+    return next()
+  }
+  const flightOrder = req.flightOrder
+
+  if (
+    _.get(flightOrder, 'flight.supplier') !== 'sabre' ||
+    flightOrder.status !== 'processing'
+  ) {
+    return next()
+  } else {
+    let mailOptions = await sendPnrGiamso(req.flightOrder)
+    mail.sendMail(mailOptions, function(err, info) {
+      if (err) {
+        debugMail(err)
+        logger.info('mail: ', { err: err })
+      }
+    })
+  }
+  return next()
+}
+
 const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
   let order = req.order
   let user
@@ -315,5 +348,6 @@ module.exports = {
   emailEmployeeChangeExpenseStatus,
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary,
-  emailEmployeeItineraryPkfareTickiting
+  emailEmployeeItineraryPkfareTickiting,
+  emailGiamsoIssueTicket
 }
