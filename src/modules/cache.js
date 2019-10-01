@@ -8,8 +8,7 @@ const makePkfareFlightCacheKey = request => {
       segment.cabinClass
     }`
   })
-
-  return key
+  return `Pkfare-${key}`
 }
 
 const makeSabreFlightCacheKey = request => {
@@ -18,8 +17,7 @@ const makeSabreFlightCacheKey = request => {
   _.get(request, 'searchAirLegs', []).forEach(segment => {
     key += `${segment.origin}${segment.destination}${segment.departureDate}`
   })
-
-  return key
+  return `Sabre-${key}`
 }
 
 const makeHotelBedsCacheKey = request => {
