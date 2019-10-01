@@ -445,7 +445,9 @@ const sabreCreatePNR = async (req, res, next) => {
             ContactNumbers: {
               ContactNumber: [
                 {
-                  Phone: trip.contactInfo.phone,
+                  Phone: `${trip.contactInfo.callingCode}-${
+                    trip.contactInfo.phone
+                  }`,
                   PhoneUseType: 'H'
                 }
               ]
@@ -510,6 +512,7 @@ const sabreCreatePNR = async (req, res, next) => {
       }
     }
     trip.passengers.map((p, index) => {
+      // add passenger infor
       data.CreatePassengerNameRecordRQ.TravelItineraryAddInfo.CustomerInfo.PersonName.push(
         {
           PassengerType: 'ADT',
@@ -517,8 +520,17 @@ const sabreCreatePNR = async (req, res, next) => {
           Surname: p.lastName
         }
       )
+      // add passenger email
+      data.CreatePassengerNameRecordRQ.TravelItineraryAddInfo.CustomerInfo.Email.push(
+        {
+          Address: p.businessEmail,
+          Type: 'CC'
+        }
+      )
     })
+
     trip.flight.departureSegments.map(segment => {
+      // map airline infor
       data.CreatePassengerNameRecordRQ.AirBook.OriginDestinationInformation.FlightSegment.push(
         {
           DepartureDateTime: segment.DepartureDateTime,
@@ -878,11 +890,11 @@ router.post(
   stripeCharging,
   pkfareFlightTicketing,
   sabreCreatePNR,
-  emailGiamsoIssueTicket,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
   refundFailedOrder,
   responseCheckout,
+  emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary
 )
