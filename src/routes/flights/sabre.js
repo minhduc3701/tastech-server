@@ -77,7 +77,8 @@ router.post(
     giamsoAirlines.map(airline => {
       VendorPref.push({
         Code: airline,
-        PreferLevel: 'Only'
+        PreferLevel: 'Only',
+        Type: 'Operating'
       })
     })
     let data = {
