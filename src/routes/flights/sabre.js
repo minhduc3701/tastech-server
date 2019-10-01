@@ -12,12 +12,34 @@ const { sabreToken } = require('../../middleware/sabre')
 const { makeSabreFlightsData } = require('../../modules/utils')
 const { logger } = require('../../config/winston')
 const { giamsoAirlines } = require('../../modules/utils')
+const { makeSabreFlightCacheKey } = require('../../modules/cache')
+const { getCache, setCache } = require('../../config/cache')
 
 router.post(
   '/shopping',
   sabreCurrencyExchange,
   sabreToken,
   async (req, res) => {
+    let cacheKey = makeSabreFlightCacheKey(req.body)
+
+    try {
+      let cacheData = await getCache(cacheKey)
+
+      let flights = makeSabreFlightsData(
+        cacheData.sabreRes,
+        req.currency,
+        cacheData.numberOfPassengers
+      )
+
+      return res.status(200).send({
+        flights,
+        airlines: cacheData.airlines,
+        airports: cacheData.airports
+      })
+    } catch (e) {
+      // do nothing to run the try block below
+    }
+
     let isRoundTrip = req.body.searchAirLegs.length === 2
     let OriginDestinationInformation = [
       {
@@ -112,13 +134,10 @@ router.post(
 
       let sabreRes = await apiSabre.shopping(data, req.sabreToken)
       sabreRes = sabreRes.data.groupedItineraryResponse
-      let { itineraryGroups } = sabreRes
-      let flights = makeSabreFlightsData(
-        itineraryGroups,
-        sabreRes,
-        req,
-        req.body.adults
-      )
+      let { currency } = req
+
+      let flights = makeSabreFlightsData(sabreRes, currency, req.body.adults)
+
       let airlines = []
       let airports = []
 
@@ -186,6 +205,18 @@ router.post(
           airlines,
           airports
         })
+
+        // save all data for using 1 hour later
+        setCache(
+          cacheKey,
+          {
+            sabreRes,
+            numberOfPassengers: req.body.adults,
+            airlines,
+            airports
+          },
+          3600
+        )
       })
     } catch (error) {
       return res.status(400).send()

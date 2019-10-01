@@ -12,6 +12,16 @@ const makePkfareFlightCacheKey = request => {
   return key
 }
 
+const makeSabreFlightCacheKey = request => {
+  let key = _.toString(request.adults) + _.toString(request.cabinClass)
+
+  _.get(request, 'searchAirLegs', []).forEach(segment => {
+    key += `${segment.origin}${segment.destination}${segment.departureDate}`
+  })
+
+  return key
+}
+
 const makeHotelBedsCacheKey = request => {
   let key = `${_.get(request, 'geolocation.latitude', '')}${_.get(
     request,
@@ -38,5 +48,6 @@ const makeHotelBedsCacheKey = request => {
 
 module.exports = {
   makePkfareFlightCacheKey,
-  makeHotelBedsCacheKey
+  makeHotelBedsCacheKey,
+  makeSabreFlightCacheKey
 }
