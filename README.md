@@ -169,15 +169,12 @@ export TRANSFERWISE_URI=https://api.transferwise.com
 export TRANSFERWISE_API_KEY=<TRANSFERWISE_LIVE_KEY>
 export EMAIL_CONTACT=support@ezbiztrip.com
 export EMAIL_NO_REPLY=no-reply@ezbiztrip.com
-<<<<<<< HEAD
 export URBOX_ID=<UR_BOX_ID>
 export URBOX_SECRET=<UR_BOX_SECRET>
 export URBOX_URI=https://sandapi.urbox.vn
 export URBOX_GIFTLIST_VERSION=4.0
 export URBOX_OTHER_API_VERSION=2.0
-=======
 export EMAIL_GIAMSO=<EMAIL_GIAMSO>
->>>>>>> 3e2e350e6cff87f9a5ede7b278dcbfe4fdb81a3d
 ```
 
 Now you ready to run your app

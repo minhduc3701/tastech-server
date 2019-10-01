@@ -4,7 +4,7 @@ const _ = require('lodash')
 const Voucher = require('../models/voucher')
 const User = require('../models/user')
 const apiUrbox = require('../modules/apiUrbox')
-const { makeGiftData } = require('../modules/utils')
+const { makeUrboxGiftData } = require('../modules/utils')
 
 let urboxKey = {
   app_id: process.env.URBOX_ID,
@@ -17,7 +17,7 @@ router.post('/ub', async (req, res) => {
     let resData = await apiUrbox.getGifts(reqBody)
 
     if (resData.data.msg === 'success') {
-      let gifts = resData.data.data.items.map(makeGiftData)
+      let gifts = resData.data.data.items.map(makeUrboxGiftData)
       res.status(200).send({
         gifts: gifts,
         totalPage: resData.data.data.totalPage

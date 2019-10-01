@@ -841,7 +841,7 @@ const getUserProfileStrength = user => {
   return strength
 }
 
-const makeGiftData = gift => {
+const makeUrboxGiftData = gift => {
   return {
     giftId: gift.id,
     title: gift.title,
@@ -870,6 +870,6 @@ module.exports = {
   roundingAmountStripe,
   formatLocaleMoney,
   getUserProfileStrength,
-  makeGiftData,
+  makeUrboxGiftData,
   giamsoAirlines
 }
