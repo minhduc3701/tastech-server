@@ -740,13 +740,14 @@ const getUserProfileStrength = user => {
 const makeGiftData = gift => {
   return {
     giftId: gift.id,
-    giftName: gift.title,
-    giftImage: gift.image,
-    brandName: gift.brand,
+    title: gift.title,
+    image: gift.image,
+    brand: gift.brand,
     brandImage: gift.brandImage,
     categoryId: gift.cat_id,
     categoryName: gift.cat_title,
     price: gift.price,
+    pricePoint: gift.price / 1000,
     supplier: 'urbox',
     currency: 'VND',
     country: 'VN'

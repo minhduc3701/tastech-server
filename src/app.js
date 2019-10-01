@@ -41,7 +41,8 @@ const cardsRouter = require('./routes/cards')
 const checkoutRouter = require('./routes/checkout')
 const ordersRouter = require('./routes/orders')
 const reportsRouter = require('./routes/reports')
-const urboxRouter = require('./routes/urbox')
+const rewardRouter = require('./routes/rewards')
+const voucherRouter = require('./routes/vouchers')
 const { authenticateRole } = require('./middleware/authenticate')
 
 const jwtAuthenticate = passport.authenticate('jwt', { session: false })
@@ -171,8 +172,11 @@ app.use('/airports', jwtAuthenticate, airportsRouter)
 app.use('/cities', jwtAuthenticate, citiesRouter)
 app.use('/regions', jwtAuthenticate, regionsRouter)
 
-// gifts
-app.use('/urbox', jwtAuthenticate, urboxRouter)
+// rewards
+app.use('/rewards', jwtAuthenticate, rewardRouter)
+
+// voucher
+app.use('/vouchers', jwtAuthenticate, voucherRouter)
 
 // checkout
 app.use('/cards', jwtAuthenticate, cardsRouter)

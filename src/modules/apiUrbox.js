@@ -10,7 +10,8 @@ const URBOX_OTHER_API_VERSION = process.env.URBOX_OTHER_API_VERSION
 
 const endpoints = {
   gifts: `/${URBOX_GIFTLIST_VERSION}/gift/lists`,
-  voucher: `/${URBOX_OTHER_API_VERSION}/cart/cartPayVoucher`
+  voucher: `/${URBOX_OTHER_API_VERSION}/cart/cartPayVoucher`,
+  giftDetail: `/${URBOX_GIFTLIST_VERSION}/gift/detail`
 }
 
 const apiUrbox = {
@@ -19,6 +20,9 @@ const apiUrbox = {
   },
   requestVoucher: data => {
     return urboxHttp.get(`${endpoints.voucher}`, { data })
+  },
+  getGiftDetail: data => {
+    return urboxHttp.get(`${endpoints.giftDetail}`, { data })
   }
 }
 
