@@ -124,7 +124,8 @@ const createOrFindFlightOrder = async (req, res, next) => {
           flight: trip.flight,
           _customer: req.user._id,
           passengers: trip.passengers,
-          contactInfo: trip.contactInfo
+          contactInfo: trip.contactInfo,
+          discountCode: trip.discountCode
         })
 
         await flightOrder.save()
@@ -180,7 +181,8 @@ const createOrFindHotelOrder = async (req, res, next) => {
           _customer: req.user._id,
           passengers: trip.passengers,
           childrenInfo: trip.childrenInfo,
-          contactInfo: trip.contactInfo
+          contactInfo: trip.contactInfo,
+          discountCode: trip.discountCode
         })
       }
 
