@@ -28,7 +28,7 @@ const VoucherSchema = new Schema(
     cartNumber: String,
     cartTotal: String,
     cartGiftLink: Array,
-    cartGiftLinkCoce: Array,
+    cartGiftCode: String,
     supplier: String,
     country: String,
     expiredDate: Date

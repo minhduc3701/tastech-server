@@ -5,6 +5,7 @@ const Voucher = require('../models/voucher')
 const User = require('../models/user')
 const apiUrbox = require('../modules/apiUrbox')
 const { makeUrboxGiftData } = require('../modules/utils')
+const moment = require('moment')
 
 let urboxKey = {
   app_id: process.env.URBOX_ID,
@@ -32,8 +33,12 @@ router.get('/ub/:id', async (req, res) => {
   try {
     let reqBody = { ...urboxKey, id: req.params.id }
     let resData = await apiUrbox.getGiftDetail(reqBody)
+    let gift = {
+      ...resData.data.data,
+      pricePoint: parseInt(resData.data.data.price) / 1000
+    }
 
-    res.status(200).send({ gift: resData.data })
+    res.status(200).send({ gift })
   } catch (error) {
     res.status(400).send()
   }
@@ -61,57 +66,65 @@ router.post('/exchange', async (req, res) => {
       ]
     }
 
-    if (req.user.point >= giftPrice) {
-      let resData = await apiUrbox.requestVoucher(reqBody)
-
-      if (resData.data.msg === 'success') {
-        let remainingPoints = req.user.point - giftPrice / 1000
-        let voucherData = {
-          ...req.body,
-          _buyer: req.user.id,
-          site_user_id: siteUserId,
-          transaction_id: transactionId,
-          quantity: 1,
-          pricePoint: giftPrice / 1000,
-          currency: 'VND',
-          content: req.body.content,
-          note: req.body.note,
-          office: req.body.office,
-          cartId: resData.data.data.cart.id,
-          cartNumber: resData.data.data.cart.cartNo,
-          cartTotal: resData.data.data.cart.money_total,
-          cartGiftLink: resData.data.data.cart.link_gift,
-          cartGiftLinkCode: resData.data.data.cart.code_link_gift.code
-        }
-
-        let voucher = new Voucher(voucherData)
-        await voucher.save()
-
-        User.findByIdAndUpdate(
-          req.user._id,
-          { $set: { point: remainingPoints } },
-          { new: true }
-        )
-          .then(user => {
-            if (!user) {
-              return res.status(404).send()
-            }
-            return res.status(200).send({
-              data: resData.data.data,
-              remainingPoints: user.point
-            })
-          })
-          .catch(e => {
-            return res.status(400).send()
-          })
-      }
-    } else {
-      res.status(200).send({
+    if (req.user.point < giftPrice) {
+      return res.status(400).send({
         message: 'not enough points to redeem this voucher'
       })
     }
+
+    let resData = await apiUrbox.requestVoucher(reqBody)
+
+    if (resData.data.msg === 'success') {
+      let remainingPoints = req.user.point - giftPrice / 1000
+      let voucherData = {
+        ...req.body,
+        _buyer: req.user.id,
+        site_user_id: siteUserId,
+        transaction_id: transactionId,
+        quantity: 1,
+        pricePoint: giftPrice / 1000,
+        currency: 'VND',
+        content: req.body.content,
+        note: req.body.note,
+        office: req.body.office,
+        cartId: resData.data.data.cart.id,
+        cartNumber: resData.data.data.cart.cartNo,
+        cartTotal: resData.data.data.cart.money_total,
+        cartGiftLink: resData.data.data.cart.link_gift,
+        cartGiftCode: resData.data.data.cart.code_link_gift[0].code,
+        expiredDate: moment(
+          resData.data.data.cart.code_link_gift[0].expired,
+          'DD-MM-YYYY'
+        ).format('YYYY-MM-DD')
+      }
+
+      let voucher = new Voucher(voucherData)
+      await voucher.save()
+
+      User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { point: remainingPoints } },
+        { new: true }
+      )
+        .then(user => {
+          if (!user) {
+            return res.status(404).send()
+          }
+          return res.status(200).send({
+            data: resData.data.data,
+            voucherId: voucher.id,
+            remainingPoints: user.point
+          })
+        })
+        .catch(e => {
+          return res.status(400).send()
+        })
+    } else {
+      res.status(400).send({
+        res: resData.data
+      })
+    }
   } catch (error) {
-    console.log(error)
     res.status(400).send()
   }
 })

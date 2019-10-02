@@ -28,7 +28,8 @@ router.post('/', async (req, res) => {
         let totalPage = Math.ceil(results[1] / perPage)
         res.status(200).send({
           vouchers,
-          totalPage
+          totalPage,
+          total: results[1]
         })
       })
       .catch(e => res.status(400).send())
