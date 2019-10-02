@@ -21,7 +21,9 @@ router.post('/', async (req, res) => {
         .limit(perPage)
         .skip(perPage * page)
         .sort({ updatedAt: -1 }),
-      Voucher.count({})
+      Voucher.count({
+        _buyer: req.user._id
+      })
     ])
       .then(results => {
         let vouchers = results[0]
