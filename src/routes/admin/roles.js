@@ -11,7 +11,6 @@ let projectUsersFields = {
   'users.hash': 0,
   'users.salt': 0,
   'users.username': 0,
-  'users.lastName': 0,
   'users._company': 0,
   'users._policy': 0,
   'users._role': 0,
