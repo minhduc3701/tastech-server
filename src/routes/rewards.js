@@ -49,7 +49,7 @@ router.post('/exchange', async (req, res) => {
     const giftPrice = parseInt(req.body.price)
     const siteUserId = 'ezbiztrip-' + req.user.id
     const transaction = require('order-id')(process.env.URBOX_SECRET)
-    const transactionId = transaction.generate()
+    const transactionId = 'ezbiztrip-' + transaction.generate()
 
     let reqBody = {
       ...urboxKey,
@@ -79,8 +79,8 @@ router.post('/exchange', async (req, res) => {
       let voucherData = {
         ...req.body,
         _buyer: req.user.id,
-        site_user_id: siteUserId,
-        transaction_id: transactionId,
+        siteUserId,
+        transactionId,
         quantity: 1,
         pricePoint: giftPrice / 1000,
         currency: 'VND',
