@@ -51,6 +51,9 @@ Add config/config.json with the content like below:
     "URBOX_URI": "https://sandapi.urbox.vn",
     "URBOX_GIFTLIST_VERSION": "4.0",
     "URBOX_OTHER_API_VERSION": "2.0",
+    "URBOX_EZBIZTRIP_NAME": "Ezbiztrip",
+    "URBOX_EZBIZTRIP_PHONE": "84123456789",
+    "URBOX_EZBIZTRIP_EMAIL": "urbox@ezbiztrip.com"
     "EMAIL_GIAMSO": ""
   }
 }
@@ -174,6 +177,9 @@ export URBOX_SECRET=<UR_BOX_SECRET>
 export URBOX_URI=https://sandapi.urbox.vn
 export URBOX_GIFTLIST_VERSION=4.0
 export URBOX_OTHER_API_VERSION=2.0
+export URBOX_EZBIZTRIP_NAME=Ezbiztrip
+export URBOX_EZBIZTRIP_PHONE=84123456789
+export URBOX_EZBIZTRIP_EMAIL=urbox@ezbiztrip.com
 export EMAIL_GIAMSO=<EMAIL_GIAMSO>
 ```
 
