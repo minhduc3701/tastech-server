@@ -686,7 +686,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
     req.checkoutError = {
       ...req.checkoutError,
       message:
-        _.get(error, 'message') || _.get(error, 'response.data.header.message'),
+        _.get(error, 'response.data.header.message') || _.get(error, 'message'),
       hotel: true
     }
   }
@@ -787,7 +787,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
     req.checkoutError = {
       ...req.checkoutError,
       message:
-        _.get(error, 'message') || _.get(error, 'response.data.error.message'),
+        _.get(error, 'response.data.error.message') || _.get(error, 'message'),
       hotel: true
     }
   }
