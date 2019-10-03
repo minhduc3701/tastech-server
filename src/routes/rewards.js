@@ -53,9 +53,9 @@ router.post('/exchange', async (req, res) => {
 
     let reqBody = {
       ...urboxKey,
-      ttphone: req.body.customerInfo.phone,
-      ttemail: req.body.customerInfo.email,
-      fullname: req.body.customerInfo.fullname,
+      ttphone: process.env.URBOX_EZBIZTRIP_PHONE,
+      ttemail: process.env.URBOX_EZBIZTRIP_EMAIL,
+      fullname: process.env.URBOX_EZBIZTRIP_NAME,
       site_user_id: siteUserId,
       transaction_id: transactionId,
       dataBuy: [
