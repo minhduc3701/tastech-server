@@ -60,6 +60,22 @@ Add config/config.json with the content like below:
 
 ```
 
+## Special for demo
+
+### Always force order completed
+
+- Force flight pnr: DEMO-PNR
+- Force flight status: completed
+- Force hotel code: DEMO-BOOKING-CODE
+- Force hotel status: completed
+
+```
+"DEMO_FORCE_COMPLETED_ORDERS": "1"
+```
+
+Note: need set
+`NODE_ENV === development`
+
 ## Installation
 
 ```
