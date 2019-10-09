@@ -322,9 +322,31 @@ router.get('/:id/orders', function(req, res, next) {
     return res.status(404).send()
   }
 
+  let status = _.get(
+    req,
+    'query.status',
+    'completed,processing,cancelling,cancelled'
+  )
+
+  status = status.split(',')
+
+  let allStatus = [
+    'completed',
+    'processing',
+    'failed',
+    'pending',
+    'cancelling',
+    'cancelled'
+  ]
+
+  status = status.filter(s => allStatus.includes(s))
+
   Order.find({
     _customer: req.user._id,
-    _trip: id
+    _trip: id,
+    status: {
+      $in: status
+    }
   })
     .then(orders => {
       orders.forEach(order => {

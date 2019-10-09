@@ -124,7 +124,8 @@ const createOrFindFlightOrder = async (req, res, next) => {
           flight: trip.flight,
           _customer: req.user._id,
           passengers: trip.passengers,
-          contactInfo: trip.contactInfo
+          contactInfo: trip.contactInfo,
+          discountCode: trip.discountCode
         })
 
         await flightOrder.save()
@@ -180,7 +181,8 @@ const createOrFindHotelOrder = async (req, res, next) => {
           _customer: req.user._id,
           passengers: trip.passengers,
           childrenInfo: trip.childrenInfo,
-          contactInfo: trip.contactInfo
+          contactInfo: trip.contactInfo,
+          discountCode: trip.discountCode
         })
       }
 
@@ -578,12 +580,20 @@ const sabreCreatePNR = async (req, res, next) => {
       await flightOrder.save()
       req.flightOrder = flightOrder
     } else {
-      throw { message: 'Create PNR failed!', flight: true }
+      throw {
+        message: _.get(
+          sabrePNRres,
+          'headers[error-message]',
+          'Create PNR failed!'
+        ),
+        flight: true
+      }
     }
   } catch (error) {
-    logger.info('error', error)
+    logger.error('SabrePNRError', { error })
     req.checkoutError = {
       ..._.get(error, 'response.data', {}),
+      message: _.get(error, 'message'),
       flight: true
     }
   }
@@ -676,7 +686,7 @@ const pkfareHotelCreateOrder = async (req, res, next) => {
     req.checkoutError = {
       ...req.checkoutError,
       message:
-        _.get(error, 'message') || _.get(error, 'response.data.header.message'),
+        _.get(error, 'response.data.header.message') || _.get(error, 'message'),
       hotel: true
     }
   }
@@ -777,7 +787,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
     req.checkoutError = {
       ...req.checkoutError,
       message:
-        _.get(error, 'message') || _.get(error, 'response.data.error.message'),
+        _.get(error, 'response.data.error.message') || _.get(error, 'message'),
       hotel: true
     }
   }
@@ -785,9 +795,45 @@ const hotelbedsCreateOrder = async (req, res, next) => {
   next()
 }
 
+// just for demo and dev purpose only
+const demoForceCompletedOrders = async (req, res, next) => {
+  // not for production
+  if (process.env.NODE_ENV === 'production') {
+    return next()
+  }
+
+  // not enable demo force completed orders
+  if (process.env.DEMO_FORCE_COMPLETED_ORDERS !== '1') {
+    return next()
+  }
+
+  // clear checkout error
+  req.checkoutError = undefined
+
+  let flightOrder = req.flightOrder
+  let hotelOrder = req.hotelOrder
+
+  // if flight order failed, force it status and pnr
+  if (flightOrder && flightOrder.status !== 'processing') {
+    flightOrder.pnr = 'DEMO-PNR'
+    flightOrder.status = 'completed'
+    await flightOrder.save()
+  }
+
+  // if hotel order failed, force it status and customer code
+  if (hotelOrder && hotelOrder.status !== 'completed') {
+    hotelOrder.customerCode = 'DEMO-BOOKING-CODE'
+    hotelOrder.status = 'completed'
+    await hotelOrder.save()
+  }
+
+  next()
+}
+
 const refundFailedOrder = async (req, res, next) => {
   // exit if no checkout errors
-  if (!req.checkoutError) {
+  // or no charge, run to another middleware
+  if (!req.checkoutError || !req.charge) {
     next()
     return
   }
@@ -843,7 +889,6 @@ const responseCheckout = async (req, res, next) => {
   const trip = req.trip
   let flightOrder = req.flightOrder
   let hotelOrder = req.hotelOrder
-  const charge = req.charge
 
   let bookingResponse = req.bookingResponse
   try {
@@ -851,7 +896,7 @@ const responseCheckout = async (req, res, next) => {
       throw req.checkoutError
     }
     res.status(200).send({
-      status: charge.status,
+      status: _.get(req, 'charge.status'),
       trip: _.pick(trip, ['_id']),
       flightOrder,
       hotelOrder
@@ -892,6 +937,7 @@ router.post(
   sabreCreatePNR,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
+  demoForceCompletedOrders,
   refundFailedOrder,
   responseCheckout,
   emailGiamsoIssueTicket,

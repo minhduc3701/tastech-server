@@ -841,6 +841,23 @@ const getUserProfileStrength = user => {
   return strength
 }
 
+const makeUrboxGiftData = gift => {
+  return {
+    giftId: gift.id,
+    title: gift.title,
+    image: gift.image,
+    brand: gift.brand,
+    brandImage: gift.brandImage,
+    categoryId: gift.cat_id,
+    categoryName: gift.cat_title,
+    price: gift.price,
+    pricePoint: gift.price / 1000,
+    supplier: 'urbox',
+    currency: 'VND',
+    country: 'VN'
+  }
+}
+
 module.exports = {
   getImageUri,
   makeSegmentsData,
@@ -853,5 +870,6 @@ module.exports = {
   roundingAmountStripe,
   formatLocaleMoney,
   getUserProfileStrength,
+  makeUrboxGiftData,
   giamsoAirlines
 }
