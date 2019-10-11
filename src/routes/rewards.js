@@ -64,7 +64,7 @@ router.get('/ub/:id', async (req, res) => {
   }
 })
 
-router.post('/exchange', async (req, res) => {
+router.post('/ub/exchange', async (req, res) => {
   try {
     const giftPrice = parseInt(req.body.price)
     const siteUserId = 'ezbiztrip-' + req.user.id
@@ -86,7 +86,7 @@ router.post('/exchange', async (req, res) => {
       ]
     }
 
-    if (req.user.point < giftPrice) {
+    if (req.user.point < giftPrice / 1000) {
       return res.status(400).send({
         message: 'not enough points to redeem this voucher'
       })
