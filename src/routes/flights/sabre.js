@@ -20,7 +20,8 @@ router.post(
   sabreCurrencyExchange,
   sabreToken,
   async (req, res) => {
-    let cacheKey = makeSabreFlightCacheKey(req.body)
+    let search = req.body.search
+    let cacheKey = makeSabreFlightCacheKey(search)
 
     try {
       let cacheData = await getCache(cacheKey)
@@ -31,6 +32,8 @@ router.post(
         cacheData.numberOfPassengers
       )
 
+      flights = smartSuggestionFlights(flights)
+
       return res.status(200).send({
         flights,
         airlines: cacheData.airlines,
@@ -40,35 +43,35 @@ router.post(
       // do nothing to run the try block below
     }
 
-    let isRoundTrip = req.body.searchAirLegs.length === 2
+    let isRoundTrip = search.searchAirLegs.length === 2
     let OriginDestinationInformation = [
       {
-        DepartureDateTime: req.body.searchAirLegs[0].departureDate,
+        DepartureDateTime: search.searchAirLegs[0].departureDate,
         DestinationLocation: {
-          LocationCode: req.body.searchAirLegs[0].destination
+          LocationCode: search.searchAirLegs[0].destination
         },
         OriginLocation: {
-          LocationCode: req.body.searchAirLegs[0].origin
+          LocationCode: search.searchAirLegs[0].origin
         },
         TPA_Extensions: {
           CabinPref: {
-            Cabin: req.body.cabinClass
+            Cabin: search.cabinClass
           }
         }
       }
     ]
     if (isRoundTrip) {
       OriginDestinationInformation.push({
-        DepartureDateTime: req.body.searchAirLegs[1].departureDate,
+        DepartureDateTime: search.searchAirLegs[1].departureDate,
         DestinationLocation: {
-          LocationCode: req.body.searchAirLegs[1].destination
+          LocationCode: search.searchAirLegs[1].destination
         },
         OriginLocation: {
-          LocationCode: req.body.searchAirLegs[1].origin
+          LocationCode: search.searchAirLegs[1].origin
         },
         TPA_Extensions: {
           CabinPref: {
-            Cabin: req.body.cabinClass
+            Cabin: search.cabinClass
           }
         }
       })
@@ -120,12 +123,12 @@ router.post(
               PassengerTypeQuantity: [
                 {
                   Code: 'ADT',
-                  Quantity: req.body.adults
+                  Quantity: search.adults
                 }
               ]
             }
           ],
-          SeatsRequested: [req.body.adults]
+          SeatsRequested: [search.adults]
         },
         Version: '1'
       }
@@ -137,7 +140,7 @@ router.post(
       sabreRes = sabreRes.data.groupedItineraryResponse
       let { currency } = req
 
-      let flights = makeSabreFlightsData(sabreRes, currency, req.body.adults)
+      let flights = makeSabreFlightsData(sabreRes, currency, search.adults)
 
       let airlines = []
       let airports = []
@@ -212,7 +215,7 @@ router.post(
           cacheKey,
           {
             sabreRes,
-            numberOfPassengers: req.body.adults,
+            numberOfPassengers: search.adults,
             airlines,
             airports
           },
