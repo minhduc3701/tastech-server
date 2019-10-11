@@ -23,9 +23,13 @@ router.post('/ub', async (req, res) => {
         gifts: gifts,
         totalPage: resData.data.data.totalPage
       })
+    } else {
+      res.status(200).send({
+        gifts: [],
+        totalPage: 0
+      })
     }
   } catch (error) {
-    console.log(error)
     res.status(400).send()
   }
 })
