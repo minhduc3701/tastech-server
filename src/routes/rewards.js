@@ -23,6 +23,26 @@ router.post('/ub', async (req, res) => {
         gifts: gifts,
         totalPage: resData.data.data.totalPage
       })
+    } else {
+      res.status(200).send({
+        gifts: [],
+        totalPage: 0
+      })
+    }
+  } catch (error) {
+    res.status(400).send()
+  }
+})
+
+router.get('/ub/filter', async (req, res) => {
+  try {
+    let reqBody = { ...urboxKey }
+    let resData = await apiUrbox.getGiftFilter(reqBody)
+
+    if (resData.data.msg === 'success') {
+      res.status(200).send({
+        filter: resData.data.data.items
+      })
     }
   } catch (error) {
     res.status(400).send()
