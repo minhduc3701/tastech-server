@@ -58,6 +58,7 @@ const TripSchema = new Schema(
           price: Number,
           regionId: Number,
           regionName: String,
+          regionCoordinates: [Number],
           class: Number
         },
         transportation: {
