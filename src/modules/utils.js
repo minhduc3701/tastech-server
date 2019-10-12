@@ -289,7 +289,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
   try {
     let { itineraryGroups } = sabreRes
 
-    logger.info('sabreRes: ', sabreRes)
+    // logger.info('sabreRes: ', sabreRes)
     itineraryGroups.map(l => {
       let departureDate = moment(
         l.groupDescription.legDescriptions[0].departureDate

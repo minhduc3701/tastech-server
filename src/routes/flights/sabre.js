@@ -14,6 +14,7 @@ const { logger } = require('../../config/winston')
 const { giamsoAirlines } = require('../../modules/utils')
 const { makeSabreFlightCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
+const { suggestFlights } = require('../../modules/suggestions')
 
 router.post(
   '/shopping',
@@ -32,10 +33,10 @@ router.post(
         cacheData.numberOfPassengers
       )
 
-      flights = smartSuggestionFlights(flights)
+      let suggestData = suggestFlights(flights, req.body.trip, req.user)
 
       return res.status(200).send({
-        flights,
+        ...suggestData,
         airlines: cacheData.airlines,
         airports: cacheData.airports
       })
@@ -134,7 +135,7 @@ router.post(
       }
     }
     try {
-      logger.info('req', data)
+      // logger.info('req', data)
 
       let sabreRes = await apiSabre.shopping(data, req.sabreToken)
       sabreRes = sabreRes.data.groupedItineraryResponse
@@ -204,8 +205,10 @@ router.post(
             }
           })
 
+        let suggestData = suggestFlights(flights, req.body.trip, req.user)
+
         res.status(200).send({
-          flights,
+          ...suggestData,
           airlines,
           airports
         })

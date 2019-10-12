@@ -17,6 +17,7 @@ const { makeFlightsData } = require('../../modules/utils')
 const api = require('../../modules/api')
 const { makePkfareFlightCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
+const { suggestFlights } = require('../../modules/suggestions')
 
 router.post('/shopping', currencyExchange, async (req, res) => {
   let isRoundTrip = req.body.search.searchAirLegs.length === 2
@@ -31,8 +32,10 @@ router.post('/shopping', currencyExchange, async (req, res) => {
       numberOfAdults: Number(req.body.search.adults)
     })
 
+    let suggestData = suggestFlights(flights, req.body.trip, req.user)
+
     return res.status(200).send({
-      flights,
+      ...suggestData, // {flights, bestFlights}
       airlines: cacheData.airlines,
       airports: cacheData.airports
     })
@@ -117,8 +120,10 @@ router.post('/shopping', currencyExchange, async (req, res) => {
             }
           })
 
+        let suggestData = suggestFlights(flights, req.body.trip, req.user)
+
         res.status(200).send({
-          flights,
+          ...suggestData, // {flights, bestFlights}
           airlines,
           airports
         })

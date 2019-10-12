@@ -66,6 +66,8 @@ router.post('/exchange', async (req, res) => {
       ]
     }
 
+    console.log(req.user.point, giftPrice)
+
     if (req.user.point < giftPrice) {
       return res.status(400).send({
         message: 'not enough points to redeem this voucher'
@@ -117,6 +119,7 @@ router.post('/exchange', async (req, res) => {
           })
         })
         .catch(e => {
+          console.log('2', e)
           return res.status(400).send()
         })
     } else {
@@ -125,6 +128,7 @@ router.post('/exchange', async (req, res) => {
       })
     }
   } catch (error) {
+    console.log('3', error)
     res.status(400).send()
   }
 })
