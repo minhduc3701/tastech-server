@@ -13,6 +13,7 @@ const HotelTransportation = require('../../models/hotelTransportation')
 const { ObjectID } = require('mongodb')
 const { authentication } = require('../../config/pkfare')
 const { currencyExchange } = require('../../middleware/currency')
+const { suggestHotelRooms } = require('../../modules/suggestions')
 
 router.post('/hotelList', currencyExchange, (req, res) => {
   axios({
@@ -143,7 +144,10 @@ router.post('/hotelList', currencyExchange, (req, res) => {
           transportations
         }
       })
-      res.status(200).send({ hotels: newHotels })
+
+      let suggestData = suggestHotelRooms(newHotels, req.body, req.user)
+
+      res.status(200).send(suggestData)
     })
     .catch(error => {
       res.status(400).send()
