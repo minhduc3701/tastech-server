@@ -149,10 +149,6 @@ const emailEmployeeChangeTripStatus = (req, res) => {
 }
 
 const emailEmployeeCheckoutFailed = async (req, res, next) => {
-  if (!req.checkoutError) {
-    return next()
-  }
-
   let { trip, flightOrder, hotelOrder } = req
   let chargedFailedFlight =
     trip.flight &&

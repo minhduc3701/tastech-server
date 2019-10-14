@@ -38,7 +38,8 @@ router.post(
       return res.status(200).send({
         ...suggestData,
         airlines: cacheData.airlines,
-        airports: cacheData.airports
+        airports: cacheData.airports,
+        cacheKey
       })
     } catch (e) {
       // do nothing to run the try block below
@@ -122,7 +123,8 @@ router.post(
         res.status(200).send({
           ...suggestData,
           airlines,
-          airports
+          airports,
+          cacheKey
         })
 
         // save all data for using 1 hour later

@@ -23,7 +23,10 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
 
     let suggestData = suggestHotelRooms(hotelbedsHotelsData, req.body, req.user)
 
-    return res.status(200).send(suggestData)
+    return res.status(200).send({
+      ...suggestData,
+      cacheKey
+    })
   } catch (e) {
     // do nothing to run below query
   }
@@ -49,7 +52,10 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
     let suggestData = suggestHotelRooms(hotelbedsHotelsData, req.body, req.user)
 
     if (hotelbedsRoomsRes.data) {
-      res.status(200).send(suggestData)
+      res.status(200).send({
+        ...suggestData,
+        cacheKey
+      })
     }
 
     // cached for using 1 hour later
