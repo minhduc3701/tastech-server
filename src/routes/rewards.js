@@ -125,7 +125,6 @@ router.post('/exchange', async (req, res) => {
       })
     }
   } catch (error) {
-    console.log('3', error)
     res.status(400).send()
   }
 })
