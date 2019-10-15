@@ -276,7 +276,15 @@ router.patch('/:id', function(req, res, next) {
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()
   }
-  Trip.findByIdAndUpdate(id, { $set: req.body }, { new: true })
+  Trip.findOneAndUpdate(
+    {
+      _creator: req.user._id,
+      _company: req.user._company,
+      _id: id
+    },
+    { $set: req.body },
+    { new: true }
+  )
     .then(trip => {
       if (!trip) {
         return res.status(404).send()
