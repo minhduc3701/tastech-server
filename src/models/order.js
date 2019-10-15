@@ -143,7 +143,14 @@ const OrderSchema = new Schema(
     cancelCharge: Number,
     rawCancelCharge: Number,
     discountCode: String,
-    discountAmount: Number
+    discountAmount: {
+      type: Number,
+      default: 0
+    },
+    rewardCost: {
+      type: Number,
+      default: 0
+    }
   },
   {
     timestamps: true
