@@ -14,7 +14,10 @@ const _ = require('lodash')
 const axios = require('axios')
 const Policy = require('../models/policy')
 const moment = require('moment')
-const { currencyExchange } = require('../middleware/currency')
+const {
+  currencyExchange,
+  rewardCurrencyRate
+} = require('../middleware/currency')
 const { makeFlightsData } = require('../modules/utils')
 const api = require('../modules/api')
 const htbApi = require('../modules/apiHotelbeds')
@@ -22,6 +25,7 @@ const {
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
 } = require('../middleware/email')
+const { currentCompany } = require('../middleware/company')
 
 router.get('/', function(req, res, next) {
   Trip.find({
@@ -156,22 +160,124 @@ router.get('/expense', (req, res) => {
     .catch(e => res.status(400).send())
 })
 
-router.get('/:id', function(req, res, next) {
-  if (!ObjectID.isValid(req.params.id)) {
-    return res.status(404).send()
-  }
-  Trip.findOne({
-    _creator: req.user._id,
-    _id: req.params.id
-  })
-    .populate('updatedByAdmin')
-    .then(trip => {
-      res.status(200).json({ trip })
-    })
-    .catch(e => {
+router.get(
+  '/:id',
+  currentCompany,
+  rewardCurrencyRate,
+  async (req, res, next) => {
+    if (!ObjectID.isValid(req.params.id)) {
+      return res.status(404).send()
+    }
+
+    try {
+      let trip = await Trip.findOne({
+        _creator: req.user._id,
+        _id: req.params.id
+      }).populate('updatedByAdmin')
+
+      let tripsSpend = await Trip.aggregate([
+        {
+          $match: {
+            _id: trip._id,
+            _creator: req.user._id,
+            businessTrip: true
+          }
+        },
+        {
+          $lookup: {
+            from: 'orders',
+            localField: '_id',
+            foreignField: '_trip',
+            as: 'orders'
+          }
+        },
+        {
+          $unwind: '$orders'
+        },
+        {
+          $group: {
+            _id: '$_id',
+            totalFlightSpend: {
+              $sum: {
+                $cond: {
+                  if: {
+                    $and: [
+                      {
+                        $eq: ['$orders.type', 'flight']
+                      },
+                      {
+                        $in: [
+                          '$orders.status',
+                          ['completed', 'processing', 'cancelling']
+                        ]
+                      }
+                    ]
+                  },
+                  then: '$orders.totalPrice',
+                  else: 0
+                }
+              }
+            },
+            totalHotelSpend: {
+              $sum: {
+                $cond: {
+                  if: {
+                    $and: [
+                      {
+                        $eq: ['$orders.type', 'hotel']
+                      },
+                      {
+                        $in: ['$orders.status', ['completed']]
+                      }
+                    ]
+                  },
+                  then: '$orders.totalPrice',
+                  else: 0
+                }
+              }
+            }
+          }
+        }
+      ])
+
+      let spendData = _.get(tripsSpend, '[0]', {
+        totalFlightSpend: 0,
+        totalHotelSpend: 0
+      })
+      let totalSpend = spendData.totalFlightSpend + spendData.totalHotelSpend
+
+      let flightHotelBudget =
+        _.get(trip, 'budgetPassengers[0].flight.price', 0) +
+        _.get(trip, 'budgetPassengers[0].lodging.price', 0)
+
+      let saveSpend = 0
+      // only calculate save spend if totalSpend > 0
+      // and totalSpend < budget
+      if (totalSpend > 0 && totalSpend < flightHotelBudget) {
+        saveSpend = flightHotelBudget - totalSpend
+      }
+
+      // exchange to reward base currency
+      let rewardSaveSpend = saveSpend * req.currency.rate
+
+      let savePoint = Math.round(
+        (rewardSaveSpend * req.company.exchangedRate) / 100
+      )
+
+      res.status(200).json({
+        trip: {
+          ...trip.toObject(),
+          flightHotelBudget,
+          totalSpend,
+          saveSpend,
+          savePoint
+        }
+      })
+    } catch (e) {
       res.status(400).send()
-    })
-})
+    }
+  }
+)
 
 router.post(
   '/',
