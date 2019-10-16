@@ -610,55 +610,134 @@ router.get('/:id/orders', function(req, res, next) {
     })
 })
 
-router.patch('/:id/exchange', function(req, res, next) {
-  let id = req.params.id
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send()
-  }
-  Promise.all([
-    Trip.findOneAndUpdate(
-      {
-        _id: id,
-        _creator: req.user._id,
-        status: 'finished'
-      },
-      { $set: { status: 'completed' } },
-      { new: true }
-    ),
-    Expense.find({
-      _creator: req.user._id,
-      _trip: id,
-      status: 'approved'
-    }),
-    Company.findById(req.user._company)
-  ])
-    .then(result => {
-      let trip = result[0]
-      let expenses = result[1]
-      let company = result[2]
-      let budget = trip.budgetPassengers[0].totalPrice
-      let totalAmount = 0
-      let saveAmount = 0
-      expenses.map(expense => {
-        totalAmount += expense.amount
-      })
-      if (budget > totalAmount) {
-        saveAmount = budget - totalAmount
-      }
-      let rate = company.exchangedRate
-      let point = Math.round((saveAmount * rate) / 100)
-      return User.findByIdAndUpdate(
-        req.user._id,
-        { $inc: { point: point } },
+router.patch(
+  '/:id/exchange',
+  currentCompany,
+  rewardCurrencyRate,
+  async (req, res, next) => {
+    let id = req.params.id
+    if (!ObjectID.isValid(id)) {
+      return res.status(404).send()
+    }
+
+    try {
+      let trip = await Trip.findOneAndUpdate(
+        {
+          _id: id,
+          _creator: req.user._id,
+          status: 'finished'
+        },
+        { $set: { status: 'completed' } },
         { new: true }
       )
-    })
-    .then(user => {
-      res.status(200).send({ user })
-    })
-    .catch(e => {
+
+      if (!trip) {
+        return res.status(404).send()
+      }
+
+      let tripsSpend = await Trip.aggregate([
+        {
+          $match: {
+            _id: trip._id,
+            _creator: req.user._id,
+            businessTrip: true
+          }
+        },
+        {
+          $lookup: {
+            from: 'orders',
+            localField: '_id',
+            foreignField: '_trip',
+            as: 'orders'
+          }
+        },
+        {
+          $unwind: '$orders'
+        },
+        {
+          $group: {
+            _id: '$_id',
+            totalFlightSpend: {
+              $sum: {
+                $cond: {
+                  if: {
+                    $and: [
+                      {
+                        $eq: ['$orders.type', 'flight']
+                      },
+                      {
+                        $in: [
+                          '$orders.status',
+                          ['completed', 'processing', 'cancelling']
+                        ]
+                      }
+                    ]
+                  },
+                  then: '$orders.totalPrice',
+                  else: 0
+                }
+              }
+            },
+            totalHotelSpend: {
+              $sum: {
+                $cond: {
+                  if: {
+                    $and: [
+                      {
+                        $eq: ['$orders.type', 'hotel']
+                      },
+                      {
+                        $in: ['$orders.status', ['completed']]
+                      }
+                    ]
+                  },
+                  then: '$orders.totalPrice',
+                  else: 0
+                }
+              }
+            }
+          }
+        }
+      ])
+
+      let spendData = _.get(tripsSpend, '[0]', {
+        totalFlightSpend: 0,
+        totalHotelSpend: 0
+      })
+      let totalSpend = spendData.totalFlightSpend + spendData.totalHotelSpend
+
+      let flightHotelBudget =
+        _.get(trip, 'budgetPassengers[0].flight.price', 0) +
+        _.get(trip, 'budgetPassengers[0].lodging.price', 0)
+
+      let saveSpend = 0
+      // only calculate save spend if totalSpend > 0
+      // and totalSpend < budget
+      if (totalSpend > 0 && totalSpend < flightHotelBudget) {
+        saveSpend = flightHotelBudget - totalSpend
+      }
+
+      // exchange to reward base currency
+      let rewardSaveSpend = saveSpend * req.currency.rate
+
+      let savePoint = Math.round(
+        (rewardSaveSpend * req.company.exchangedRate) / 100
+      )
+
+      let user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $inc: { point: savePoint } },
+        { new: true }
+      )
+
+      res.status(200).send({
+        trip,
+        user
+      })
+    } catch (e) {
       res.status(400).send()
-    })
-})
+    }
+  }
+)
 
 module.exports = router
