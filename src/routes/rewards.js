@@ -2,7 +2,9 @@ var express = require('express')
 var router = express.Router()
 const _ = require('lodash')
 const Voucher = require('../models/voucher')
+const Reward = require('../models/reward')
 const User = require('../models/user')
+const { ObjectID } = require('mongodb')
 const apiUrbox = require('../modules/apiUrbox')
 const { makeUrboxGiftData } = require('../modules/utils')
 const moment = require('moment')
@@ -12,22 +14,143 @@ let urboxKey = {
   app_secret: process.env.URBOX_SECRET
 }
 
-router.post('/ub', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    let reqBody = { ...urboxKey, ...req.body }
-    let resData = await apiUrbox.getGifts(reqBody)
+    if (req.body.country === 'vietnam') {
+      let reqBody = { ...urboxKey, ...req.body }
+      let resData = await apiUrbox.getGifts(reqBody)
 
-    if (resData.data.msg === 'success') {
-      let gifts = resData.data.data.items.map(makeUrboxGiftData)
-      res.status(200).send({
-        gifts: gifts,
-        totalPage: resData.data.data.totalPage
-      })
+      let filterData = await apiUrbox.getGiftFilter(urboxKey)
+      let filter = filterData.data.data.items
+
+      if (resData.data.msg === 'success' && filterData.data.msg === 'success') {
+        let gifts = resData.data.data.items.map(makeUrboxGiftData)
+
+        Reward.aggregate([
+          {
+            $group: {
+              _id: '$country'
+            }
+          }
+        ])
+          .then(countries => {
+            countries = countries.map(country => {
+              return {
+                value: country._id,
+                label: country._id
+              }
+            })
+            countries.unshift({ value: 'vietnam', label: 'Vietnam' })
+
+            let categories = filter['CATEGORIES'].value.map(cat => {
+              return {
+                value: cat.id,
+                label: cat.title
+              }
+            })
+            categories.unshift({ value: '', label: 'All' })
+
+            let brands = filter['BRANDS'].value.map(brand => {
+              return {
+                value: brand.id,
+                label: brand.title
+              }
+            })
+            brands.unshift({ value: '', label: 'All' })
+
+            res.status(200).send({
+              countries,
+              categories,
+              brands,
+              gifts: gifts,
+              totalPage: resData.data.data.totalPage
+            })
+          })
+          .catch(error => {
+            res.status(400).send()
+          })
+      } else {
+        res.status(200).send({
+          gifts: [],
+          totalPage: 0
+        })
+      }
     } else {
-      res.status(200).send({
-        gifts: [],
-        totalPage: 0
-      })
+      let perPage = parseInt(req.body.per_page)
+      let page = Math.max(0, parseInt(req.body.page_no))
+
+      let options = {
+        country: req.body.country
+      }
+      if (req.body.brand_id) {
+        options['brand'] = req.body.brand_id
+      }
+      if (req.body.cat_id) {
+        options['categoryName'] = req.body.cat_id
+      }
+
+      Promise.all([
+        Reward.find(options)
+          .limit(perPage)
+          .skip(perPage * page)
+          .sort({ updatedAt: -1 }),
+        Reward.countDocuments(options),
+        Reward.aggregate([
+          {
+            $match: {
+              country: req.body.country
+            }
+          },
+          {
+            $group: {
+              _id: '$categoryName'
+            }
+          }
+        ]),
+        Reward.aggregate([
+          {
+            $match: {
+              country: req.body.country
+            }
+          },
+          {
+            $group: {
+              _id: '$brand'
+            }
+          }
+        ])
+      ])
+        .then(results => {
+          let gifts = results[0]
+          let totalPage = Math.ceil(results[1] / perPage)
+
+          let categories = results[2].map(cat => {
+            return {
+              value: cat._id,
+              label: cat._id
+            }
+          })
+          categories.unshift({ value: '', label: 'All' })
+
+          let brands = results[3].map(brand => {
+            return {
+              value: brand._id,
+              label: brand._id
+            }
+          })
+          brands.unshift({ value: '', label: 'All' })
+
+          res.status(200).send({
+            categories,
+            brands,
+            gifts,
+            totalPage,
+            total: results[1]
+          })
+        })
+        .catch(error => {
+          res.status(400).send()
+        })
     }
   } catch (error) {
     res.status(400).send()
@@ -36,14 +159,32 @@ router.post('/ub', async (req, res) => {
 
 router.get('/ub/filter', async (req, res) => {
   try {
-    let reqBody = { ...urboxKey }
-    let resData = await apiUrbox.getGiftFilter(reqBody)
+    const reqBody = { ...urboxKey }
+    const resData = await apiUrbox.getGiftFilter(reqBody)
+    let filter = resData.data.data.items
 
-    if (resData.data.msg === 'success') {
-      res.status(200).send({
-        filter: resData.data.data.items
+    Reward.aggregate([
+      {
+        $group: {
+          _id: '$country'
+        }
+      }
+    ])
+      .then(countries => {
+        countries = countries.map(country => {
+          return {
+            id: country._id,
+            title: country._id
+          }
+        })
+        filter['COUNTRIES'] = countries
+        res.status(200).send({
+          filter
+        })
       })
-    }
+      .catch(e => {
+        return res.status(400).send()
+      })
   } catch (error) {
     res.status(400).send()
   }
@@ -53,6 +194,7 @@ router.get('/ub/:id', async (req, res) => {
   try {
     let reqBody = { ...urboxKey, id: req.params.id }
     let resData = await apiUrbox.getGiftDetail(reqBody)
+
     let gift = {
       ...resData.data.data,
       pricePoint: parseInt(resData.data.data.price) / 1000
@@ -98,6 +240,7 @@ router.post('/ub/exchange', async (req, res) => {
       let remainingPoints = req.user.point - giftPrice / 1000
       let voucherData = {
         ...req.body,
+        supplier: 'UrBox',
         _buyer: req.user.id,
         siteUserId,
         transactionId,
