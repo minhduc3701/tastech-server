@@ -54,7 +54,8 @@ Add config/config.json with the content like below:
     "URBOX_EZBIZTRIP_NAME": "Ezbiztrip",
     "URBOX_EZBIZTRIP_PHONE": "84123456789",
     "URBOX_EZBIZTRIP_EMAIL": "urbox@ezbiztrip.com"
-    "EMAIL_GIAMSO": ""
+    "EMAIL_GIAMSO": "",
+    "REWARD_BASE_CURRENCY": "SGD"
   }
 }
 
@@ -197,6 +198,7 @@ export URBOX_EZBIZTRIP_NAME=Ezbiztrip
 export URBOX_EZBIZTRIP_PHONE=84123456789
 export URBOX_EZBIZTRIP_EMAIL=urbox@ezbiztrip.com
 export EMAIL_GIAMSO=<EMAIL_GIAMSO>
+export REWARD_BASE_CURRENCY=SGD
 ```
 
 Now you ready to run your app
