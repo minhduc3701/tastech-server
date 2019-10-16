@@ -312,14 +312,18 @@ const calculateRewardCost = async (req, res, next) => {
     let remainingHotelBudget = hotelBudget - totalHotelSpend - hotelTotalPrice
 
     if (remainingFlightBudget > 0 && flightTotalPrice > 0) {
+      let currencyRate = flightOrder.totalPrice / flightOrder.rawTotalPrice
       flightOrder.rewardCost = (exchangedRate * remainingFlightBudget) / 100
       flightOrder.totalPrice = flightOrder.totalPrice + flightOrder.rewardCost
+      flightOrder.rawTotalPrice = flightOrder.totalPrice / currencyRate
       await flightOrder.save()
     }
 
     if (remainingHotelBudget > 0 && hotelTotalPrice > 0) {
+      let currencyRate = hotelOrder.totalPrice / hotelOrder.rawTotalPrice
       hotelOrder.rewardCost = (exchangedRate * remainingHotelBudget) / 100
       hotelOrder.totalPrice = hotelOrder.totalPrice + hotelOrder.rewardCost
+      hotelOrder.rawTotalPrice = hotelOrder.totalPrice / currencyRate
       await hotelOrder.save()
     }
   } catch (e) {}
