@@ -23,6 +23,26 @@ router.post('/ub', async (req, res) => {
         gifts: gifts,
         totalPage: resData.data.data.totalPage
       })
+    } else {
+      res.status(200).send({
+        gifts: [],
+        totalPage: 0
+      })
+    }
+  } catch (error) {
+    res.status(400).send()
+  }
+})
+
+router.get('/ub/filter', async (req, res) => {
+  try {
+    let reqBody = { ...urboxKey }
+    let resData = await apiUrbox.getGiftFilter(reqBody)
+
+    if (resData.data.msg === 'success') {
+      res.status(200).send({
+        filter: resData.data.data.items
+      })
     }
   } catch (error) {
     res.status(400).send()
@@ -44,7 +64,7 @@ router.get('/ub/:id', async (req, res) => {
   }
 })
 
-router.post('/exchange', async (req, res) => {
+router.post('/ub/exchange', async (req, res) => {
   try {
     const giftPrice = parseInt(req.body.price)
     const siteUserId = 'ezbiztrip-' + req.user.id
@@ -66,7 +86,7 @@ router.post('/exchange', async (req, res) => {
       ]
     }
 
-    if (req.user.point < giftPrice) {
+    if (req.user.point < giftPrice / 1000) {
       return res.status(400).send({
         message: 'not enough points to redeem this voucher'
       })
