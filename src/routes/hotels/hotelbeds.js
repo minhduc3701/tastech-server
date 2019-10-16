@@ -7,6 +7,7 @@ const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
 const { logger } = require('../../config/winston')
 const { makeHotelBedsCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
+const { suggestHotelRooms } = require('../../modules/suggestions')
 
 router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
   let cacheKey = makeHotelBedsCacheKey(req.body.roomRequest)
@@ -20,8 +21,11 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
       req.currency
     )
 
+    let suggestData = suggestHotelRooms(hotelbedsHotelsData, req.body, req.user)
+
     return res.status(200).send({
-      hotels: hotelbedsHotelsData
+      ...suggestData,
+      cacheKey
     })
   } catch (e) {
     // do nothing to run below query
@@ -45,9 +49,12 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
       req.currency
     )
 
+    let suggestData = suggestHotelRooms(hotelbedsHotelsData, req.body, req.user)
+
     if (hotelbedsRoomsRes.data) {
       res.status(200).send({
-        hotels: hotelbedsHotelsData
+        ...suggestData,
+        cacheKey
       })
     }
 

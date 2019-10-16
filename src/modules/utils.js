@@ -31,99 +31,6 @@ const mapClassOptions = {
   F: 'FIRST CLASS'
 }
 
-const giamsoAirlines = [
-  '3U',
-  'BG',
-  'EK',
-  'HO',
-  'K6',
-  'LY',
-  'OZ',
-  'SB',
-  'TV',
-  '8M',
-  'BI',
-  'ET',
-  'HR',
-  'KE',
-  'MF',
-  'PG',
-  'SC',
-  'UA',
-  '9W',
-  'BP',
-  'EY',
-  'HU',
-  'KK',
-  'MH',
-  'PN',
-  'SQ',
-  'UB',
-  'AA',
-  'BR',
-  'FJ',
-  'HX',
-  'KL',
-  'MI',
-  'PR',
-  'SU',
-  'UL',
-  'AC',
-  'CA',
-  'G3',
-  'HY',
-  'KQ',
-  'MK',
-  'PX',
-  'SV',
-  'UN',
-  'AF',
-  'CI',
-  'GA',
-  'IE',
-  'LA',
-  'MU',
-  'QD',
-  'SW',
-  'UX',
-  'AI',
-  'CX',
-  'GE',
-  'J8',
-  'LH',
-  'NH',
-  'QF',
-  'TG',
-  'VA',
-  'AT',
-  'CZ',
-  'GF',
-  'JL',
-  'LO',
-  'NX',
-  'QR',
-  'TK',
-  'VN',
-  'AY',
-  'DL',
-  'GP',
-  'JP',
-  'LQ',
-  'NZ',
-  'QV',
-  'TP',
-  'WY',
-  'BA',
-  'DT',
-  'HM',
-  'JU',
-  'LX',
-  'O8',
-  'S7',
-  'TR',
-  'ZI'
-]
-
 const makeSegmentsData = segment => {
   let data = _.pick(segment, [
     'airline',
@@ -289,7 +196,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
   try {
     let { itineraryGroups } = sabreRes
 
-    logger.info('sabreRes: ', sabreRes)
+    // logger.info('sabreRes: ', sabreRes)
     itineraryGroups.map(l => {
       let departureDate = moment(
         l.groupDescription.legDescriptions[0].departureDate
@@ -870,6 +777,5 @@ module.exports = {
   roundingAmountStripe,
   formatLocaleMoney,
   getUserProfileStrength,
-  makeUrboxGiftData,
-  giamsoAirlines
+  makeUrboxGiftData
 }

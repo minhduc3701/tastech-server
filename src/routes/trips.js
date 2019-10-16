@@ -15,11 +15,16 @@ const axios = require('axios')
 const Policy = require('../models/policy')
 const moment = require('moment')
 const {
-  currencyExchange,
+  sabreCurrencyExchange,
   rewardCurrencyRate
 } = require('../middleware/currency')
-const { makeFlightsData } = require('../modules/utils')
-const api = require('../modules/api')
+const { sabreToken } = require('../middleware/sabre')
+const { makeSabreFlightsData } = require('../modules/utils')
+const {
+  makeSabreSearchRequestFromBudget,
+  makeSabreRequestData
+} = require('../modules/utilsSabre')
+const apiSabre = require('../modules/apiSabre')
 const htbApi = require('../modules/apiHotelbeds')
 const {
   emailEmployeeSubmitTrip,
@@ -281,7 +286,8 @@ router.get(
 
 router.post(
   '/',
-  currencyExchange,
+  sabreCurrencyExchange,
+  sabreToken,
   async (req, res, next) => {
     const trip = new Trip(req.body)
     trip._creator = req.user._id
@@ -348,50 +354,20 @@ router.post(
           trip.budgetPassengers[0].others.amount
         )
       }
+
+      // calculate Flight budget
       if (trip.budgetPassengers[0].flight.selected) {
-        // calculate Flight budget
-        let searchAirLegs = []
-        if (trip.budgetPassengers[0].flight.flightType === 'round-trip') {
-          searchAirLegs = [
-            {
-              cabinClass: policy.flightClass, // Capitalize the First Letter
-              departureDate: budget.flight.departDate,
-              destination: budget.flight.returnDestinationCode,
-              origin: budget.flight.departDestinationCode
-            },
-            {
-              cabinClass: policy.flightClass, // Capitalize the First Letter
-              departureDate: budget.flight.returnDate,
-              destination: budget.flight.departDestinationCode,
-              origin: budget.flight.returnDestinationCode
-            }
-          ]
-        } else {
-          searchAirLegs = [
-            {
-              cabinClass: policy.flightClass, // Capitalize the First Letter
-              departureDate: budget.flight.departDate,
-              destination: budget.flight.returnDestinationCode,
-              origin: budget.flight.departDestinationCode
-            }
-          ]
-        }
-        let search = {
-          adults: 1,
-          children: 0,
-          infants: 0,
-          nonstop: 0,
-          searchAirLegs,
-          solutions: 0
-        }
-        trip.budgetPassengers[0].flight.class = policy.flightClass
-        let flights = await api.shopping(search)
-        let isRoundTrip = searchAirLegs.length === 2
-        flights = makeFlightsData(flights, {
-          isRoundTrip,
-          currency: req.currency,
-          numberOfAdults: 1
-        })
+        let budgetRequest = makeSabreSearchRequestFromBudget(
+          trip.budgetPassengers[0].flight,
+          policy
+        )
+        let sabreRes = await apiSabre.shopping(
+          makeSabreRequestData(budgetRequest),
+          req.sabreToken
+        )
+        sabreRes = sabreRes.data.groupedItineraryResponse
+
+        let flights = makeSabreFlightsData(sabreRes, req.currency, 1)
 
         let sumPrice = 0
         flights.forEach(flight => {
@@ -402,7 +378,9 @@ router.post(
         )
         trip.budgetPassengers[0].totalPrice +=
           trip.budgetPassengers[0].flight.price
-      }
+      } // end flight budget
+
+      // hotel budget
       if (trip.budgetPassengers[0].lodging.selected) {
         trip.budgetPassengers[0].lodging.class = policy.hotelClass
         //  Calculate Hotel budget
@@ -473,13 +451,16 @@ router.patch('/:id', function(req, res, next) {
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()
   }
+
+  let body = _.pick(req.body, ['archived'])
+
   Trip.findOneAndUpdate(
     {
       _creator: req.user._id,
       _company: req.user._company,
       _id: id
     },
-    { $set: req.body },
+    { $set: body },
     { new: true }
   )
     .then(trip => {
