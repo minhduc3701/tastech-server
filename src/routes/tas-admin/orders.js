@@ -5,12 +5,31 @@ const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeItinerary } = require('../../middleware/email')
 router.get('/', function(req, res, next) {
-  Order.find({})
-    .populate('_trip', ['type', 'name', 'contactInfo'])
-    .populate('_customer', ['email'])
-    .sort({ createdAt: -1 })
-    .then(orders => {
-      res.status(200).send({ orders })
+  let perPage = _.get(req.query, 'perPage', 50)
+  perPage = Math.max(0, parseInt(perPage))
+  let page = _.get(req.query, 'page', 0)
+  page = Math.max(0, parseInt(page))
+
+  Promise.all([
+    Order.find({})
+      .populate('_trip', ['type', 'name', 'contactInfo'])
+      .populate('_customer', ['email'])
+      .sort({ createdAt: -1 })
+      .limit(perPage)
+      .skip(perPage * page),
+    Order.countDocuments()
+  ])
+    .then(results => {
+      let orders = results[0]
+      let total = results[1]
+      res.status(200).send({
+        page,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        count: orders.length,
+        perPage,
+        orders
+      })
     })
     .catch(e => {
       res.status(400).send({})
