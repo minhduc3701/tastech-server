@@ -208,118 +208,121 @@ const calculateRewardCost = async (req, res, next) => {
   let flightOrder = req.flightOrder
   let hotelOrder = req.hotelOrder
 
-  let foundBusinessTrip = await Trip.findOne({
-    _creator: req.user._id,
-    _id: req.trip._id
-  })
+  try {
+    let foundBusinessTrip = await Trip.findOne({
+      _creator: req.user._id,
+      _id: req.trip._id
+    })
 
-  // calculate reward cost for new orders
-  let flightBudget = _.get(
-    foundBusinessTrip,
-    'budgetPassengers[0].flight.price',
-    0
-  )
-  let hotelBudget = _.get(
-    foundBusinessTrip,
-    'budgetPassengers[0].lodging.price',
-    0
-  )
+    // calculate reward cost for new orders
+    let flightBudget = _.get(
+      foundBusinessTrip,
+      'budgetPassengers[0].flight.price',
+      0
+    )
+    let hotelBudget = _.get(
+      foundBusinessTrip,
+      'budgetPassengers[0].lodging.price',
+      0
+    )
 
-  let tripsSpend = await Trip.aggregate([
-    {
-      $match: {
-        _id: foundBusinessTrip._id,
-        _creator: req.user._id,
-        businessTrip: true,
-        $or: [
-          {
-            status: 'approved'
-          },
-          {
-            status: 'ongoing'
-          }
-        ]
-      }
-    },
-    {
-      $lookup: {
-        from: 'orders',
-        localField: '_id',
-        foreignField: '_trip',
-        as: 'orders'
-      }
-    },
-    {
-      $unwind: '$orders'
-    },
-    {
-      $group: {
-        _id: '$_id',
-        totalFlightSpend: {
-          $sum: {
-            $cond: {
-              if: {
-                $and: [
-                  {
-                    $eq: ['$orders.type', 'flight']
-                  },
-                  {
-                    $in: [
-                      '$orders.status',
-                      ['completed', 'processing', 'cancelling']
-                    ]
-                  }
-                ]
-              },
-              then: '$orders.totalPrice',
-              else: 0
+    let tripsSpend = await Trip.aggregate([
+      {
+        $match: {
+          _id: foundBusinessTrip._id,
+          _creator: req.user._id,
+          businessTrip: true,
+          $or: [
+            {
+              status: 'approved'
+            },
+            {
+              status: 'ongoing'
             }
-          }
-        },
-        totalHotelSpend: {
-          $sum: {
-            $cond: {
-              if: {
-                $and: [
-                  {
-                    $eq: ['$orders.type', 'hotel']
-                  },
-                  {
-                    $in: ['$orders.status', ['completed']]
-                  }
-                ]
-              },
-              then: '$orders.totalPrice',
-              else: 0
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'orders',
+          localField: '_id',
+          foreignField: '_trip',
+          as: 'orders'
+        }
+      },
+      {
+        $unwind: '$orders'
+      },
+      {
+        $group: {
+          _id: '$_id',
+          totalFlightSpend: {
+            $sum: {
+              $cond: {
+                if: {
+                  $and: [
+                    {
+                      $eq: ['$orders.type', 'flight']
+                    },
+                    {
+                      $in: [
+                        '$orders.status',
+                        ['completed', 'processing', 'cancelling']
+                      ]
+                    }
+                  ]
+                },
+                then: '$orders.totalPrice',
+                else: 0
+              }
+            }
+          },
+          totalHotelSpend: {
+            $sum: {
+              $cond: {
+                if: {
+                  $and: [
+                    {
+                      $eq: ['$orders.type', 'hotel']
+                    },
+                    {
+                      $in: ['$orders.status', ['completed']]
+                    }
+                  ]
+                },
+                then: '$orders.totalPrice',
+                else: 0
+              }
             }
           }
         }
       }
+    ])
+
+    let totalFlightSpend = _.get(tripsSpend, '[0].totalFlightSpend', 0)
+    let totalHotelSpend = _.get(tripsSpend, '[0].totalHotelSpend', 0)
+
+    let flightTotalPrice = _.get(req, 'flightOrder.flight.totalPrice', 0)
+    let hotelTotalPrice = _.get(req, 'hotelOrder.hotel.totalPrice', 0)
+
+    let exchangedRate = req.company.exchangedRate
+
+    let remainingFlightBudget =
+      flightBudget - totalFlightSpend - flightTotalPrice
+    let remainingHotelBudget = hotelBudget - totalHotelSpend - hotelTotalPrice
+
+    if (remainingFlightBudget > 0 && flightTotalPrice > 0) {
+      flightOrder.rewardCost = (exchangedRate * remainingFlightBudget) / 100
+      flightOrder.totalPrice = flightOrder.totalPrice + flightOrder.rewardCost
+      await flightOrder.save()
     }
-  ])
 
-  let totalFlightSpend = _.get(tripsSpend, '[0].totalFlightSpend', 0)
-  let totalHotelSpend = _.get(tripsSpend, '[0].totalHotelSpend', 0)
-
-  let flightTotalPrice = _.get(req, 'flightOrder.flight.totalPrice', 0)
-  let hotelTotalPrice = _.get(req, 'hotelOrder.hotel.totalPrice', 0)
-
-  let exchangedRate = req.company.exchangedRate
-
-  let remainingFlightBudget = flightBudget - totalFlightSpend - flightTotalPrice
-  let remainingHotelBudget = hotelBudget - totalHotelSpend - hotelTotalPrice
-
-  if (remainingFlightBudget > 0 && flightTotalPrice > 0) {
-    flightOrder.rewardCost = (exchangedRate * remainingFlightBudget) / 100
-    flightOrder.totalPrice = flightOrder.totalPrice + flightOrder.rewardCost
-    await flightOrder.save()
-  }
-
-  if (remainingHotelBudget > 0 && hotelTotalPrice > 0) {
-    hotelOrder.rewardCost = (exchangedRate * remainingHotelBudget) / 100
-    hotelOrder.totalPrice = hotelOrder.totalPrice + hotelOrder.rewardCost
-    await hotelOrder.save()
-  }
+    if (remainingHotelBudget > 0 && hotelTotalPrice > 0) {
+      hotelOrder.rewardCost = (exchangedRate * remainingHotelBudget) / 100
+      hotelOrder.totalPrice = hotelOrder.totalPrice + hotelOrder.rewardCost
+      await hotelOrder.save()
+    }
+  } catch (e) {}
 
   next()
 }
