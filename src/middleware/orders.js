@@ -1,5 +1,8 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const { roundingAmountStripe } = require('../modules/utils')
+const { orderCancelled } = require('../mailTemplates/orderCancelled')
+const Order = require('../models/order')
+const { mail } = require('../config/mail')
 
 // Run after PATCH /tas-admin/orders/:id
 const refundCancelledOrderManually = async (req, res, next) => {
@@ -17,15 +20,13 @@ const refundCancelledOrderManually = async (req, res, next) => {
 
   refundAmount = order.totalPrice - cancelCharge
 
-  if (refundAmount <= 0) {
-    return next()
-  }
-
   try {
-    let refund = await stripe.refunds.create({
-      charge: order.chargeId,
-      amount: roundingAmountStripe(refundAmount, order.currency)
-    })
+    if (refundAmount > 0) {
+      await stripe.refunds.create({
+        charge: order.chargeId,
+        amount: roundingAmountStripe(refundAmount, order.currency)
+      })
+    }
 
     order.cancelCharge = cancelCharge
     order.rawCancelCharge =
@@ -37,6 +38,24 @@ const refundCancelledOrderManually = async (req, res, next) => {
   next()
 }
 
+const emailCustomerCancelledOrder = async (req, res, next) => {
+  if (!req.cancelledOrder) {
+    return next()
+  }
+
+  let order = await Order.populate(req.cancelledOrder, { path: '_customer' })
+  let refundAmount = order.totalPrice - order.cancelCharge
+
+  let mailOptions = await orderCancelled(order, refundAmount)
+  mail.sendMail(mailOptions, function(err, info) {
+    if (err) {
+      // debugMail(err)
+      // logger.error('mail: ', { err: err })
+    }
+  })
+}
+
 module.exports = {
-  refundCancelledOrderManually
+  refundCancelledOrderManually,
+  emailCustomerCancelledOrder
 }

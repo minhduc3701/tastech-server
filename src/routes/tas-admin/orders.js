@@ -4,7 +4,10 @@ const Order = require('../../models/order')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeItinerary } = require('../../middleware/email')
-const { refundCancelledOrderManually } = require('../../middleware/orders')
+const {
+  refundCancelledOrderManually,
+  emailCustomerCancelledOrder
+} = require('../../middleware/orders')
 
 router.get('/', function(req, res, next) {
   let perPage = _.get(req.query, 'perPage', 50)
@@ -65,7 +68,7 @@ router.patch(
       return res.status(404).send()
     }
 
-    const body = _.pick(req.body, ['status', 'pnr'])
+    const body = _.pick(req.body, ['status'])
 
     try {
       let order = await Order.findOneAndUpdate(
@@ -92,7 +95,7 @@ router.patch(
       }
 
       // refund order manually
-      if (order.status === 'cancelled' && req.body.refund) {
+      if (order.status === 'cancelled') {
         req.cancelledOrder = order
         req.cancelCharge = req.body.cancelCharge
         return next()
@@ -102,6 +105,7 @@ router.patch(
     }
   },
   refundCancelledOrderManually,
+  emailCustomerCancelledOrder,
   emailEmployeeItinerary
 )
 
