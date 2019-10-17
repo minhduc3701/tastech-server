@@ -175,6 +175,10 @@ const emailEmployeeCheckoutFailed = async (req, res, next) => {
 }
 
 const emailEmployeeItinerary = async (req, res, next) => {
+  if (!req.trip) {
+    return
+  }
+
   if (!req.checkoutError) {
     let trip = req.trip
     Order.find({

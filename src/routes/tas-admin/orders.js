@@ -4,6 +4,8 @@ const Order = require('../../models/order')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeItinerary } = require('../../middleware/email')
+const { refundCancelledOrderManually } = require('../../middleware/orders')
+
 router.get('/', function(req, res, next) {
   let perPage = _.get(req.query, 'perPage', 50)
   perPage = Math.max(0, parseInt(perPage))
@@ -56,7 +58,7 @@ router.get('/:id', function(req, res, next) {
 
 router.patch(
   '/:id',
-  function(req, res, next) {
+  async (req, res, next) => {
     let id = req.params.id
 
     if (!ObjectID.isValid(id)) {
@@ -65,31 +67,41 @@ router.patch(
 
     const body = _.pick(req.body, ['status', 'pnr'])
 
-    Order.findOneAndUpdate(
-      {
-        _id: id
-      },
-      { $set: body },
-      { new: true }
-    )
-      .then(order => {
-        if (!order) {
-          return res.status(404).send()
+    try {
+      let order = await Order.findOneAndUpdate(
+        {
+          _id: id,
+          status: { $ne: 'cancelled' } // don't update cancelled order
+        },
+        { $set: body },
+        { new: true }
+      )
+
+      if (!order) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ order })
+
+      if (order.status === 'completed') {
+        //for sending email to employee
+        req.trip = {
+          _id: order._trip
         }
-        res.status(200).send({ order })
-        if (order.status === 'completed') {
-          //for sending email to employee
-          req.trip = {
-            _id: order._trip
-          }
-          next()
-        }
-      })
-      .catch(e => {
-        console.log(e)
-        res.status(400).send()
-      })
+        return next()
+      }
+
+      // refund order manually
+      if (order.status === 'cancelled' && req.body.refund) {
+        req.cancelledOrder = order
+        req.cancelCharge = req.body.cancelCharge
+        return next()
+      }
+    } catch (e) {
+      res.status(400).send()
+    }
   },
+  refundCancelledOrderManually,
   emailEmployeeItinerary
 )
 
