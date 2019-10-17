@@ -12,7 +12,7 @@ let urboxKey = {
   app_secret: process.env.URBOX_SECRET
 }
 
-router.post('/ezbt', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     let rewardData = {
       ...req.body,
@@ -30,7 +30,7 @@ router.post('/ezbt', async (req, res) => {
   }
 })
 
-router.get('/ezbt', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     Reward.find()
       .sort({ updatedAt: -1 })
@@ -44,7 +44,7 @@ router.get('/ezbt', async (req, res) => {
   }
 })
 
-router.get('/ezbt/:id', (req, res) => {
+router.get('/:id', (req, res) => {
   Reward.findOne({
     _id: req.params.id
   })
@@ -52,7 +52,7 @@ router.get('/ezbt/:id', (req, res) => {
     .catch(error => res.status(400).send())
 })
 
-router.patch('/ezbt/:id', (req, res) => {
+router.patch('/:id', (req, res) => {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
@@ -99,7 +99,7 @@ router.patch('/ezbt/:id', (req, res) => {
     })
 })
 
-router.post('/ezbt/exchange', async (req, res) => {
+router.post('/exchange', async (req, res) => {
   try {
     const giftPrice = parseInt(req.body.price)
     const siteUserId = 'ezbiztrip-' + req.user.id

@@ -15,7 +15,10 @@ const RewardSchema = new Schema(
     content: String,
     note: String,
     office: Array,
-    supplier: String,
+    supplier: {
+      type: String,
+      default: 'ezbiztrip'
+    },
     country: String,
     expiredDate: Date
   },

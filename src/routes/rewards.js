@@ -82,11 +82,11 @@ router.post('/', async (req, res) => {
       let options = {
         country: req.body.country
       }
-      if (req.body.brand_id) {
-        options['brand'] = req.body.brand_id
-      }
       if (req.body.cat_id) {
-        options['categoryName'] = req.body.cat_id
+        options['cat_id'] = req.body.cat_id
+      }
+      if (req.body.brand_id) {
+        options['brand_id'] = req.body.brand_id
       }
 
       Promise.all([
@@ -157,39 +157,6 @@ router.post('/', async (req, res) => {
   }
 })
 
-router.get('/ub/filter', async (req, res) => {
-  try {
-    const reqBody = { ...urboxKey }
-    const resData = await apiUrbox.getGiftFilter(reqBody)
-    let filter = resData.data.data.items
-
-    Reward.aggregate([
-      {
-        $group: {
-          _id: '$country'
-        }
-      }
-    ])
-      .then(countries => {
-        countries = countries.map(country => {
-          return {
-            id: country._id,
-            title: country._id
-          }
-        })
-        filter['COUNTRIES'] = countries
-        res.status(200).send({
-          filter
-        })
-      })
-      .catch(e => {
-        return res.status(400).send()
-      })
-  } catch (error) {
-    res.status(400).send()
-  }
-})
-
 router.get('/ub/:id', async (req, res) => {
   try {
     let reqBody = { ...urboxKey, id: req.params.id }
@@ -240,7 +207,7 @@ router.post('/ub/exchange', async (req, res) => {
       let remainingPoints = req.user.point - giftPrice / 1000
       let voucherData = {
         ...req.body,
-        supplier: 'UrBox',
+        supplier: 'urbox',
         _buyer: req.user.id,
         siteUserId,
         transactionId,
