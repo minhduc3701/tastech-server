@@ -8,6 +8,38 @@ let urboxKey = {
   app_secret: process.env.URBOX_SECRET
 }
 
+router.get('/countryFilter', async (req, res) => {
+  try {
+    Voucher.aggregate([
+      {
+        $group: {
+          _id: '$country'
+        }
+      }
+    ])
+      .then(countries => {
+        let countryRes = []
+        countries.forEach(country => {
+          if (country._id) {
+            countryRes.push({
+              value: country._id,
+              label: country._id
+            })
+          }
+        })
+
+        res.status(200).send({
+          countries: countryRes
+        })
+      })
+      .catch(error => {
+        res.status(400).send()
+      })
+  } catch (error) {
+    res.status(400).send()
+  }
+})
+
 router.post('/', async (req, res) => {
   try {
     let perPage = parseInt(req.body.per_page)

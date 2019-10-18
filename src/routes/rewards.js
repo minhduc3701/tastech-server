@@ -14,6 +14,46 @@ let urboxKey = {
   app_secret: process.env.URBOX_SECRET
 }
 
+router.get('/countryFilter', async (req, res) => {
+  try {
+    let reqBody = { ...urboxKey, ...req.body }
+    let resData = await apiUrbox.getGifts(reqBody)
+
+    let filterData = await apiUrbox.getGiftFilter(urboxKey)
+    let filter = filterData.data.data.items
+
+    if (resData.data.msg === 'success' && filterData.data.msg === 'success') {
+      let gifts = resData.data.data.items.map(makeUrboxGiftData)
+
+      Reward.aggregate([
+        {
+          $group: {
+            _id: '$country'
+          }
+        }
+      ])
+        .then(countries => {
+          countries = countries.map(country => {
+            return {
+              value: country._id,
+              label: country._id
+            }
+          })
+          countries.unshift({ value: 'vietnam', label: 'Vietnam' })
+
+          res.status(200).send({
+            countries
+          })
+        })
+        .catch(error => {
+          res.status(400).send()
+        })
+    }
+  } catch (error) {
+    res.status(400).send()
+  }
+})
+
 router.post('/', async (req, res) => {
   try {
     if (req.body.country === 'vietnam') {
@@ -83,10 +123,10 @@ router.post('/', async (req, res) => {
         country: req.body.country
       }
       if (req.body.cat_id) {
-        options['cat_id'] = req.body.cat_id
+        options['categoryName'] = req.body.cat_id
       }
       if (req.body.brand_id) {
-        options['brand_id'] = req.body.brand_id
+        options['brand'] = req.body.brand_id
       }
 
       Promise.all([
