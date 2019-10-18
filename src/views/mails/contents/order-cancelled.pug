@@ -1,0 +1,34 @@
+extends ../layout.pug
+
+block content
+
+  h2 Dear #{name},
+
+  p Please be informed that we have cancelled the following booking order as you requested:
+
+  if (isFlightOrder)
+    h4 Flight Details
+    p #{flight.departureSegments[0].departure} - #{flight.departureSegments[flight.departureSegments.length - 1].arrival}
+    p Departure #{flight.departureSegments[0].strDepartureDate}
+    if (flight.returnSegments.length > 0)
+      p Return: #{flight.returnSegments[flight.returnSegments.length - 1].strArrivalDate}
+    hr
+
+  if (isHotelOrder)
+    h4 Hotel Details
+    p #{hotel.name}
+    p Check-in: #{hotel.checkInDate}
+    p Check-out: #{hotel.checkOutDate}
+    hr
+
+  if (refundAmount)
+    p
+      b Refund amount: 
+      span #{refundAmount}
+
+  p
+    b Note: 
+    i According to our policy, we will process the refund the payment you have made and return the money to your account as soon as possible. The refund are various depends on your financial institution but will take no longer than 10 business days.
+
+  p.text-center
+    a(class='btn yellow' href= orderLink) View details

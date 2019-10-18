@@ -710,6 +710,7 @@ const sabreCreatePNR = async (req, res, next) => {
       flightOrder.customerCode = pnr
       flightOrder.pnr = pnr
       flightOrder.status = 'processing'
+      flightOrder.canCancel = true
       await flightOrder.save()
       req.flightOrder = flightOrder
     } else {

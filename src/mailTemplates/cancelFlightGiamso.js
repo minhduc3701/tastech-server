@@ -1,7 +1,7 @@
 const { renderMail } = require('../config/mail')
 
-async function sendPnrGiamso(flightOrder) {
-  let html = await renderMail('pnr-giamso', {
+async function cancelFlightGiamso(flightOrder) {
+  let html = await renderMail('cancel-giamso', {
     pnr: `${flightOrder.pnr}`,
     price: `${flightOrder.flight.rawTotalPrice}`,
     currency: `${flightOrder.flight.rawCurrency}`,
@@ -12,11 +12,11 @@ async function sendPnrGiamso(flightOrder) {
     to: `${process.env.EMAIL_GIAMSO}`,
     from: `EzBizTrip <${process.env.EMAIL_CONTACT}>`,
     cc: `EzBizTrip Support <${process.env.EMAIL_CONTACT}>`,
-    subject: `Request to issue ticket - ${flightOrder.pnr}`,
+    subject: `Cancel flight - ${flightOrder.pnr}`,
     html
   }
 }
 
 module.exports = {
-  sendPnrGiamso
+  cancelFlightGiamso
 }
