@@ -11,6 +11,8 @@ const api = require('../modules/api')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const { logger } = require('../config/winston')
 const { emailGiamsoCancelFlight } = require('../middleware/email')
+const { emailCustomerCancelledOrder } = require('../middleware/orders')
+const moment = require('moment')
 
 router.get('/', function(req, res, next) {
   Order.find({
@@ -97,8 +99,6 @@ router.post(
 
     let order
 
-    // check trip end date first
-
     try {
       order = await Order.findOne({
         _id: id,
@@ -109,6 +109,21 @@ router.post(
 
       if (!order) {
         return res.status(404).send()
+      }
+
+      let startDate = Date.now()
+
+      if (order.type === 'flight') {
+        startDate = _.get(order, 'flight.departureSegments[0].strDepartureDate')
+      } else if (order.type === 'hotel') {
+        startDate = _.get(order, 'hotel.checkInDate')
+      }
+
+      // if start date is in the past, do not allow cancel
+      if (moment(startDate).diff(Date.now()) <= 0) {
+        return res.status(400).send({
+          message: 'You cannot cancel this order'
+        })
       }
 
       let currencyRate = order.totalPrice / order.rawTotalPrice
@@ -145,7 +160,12 @@ router.post(
                 order.status = 'cancelled'
                 order.canCancel = false
                 await order.save()
-                return res.status(200).send({ order, result: cancelRes.data })
+                res.status(200).send({ order, result: cancelRes.data })
+
+                // email user cancelled order
+                req.cancelledOrder = order
+                // next to -> emailCustomerCancelledOrder
+                return next()
               }
               break
 
@@ -172,9 +192,12 @@ router.post(
               order.status = 'cancelled'
               order.canCancel = false
               await order.save()
-              return res
-                .status(200)
-                .send({ order, result: cancelHotelbedsRes.data })
+              res.status(200).send({ order, result: cancelHotelbedsRes.data })
+
+              // email user cancelled order
+              req.cancelledOrder = order
+              // next to -> emailCustomerCancelledOrder
+              return next()
           }
           break
 
@@ -232,7 +255,8 @@ router.post(
     }
     res.status(400).send()
   },
-  emailGiamsoCancelFlight
+  emailGiamsoCancelFlight,
+  emailCustomerCancelledOrder
 )
 
 module.exports = router

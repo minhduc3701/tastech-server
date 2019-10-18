@@ -38,6 +38,8 @@ const refundCancelledOrderManually = async (req, res, next) => {
   next()
 }
 
+// required
+//   req.cancelledOrder
 const emailCustomerCancelledOrder = async (req, res, next) => {
   if (!req.cancelledOrder) {
     return next()
