@@ -17,6 +17,7 @@ const { changeTripStatus } = require('../mailTemplates/changeTripStatus')
 const { checkoutFail } = require('../mailTemplates/checkoutFail')
 const { tripItinerary } = require('../mailTemplates/tripItinerary')
 const { sendPnrGiamso } = require('../mailTemplates/sendPnrGiamso')
+const { cancelFlightGiamso } = require('../mailTemplates/cancelFlightGiamso')
 const { debugMail } = require('../config/debug')
 const { CAN_ACCESS_BUDGET, CAN_ACCESS_EXPENSE } = require('../config/roles')
 
@@ -267,6 +268,23 @@ const emailGiamsoIssueTicket = async (req, res, next) => {
   return next()
 }
 
+const emailGiamsoCancelFlight = async (req, res, next) => {
+  if (
+    _.get(req.cancellingOrder, 'flight.supplier') !== 'sabre' &&
+    _.get(req.cancellingOrder, 'status') !== 'cancelling'
+  ) {
+    return next()
+  }
+
+  let mailOptions = await cancelFlightGiamso(req.cancellingOrder)
+  mail.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      debugMail(err)
+      logger.info('mail: ', { err: err })
+    }
+  })
+}
+
 const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
   let order = req.order
   let user
@@ -349,5 +367,6 @@ module.exports = {
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary,
   emailEmployeeItineraryPkfareTickiting,
-  emailGiamsoIssueTicket
+  emailGiamsoIssueTicket,
+  emailGiamsoCancelFlight
 }
