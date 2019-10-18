@@ -164,6 +164,8 @@ router.get('/ub/:id', async (req, res) => {
 
     let gift = {
       ...resData.data.data,
+      supplier: 'urbox',
+      country: 'vietnam',
       pricePoint: parseInt(resData.data.data.price) / 1000
     }
 
@@ -173,39 +175,65 @@ router.get('/ub/:id', async (req, res) => {
   }
 })
 
-router.post('/ub/exchange', async (req, res) => {
+router.get('/ezbiztrip/:id', async (req, res) => {
   try {
-    const giftPrice = parseInt(req.body.price)
-    const siteUserId = 'ezbiztrip-' + req.user.id
-    const transaction = require('order-id')(process.env.URBOX_SECRET)
-    const transactionId = 'ezbiztrip-' + transaction.generate()
-
-    let reqBody = {
-      ...urboxKey,
-      ttphone: process.env.URBOX_EZBIZTRIP_PHONE,
-      ttemail: process.env.URBOX_EZBIZTRIP_EMAIL,
-      fullname: process.env.URBOX_EZBIZTRIP_NAME,
-      site_user_id: siteUserId,
-      transaction_id: transactionId,
-      dataBuy: [
-        {
-          priceId: req.body.id,
-          quantity: '1'
+    Reward.findById(req.params.id)
+      .then(gift => {
+        if (!gift) {
+          return res.status(404).send()
         }
-      ]
-    }
+        return res.status(200).send({
+          gift
+        })
+      })
+      .catch(e => {
+        return res.status(400).send()
+      })
+  } catch (error) {
+    res.status(400).send()
+  }
+})
 
+router.post('/exchange', async (req, res) => {
+  try {
+    let newVoucherData = {}
+
+    const giftPrice = parseInt(req.body.price)
     if (req.user.point < giftPrice / 1000) {
       return res.status(400).send({
         message: 'not enough points to redeem this voucher'
       })
     }
+    const remainingPoints = req.user.point - giftPrice / 1000
 
-    let resData = await apiUrbox.requestVoucher(reqBody)
+    if (req.body.supplier === 'urbox') {
+      const siteUserId = 'ezbiztrip-' + req.user.id
+      const transaction = require('order-id')(process.env.URBOX_SECRET)
+      const transactionId = 'ezbiztrip-' + transaction.generate()
 
-    if (resData.data.msg === 'success') {
-      let remainingPoints = req.user.point - giftPrice / 1000
-      let voucherData = {
+      let ubReqBody = {
+        ...urboxKey,
+        ttphone: process.env.URBOX_EZBIZTRIP_PHONE,
+        ttemail: process.env.URBOX_EZBIZTRIP_EMAIL,
+        fullname: process.env.URBOX_EZBIZTRIP_NAME,
+        site_user_id: siteUserId,
+        transaction_id: transactionId,
+        dataBuy: [
+          {
+            priceId: req.body.id,
+            quantity: '1'
+          }
+        ]
+      }
+
+      let ubResData = await apiUrbox.requestVoucher(ubReqBody)
+      if (ubResData.data.msg !== 'success') {
+        return res.status(400).send({
+          res: ubResData.data
+        })
+      }
+
+      newVoucherData = {
         ...req.body,
         supplier: 'urbox',
         _buyer: req.user.id,
@@ -217,43 +245,45 @@ router.post('/ub/exchange', async (req, res) => {
         content: req.body.content,
         note: req.body.note,
         office: req.body.office,
-        cartId: resData.data.data.cart.id,
-        cartNumber: resData.data.data.cart.cartNo,
-        cartTotal: resData.data.data.cart.money_total,
-        cartGiftLink: resData.data.data.cart.link_gift,
-        cartGiftCode: resData.data.data.cart.code_link_gift[0].code,
+        cartId: ubResData.data.data.cart.id,
+        cartNumber: ubResData.data.data.cart.cartNo,
+        cartTotal: ubResData.data.data.cart.money_total,
+        cartGiftLink: ubResData.data.data.cart.link_gift,
+        cartGiftCode: ubResData.data.data.cart.code_link_gift[0].code,
         expiredDate: moment(
-          resData.data.data.cart.code_link_gift[0].expired,
+          ubResData.data.data.cart.code_link_gift[0].expired,
           'DD-MM-YYYY'
         ).format('YYYY-MM-DD')
       }
-
-      let voucher = new Voucher(voucherData)
-      await voucher.save()
-
-      User.findByIdAndUpdate(
-        req.user._id,
-        { $set: { point: remainingPoints } },
-        { new: true }
-      )
-        .then(user => {
-          if (!user) {
-            return res.status(404).send()
-          }
-          return res.status(200).send({
-            data: resData.data.data,
-            voucherId: voucher.id,
-            remainingPoints: user.point
-          })
-        })
-        .catch(e => {
-          return res.status(400).send()
-        })
     } else {
-      res.status(400).send({
-        res: resData.data
-      })
+      newVoucherData = {
+        _buyer: req.user.id,
+        ...req.body
+      }
+      newVoucherData = _.omit(newVoucherData, ['_id', '__v'])
     }
+
+    let voucher = new Voucher(newVoucherData)
+    await voucher.save()
+
+    User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { point: remainingPoints } },
+      { new: true }
+    )
+      .then(user => {
+        if (!user) {
+          return res.status(404).send()
+        }
+        return res.status(200).send({
+          // data: ubResData.data.data,
+          voucherId: voucher.id,
+          remainingPoints: user.point
+        })
+      })
+      .catch(error => {
+        return res.status(400).send()
+      })
   } catch (error) {
     res.status(400).send()
   }
