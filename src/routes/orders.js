@@ -145,11 +145,26 @@ router.post(
                 let cancellationAmount = cancelRes.data.body.cancelCharge
                 let refundAmount =
                   (order.rawTotalPrice - cancellationAmount) * currencyRate
+                refundAmount = roundingAmountStripe(
+                  refundAmount,
+                  order.currency
+                )
                 if (refundAmount > 0) {
+                  // capture first, run even this charge is captured or not
+                  // to guarantee any refunds whole or part will be ok
+                  try {
+                    if (refundAmount < order.chargeInfo.amount) {
+                      await stripe.charges.capture(order.chargeId)
+                    }
+                  } catch (e) {
+                    // do nothing even error or not, just a confirm step
+                  }
+
+                  // refund
                   try {
                     await stripe.refunds.create({
                       charge: order.chargeId,
-                      amount: roundingAmountStripe(refundAmount, order.currency)
+                      amount: refundAmount
                     })
                   } catch (error) {
                     return res.status(400)
@@ -177,11 +192,23 @@ router.post(
                 cancelHotelbedsRes.data.booking.hotel.cancellationAmount
               let refundAmount =
                 (order.rawTotalPrice - cancellationAmount) * currencyRate
+              refundAmount = roundingAmountStripe(refundAmount, order.currency)
               if (refundAmount > 0) {
                 try {
+                  // capture first, run even this charge is captured or not
+                  // to guarantee any refunds whole or part will be ok
+                  try {
+                    if (refundAmount < order.chargeInfo.amount) {
+                      await stripe.charges.capture(order.chargeId)
+                    }
+                  } catch (e) {
+                    // do nothing even error or not, just a confirm step
+                  }
+
+                  // refund
                   await stripe.refunds.create({
                     charge: order.chargeId,
-                    amount: roundingAmountStripe(refundAmount, order.currency)
+                    amount: refundAmount
                   })
                 } catch (error) {
                   return res.status(400)

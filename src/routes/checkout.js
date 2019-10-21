@@ -454,7 +454,8 @@ const stripeCharging = async (req, res, next) => {
     const charge = await stripe.charges.create({
       amount,
       currency,
-      customer: foundCard.customer.id // Previously stored, then retrieved
+      customer: foundCard.customer.id, // Previously stored, then retrieved
+      capture: false
     })
 
     req.charge = charge
@@ -1004,6 +1005,16 @@ const refundFailedOrder = async (req, res, next) => {
         hotelOrder.status = 'failed'
         await hotelOrder.save()
       }
+    }
+
+    // capture first, run even this charge is captured or not
+    // to guarantee any refunds whole or part will be ok
+    try {
+      if (refundAmount < req.charge.amount) {
+        await stripe.charges.capture(req.charge.id)
+      }
+    } catch (e) {
+      // do nothing even error or not, just a confirm step
     }
 
     // refund via stripe
