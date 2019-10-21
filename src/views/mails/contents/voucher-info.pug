@@ -1,0 +1,12 @@
+extends ../layout.pug
+
+block content
+  h2.text-center Voucher Information:
+  p Title: #{gift.title}
+  p Price: #{price}
+  p Point: #{gift.pricePoint}
+  p Creator: #{user.email}
+  h3 Customer Info:
+  p Full name: #{customer.fullname}
+  p Email: #{customer.email}
+  p Phone: #{customer.phone}

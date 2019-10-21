@@ -19,8 +19,7 @@ const RewardSchema = new Schema(
       type: String,
       default: 'ezbiztrip'
     },
-    country: String,
-    expiredDate: Date
+    country: String
   },
   {
     timestamps: true

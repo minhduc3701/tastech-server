@@ -18,6 +18,7 @@ const { checkoutFail } = require('../mailTemplates/checkoutFail')
 const { tripItinerary } = require('../mailTemplates/tripItinerary')
 const { sendPnrGiamso } = require('../mailTemplates/sendPnrGiamso')
 const { cancelFlightGiamso } = require('../mailTemplates/cancelFlightGiamso')
+const { sendVoucherInfo } = require('../mailTemplates/sendVoucherInfo')
 const { debugMail } = require('../config/debug')
 const { CAN_ACCESS_BUDGET, CAN_ACCESS_EXPENSE } = require('../config/roles')
 
@@ -357,6 +358,16 @@ const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
   }
 }
 
+const emailEzBizTripVoucherInfo = async (req, res, next) => {
+  let mailOptions = await sendVoucherInfo(req.user, req.body)
+  mail.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      debugMail(err)
+      logger.info('mail: ', { err: err })
+    }
+  })
+}
+
 module.exports = {
   emailEmployeeSubmitTrip,
   emailEmployeeChangeTripStatus,
@@ -368,5 +379,6 @@ module.exports = {
   emailEmployeeItinerary,
   emailEmployeeItineraryPkfareTickiting,
   emailGiamsoIssueTicket,
-  emailGiamsoCancelFlight
+  emailGiamsoCancelFlight,
+  emailEzBizTripVoucherInfo
 }
