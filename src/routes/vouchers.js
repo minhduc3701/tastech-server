@@ -1,35 +1,46 @@
 var express = require('express')
 var router = express.Router()
 const _ = require('lodash')
+const { ObjectID } = require('mongodb')
+const Country = require('../models/country')
 const Voucher = require('../models/voucher')
-
-let urboxKey = {
-  app_id: process.env.URBOX_ID,
-  app_secret: process.env.URBOX_SECRET
-}
 
 router.get('/countryFilter', async (req, res) => {
   try {
-    Voucher.aggregate([
-      {
-        $group: {
-          _id: '$country'
+    Promise.all([
+      Country.find({}),
+      Voucher.aggregate([
+        {
+          $match: {
+            _buyer: req.user._id
+          }
+        },
+        {
+          $group: {
+            _id: '$country'
+          }
         }
-      }
+      ])
     ])
-      .then(countries => {
-        let countryRes = []
-        countries.forEach(country => {
-          if (country._id) {
-            countryRes.push({
-              value: country._id,
-              label: country._id
+      .then(results => {
+        let fullCountryOptions = results[0]
+        let voucherCountries = results[1]
+
+        let countryOptions = []
+        voucherCountries.forEach(country => {
+          let matchCountry = fullCountryOptions.find(
+            fullCountryOption => fullCountryOption.cca2 === country._id
+          )
+          if (matchCountry) {
+            countryOptions.push({
+              value: matchCountry.cca2,
+              label: matchCountry.name.common
             })
           }
         })
 
         res.status(200).send({
-          countries: countryRes
+          countries: countryOptions
         })
       })
       .catch(error => {
@@ -65,6 +76,11 @@ router.post('/', async (req, res) => {
       Voucher.countDocuments(options),
       Voucher.aggregate([
         {
+          $match: {
+            _buyer: req.user._id
+          }
+        },
+        {
           $group: {
             _id: '$country'
           }
@@ -73,6 +89,7 @@ router.post('/', async (req, res) => {
       Voucher.aggregate([
         {
           $match: {
+            _buyer: req.user._id,
             country: req.body.country
           }
         },
@@ -85,6 +102,7 @@ router.post('/', async (req, res) => {
       Voucher.aggregate([
         {
           $match: {
+            _buyer: req.user._id,
             country: req.body.country
           }
         },
@@ -93,16 +111,24 @@ router.post('/', async (req, res) => {
             _id: '$brand'
           }
         }
-      ])
+      ]),
+      Country.find({})
     ])
       .then(results => {
         let vouchers = results[0]
-        let countries = []
-        results[2].forEach(country => {
-          if (country._id) {
-            countries.push({
-              value: country._id,
-              label: country._id
+
+        let fullCountryOptions = results[5]
+        let voucherCountries = results[2]
+
+        let countryOptions = []
+        voucherCountries.forEach(country => {
+          let matchCountry = fullCountryOptions.find(
+            fullCountryOption => fullCountryOption.cca2 === country._id
+          )
+          if (matchCountry) {
+            countryOptions.push({
+              value: matchCountry.cca2,
+              label: matchCountry.name.common
             })
           }
         })
@@ -132,7 +158,7 @@ router.post('/', async (req, res) => {
         let totalPage = Math.ceil(results[1] / perPage)
 
         res.status(200).send({
-          countries,
+          countries: countryOptions,
           categories,
           brands,
           vouchers,
