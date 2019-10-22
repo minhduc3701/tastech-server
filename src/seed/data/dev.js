@@ -7,6 +7,8 @@ const Policy = require('../../models/policy')
 const Department = require('../../models/department')
 const Trip = require('../../models/trip')
 const Expense = require('../../models/expense')
+const Reward = require('../../models/reward')
+const Voucher = require('../../models/voucher')
 const Change = require('chance')
 const chance = new Change()
 
@@ -790,6 +792,91 @@ const populateDepartments = () => {
   })
 }
 
+let rewards = []
+for (let i = 0; i < 50; i++) {
+  let reward = {
+    _id: new ObjectID(),
+    title: chance.word({ syllables: 3 }),
+    image: 'https://place-hold.it/320x160&text=product',
+    description: chance.paragraph({ sentences: 5 }),
+    brand: chance.company(),
+    brandImage: 'https://place-hold.it/160x160&text=brand',
+    categoryName: chance.company(),
+    price: 200000,
+    pricePoint: 200,
+    currency: 'VND',
+    content: chance.paragraph({ sentences: 3 }),
+    note: chance.paragraph({ sentences: 3 }),
+    office: [{ address: chance.city() }],
+    supplier: 'ezbiztrip',
+    country: chance.country()
+  }
+  if (i < 20) {
+    reward = {
+      ...reward,
+      country: 'SG'
+    }
+  }
+  rewards.push(reward)
+}
+
+const populateRewards = () => {
+  return Reward.deleteMany({}).then(() => {
+    let allRewards = rewards.map(reward => new Reward(reward))
+    return Promise.all(allRewards.map(reward => reward.save()))
+  })
+}
+
+let vouchers = []
+for (let i = 0; i < 50; i++) {
+  let voucher = {
+    _id: new ObjectID(),
+    title: chance.word({ syllables: 3 }),
+    image: 'https://place-hold.it/320x160&text=product',
+    description: chance.paragraph({ sentences: 5 }),
+    brand: chance.company(),
+    brandImage: 'https://place-hold.it/160x160&text=brand',
+    categoryId: chance.company(),
+    categoryName: chance.company(),
+    price: 20000,
+    customerInfo: {
+      fullname: chance.first() + ' ' + chance.last(),
+      email: chance.email(),
+      phone: chance.phone()
+    },
+    siteUserId: '',
+    transactionId: '',
+    _buyer: employeeId,
+    quantity: 1,
+    pricePoint: 200,
+    currency: 'VND',
+    content: chance.paragraph({ sentences: 3 }),
+    note: chance.paragraph({ sentences: 3 }),
+    office: [{ address: chance.city() }],
+    supplier: 'ezbiztrip',
+    country: chance.country(),
+    cartId: '',
+    cartNumber: '',
+    cartTotal: '',
+    cartGiftLink: [''],
+    cartGiftCode: ''
+  }
+  if (i < 20) {
+    voucher = {
+      ...voucher,
+      country: 'SG'
+    }
+  }
+  vouchers.push(voucher)
+}
+
+const populateVouchers = () => {
+  return Voucher.deleteMany({}).then(() => {
+    let allVouchers = vouchers.map(voucher => new Voucher(voucher))
+    return Promise.all(allVouchers.map(voucher => voucher.save()))
+  })
+}
+
 module.exports = {
   users,
   populateUsers,
@@ -806,5 +893,9 @@ module.exports = {
   roles,
   populateRoles,
   departments,
-  populateDepartments
+  populateDepartments,
+  rewards,
+  populateRewards,
+  vouchers,
+  populateVouchers
 }
