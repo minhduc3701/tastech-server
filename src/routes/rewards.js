@@ -19,7 +19,6 @@ let urboxKey = {
 router.get('/countryFilter', async (req, res) => {
   try {
     let reqBody = { ...urboxKey, page_no: 1 }
-    let giftData = await apiUrbox.getGifts(reqBody)
 
     Promise.all([
       Country.find({}),
@@ -35,7 +34,12 @@ router.get('/countryFilter', async (req, res) => {
         let fullCountryOptions = results[0]
         let rewardCountries = results[1]
 
-        let countryOptions = []
+        let countryOptions = [
+          {
+            value: 'VN',
+            label: 'Vietnam'
+          }
+        ]
         rewardCountries.forEach(country => {
           let matchCountry = fullCountryOptions.find(
             fullCountryOption => fullCountryOption.cca2 === country._id
@@ -47,13 +51,6 @@ router.get('/countryFilter', async (req, res) => {
             })
           }
         })
-
-        if (giftData.data.msg === 'success') {
-          countryOptions.unshift({
-            value: 'VN',
-            label: 'Vietnam'
-          })
-        }
 
         res.status(200).send({
           countries: countryOptions
@@ -76,10 +73,23 @@ router.post('/', async (req, res) => {
       let filterData = await apiUrbox.getGiftFilter(urboxKey)
       let filter = filterData.data.data.items
 
-      if (
-        giftData.data.msg === 'success' &&
-        filterData.data.msg === 'success'
-      ) {
+      let categories = filter['CATEGORIES'].value.map(cat => {
+        return {
+          value: cat.id,
+          label: cat.title
+        }
+      })
+      categories.unshift({ value: '', label: 'All' })
+
+      let brands = filter['BRANDS'].value.map(brand => {
+        return {
+          value: brand.id,
+          label: brand.title
+        }
+      })
+      brands.unshift({ value: '', label: 'All' })
+
+      if (giftData.data.msg === 'success') {
         let gifts = giftData.data.data.items.map(makeUrboxGiftData)
 
         Promise.all([
@@ -96,7 +106,13 @@ router.post('/', async (req, res) => {
             let fullCountryOptions = results[0]
             let rewardCountries = results[1]
 
-            let countryOptions = []
+            let countryOptions = [
+              {
+                value: 'VN',
+                label: 'Vietnam'
+              }
+            ]
+
             rewardCountries.forEach(country => {
               let matchCountry = fullCountryOptions.find(
                 fullCountryOption => fullCountryOption.cca2 === country._id
@@ -108,27 +124,6 @@ router.post('/', async (req, res) => {
                 })
               }
             })
-
-            countryOptions.unshift({
-              value: 'VN',
-              label: 'Vietnam'
-            })
-
-            let categories = filter['CATEGORIES'].value.map(cat => {
-              return {
-                value: cat.id,
-                label: cat.title
-              }
-            })
-            categories.unshift({ value: '', label: 'All' })
-
-            let brands = filter['BRANDS'].value.map(brand => {
-              return {
-                value: brand.id,
-                label: brand.title
-              }
-            })
-            brands.unshift({ value: '', label: 'All' })
 
             res.status(200).send({
               countries: countryOptions,
@@ -143,6 +138,8 @@ router.post('/', async (req, res) => {
           })
       } else {
         res.status(200).send({
+          categories,
+          brands,
           gifts: [],
           totalPage: 0
         })
