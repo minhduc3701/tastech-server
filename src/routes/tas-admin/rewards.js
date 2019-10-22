@@ -65,7 +65,6 @@ router.patch('/:id', (req, res) => {
     'content',
     'note',
     'office',
-    'supplier',
     'country',
     'expiredDate'
   ])
