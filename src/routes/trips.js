@@ -249,33 +249,52 @@ router.get(
         totalFlightSpend: 0,
         totalHotelSpend: 0
       })
-      let totalSpend = spendData.totalFlightSpend + spendData.totalHotelSpend
 
-      let flightHotelBudget =
-        _.get(trip, 'budgetPassengers[0].flight.price', 0) +
-        _.get(trip, 'budgetPassengers[0].lodging.price', 0)
+      let flightBudget = _.get(trip, 'budgetPassengers[0].flight.price', 0)
+      let hotelBudget = _.get(trip, 'budgetPassengers[0].lodging.price', 0)
 
-      let saveSpend = 0
-      // only calculate save spend if totalSpend > 0
-      // and totalSpend < budget
-      if (totalSpend > 0 && totalSpend < flightHotelBudget) {
-        saveSpend = flightHotelBudget - totalSpend
+      let saveFlight = 0
+      let saveHotel = 0
+
+      // only calculate save spend if spend > 0
+      // and spend < budget
+      if (
+        spendData.totalFlightSpend > 0 &&
+        spendData.totalFlightSpend < flightBudget
+      ) {
+        saveFlight = flightBudget - spendData.totalFlightSpend
       }
 
-      // exchange to reward base currency
-      let rewardSaveSpend = saveSpend * req.currency.rate
+      if (
+        spendData.totalHotelSpend > 0 &&
+        spendData.totalHotelSpend < hotelBudget
+      ) {
+        saveHotel = hotelBudget - spendData.totalHotelSpend
+      }
 
-      let savePoint = Math.round(
-        (rewardSaveSpend * req.company.exchangedRate) / 100
+      // exchange to base currency sgd
+      let rewardSaveFlight = saveFlight * req.currency.rate
+      let rewardSaveHotel = saveHotel * req.currency.rate
+
+      // exchange to reward base currency
+      let saveFlightPoint = Math.round(
+        (rewardSaveFlight * req.company.exchangedRate) / 100
+      )
+
+      let saveHotelPoint = Math.round(
+        (rewardSaveHotel * req.company.exchangedRate) / 100
       )
 
       res.status(200).json({
         trip: {
           ...trip.toObject(),
-          flightHotelBudget,
-          totalSpend,
-          saveSpend,
-          savePoint
+          ...spendData,
+          flightBudget,
+          hotelBudget,
+          saveFlight,
+          saveHotel,
+          saveFlightPoint,
+          saveHotelPoint
         }
       })
     } catch (e) {
@@ -685,25 +704,43 @@ router.patch(
         totalFlightSpend: 0,
         totalHotelSpend: 0
       })
-      let totalSpend = spendData.totalFlightSpend + spendData.totalHotelSpend
 
-      let flightHotelBudget =
-        _.get(trip, 'budgetPassengers[0].flight.price', 0) +
-        _.get(trip, 'budgetPassengers[0].lodging.price', 0)
+      let flightBudget = _.get(trip, 'budgetPassengers[0].flight.price', 0)
+      let hotelBudget = _.get(trip, 'budgetPassengers[0].lodging.price', 0)
 
-      let saveSpend = 0
-      // only calculate save spend if totalSpend > 0
-      // and totalSpend < budget
-      if (totalSpend > 0 && totalSpend < flightHotelBudget) {
-        saveSpend = flightHotelBudget - totalSpend
+      let saveFlight = 0
+      let saveHotel = 0
+
+      // only calculate save spend if spend > 0
+      // and spend < budget
+      if (
+        spendData.totalFlightSpend > 0 &&
+        spendData.totalFlightSpend < flightBudget
+      ) {
+        saveFlight = flightBudget - spendData.totalFlightSpend
       }
 
-      // exchange to reward base currency
-      let rewardSaveSpend = saveSpend * req.currency.rate
+      if (
+        spendData.totalHotelSpend > 0 &&
+        spendData.totalHotelSpend < hotelBudget
+      ) {
+        saveHotel = hotelBudget - spendData.totalHotelSpend
+      }
 
-      let savePoint = Math.round(
-        (rewardSaveSpend * req.company.exchangedRate) / 100
+      // exchange to base currency sgd
+      let rewardSaveFlight = saveFlight * req.currency.rate
+      let rewardSaveHotel = saveHotel * req.currency.rate
+
+      // exchange to reward base currency
+      let saveFlightPoint = Math.round(
+        (rewardSaveFlight * req.company.exchangedRate) / 100
       )
+
+      let saveHotelPoint = Math.round(
+        (rewardSaveHotel * req.company.exchangedRate) / 100
+      )
+
+      let savePoint = Math.round(saveFlightPoint + saveHotelPoint)
 
       let user = await User.findByIdAndUpdate(
         req.user._id,
