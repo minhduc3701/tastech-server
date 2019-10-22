@@ -1007,21 +1007,21 @@ const refundFailedOrder = async (req, res, next) => {
       }
     }
 
-    // capture first, run even this charge is captured or not
-    // to guarantee any refunds whole or part will be ok
-    try {
-      if (refundAmount < req.charge.amount) {
-        await stripe.charges.capture(req.charge.id)
-      }
-    } catch (e) {
-      // do nothing even error or not, just a confirm step
+    // capture the success amount and refund fail amount
+    if (refundAmount > 0 && refundAmount < req.charge.amount) {
+      let capture = await stripe.charges.capture(req.charge.id, {
+        amount: req.charge.amount - refundAmount
+      })
+      return next() // exit
     }
 
-    // refund via stripe
-    await stripe.refunds.create({
-      charge: req.charge.id,
-      amount: refundAmount
-    })
+    // refund total (cancelled) via stripe
+    if (refundAmount > 0) {
+      await stripe.refunds.create({
+        charge: req.charge.id,
+        amount: refundAmount
+      })
+    }
   } catch (error) {
     req.checkoutError = error
   }
