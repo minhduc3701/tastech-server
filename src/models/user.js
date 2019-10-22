@@ -70,6 +70,7 @@ var UserSchema = new Schema({
     homeAirportName: String,
     prefFlightSeat: String,
     prefAirline: String,
+    prefAirlineName: String,
     prefFlightClass: String,
     prefFlightDuration: Number,
     prefDepartureTime: {

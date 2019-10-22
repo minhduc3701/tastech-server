@@ -17,6 +17,8 @@ const { changeTripStatus } = require('../mailTemplates/changeTripStatus')
 const { checkoutFail } = require('../mailTemplates/checkoutFail')
 const { tripItinerary } = require('../mailTemplates/tripItinerary')
 const { sendPnrGiamso } = require('../mailTemplates/sendPnrGiamso')
+const { cancelFlightGiamso } = require('../mailTemplates/cancelFlightGiamso')
+const { sendVoucherInfo } = require('../mailTemplates/sendVoucherInfo')
 const { debugMail } = require('../config/debug')
 const { CAN_ACCESS_BUDGET, CAN_ACCESS_EXPENSE } = require('../config/roles')
 
@@ -149,10 +151,6 @@ const emailEmployeeChangeTripStatus = (req, res) => {
 }
 
 const emailEmployeeCheckoutFailed = async (req, res, next) => {
-  if (!req.checkoutError) {
-    return next()
-  }
-
   let { trip, flightOrder, hotelOrder } = req
   let chargedFailedFlight =
     trip.flight &&
@@ -179,6 +177,10 @@ const emailEmployeeCheckoutFailed = async (req, res, next) => {
 }
 
 const emailEmployeeItinerary = async (req, res, next) => {
+  if (!req.trip) {
+    return
+  }
+
   if (!req.checkoutError) {
     let trip = req.trip
     Order.find({
@@ -267,6 +269,23 @@ const emailGiamsoIssueTicket = async (req, res, next) => {
   return next()
 }
 
+const emailGiamsoCancelFlight = async (req, res, next) => {
+  if (
+    _.get(req.cancellingOrder, 'flight.supplier') !== 'sabre' &&
+    _.get(req.cancellingOrder, 'status') !== 'cancelling'
+  ) {
+    return next()
+  }
+
+  let mailOptions = await cancelFlightGiamso(req.cancellingOrder)
+  mail.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      debugMail(err)
+      logger.info('mail: ', { err: err })
+    }
+  })
+}
+
 const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
   let order = req.order
   let user
@@ -339,6 +358,16 @@ const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
   }
 }
 
+const emailEzBizTripVoucherInfo = async (req, res, next) => {
+  let mailOptions = await sendVoucherInfo(req.user, req.body)
+  mail.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      debugMail(err)
+      logger.info('mail: ', { err: err })
+    }
+  })
+}
+
 module.exports = {
   emailEmployeeSubmitTrip,
   emailEmployeeChangeTripStatus,
@@ -349,5 +378,7 @@ module.exports = {
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary,
   emailEmployeeItineraryPkfareTickiting,
-  emailGiamsoIssueTicket
+  emailGiamsoIssueTicket,
+  emailGiamsoCancelFlight,
+  emailEzBizTripVoucherInfo
 }

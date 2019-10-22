@@ -22,7 +22,8 @@ const currenciesExchange = async () => {
     ...supportCurrencies,
     process.env.BASE_CURRENCY,
     process.env.SABRE_BASE_CURRENCY,
-    process.env.HOTELBEDS_BASE_CURRENCY
+    process.env.HOTELBEDS_BASE_CURRENCY,
+    process.env.REWARD_BASE_CURRENCY
   ]
 
   currencies = _.uniq(currencies)
@@ -58,25 +59,30 @@ const currenciesExchange = async () => {
 
 const findCurrencyRateBy = context => {
   return async (req, res, next) => {
-    let source
+    let source, target
 
-    switch (context) {
-      case 'sabre':
-        source = process.env.SABRE_BASE_CURRENCY
-        break
-      case 'hotelbeds':
-        source = process.env.HOTELBEDS_BASE_CURRENCY
-        break
-      case 'pkfare':
-      default:
-        source = process.env.BASE_CURRENCY
-        break
-    }
+    let company = await Company.findById(req.user._company)
 
     try {
-      let company = await Company.findById(req.user._company)
-
-      let target = company.currency
+      switch (context) {
+        case 'sabre':
+          source = process.env.SABRE_BASE_CURRENCY
+          target = company.currency
+          break
+        case 'hotelbeds':
+          source = process.env.HOTELBEDS_BASE_CURRENCY
+          target = company.currency
+          break
+        case 'rewards':
+          source = company.currency
+          target = process.env.REWARD_BASE_CURRENCY
+          break
+        case 'pkfare':
+        default:
+          source = process.env.BASE_CURRENCY
+          target = company.currency
+          break
+      }
 
       if (!company || !target || !supportCurrencies.includes(target)) {
         throw new Error()
@@ -101,6 +107,8 @@ const findCurrencyRateBy = context => {
   }
 }
 
+const rewardCurrencyRate = findCurrencyRateBy('rewards')
+
 const currencyExchange = findCurrencyRateBy('pkfare')
 
 const hotelbedsCurrencyExchange = findCurrencyRateBy('hotelbeds')
@@ -111,5 +119,6 @@ module.exports = {
   currencyExchange,
   hotelbedsCurrencyExchange,
   sabreCurrencyExchange,
-  currenciesExchange
+  currenciesExchange,
+  rewardCurrencyRate
 }

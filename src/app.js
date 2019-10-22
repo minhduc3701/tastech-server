@@ -20,6 +20,7 @@ const tasAdminUsersRouter = require('./routes/tas-admin/users')
 const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
 const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
 const tasAdminOrdersRouter = require('./routes/tas-admin/orders')
+const tasAdminRewardsRouter = require('./routes/tas-admin/rewards')
 const adminCompanyRouter = require('./routes/admin/company')
 const adminUsersRouter = require('./routes/admin/users')
 const adminRolesRouter = require('./routes/admin/roles')
@@ -35,6 +36,7 @@ const hotelbedsRouter = require('./routes/hotels/hotelbeds')
 const ticketsPkfareRouter = require('./routes/tickets/pkfare')
 const settingsRouter = require('./routes/settings')
 const airportsRouter = require('./routes/airports')
+const airlinesRouter = require('./routes/airlines')
 const citiesRouter = require('./routes/cities')
 const regionsRouter = require('./routes/regions')
 const cardsRouter = require('./routes/cards')
@@ -112,6 +114,12 @@ app.use(
   authenticateRole('tas-admin'),
   tasAdminOrdersRouter
 )
+app.use(
+  '/tas-admin/rewards',
+  jwtAuthenticate,
+  authenticateRole('tas-admin'),
+  tasAdminRewardsRouter
+)
 
 // admin routes
 app.use(
@@ -178,6 +186,7 @@ app.use('/tickets/pkfare', ticketsPkfareRouter)
 // content api
 app.use('/settings', jwtAuthenticate, settingsRouter)
 app.use('/airports', jwtAuthenticate, airportsRouter)
+app.use('/airlines', jwtAuthenticate, airlinesRouter)
 app.use('/cities', jwtAuthenticate, citiesRouter)
 app.use('/regions', jwtAuthenticate, regionsRouter)
 
