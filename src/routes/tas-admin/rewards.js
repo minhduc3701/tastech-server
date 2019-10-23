@@ -3,7 +3,6 @@ var router = express.Router()
 const _ = require('lodash')
 const Voucher = require('../../models/voucher')
 const Reward = require('../../models/reward')
-const User = require('../../models/user')
 const { ObjectID } = require('mongodb')
 const moment = require('moment')
 
@@ -104,6 +103,24 @@ router.patch('/:id', (req, res) => {
       res.status(200).send({ reward })
     })
     .catch(error => {
+      res.status(400).send()
+    })
+})
+
+router.delete('/:id', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  Reward.findByIdAndDelete(req.params.id)
+    .then(reward => {
+      if (!reward) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ reward })
+    })
+    .catch(e => {
       res.status(400).send()
     })
 })
