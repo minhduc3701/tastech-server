@@ -5,7 +5,6 @@ const RewardSchema = new Schema(
   {
     title: String,
     image: String,
-    description: String,
     brand: String,
     brandImage: String,
     categoryName: String,
