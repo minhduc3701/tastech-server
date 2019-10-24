@@ -92,50 +92,12 @@ router.post('/', async (req, res) => {
       if (giftData.data.msg === 'success') {
         let gifts = giftData.data.data.items.map(makeUrboxGiftData)
 
-        Promise.all([
-          Country.find({}),
-          Reward.aggregate([
-            {
-              $group: {
-                _id: '$country'
-              }
-            }
-          ])
-        ])
-          .then(results => {
-            let fullCountryOptions = results[0]
-            let rewardCountries = results[1]
-
-            let countryOptions = [
-              {
-                value: 'VN',
-                label: 'Vietnam'
-              }
-            ]
-
-            rewardCountries.forEach(country => {
-              let matchCountry = fullCountryOptions.find(
-                fullCountryOption => fullCountryOption.cca2 === country._id
-              )
-              if (matchCountry) {
-                countryOptions.push({
-                  value: matchCountry.cca2,
-                  label: matchCountry.name.common
-                })
-              }
-            })
-
-            res.status(200).send({
-              countries: countryOptions,
-              categories,
-              brands,
-              gifts: gifts,
-              totalPage: giftData.data.data.totalPage
-            })
-          })
-          .catch(error => {
-            res.status(400).send()
-          })
+        res.status(200).send({
+          categories,
+          brands,
+          gifts: gifts,
+          totalPage: giftData.data.data.totalPage
+        })
       } else {
         res.status(200).send({
           categories,
