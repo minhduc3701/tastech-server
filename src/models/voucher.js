@@ -17,6 +17,10 @@ const VoucherSchema = new Schema(
       type: 'ObjectId',
       required: true
     },
+    _company: {
+      type: 'ObjectId',
+      ref: 'Company'
+    },
     quantity: Number,
     pricePoint: Number,
     currency: String,

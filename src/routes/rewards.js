@@ -255,7 +255,7 @@ router.post(
         }
 
         // if enough point, request voucher then save to db
-        const siteUserId = 'ezbiztrip-' + req.user.id
+        const siteUserId = 'ezbiztrip-' + req.user._id
         const transaction = require('order-id')(process.env.URBOX_SECRET)
         const transactionId = 'ezbiztrip-' + transaction.generate()
 
@@ -283,7 +283,8 @@ router.post(
 
         newVoucherData = {
           ...req.body,
-          _buyer: req.user.id,
+          _buyer: req.user._id,
+          _company: req.user._company,
           pricePoint: giftPoint,
           siteUserId,
           transactionId,
@@ -298,29 +299,20 @@ router.post(
             'DD-MM-YYYY'
           ).format('YYYY-MM-DD')
         }
-      }
+      } else if (req.body.supplier === 'ezbiztrip') {
+        let gift = await Reward.findById(giftId)
 
-      if (req.body.supplier === 'ezbiztrip') {
-        Reward.findById(giftId)
-          .then(gift => {
-            if (!gift) {
-              return res.status(404).send()
-            }
+        giftPoint = gift.pricePoint
 
-            giftPoint = gift.pricePoint
-
-            if (userPoint < giftPoint) {
-              return res.status(400).send({
-                message: 'not enough points to redeem this voucher'
-              })
-            }
+        if (userPoint < giftPoint) {
+          return res.status(400).send({
+            message: 'not enough points to redeem this voucher'
           })
-          .catch(e => {
-            return res.status(400).send()
-          })
+        }
 
         newVoucherData = {
-          _buyer: req.user.id,
+          _buyer: req.user._id,
+          _company: req.user._company,
           ...req.body
         }
       }

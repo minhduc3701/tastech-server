@@ -764,7 +764,7 @@ const makeUrboxGiftData = gift => {
     categoryId: gift.cat_id,
     categoryName: gift.cat_title,
     price: gift.price,
-    pricePoint: gift.price / SGD_VND_CURRENCY_RATE,
+    pricePoint: Math.round(gift.price / SGD_VND_CURRENCY_RATE),
     supplier: 'urbox',
     currency: 'VND',
     country: 'VN'
