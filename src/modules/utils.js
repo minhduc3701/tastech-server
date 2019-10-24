@@ -2,7 +2,13 @@ const _ = require('lodash')
 const moment = require('moment')
 const { logger } = require('../config/winston')
 const validator = require('validator')
-const { USD, VND, SGD, IDR } = require('../config/currency')
+const {
+  USD,
+  VND,
+  SGD,
+  IDR,
+  SGD_VND_CURRENCY_RATE
+} = require('../config/currency')
 
 const hotelAccomodations = [
   { code: 'APARTMENT', text: 'Apartment' },
@@ -758,7 +764,7 @@ const makeUrboxGiftData = gift => {
     categoryId: gift.cat_id,
     categoryName: gift.cat_title,
     price: gift.price,
-    pricePoint: gift.price / 1000,
+    pricePoint: gift.price / SGD_VND_CURRENCY_RATE,
     supplier: 'urbox',
     currency: 'VND',
     country: 'VN'
