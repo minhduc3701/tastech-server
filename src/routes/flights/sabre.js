@@ -159,12 +159,12 @@ router.get('/getFareRule', securityToken, async (req, res) => {
             <eb:To>
                 <eb:PartyId type="urn:x12.org:IO5:01">123123</eb:PartyId>
             </eb:To>
-            <eb:CPAId>5EJJ</eb:CPAId>
+            <eb:CPAId>${process.env.SABRE_USER_ID}</eb:CPAId>
             <eb:Service eb:type="OTA">StructureFareRulesRQ</eb:Service>
             <eb:Action>StructureFareRulesRQ</eb:Action>
         </eb:MessageHeader>
         <wsse:Security xmlns:wsse="http://schemas.xmlsoap.org/ws/2002/12/secext">
-            <wsse:BinarySecurityToken valueType="String" EncodingType="wsse:Base64Binary">Shared/IDL:IceSess\/SessMgr:1\.0.IDL/Common/!ICESMS\/ACPCRTD!ICESMSLB\/CRT.LB!-2960202414161224825!1201195!0</wsse:BinarySecurityToken>
+            <wsse:BinarySecurityToken valueType="String" EncodingType="wsse:Base64Binary">${securityToken}</wsse:BinarySecurityToken>
         </wsse:Security>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
