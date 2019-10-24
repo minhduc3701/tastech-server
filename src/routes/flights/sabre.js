@@ -8,7 +8,7 @@ const Airport = require('../../models/airport')
 const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
 const { sabreCurrencyExchange } = require('../../middleware/currency')
-const { sabreToken } = require('../../middleware/sabre')
+const { sabreToken, securityToken } = require('../../middleware/sabre')
 const { makeSabreFlightsData } = require('../../modules/utils')
 const { logger } = require('../../config/winston')
 const { makeSabreRequestData } = require('../../modules/utilsSabre')
@@ -145,15 +145,66 @@ router.post(
   }
 )
 
-router.get('/getSoap', async (req, res) => {
+router.get('/getFareRule', securityToken, async (req, res) => {
   try {
-    let sabreRes = await apiSabre.getSoapSecurityToken()
-    let result = convert.xml2json(sabreRes.data, { compact: true, spaces: 4 })
-    let securityToken = _.get(
-      JSON.parse(result),
-      '[soap-env:Envelope][soap-env:Header][wsse:Security][wsse:BinarySecurityToken][_text]',
-      'wrong'
-    )
+    let { flightSegment, securityToken } = req
+    let xml = `
+    <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:eb="http://www.ebxml.org/namespaces/messageHeader" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/1999/XMLSchema">
+    <SOAP-ENV:Header>
+        <eb:MessageHeader SOAP-ENV:mustUnderstand="1" eb:version="1.0">
+            <eb:ConversationId>1</eb:ConversationId>
+            <eb:From>
+                <eb:PartyId type="urn:x12.org:IO5:01">999999</eb:PartyId>
+            </eb:From>
+            <eb:To>
+                <eb:PartyId type="urn:x12.org:IO5:01">123123</eb:PartyId>
+            </eb:To>
+            <eb:CPAId>5EJJ</eb:CPAId>
+            <eb:Service eb:type="OTA">StructureFareRulesRQ</eb:Service>
+            <eb:Action>StructureFareRulesRQ</eb:Action>
+        </eb:MessageHeader>
+        <wsse:Security xmlns:wsse="http://schemas.xmlsoap.org/ws/2002/12/secext">
+            <wsse:BinarySecurityToken valueType="String" EncodingType="wsse:Base64Binary">Shared/IDL:IceSess\/SessMgr:1\.0.IDL/Common/!ICESMS\/ACPCRTD!ICESMSLB\/CRT.LB!-2960202414161224825!1201195!0</wsse:BinarySecurityToken>
+        </wsse:Security>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <StructureFareRulesRQ Version="1.0.4" xmlns="http://webservices.sabre.com/sabreXML/2003/07" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <PriceRequestInformation BuyingDate="2019-10-24T15:25:00" CurrencyCode="SGD">
+                <PassengerTypes>
+                    <PassengerType Code="ADT" Count="01" />
+                </PassengerTypes>
+                <ReturnAllData Value="1" />
+                <FreeBaggageSubscriber Ind="true" />
+            </PriceRequestInformation>
+            <AirItinerary>
+                <OriginDestinationOptions>
+                    <OriginDestinationOption>
+                        `
+
+    flightSegment.map((segment, index) => {
+      xml += ` <FlightSegment 
+                    DepartureDate="${segment.departure}" 
+                    ArrivalDate="${segment.departure}" 
+                    BookingDate="2019-10-24T15:25:00" 
+                    FlightNumber="${segment.departure}" 
+                    ResBookDesigCode="${segment.departure}" 
+                    SegmentNumber="0${index}" 
+                    SegmentType="A" 
+                    RealReservationStatus="SS">
+                  <DepartureAirport LocationCode="${segment.departure}"/>
+                  <ArrivalAirport LocationCode="${segment.arrival}"/>
+                  <MarketingAirline Code="${segment.marketing}"/>
+                  <OperatingAirline Code="${segment.operating}"/>
+              </FlightSegment>`
+    })
+    xml += ` <SegmentInformation SegmentNumber="01"/>
+                 <PaxTypeInformation PassengerType="ADT" FareComponentNumber="1" FareBasisCode="HLOW"/>
+                </OriginDestinationOption>
+              </OriginDestinationOptions>
+          </AirItinerary>
+      </StructureFareRulesRQ>
+  </SOAP-ENV:Body>
+  </SOAP-ENV:Envelope>`
     return res.status(200).send(result)
   } catch (error) {
     return res.status(400).send(error.msg)
