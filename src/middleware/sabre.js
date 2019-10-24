@@ -19,6 +19,24 @@ const sabreToken = async (req, res, next) => {
   }
   next()
 }
+
+const securityToken = async (req, res, next) => {
+  try {
+    let sabreRes = await apiSabre.getSoapSecurityToken()
+    let result = convert.xml2json(sabreRes.data, { compact: true, spaces: 4 })
+    req.securityToken = _.get(
+      JSON.parse(result),
+      '[soap-env:Envelope][soap-env:Header][wsse:Security][wsse:BinarySecurityToken][_text]',
+      ''
+    )
+  } catch (e) {
+    debugServer(e)
+    req.securityToken = ''
+  }
+  next()
+}
+
 module.exports = {
-  sabreToken
+  sabreToken,
+  securityToken
 }

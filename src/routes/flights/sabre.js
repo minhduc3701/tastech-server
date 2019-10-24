@@ -15,7 +15,7 @@ const { makeSabreRequestData } = require('../../modules/utilsSabre')
 const { makeSabreFlightCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
 const { suggestFlights } = require('../../modules/suggestions')
-
+const convert = require('xml-js')
 router.post(
   '/shopping',
   sabreCurrencyExchange,
@@ -144,5 +144,20 @@ router.post(
     }
   }
 )
+
+router.get('/getSoap', async (req, res) => {
+  try {
+    let sabreRes = await apiSabre.getSoapSecurityToken()
+    let result = convert.xml2json(sabreRes.data, { compact: true, spaces: 4 })
+    let securityToken = _.get(
+      JSON.parse(result),
+      '[soap-env:Envelope][soap-env:Header][wsse:Security][wsse:BinarySecurityToken][_text]',
+      'wrong'
+    )
+    return res.status(200).send(result)
+  } catch (error) {
+    return res.status(400).send(error.msg)
+  }
+})
 
 module.exports = router
