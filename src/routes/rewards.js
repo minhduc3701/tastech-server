@@ -10,6 +10,7 @@ const apiUrbox = require('../modules/apiUrbox')
 const { makeUrboxGiftData } = require('../modules/utils')
 const moment = require('moment')
 const { emailEzBizTripVoucherInfo } = require('../middleware/email')
+const { SGD_VND_CURRENCY_RATE } = require('../config/currency')
 
 let urboxKey = {
   app_id: process.env.URBOX_ID,
@@ -92,50 +93,12 @@ router.post('/', async (req, res) => {
       if (giftData.data.msg === 'success') {
         let gifts = giftData.data.data.items.map(makeUrboxGiftData)
 
-        Promise.all([
-          Country.find({}),
-          Reward.aggregate([
-            {
-              $group: {
-                _id: '$country'
-              }
-            }
-          ])
-        ])
-          .then(results => {
-            let fullCountryOptions = results[0]
-            let rewardCountries = results[1]
-
-            let countryOptions = [
-              {
-                value: 'VN',
-                label: 'Vietnam'
-              }
-            ]
-
-            rewardCountries.forEach(country => {
-              let matchCountry = fullCountryOptions.find(
-                fullCountryOption => fullCountryOption.cca2 === country._id
-              )
-              if (matchCountry) {
-                countryOptions.push({
-                  value: matchCountry.cca2,
-                  label: matchCountry.name.common
-                })
-              }
-            })
-
-            res.status(200).send({
-              countries: countryOptions,
-              categories,
-              brands,
-              gifts: gifts,
-              totalPage: giftData.data.data.totalPage
-            })
-          })
-          .catch(error => {
-            res.status(400).send()
-          })
+        res.status(200).send({
+          categories,
+          brands,
+          gifts: gifts,
+          totalPage: giftData.data.data.totalPage
+        })
       } else {
         res.status(200).send({
           categories,
@@ -233,10 +196,13 @@ router.get('/ub/:id', async (req, res) => {
 
     let gift = {
       ...resData.data.data,
+      _id: resData.data.data.id,
       supplier: 'urbox',
       country: 'VN',
       currency: 'VND',
-      pricePoint: parseInt(resData.data.data.price) / 1000
+      pricePoint: Math.round(
+        parseInt(resData.data.data.price) / SGD_VND_CURRENCY_RATE
+      )
     }
 
     res.status(200).send({ gift })
@@ -268,18 +234,35 @@ router.post(
   '/exchange',
   async (req, res, next) => {
     try {
+      let userPoint = req.user.point
+      let giftPoint = 0
+
+      let giftId = req.body._id
       let newVoucherData = {}
 
-      const giftPrice = parseInt(req.body.price)
-      if (req.user.point < giftPrice / 1000) {
-        return res.status(400).send({
-          message: 'not enough points to redeem this voucher'
-        })
-      }
-      const remainingPoints = req.user.point - giftPrice / 1000
-
+      // check if user has not enough point
       if (req.body.supplier === 'urbox') {
-        const siteUserId = 'ezbiztrip-' + req.user.id
+        let giftReqBody = { ...urboxKey, id: giftId }
+        let giftRes = await apiUrbox.getGiftDetail(giftReqBody)
+
+        if (giftRes.data.msg !== 'success') {
+          return res.status(400).send({
+            res: giftRes.data
+          })
+        }
+
+        giftPoint = Math.round(
+          parseInt(giftRes.data.data.price) / SGD_VND_CURRENCY_RATE
+        )
+
+        if (userPoint < giftPoint) {
+          return res.status(400).send({
+            message: 'not enough points to redeem this voucher'
+          })
+        }
+
+        // if enough point, request voucher then save to db
+        const siteUserId = 'ezbiztrip-' + req.user._id
         const transaction = require('order-id')(process.env.URBOX_SECRET)
         const transactionId = 'ezbiztrip-' + transaction.generate()
 
@@ -292,7 +275,7 @@ router.post(
           transaction_id: transactionId,
           dataBuy: [
             {
-              priceId: req.body.id,
+              priceId: giftId,
               quantity: '1'
             }
           ]
@@ -307,16 +290,12 @@ router.post(
 
         newVoucherData = {
           ...req.body,
-          supplier: 'urbox',
-          _buyer: req.user.id,
+          _buyer: req.user._id,
+          _company: req.user._company,
+          pricePoint: giftPoint,
           siteUserId,
           transactionId,
           quantity: 1,
-          pricePoint: giftPrice / 1000,
-          currency: 'VND',
-          content: req.body.content,
-          note: req.body.note,
-          office: req.body.office,
           cartId: ubResData.data.data.cart.id,
           cartNumber: ubResData.data.data.cart.cartNo,
           cartTotal: ubResData.data.data.cart.money_total,
@@ -327,17 +306,33 @@ router.post(
             'DD-MM-YYYY'
           ).format('YYYY-MM-DD')
         }
-      } else {
+      } else if (req.body.supplier === 'ezbiztrip') {
+        let gift = await Reward.findById(giftId)
+
+        if (!gift) {
+          return res.status(404).send()
+        }
+
+        giftPoint = gift.pricePoint
+
+        if (userPoint < giftPoint) {
+          return res.status(400).send({
+            message: 'not enough points to redeem this voucher'
+          })
+        }
+
         newVoucherData = {
-          _buyer: req.user.id,
+          _buyer: req.user._id,
+          _company: req.user._company,
           ...req.body
         }
-        newVoucherData = _.omit(newVoucherData, ['_id', '__v'])
       }
 
+      newVoucherData = _.omit(newVoucherData, ['_id', '__v'])
       let voucher = new Voucher(newVoucherData)
       await voucher.save()
 
+      const remainingPoints = userPoint - giftPoint
       User.findByIdAndUpdate(
         req.user._id,
         { $set: { point: remainingPoints } },
@@ -349,7 +344,7 @@ router.post(
           }
 
           res.status(200).send({
-            // data: ubResData.data.data,
+            message: 'success',
             voucherId: voucher.id,
             remainingPoints: user.point
           })
