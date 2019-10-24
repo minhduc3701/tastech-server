@@ -244,6 +244,13 @@ router.post(
       if (req.body.supplier === 'urbox') {
         let giftReqBody = { ...urboxKey, id: giftId }
         let giftRes = await apiUrbox.getGiftDetail(giftReqBody)
+
+        if (giftRes.data.msg !== 'success') {
+          return res.status(400).send({
+            res: giftRes.data
+          })
+        }
+
         giftPoint = Math.round(
           parseInt(giftRes.data.data.price) / SGD_VND_CURRENCY_RATE
         )
@@ -301,6 +308,10 @@ router.post(
         }
       } else if (req.body.supplier === 'ezbiztrip') {
         let gift = await Reward.findById(giftId)
+
+        if (!gift) {
+          return res.status(404).send()
+        }
 
         giftPoint = gift.pricePoint
 
