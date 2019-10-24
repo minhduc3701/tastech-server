@@ -350,7 +350,7 @@ router.post(
           return res.status(400).send()
         })
 
-      // next()
+      next()
     } catch (error) {
       res.status(400).send()
     }
