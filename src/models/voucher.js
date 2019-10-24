@@ -5,7 +5,6 @@ const VoucherSchema = new Schema(
   {
     title: String,
     image: String,
-    description: String,
     brand: String,
     brandImage: String,
     categoryId: String,
