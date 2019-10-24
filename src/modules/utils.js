@@ -23,7 +23,10 @@ const hotelAccomodations = [
 ]
 
 const getImageUri = uriString => {
-  if (uriString && !validator.isURL(_.toString(uriString))) {
+  if (
+    uriString &&
+    !validator.isURL(_.toString(uriString), { require_protocol: true })
+  ) {
     return process.env.AWS_S3_URI + '/' + uriString
   }
 
