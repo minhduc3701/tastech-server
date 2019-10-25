@@ -5,25 +5,62 @@ const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeChangeTripStatus } = require('../../middleware/email')
 
-router.get('/', (req, res) => {
-  Trip.find({
-    _company: req.user._company,
-    businessTrip: true,
-    status: { $in: ['waiting', 'approved', 'rejected'] }
-  })
-    .populate({
-      path: '_creator',
-      populate: {
-        path: '_department',
-        select: 'name'
-      }
+router.get('/', function(req, res) {
+  let perPage = _.get(req.query, 'perPage', 20)
+  perPage = Math.max(0, parseInt(perPage))
+  let page = _.get(req.query, 'page', 0)
+  page = Math.max(0, parseInt(page))
+
+  let status = _.get(req.query, 'status', 'waiting,approved,rejected')
+  status = status.split(',')
+
+  let allStatus = ['waiting', 'approved', 'rejected']
+
+  status = status.filter(s => allStatus.includes(s))
+  status = _.isEmpty(status) ? allStatus : status
+
+  console.log(status)
+
+  Promise.all([
+    Trip.find({
+      _company: req.user._company,
+      businessTrip: true,
+      status: { $in: status }
     })
-    .sort({ updatedAt: -1 })
-    .then(trips => {
+      .populate({
+        path: '_creator',
+        populate: {
+          path: '_department',
+          select: 'name'
+        }
+      })
+      .sort({ updatedAt: -1 })
+      .limit(perPage)
+      .skip(perPage * page),
+    Trip.countDocuments({
+      _company: req.user._company,
+      businessTrip: true,
+      status: { $in: status }
+    })
+  ])
+    .then(results => {
+      let trips = results[0]
       trips = trips.filter(trip => trip._creator)
-      res.status(200).send({ trips })
+
+      let total = results[1]
+
+      res.status(200).send({
+        page,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        count: trips.length,
+        perPage,
+        trips
+      })
     })
-    .catch(e => res.status(400).send())
+    .catch(e => {
+      res.status(400).send({})
+    })
 })
 
 router.get('/:id', function(req, res) {
