@@ -447,8 +447,12 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
         obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
         obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
         obj.currency = currency.code
-        obj.totalPrice = obj.rawTotalPrice * currency.rate
-        obj.price = (obj.rawTotalPrice * currency.rate) / numberOfPassengers
+        obj.price = roundPrice(
+          roundPrice(obj.rawTotalPrice * currency.rate, currency.code) /
+            numberOfPassengers,
+          currency.code
+        )
+        obj.totalPrice = obj.price * numberOfPassengers
         obj.supplier = 'sabre'
 
         flights.push(obj)
@@ -474,7 +478,10 @@ const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
       )
       return {
         ...hotel,
-        lowestPrice: matchingHotel.minRate * currency.rate,
+        lowestPrice: roundPrice(
+          matchingHotel.minRate * currency.rate,
+          currency.code
+        ),
         ratePlans: ratePlans
       }
     }
@@ -594,7 +601,10 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
         const cancelRules = _.get(rate, 'cancellationPolicies', []).map(
           rule => {
             return {
-              cancelCharge: rule.amount * currency.rate,
+              cancelCharge: roundPrice(
+                rule.amount * currency.rate,
+                currency.code
+              ),
               from: rule.from
             }
           }
@@ -608,9 +618,9 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
           roomName: room.name,
           currency: currency.code,
           rawCurrency: hotel.currency,
-          rawNet: rate.net,
-          totalPrice: Number(price) * currency.rate,
-          rawTotalPrice: rate.net,
+          rawNet: Number(rate.net),
+          totalPrice: roundPrice(Number(price) * currency.rate, currency.code),
+          rawTotalPrice: Number(rate.net),
           cancelRules: cancelRules,
           ratePlanCode: rate.rateKey,
           rateType: rate.rateType,
@@ -672,6 +682,19 @@ const roundingAmountStripe = (amount, currency) => {
       break
   }
   return Math.round(amount)
+}
+
+const roundPrice = (amount, currency) => {
+  switch (currency) {
+    case USD:
+    case SGD:
+    case IDR:
+      return Number(Number(amount).toFixed(2))
+    case VND:
+      return Math.round(amount)
+  }
+
+  return Number(Number(amount).toFixed(2))
 }
 
 const formatLocaleMoney = (amount, currency) => {
@@ -777,5 +800,6 @@ module.exports = {
   roundingAmountStripe,
   formatLocaleMoney,
   getUserProfileStrength,
-  makeUrboxGiftData
+  makeUrboxGiftData,
+  roundPrice
 }
