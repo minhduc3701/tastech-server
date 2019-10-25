@@ -10,7 +10,7 @@ const apiUrbox = require('../modules/apiUrbox')
 const { makeUrboxGiftData } = require('../modules/utils')
 const moment = require('moment')
 const { emailEzBizTripVoucherInfo } = require('../middleware/email')
-const { SGD_VND_CURRENCY_RATE } = require('../config/currency')
+const { urboxCurrencyExchange } = require('../middleware/currency')
 
 let urboxKey = {
   app_id: process.env.URBOX_ID,
@@ -65,7 +65,7 @@ router.get('/countryFilter', async (req, res) => {
   }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', urboxCurrencyExchange, async (req, res) => {
   try {
     if (req.body.country === 'VN') {
       let reqBody = { ...urboxKey, ...req.body }
@@ -91,7 +91,9 @@ router.post('/', async (req, res) => {
       brands.unshift({ value: '', label: 'All' })
 
       if (giftData.data.msg === 'success') {
-        let gifts = giftData.data.data.items.map(makeUrboxGiftData)
+        let gifts = giftData.data.data.items.map(item =>
+          makeUrboxGiftData(item, req.currency.rate)
+        )
 
         res.status(200).send({
           categories,
@@ -189,7 +191,7 @@ router.post('/', async (req, res) => {
   }
 })
 
-router.get('/ub/:id', async (req, res) => {
+router.get('/ub/:id', urboxCurrencyExchange, async (req, res) => {
   try {
     let reqBody = { ...urboxKey, id: req.params.id }
     let resData = await apiUrbox.getGiftDetail(reqBody)
@@ -201,7 +203,7 @@ router.get('/ub/:id', async (req, res) => {
       country: 'VN',
       currency: 'VND',
       pricePoint: Math.round(
-        parseInt(resData.data.data.price) / SGD_VND_CURRENCY_RATE
+        parseInt(resData.data.data.price) * req.currency.rate
       )
     }
 
@@ -232,6 +234,7 @@ router.get('/ezbiztrip/:id', async (req, res) => {
 
 router.post(
   '/exchange',
+  urboxCurrencyExchange,
   async (req, res, next) => {
     try {
       let userPoint = req.user.point
@@ -252,7 +255,7 @@ router.post(
         }
 
         giftPoint = Math.round(
-          parseInt(giftRes.data.data.price) / SGD_VND_CURRENCY_RATE
+          parseInt(giftRes.data.data.price) * req.currency.rate
         )
 
         if (userPoint < giftPoint) {

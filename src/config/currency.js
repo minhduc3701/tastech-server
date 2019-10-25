@@ -23,14 +23,11 @@ const supportCurrenciesOptions = [
   }
 ]
 
-const SGD_VND_CURRENCY_RATE = 17000
-
 module.exports = {
   USD,
   SGD,
   VND,
   IDR,
-  SGD_VND_CURRENCY_RATE,
   supportCurrencies,
   supportCurrenciesOptions
 }
