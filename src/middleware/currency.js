@@ -60,7 +60,6 @@ const currenciesExchange = async () => {
 const findCurrencyRateBy = context => {
   return async (req, res, next) => {
     let source, target
-
     let company = await Company.findById(req.user._company)
 
     try {
@@ -77,6 +76,10 @@ const findCurrencyRateBy = context => {
           source = company.currency
           target = process.env.REWARD_BASE_CURRENCY
           break
+        case 'urbox':
+          source = 'VND'
+          target = 'SGD'
+          break
         case 'pkfare':
         default:
           source = process.env.BASE_CURRENCY
@@ -89,7 +92,6 @@ const findCurrencyRateBy = context => {
       }
 
       let currencies = await currenciesExchange()
-
       req.currency = currencies[`${source}-${target}`]
 
       if (_.isEmpty(req.currency)) {
@@ -115,10 +117,13 @@ const hotelbedsCurrencyExchange = findCurrencyRateBy('hotelbeds')
 
 const sabreCurrencyExchange = findCurrencyRateBy('sabre')
 
+const urboxCurrencyExchange = findCurrencyRateBy('urbox')
+
 module.exports = {
   currencyExchange,
   hotelbedsCurrencyExchange,
   sabreCurrencyExchange,
+  urboxCurrencyExchange,
   currenciesExchange,
   rewardCurrencyRate
 }
