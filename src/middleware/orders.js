@@ -19,12 +19,23 @@ const refundCancelledOrderManually = async (req, res, next) => {
   }
 
   refundAmount = order.totalPrice - cancelCharge
+  refundAmount = roundingAmountStripe(refundAmount, order.currency)
+
+  // capture first, run even this charge is captured or not
+  // to guarantee any refunds whole or part will be ok
+  try {
+    if (refundAmount < order.chargeInfo.amount) {
+      await stripe.charges.capture(order.chargeId)
+    }
+  } catch (e) {
+    // do nothing even error or not, just a confirm step
+  }
 
   try {
     if (refundAmount > 0) {
       await stripe.refunds.create({
         charge: order.chargeId,
-        amount: roundingAmountStripe(refundAmount, order.currency)
+        amount: refundAmount
       })
     }
 

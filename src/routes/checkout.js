@@ -10,7 +10,8 @@ const apiHotelbeds = require('../modules/apiHotelbeds')
 const {
   makeSegmentsData,
   makeRoomGuestDetails,
-  makeHtbRoomPaxes
+  makeHtbRoomPaxes,
+  roundPrice
 } = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
@@ -315,17 +316,29 @@ const calculateRewardCost = async (req, res, next) => {
 
     if (remainingFlightBudget > 0 && flightTotalPrice > 0) {
       let currencyRate = flightOrder.totalPrice / flightOrder.rawTotalPrice
-      flightOrder.rewardCost = (exchangedRate * remainingFlightBudget) / 100
+      flightOrder.rewardCost = roundPrice(
+        (exchangedRate * remainingFlightBudget) / 100,
+        flightOrder.currency
+      )
       flightOrder.totalPrice = flightOrder.totalPrice + flightOrder.rewardCost
-      flightOrder.rawTotalPrice = flightOrder.totalPrice / currencyRate
+      flightOrder.rawTotalPrice = roundPrice(
+        flightOrder.totalPrice / currencyRate,
+        flightOrder.rawCurrency
+      )
       await flightOrder.save()
     }
 
     if (remainingHotelBudget > 0 && hotelTotalPrice > 0) {
       let currencyRate = hotelOrder.totalPrice / hotelOrder.rawTotalPrice
-      hotelOrder.rewardCost = (exchangedRate * remainingHotelBudget) / 100
+      hotelOrder.rewardCost = roundPrice(
+        (exchangedRate * remainingHotelBudget) / 100,
+        hotelOrder.currency
+      )
       hotelOrder.totalPrice = hotelOrder.totalPrice + hotelOrder.rewardCost
-      hotelOrder.rawTotalPrice = hotelOrder.totalPrice / currencyRate
+      hotelOrder.rawTotalPrice = roundPrice(
+        hotelOrder.totalPrice / currencyRate,
+        hotelOrder.rawCurrency
+      )
       await hotelOrder.save()
     }
   } catch (e) {}
@@ -456,7 +469,8 @@ const stripeCharging = async (req, res, next) => {
     const charge = await stripe.charges.create({
       amount,
       currency,
-      customer: foundCard.customer.id // Previously stored, then retrieved
+      customer: foundCard.customer.id, // Previously stored, then retrieved
+      capture: false
     })
 
     req.charge = charge
@@ -1008,11 +1022,21 @@ const refundFailedOrder = async (req, res, next) => {
       }
     }
 
-    // refund via stripe
-    await stripe.refunds.create({
-      charge: req.charge.id,
-      amount: refundAmount
-    })
+    // capture the success amount and refund fail amount
+    if (refundAmount > 0 && refundAmount < req.charge.amount) {
+      let capture = await stripe.charges.capture(req.charge.id, {
+        amount: req.charge.amount - refundAmount
+      })
+      return next() // exit
+    }
+
+    // refund total (cancelled) via stripe
+    if (refundAmount > 0) {
+      await stripe.refunds.create({
+        charge: req.charge.id,
+        amount: refundAmount
+      })
+    }
   } catch (error) {
     req.checkoutError = error
   }
