@@ -684,20 +684,22 @@ const makeHtbRoomPaxes = (passengers, children, numberOfRoom, rateKey) => {
 
 const roundingAmountStripe = (amount, currency) => {
   switch (currency) {
-    case USD:
-    case SGD:
-    case IDR:
-    case THB:
-    case MYR:
-    case MMK:
-    case KHR:
-    case LAK:
-    case BND:
-    case PHP:
-      amount = amount * 100
-      break
     case VND:
       amount = amount * 1
+      break
+
+    // case USD:
+    // case SGD:
+    // case IDR:
+    // case THB:
+    // case MYR:
+    // case MMK:
+    // case KHR:
+    // case LAK:
+    // case BND:
+    // case PHP:
+    default:
+      amount = amount * 100
       break
   }
   return Math.round(amount)
@@ -705,12 +707,21 @@ const roundingAmountStripe = (amount, currency) => {
 
 const roundPrice = (amount, currency) => {
   switch (currency) {
-    case USD:
-    case SGD:
-    case IDR:
-      return Number(Number(amount).toFixed(2))
     case VND:
       return Math.round(amount)
+
+    // case USD:
+    // case SGD:
+    // case IDR:
+    // case THB:
+    // case MYR:
+    // case MMK:
+    // case KHR:
+    // case LAK:
+    // case BND:
+    // case PHP:
+    default:
+      return Number(Number(amount).toFixed(2))
   }
 
   return Number(Number(amount).toFixed(2))

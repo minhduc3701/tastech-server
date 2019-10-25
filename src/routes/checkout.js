@@ -10,7 +10,8 @@ const apiHotelbeds = require('../modules/apiHotelbeds')
 const {
   makeSegmentsData,
   makeRoomGuestDetails,
-  makeHtbRoomPaxes
+  makeHtbRoomPaxes,
+  roundPrice
 } = require('../modules/utils')
 const moment = require('moment')
 const _ = require('lodash')
@@ -315,17 +316,29 @@ const calculateRewardCost = async (req, res, next) => {
 
     if (remainingFlightBudget > 0 && flightTotalPrice > 0) {
       let currencyRate = flightOrder.totalPrice / flightOrder.rawTotalPrice
-      flightOrder.rewardCost = (exchangedRate * remainingFlightBudget) / 100
+      flightOrder.rewardCost = roundPrice(
+        (exchangedRate * remainingFlightBudget) / 100,
+        flightOrder.currency
+      )
       flightOrder.totalPrice = flightOrder.totalPrice + flightOrder.rewardCost
-      flightOrder.rawTotalPrice = flightOrder.totalPrice / currencyRate
+      flightOrder.rawTotalPrice = roundPrice(
+        flightOrder.totalPrice / currencyRate,
+        flightOrder.rawCurrency
+      )
       await flightOrder.save()
     }
 
     if (remainingHotelBudget > 0 && hotelTotalPrice > 0) {
       let currencyRate = hotelOrder.totalPrice / hotelOrder.rawTotalPrice
-      hotelOrder.rewardCost = (exchangedRate * remainingHotelBudget) / 100
+      hotelOrder.rewardCost = roundPrice(
+        (exchangedRate * remainingHotelBudget) / 100,
+        hotelOrder.currency
+      )
       hotelOrder.totalPrice = hotelOrder.totalPrice + hotelOrder.rewardCost
-      hotelOrder.rawTotalPrice = hotelOrder.totalPrice / currencyRate
+      hotelOrder.rawTotalPrice = roundPrice(
+        hotelOrder.totalPrice / currencyRate,
+        hotelOrder.rawCurrency
+      )
       await hotelOrder.save()
     }
   } catch (e) {}
