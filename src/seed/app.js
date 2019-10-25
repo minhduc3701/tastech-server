@@ -9,7 +9,9 @@ const {
   populatePolicies,
   populateTrips,
   populateExpenses,
-  populateDepartments
+  populateDepartments,
+  populateRewards,
+  populateVouchers
 } = require('./data/dev')
 
 const yargs = require('yargs')
@@ -60,6 +62,14 @@ let collections = [
   {
     collection: 'departments',
     population: populateDepartments
+  },
+  {
+    collection: 'rewards',
+    population: populateRewards
+  },
+  {
+    collection: 'vouchers',
+    population: populateVouchers
   }
 ]
 

@@ -5,7 +5,6 @@ const VoucherSchema = new Schema(
   {
     title: String,
     image: String,
-    description: String,
     brand: String,
     brandImage: String,
     categoryId: String,
@@ -17,6 +16,10 @@ const VoucherSchema = new Schema(
     _buyer: {
       type: 'ObjectId',
       required: true
+    },
+    _company: {
+      type: 'ObjectId',
+      ref: 'Company'
     },
     quantity: Number,
     pricePoint: Number,

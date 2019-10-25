@@ -131,6 +131,19 @@ router.post('/voidResult', bodyParser.text({ type: '*/*' }), (req, res) => {
       let refundAmount = rawRefundAmount * currencyRate
 
       if (refundAmount > 0) {
+        // capture first, run even this charge is captured or not
+        // to guarantee any refunds whole or part will be ok
+        try {
+          if (
+            roundingAmountStripe(refundAmount, order.currency) <
+            order.chargeInfo.amount
+          ) {
+            await stripe.charges.capture(order.chargeId)
+          }
+        } catch (e) {
+          // do nothing even error or not, just a confirm step
+        }
+
         await stripe.refunds.create({
           charge: order.chargeId,
           amount: roundingAmountStripe(refundAmount, order.currency)

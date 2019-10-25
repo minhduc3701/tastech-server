@@ -5,7 +5,6 @@ const RewardSchema = new Schema(
   {
     title: String,
     image: String,
-    description: String,
     brand: String,
     brandImage: String,
     categoryName: String,
@@ -14,7 +13,11 @@ const RewardSchema = new Schema(
     currency: String,
     content: String,
     note: String,
-    office: Array,
+    office: [
+      {
+        type: Object
+      }
+    ],
     supplier: {
       type: String,
       default: 'ezbiztrip'

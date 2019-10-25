@@ -8,7 +8,8 @@ const { emailEmployeeChangeTripStatus } = require('../../middleware/email')
 router.get('/', (req, res) => {
   Trip.find({
     _company: req.user._company,
-    businessTrip: true
+    businessTrip: true,
+    status: { $in: ['waiting', 'approved', 'rejected'] }
   })
     .populate({
       path: '_creator',

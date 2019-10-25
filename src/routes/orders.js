@@ -14,80 +14,6 @@ const { emailGiamsoCancelFlight } = require('../middleware/email')
 const { emailCustomerCancelledOrder } = require('../middleware/orders')
 const moment = require('moment')
 
-router.get('/', function(req, res, next) {
-  Order.find({
-    _customer: req.user._id
-  })
-    .sort({ createdAt: -1 })
-    .then(orders => {
-      res.status(200).send({ orders })
-    })
-    .catch(e => {
-      res.status(400).send({})
-    })
-})
-
-router.get('/:id', function(req, res, next) {
-  if (!ObjectID.isValid(req.params.id)) {
-    return res.status(404).send()
-  }
-  Order.findOne({
-    _id: req.params.id,
-    _customer: req.user._id
-  })
-    .then(order => {
-      if (!order) {
-        return res.status(404).send()
-      }
-
-      res.status(200).json({ order })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
-})
-
-router.post('/', function(req, res, next) {
-  const order = new Order(req.body)
-  order._customer = req.user._id
-  order._company = req.user._company
-  order
-    .save()
-    .then(() => {
-      res.status(200).send({ order })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
-})
-
-router.patch('/:id', function(req, res, next) {
-  let id = req.params.id
-
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send()
-  }
-
-  Order.findOneAndUpdate(
-    {
-      _id: id,
-      _customer: req.user._id
-    },
-    { $set: req.body },
-    { new: true }
-  )
-    .then(order => {
-      if (!order) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ order })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
-})
-
 router.post(
   '/cancel',
   async (req, res, next) => {
@@ -145,11 +71,26 @@ router.post(
                 let cancellationAmount = cancelRes.data.body.cancelCharge
                 let refundAmount =
                   (order.rawTotalPrice - cancellationAmount) * currencyRate
+                refundAmount = roundingAmountStripe(
+                  refundAmount,
+                  order.currency
+                )
                 if (refundAmount > 0) {
+                  // capture first, run even this charge is captured or not
+                  // to guarantee any refunds whole or part will be ok
+                  try {
+                    if (refundAmount < order.chargeInfo.amount) {
+                      await stripe.charges.capture(order.chargeId)
+                    }
+                  } catch (e) {
+                    // do nothing even error or not, just a confirm step
+                  }
+
+                  // refund
                   try {
                     await stripe.refunds.create({
                       charge: order.chargeId,
-                      amount: roundingAmountStripe(refundAmount, order.currency)
+                      amount: refundAmount
                     })
                   } catch (error) {
                     return res.status(400)
@@ -177,11 +118,23 @@ router.post(
                 cancelHotelbedsRes.data.booking.hotel.cancellationAmount
               let refundAmount =
                 (order.rawTotalPrice - cancellationAmount) * currencyRate
+              refundAmount = roundingAmountStripe(refundAmount, order.currency)
               if (refundAmount > 0) {
                 try {
+                  // capture first, run even this charge is captured or not
+                  // to guarantee any refunds whole or part will be ok
+                  try {
+                    if (refundAmount < order.chargeInfo.amount) {
+                      await stripe.charges.capture(order.chargeId)
+                    }
+                  } catch (e) {
+                    // do nothing even error or not, just a confirm step
+                  }
+
+                  // refund
                   await stripe.refunds.create({
                     charge: order.chargeId,
-                    amount: roundingAmountStripe(refundAmount, order.currency)
+                    amount: refundAmount
                   })
                 } catch (error) {
                   return res.status(400)

@@ -19,7 +19,9 @@ const upload = multer({
     acl: 'public-read',
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: function(req, file, cb) {
-      cb(null, Date.now().toString())
+      let fileType = file.mimetype.split('/')
+      let extension = fileType[fileType.length - 1]
+      cb(null, Date.now().toString() + `.${extension}`)
     }
   }),
   // @see https://www.npmjs.com/package/multer#limits
