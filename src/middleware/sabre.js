@@ -1,7 +1,8 @@
 const axios = require('axios')
 const { debugServer } = require('../config/debug')
 const apiSabre = require('../modules/apiSabre')
-
+const convert = require('xml-js')
+const _ = require('lodash')
 const sabreToken = async (req, res, next) => {
   if (req.trip && _.get(req.trip, 'flight.supplier') !== 'sabre') {
     next()
@@ -24,13 +25,14 @@ const securityToken = async (req, res, next) => {
   try {
     let sabreRes = await apiSabre.getSoapSecurityToken()
     let result = convert.xml2json(sabreRes.data, { compact: true, spaces: 4 })
+    result = JSON.parse(result)
     req.securityToken = _.get(
-      JSON.parse(result),
+      result,
       '[soap-env:Envelope][soap-env:Header][wsse:Security][wsse:BinarySecurityToken][_text]',
-      ''
+      'wrong'
     )
   } catch (e) {
-    debugServer(e)
+    console.log(e)
     req.securityToken = ''
   }
   next()

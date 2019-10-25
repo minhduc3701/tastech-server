@@ -16,6 +16,7 @@ const { makeSabreFlightCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
 const { suggestFlights } = require('../../modules/suggestions')
 const convert = require('xml-js')
+
 router.post(
   '/shopping',
   sabreCurrencyExchange,
@@ -145,9 +146,11 @@ router.post(
   }
 )
 
-router.get('/getFareRule', securityToken, async (req, res) => {
+router.post('/getFareRule', securityToken, async (req, res) => {
   try {
-    let { flightSegment, securityToken } = req
+    let { securityToken } = req
+    console.log(securityToken)
+    let { flightSegment, numberOfPassenger } = req.body
     let xml = `
     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:eb="http://www.ebxml.org/namespaces/messageHeader" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/1999/XMLSchema">
     <SOAP-ENV:Header>
@@ -169,44 +172,54 @@ router.get('/getFareRule', securityToken, async (req, res) => {
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <StructureFareRulesRQ Version="1.0.4" xmlns="http://webservices.sabre.com/sabreXML/2003/07" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <PriceRequestInformation BuyingDate="2019-10-24T15:25:00" CurrencyCode="SGD">
+            <PriceRequestInformation>
                 <PassengerTypes>
-                    <PassengerType Code="ADT" Count="01" />
+                    <PassengerType Code="ADT" Count="${numberOfPassenger}" />
                 </PassengerTypes>
                 <ReturnAllData Value="1" />
                 <FreeBaggageSubscriber Ind="true" />
             </PriceRequestInformation>
             <AirItinerary>
                 <OriginDestinationOptions>
-                    <OriginDestinationOption>
+                   
                         `
 
     flightSegment.map((segment, index) => {
-      xml += ` <FlightSegment 
-                    DepartureDate="${segment.departure}" 
-                    ArrivalDate="${segment.departure}" 
-                    BookingDate="2019-10-24T15:25:00" 
-                    FlightNumber="${segment.departure}" 
-                    ResBookDesigCode="${segment.departure}" 
-                    SegmentNumber="0${index}" 
+      xml += `  <OriginDestinationOption>
+                   <FlightSegment 
+                    DepartureDate="${segment.departureDate}" 
+                    ArrivalDate="${segment.arrivalDate}" 
+                    BookingDate="${moment().format('YYYY-MM-DDThh:mm:ss')}" 
+                    FlightNumber="${segment.flightNum}" 
+                    ResBookDesigCode="${segment.bookingCode}" 
+                    SegmentNumber="0${index + 1}" 
                     SegmentType="A" 
                     RealReservationStatus="SS">
                   <DepartureAirport LocationCode="${segment.departure}"/>
                   <ArrivalAirport LocationCode="${segment.arrival}"/>
                   <MarketingAirline Code="${segment.marketing}"/>
                   <OperatingAirline Code="${segment.operating}"/>
-              </FlightSegment>`
-    })
-    xml += ` <SegmentInformation SegmentNumber="01"/>
-                 <PaxTypeInformation PassengerType="ADT" FareComponentNumber="1" FareBasisCode="HLOW"/>
+                    </FlightSegment>
+                    <SegmentInformation SegmentNumber="0${index + 1}"/>
+                      <PaxTypeInformation PassengerType="ADT" FareComponentNumber="${
+                        segment.fareComponentNumber
+                      }" FareBasisCode="${segment.fareBasisCode}"/>
                 </OriginDestinationOption>
+                `
+    })
+    xml += ` 
               </OriginDestinationOptions>
           </AirItinerary>
       </StructureFareRulesRQ>
   </SOAP-ENV:Body>
   </SOAP-ENV:Envelope>`
-    return res.status(200).send(result)
+    logger.info('xml: ', { xml })
+    let sabreRes = await apiSabre.getFlightFareRule(xml)
+    return res
+      .status(200)
+      .send(convert.xml2json(sabreRes.data, { compact: true, spaces: 4 }))
   } catch (error) {
+    console.log(error)
     return res.status(400).send(error.msg)
   }
 })

@@ -171,10 +171,17 @@ const getSegmentForSabreFlight = (fareComponents, index) => {
       if (startIndex + j === index) {
         let cabinCode = fareComponents[i].segments[j].segment.cabinCode
         let bookingCode = fareComponents[i].segments[j].segment.bookingCode
+        let fareComponentNumber = fareComponents[i].ref
         let cabinClass = mapClassOptions[cabinCode]
         let seatsAvailable =
           fareComponents[i].segments[j].segment.seatsAvailable
-        return { cabinClass, seatsAvailable, cabinCode, bookingCode }
+        return {
+          cabinClass,
+          seatsAvailable,
+          cabinCode,
+          bookingCode,
+          fareComponentNumber
+        }
       }
     }
     startIndex += fareComponents[i].segments.length
@@ -194,7 +201,7 @@ const getBaggageForSabreFlight = (baggageInformation, index) => {
 const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
   let flights = []
   try {
-    let { itineraryGroups } = sabreRes
+    let { itineraryGroups, fareComponentDescs } = sabreRes
 
     // logger.info('sabreRes: ', sabreRes)
     itineraryGroups.map(l => {
@@ -307,6 +314,10 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
             seatsAvailable: segmentInfor.seatsAvailable,
             cabinCode: segmentInfor.cabinCode,
             bookingCode: segmentInfor.bookingCode,
+            fareComponentNumber: segmentInfor.fareComponentNumber,
+            fareBasisCode:
+              fareComponentDescs[segmentInfor.fareComponentNumber - 1]
+                .fareBasisCode,
             airline: data.carrier.operating,
             marketing: data.carrier.marketing,
             marketingFlightNumber: data.carrier.marketingFlightNumber,
@@ -426,6 +437,10 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
               seatsAvailable: segmentInfor.seatsAvailable,
               cabinCode: segmentInfor.cabinCode,
               bookingCode: segmentInfor.bookingCode,
+              fareComponentNumber: segmentInfor.fareComponentNumber,
+              fareBasisCode:
+                fareComponentDescs[segmentInfor.fareComponentNumber - 1]
+                  .fareBasisCode,
               airline: data.carrier.operating,
               marketing: data.carrier.marketing,
               marketingFlightNumber: data.carrier.marketingFlightNumber,

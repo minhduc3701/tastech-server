@@ -5,6 +5,10 @@ const flightHttp = axios.create({
   baseURL: process.env.SABRE_URI
 })
 
+const config = {
+  headers: { 'Content-Type': 'text/xml' }
+}
+
 const apiSabre = {
   shopping: (data, sabreToken) => {
     return flightHttp.post(`/v1/offers/shop`, data, {
@@ -74,9 +78,10 @@ const apiSabre = {
        <ns:SessionCreateRQ xmlns:ns="http://www.opentravel.org/OTA/2002/11" />
     </soap-env:Body>
  </soap-env:Envelope>`
-    let config = {
-      headers: { 'Content-Type': 'text/xml' }
-    }
+
+    return axios.post(process.env.SABRE_SOAP_URI, xmlBodyStr, config)
+  },
+  getFlightFareRule: xmlBodyStr => {
     return axios.post(process.env.SABRE_SOAP_URI, xmlBodyStr, config)
   }
 }
