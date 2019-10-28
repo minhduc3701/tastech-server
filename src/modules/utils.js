@@ -187,6 +187,7 @@ const getSegmentForSabreFlight = (fareComponents, index) => {
     startIndex += fareComponents[i].segments.length
   }
 }
+
 const getBaggageForSabreFlight = (baggageInformation, index) => {
   let startIndex = 0
   for (let i = 0; i < baggageInformation.length; i++) {
@@ -197,6 +198,26 @@ const getBaggageForSabreFlight = (baggageInformation, index) => {
     }
     startIndex += baggageInformation[i].segments.length
   }
+}
+
+// convert [2,2,3,4,4,5,6] => [1,1,2,3,3,4,5]
+const getNewFareComponentNumber = fareComponentNumbers => {
+  let newFareComponentNumber = []
+  let currentFareIndex = 0
+  for (let i = 0; i < fareComponentNumbers.length; i++) {
+    let isExistedBefore = false
+    for (let j = 0; j < i; j++) {
+      if (fareComponentNumbers[i] === fareComponentNumbers[j]) {
+        isExistedBefore = true
+        break
+      }
+    }
+    if (!isExistedBefore) {
+      currentFareIndex++
+    }
+    newFareComponentNumber.push(currentFareIndex)
+  }
+  return newFareComponentNumber
 }
 const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
   let flights = []
@@ -328,12 +349,22 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
         obj.departureFlight = {
           flightId: ''
         }
+
+        let tempFareComponentNumber = []
         obj.departureSegments.forEach(s => {
           if (obj.departureFlight.flightId === '') {
             obj.departureFlight.flightId += `${s.flightNum}-${s.airline}`
           } else {
             obj.departureFlight.flightId += `-${s.flightNum}-${s.airline}`
           }
+          tempFareComponentNumber.push(s.fareComponentNumber)
+        })
+        // reset fareComponent number for get flight fare rule
+        let newFareComponentNumber = getNewFareComponentNumber(
+          tempFareComponentNumber
+        )
+        newFareComponentNumber.forEach((fare, index) => {
+          obj.departureSegments[index].fareComponentNumber = fare
         })
 
         obj.returnDescs = {}
@@ -451,12 +482,21 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
           obj.returnFlight = {
             flightId: ''
           }
+          let tempFareComponentNumber = []
           obj.returnSegments.forEach(s => {
             if (obj.returnFlight.flightId === '') {
               obj.returnFlight.flightId += `${s.flightNum}-${s.airline}`
             } else {
               obj.returnFlight.flightId += `-${s.flightNum}-${s.airline}`
             }
+            tempFareComponentNumber.push(s.fareComponentNumber)
+          })
+          // reset fareComponent number for get flight fare rule
+          let newFareComponentNumber = getNewFareComponentNumber(
+            tempFareComponentNumber
+          )
+          newFareComponentNumber.forEach((fare, index) => {
+            obj.departureSegments[index].fareComponentNumber = fare
           })
         }
         obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
