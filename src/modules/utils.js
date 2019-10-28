@@ -335,6 +335,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
             operatingFlightNumber: data.carrier.operatingFlightNumber
           })
         })
+
         obj.departureFlight = {
           flightId: ''
         }
@@ -345,6 +346,13 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
             obj.departureFlight.flightId += `-${s.flightNum}-${s.airline}`
           }
         })
+
+        // calculate overlay time
+        for (let index = 0; index < obj.departureSegments.length - 1; index++) {
+          obj.departureSegments[index].overlay = moment(
+            obj.departureSegments[index + 1].departureDate
+          ).diff(moment(obj.departureSegments[index].arrivalDate), 'minutes')
+        }
 
         obj.returnDescs = {}
         obj.returnSegments = []
@@ -471,6 +479,13 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
               obj.returnFlight.flightId += `-${s.flightNum}-${s.airline}`
             }
           })
+
+          // calculate overlay time
+          for (let index = 0; index < obj.returnFlight.length - 1; index++) {
+            obj.returnFlight[index].overlay = moment(
+              obj.returnFlight[index + 1].departureDate
+            ).diff(moment(obj.returnFlight[index].arrivalDate), 'minutes')
+          }
         }
         obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
         obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
