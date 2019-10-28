@@ -68,7 +68,12 @@ router.get('/countryFilter', async (req, res) => {
 router.post('/', urboxCurrencyExchange, async (req, res) => {
   try {
     if (req.body.country === 'VN') {
-      let reqBody = { ...urboxKey, ...req.body }
+      let reqBody = {
+        ...urboxKey,
+        ...req.body,
+        page_no: req.body.page + 1
+      }
+
       let giftData = await apiUrbox.getGifts(reqBody)
 
       let filterData = await apiUrbox.getGiftFilter(urboxKey)
