@@ -540,16 +540,9 @@ const policies = [
 ]
 
 const trips = []
-const tripStatus = [
-  'waiting',
-  'approved',
-  'rejected',
-  'ongoing',
-  'finished',
-  'completed'
-]
+const tripStatus = ['waiting', 'approved', 'rejected']
 
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 200; i++) {
   let rejectedProps = {}
   let status = randomItemInArray(tripStatus)
   if (status === 'rejected') {
@@ -618,7 +611,7 @@ for (let i = 0; i < 50; i++) {
   }
 
   // 25 trips for employee 1
-  if (i < 25) {
+  if (i < 140) {
     if (tripIdsUser1[i]) {
       currentTripId = tripIdsUser1[i]
     } else {
@@ -626,7 +619,7 @@ for (let i = 0; i < 50; i++) {
     }
 
     // 5 trips for employee 2
-  } else if (i < 30) {
+  } else if (i < 150) {
     currentCreator = employeeId2
     tripIdsUser2.push(currentTripId)
 
