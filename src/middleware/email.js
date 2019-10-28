@@ -174,6 +174,8 @@ const emailEmployeeCheckoutFailed = async (req, res, next) => {
       logger.info('mail: ', { err: err })
     }
   })
+
+  next()
 }
 
 const emailEmployeeItinerary = async (req, res, next) => {

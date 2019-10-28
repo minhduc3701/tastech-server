@@ -2,7 +2,19 @@ const _ = require('lodash')
 const moment = require('moment')
 const { logger } = require('../config/winston')
 const validator = require('validator')
-const { USD, VND, SGD, IDR } = require('../config/currency')
+const {
+  USD,
+  VND,
+  SGD,
+  IDR,
+  THB,
+  MYR,
+  MMK,
+  KHR,
+  LAK,
+  BND,
+  PHP
+} = require('../config/currency')
 
 const hotelAccomodations = [
   { code: 'APARTMENT', text: 'Apartment' },
@@ -17,7 +29,10 @@ const hotelAccomodations = [
 ]
 
 const getImageUri = uriString => {
-  if (uriString && !validator.isURL(_.toString(uriString))) {
+  if (
+    uriString &&
+    !validator.isURL(_.toString(uriString), { require_protocol: true })
+  ) {
     return process.env.AWS_S3_URI + '/' + uriString
   }
 
@@ -502,8 +517,12 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
         obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
         obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
         obj.currency = currency.code
-        obj.totalPrice = obj.rawTotalPrice * currency.rate
-        obj.price = (obj.rawTotalPrice * currency.rate) / numberOfPassengers
+        obj.price = roundPrice(
+          roundPrice(obj.rawTotalPrice * currency.rate, currency.code) /
+            numberOfPassengers,
+          currency.code
+        )
+        obj.totalPrice = obj.price * numberOfPassengers
         obj.supplier = 'sabre'
 
         flights.push(obj)
@@ -529,7 +548,10 @@ const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
       )
       return {
         ...hotel,
-        lowestPrice: matchingHotel.minRate * currency.rate,
+        lowestPrice: roundPrice(
+          matchingHotel.minRate * currency.rate,
+          currency.code
+        ),
         ratePlans: ratePlans
       }
     }
@@ -649,7 +671,10 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
         const cancelRules = _.get(rate, 'cancellationPolicies', []).map(
           rule => {
             return {
-              cancelCharge: rule.amount * currency.rate,
+              cancelCharge: roundPrice(
+                rule.amount * currency.rate,
+                currency.code
+              ),
               from: rule.from
             }
           }
@@ -663,9 +688,9 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
           roomName: room.name,
           currency: currency.code,
           rawCurrency: hotel.currency,
-          rawNet: rate.net,
-          totalPrice: Number(price) * currency.rate,
-          rawTotalPrice: rate.net,
+          rawNet: Number(rate.net),
+          totalPrice: roundPrice(Number(price) * currency.rate, currency.code),
+          rawTotalPrice: Number(rate.net),
           cancelRules: cancelRules,
           ratePlanCode: rate.rateKey,
           rateType: rate.rateType,
@@ -717,16 +742,47 @@ const makeHtbRoomPaxes = (passengers, children, numberOfRoom, rateKey) => {
 
 const roundingAmountStripe = (amount, currency) => {
   switch (currency) {
-    case USD:
-    case SGD:
-    case IDR:
-      amount = amount * 100
-      break
     case VND:
       amount = amount * 1
       break
+
+    // case USD:
+    // case SGD:
+    // case IDR:
+    // case THB:
+    // case MYR:
+    // case MMK:
+    // case KHR:
+    // case LAK:
+    // case BND:
+    // case PHP:
+    default:
+      amount = amount * 100
+      break
   }
   return Math.round(amount)
+}
+
+const roundPrice = (amount, currency) => {
+  switch (currency) {
+    case VND:
+      return Math.round(amount)
+
+    // case USD:
+    // case SGD:
+    // case IDR:
+    // case THB:
+    // case MYR:
+    // case MMK:
+    // case KHR:
+    // case LAK:
+    // case BND:
+    // case PHP:
+    default:
+      return Number(Number(amount).toFixed(2))
+  }
+
+  return Number(Number(amount).toFixed(2))
 }
 
 const formatLocaleMoney = (amount, currency) => {
@@ -803,7 +859,7 @@ const getUserProfileStrength = user => {
   return strength
 }
 
-const makeUrboxGiftData = gift => {
+const makeUrboxGiftData = (gift, rate) => {
   return {
     giftId: gift.id,
     title: gift.title,
@@ -813,7 +869,7 @@ const makeUrboxGiftData = gift => {
     categoryId: gift.cat_id,
     categoryName: gift.cat_title,
     price: gift.price,
-    pricePoint: gift.price / 1000,
+    pricePoint: Math.round(gift.price * rate),
     supplier: 'urbox',
     currency: 'VND',
     country: 'VN'
@@ -832,5 +888,6 @@ module.exports = {
   roundingAmountStripe,
   formatLocaleMoney,
   getUserProfileStrength,
-  makeUrboxGiftData
+  makeUrboxGiftData,
+  roundPrice
 }

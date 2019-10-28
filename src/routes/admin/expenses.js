@@ -7,7 +7,8 @@ const { emailEmployeeChangeExpenseStatus } = require('../../middleware/email')
 
 router.get('/', (req, res) => {
   Expense.find({
-    _company: req.user._company
+    _company: req.user._company,
+    status: { $in: ['claiming', 'approved', 'rejected'] }
   })
     .populate({
       path: '_creator',

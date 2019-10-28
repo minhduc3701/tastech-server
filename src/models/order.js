@@ -10,6 +10,11 @@ const OrderSchema = new Schema(
       required: true,
       ref: 'User'
     },
+    _company: {
+      type: 'ObjectId',
+      required: true,
+      ref: 'Company'
+    },
     _trip: {
       type: 'ObjectId',
       required: true,
@@ -156,13 +161,5 @@ const OrderSchema = new Schema(
     timestamps: true
   }
 )
-
-OrderSchema.methods.toJSON = function() {
-  var user = this
-  var userObject = user.toObject()
-
-  userObject = _.omit(userObject, ['chargeId', 'chargeInfo'])
-  return userObject
-}
 
 module.exports = mongoose.model('Order', OrderSchema)
