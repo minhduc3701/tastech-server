@@ -5,35 +5,64 @@ const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeChangeExpenseStatus } = require('../../middleware/email')
 
-router.get('/', (req, res) => {
-  Expense.find({
-    _company: req.user._company,
-    status: { $in: ['claiming', 'approved', 'rejected'] }
-  })
-    .populate({
-      path: '_creator',
-      populate: {
-        path: '_department',
-        select: 'name'
-      }
+router.get('/', function(req, res) {
+  let perPage = _.get(req.query, 'perPage', 20)
+  perPage = Math.max(0, parseInt(perPage))
+  let page = _.get(req.query, 'page', 0)
+  page = Math.max(0, parseInt(page))
+
+  let status = _.get(req.query, 'status', 'claiming,approved,rejected')
+  status = status.split(',')
+
+  let allStatus = ['claiming', 'approved', 'rejected']
+
+  status = status.filter(s => allStatus.includes(s))
+  status = _.isEmpty(status) ? allStatus : status
+
+  Promise.all([
+    Expense.find({
+      _company: req.user._company,
+      status: { $in: status }
     })
-    .populate('_trip')
-    .sort({ updatedAt: -1 })
-    .then(expenses => {
+      .populate({
+        path: '_creator',
+        populate: {
+          path: '_department',
+          select: 'name'
+        }
+      })
+      .populate('_trip')
+      .sort({ updatedAt: -1 })
+      .limit(perPage)
+      .skip(perPage * page),
+    Expense.countDocuments({
+      _company: req.user._company,
+      status: { $in: status }
+    })
+  ])
+    .then(results => {
+      let expenses = results[0]
       expenses = expenses
-        .filter(
-          expense =>
-            // check status of expense's trip  !== completed
-            expense._creator &&
-            _.get(expense, '_trip.status', '') !== 'completed'
-        )
+        .filter(expense => expense._creator)
         .map(expense => ({
           ...expense.toJSON(),
           _creator: expense._creator.toJSON()
         }))
-      res.status(200).send({ expenses })
+
+      let total = results[1]
+
+      res.status(200).send({
+        page,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        count: expenses.length,
+        perPage,
+        expenses
+      })
     })
-    .catch(e => res.status(400).send())
+    .catch(e => {
+      res.status(400).send({})
+    })
 })
 
 router.get('/:id', function(req, res) {
