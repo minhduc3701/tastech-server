@@ -213,7 +213,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
 
     // logger.info('sabreRes: ', sabreRes)
     itineraryGroups.map(l => {
-      let departureDate = moment(
+      let firstDepartureDate = moment(
         l.groupDescription.legDescriptions[0].departureDate
       ).format('YYYY-MM-DD')
       l.itineraries.map(i => {
@@ -239,6 +239,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
         )
         obj.departureSegments = []
         obj.departureDescs.schedules.map((s, index) => {
+          let departureDateAdjustment = _.get(s, 'departureDateAdjustment', 0)
           let segmentInfor = getSegmentForSabreFlight(
             i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
               .fareComponents,
@@ -264,9 +265,14 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
               .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
           }
 
+          // departure date and arrival date of segment
+          let departureDate = moment(firstDepartureDate)
+            .add(departureDateAdjustment, 'days')
+            .format('YYYY-MM-DD')
           let arrivalDate = moment(departureDate)
             .add(dateAdjustment, 'days')
             .format('YYYY-MM-DD')
+
           let baggageInfor = false
           if (obj.baggageAllowance) {
             baggageInfor = []
@@ -344,7 +350,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
         obj.returnSegments = []
         obj.returnFlight = {}
         if (i.legs.length === 2) {
-          let departureDate = moment(
+          let firstDepartureDate = moment(
             l.groupDescription.legDescriptions[1].departureDate
           ).format('YYYY-MM-DD')
           obj.returnDescs = sabreRes.legDescs.find(
@@ -353,6 +359,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
 
           obj.returnSegments = []
           obj.returnDescs.schedules.map((s, index) => {
+            let departureDateAdjustment = _.get(s, 'departureDateAdjustment', 0)
             let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
             // calculate flight time
             let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
@@ -383,9 +390,15 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
                 .fareComponents,
               index + obj.departureDescs.schedules.length
             )
+
+            // departure date and arrival date of segment
+            let departureDate = moment(firstDepartureDate)
+              .add(departureDateAdjustment, 'days')
+              .format('YYYY-MM-DD')
             let arrivalDate = moment(departureDate)
               .add(dateAdjustment, 'days')
               .format('YYYY-MM-DD')
+
             let baggageInfor = false
             if (obj.baggageAllowance) {
               baggageInfor = []
