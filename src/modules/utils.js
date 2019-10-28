@@ -481,10 +481,10 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
           })
 
           // calculate overlay time
-          for (let index = 0; index < obj.returnFlight.length - 1; index++) {
-            obj.returnFlight[index].overlay = moment(
-              obj.returnFlight[index + 1].departureDate
-            ).diff(moment(obj.returnFlight[index].arrivalDate), 'minutes')
+          for (let index = 0; index < obj.returnSegments.length - 1; index++) {
+            obj.returnSegments[index].overlay = moment(
+              obj.returnSegments[index + 1].departureDate
+            ).diff(moment(obj.returnSegments[index].arrivalDate), 'minutes')
           }
         }
         obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
