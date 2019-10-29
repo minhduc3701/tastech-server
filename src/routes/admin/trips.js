@@ -19,8 +19,6 @@ router.get('/', function(req, res) {
   status = status.filter(s => allStatus.includes(s))
   status = _.isEmpty(status) ? allStatus : status
 
-  console.log(status)
-
   Promise.all([
     Trip.find({
       _company: req.user._company,
