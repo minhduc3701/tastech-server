@@ -393,12 +393,17 @@ router.post(
           sumPrice += Number(flight.price)
         })
 
-        let averagePrice = Math.round(Number(sumPrice / flights.length))
+        let averageFlightPrice = Math.round(Number(sumPrice / flights.length))
         // compare averagePrice with company policy
-        if (policy.setFlightLimit && averagePrice > policy.flightLimit) {
+        if (policy.setFlightLimit && averageFlightPrice > policy.flightLimit) {
           trip.budgetPassengers[0].flight.price = policy.flightLimit
         } else {
-          trip.budgetPassengers[0].flight.price = averagePrice
+          trip.budgetPassengers[0].flight.price = averageFlightPrice
+        }
+
+        // in case price still equal to 0
+        if (trip.budgetPassengers[0].flight.price === 0) {
+          trip.budgetPassengers[0].flight.price = policy.flightLimit
         }
 
         trip.budgetPassengers[0].totalPrice +=
@@ -434,22 +439,30 @@ router.post(
 
         let responseHotel = await htbApi.getRooms(request)
         let { data } = responseHotel
-        let hotelInfoList = data.hotels.hotels
+        let hotelInfoList = _.get(data, 'hotels.hotels', [])
+        hotelInfoList.filter(hotel =>
+          parseInt(hotel.categoryCode.charAt(0) === policy.hotelClass)
+        )
 
         let sumPriceHotelRoom = 0
         hotelInfoList.forEach(hotel => {
           sumPriceHotelRoom += Number(hotel.minRate * req.currency.rate)
         })
 
-        let averagePrice = Math.round(
+        let averageHotelPrice = Math.round(
           Number(sumPriceHotelRoom / hotelInfoList.length)
         )
 
         // compare averagePrice with company policy
-        if (policy.setHotelLimit && averagePrice > policy.hotelLimit) {
+        if (policy.setHotelLimit && averageHotelPrice > policy.hotelLimit) {
           trip.budgetPassengers[0].lodging.price = policy.hotelLimit
         } else {
-          trip.budgetPassengers[0].lodging.price = averagePrice
+          trip.budgetPassengers[0].lodging.price = averageHotelPrice
+        }
+
+        // in case price still equal to 0
+        if (trip.budgetPassengers[0].lodging.price === 0) {
+          trip.budgetPassengers[0].lodging.price = policy.hotelLimit
         }
 
         trip.budgetPassengers[0].totalPrice +=
