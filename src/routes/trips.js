@@ -440,8 +440,8 @@ router.post(
         let responseHotel = await htbApi.getRooms(request)
         let { data } = responseHotel
         let hotelInfoList = _.get(data, 'hotels.hotels', [])
-        hotelInfoList.filter(hotel =>
-          parseInt(hotel.categoryCode.charAt(0) === policy.hotelClass)
+        hotelInfoList = hotelInfoList.filter(
+          hotel => parseInt(hotel.categoryCode.charAt(0)) === policy.hotelClass
         )
 
         let sumPriceHotelRoom = 0
