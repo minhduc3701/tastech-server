@@ -26,6 +26,7 @@ router.post(
 
     try {
       let cacheData = await getCache(cacheKey)
+      logger.info('Sabre shopping: ', cacheData.sabreRes)
 
       let flights = makeSabreFlightsData(
         cacheData.sabreRes,
@@ -54,6 +55,7 @@ router.post(
       )
       sabreRes = sabreRes.data.groupedItineraryResponse
 
+      logger.info('Sabre shopping: ', { sabreRes })
       let flights = makeSabreFlightsData(sabreRes, req.currency, search.adults)
 
       let airlines = []

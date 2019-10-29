@@ -213,7 +213,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
 
     // logger.info('sabreRes: ', sabreRes)
     itineraryGroups.map(l => {
-      let departureDate = moment(
+      let firstDepartureDate = moment(
         l.groupDescription.legDescriptions[0].departureDate
       ).format('YYYY-MM-DD')
       l.itineraries.map(i => {
@@ -239,6 +239,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
         )
         obj.departureSegments = []
         obj.departureDescs.schedules.map((s, index) => {
+          let departureDateAdjustment = _.get(s, 'departureDateAdjustment', 0)
           let segmentInfor = getSegmentForSabreFlight(
             i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
               .fareComponents,
@@ -264,9 +265,14 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
               .diff(moment.utc(`${toDayText}${data.departure.time}`), 'minutes')
           }
 
+          // departure date and arrival date of segment
+          let departureDate = moment(firstDepartureDate)
+            .add(departureDateAdjustment, 'days')
+            .format('YYYY-MM-DD')
           let arrivalDate = moment(departureDate)
             .add(dateAdjustment, 'days')
             .format('YYYY-MM-DD')
+
           let baggageInfor = false
           if (obj.baggageAllowance) {
             baggageInfor = []
@@ -329,6 +335,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
             operatingFlightNumber: data.carrier.operatingFlightNumber
           })
         })
+
         obj.departureFlight = {
           flightId: ''
         }
@@ -340,11 +347,18 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
           }
         })
 
+        // calculate overlay time
+        for (let index = 0; index < obj.departureSegments.length - 1; index++) {
+          obj.departureSegments[index].overlay = moment(
+            obj.departureSegments[index + 1].departureDate
+          ).diff(moment(obj.departureSegments[index].arrivalDate), 'minutes')
+        }
+
         obj.returnDescs = {}
         obj.returnSegments = []
         obj.returnFlight = {}
         if (i.legs.length === 2) {
-          let departureDate = moment(
+          let firstDepartureDate = moment(
             l.groupDescription.legDescriptions[1].departureDate
           ).format('YYYY-MM-DD')
           obj.returnDescs = sabreRes.legDescs.find(
@@ -353,6 +367,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
 
           obj.returnSegments = []
           obj.returnDescs.schedules.map((s, index) => {
+            let departureDateAdjustment = _.get(s, 'departureDateAdjustment', 0)
             let data = sabreRes.scheduleDescs.find(sch => sch.id === s.ref)
             // calculate flight time
             let dateAdjustment = _.get(data.arrival, 'dateAdjustment', 0)
@@ -383,9 +398,15 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
                 .fareComponents,
               index + obj.departureDescs.schedules.length
             )
+
+            // departure date and arrival date of segment
+            let departureDate = moment(firstDepartureDate)
+              .add(departureDateAdjustment, 'days')
+              .format('YYYY-MM-DD')
             let arrivalDate = moment(departureDate)
               .add(dateAdjustment, 'days')
               .format('YYYY-MM-DD')
+
             let baggageInfor = false
             if (obj.baggageAllowance) {
               baggageInfor = []
@@ -458,6 +479,13 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
               obj.returnFlight.flightId += `-${s.flightNum}-${s.airline}`
             }
           })
+
+          // calculate overlay time
+          for (let index = 0; index < obj.returnSegments.length - 1; index++) {
+            obj.returnSegments[index].overlay = moment(
+              obj.returnSegments[index + 1].departureDate
+            ).diff(moment(obj.returnSegments[index].arrivalDate), 'minutes')
+          }
         }
         obj.rawCurrency = i.pricingInformation[0].fare.totalFare.currency
         obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
