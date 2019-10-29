@@ -392,9 +392,15 @@ router.post(
         flights.forEach(flight => {
           sumPrice += Number(flight.price)
         })
-        trip.budgetPassengers[0].flight.price = Math.round(
-          Number(sumPrice / flights.length)
-        )
+
+        let averagePrice = Math.round(Number(sumPrice / flights.length))
+        // compare averagePrice with company policy
+        if (policy.setFlightLimit && averagePrice > policy.flightLimit) {
+          trip.budgetPassengers[0].flight.price = policy.flightLimit
+        } else {
+          trip.budgetPassengers[0].flight.price = averagePrice
+        }
+
         trip.budgetPassengers[0].totalPrice +=
           trip.budgetPassengers[0].flight.price
       } // end flight budget
@@ -434,9 +440,18 @@ router.post(
         hotelInfoList.forEach(hotel => {
           sumPriceHotelRoom += Number(hotel.minRate * req.currency.rate)
         })
-        trip.budgetPassengers[0].lodging.price = Math.round(
+
+        let averagePrice = Math.round(
           Number(sumPriceHotelRoom / hotelInfoList.length)
         )
+
+        // compare averagePrice with company policy
+        if (policy.setHotelLimit && averagePrice > policy.hotelLimit) {
+          trip.budgetPassengers[0].lodging.price = policy.hotelLimit
+        } else {
+          trip.budgetPassengers[0].lodging.price = averagePrice
+        }
+
         trip.budgetPassengers[0].totalPrice +=
           trip.budgetPassengers[0].lodging.price
       }
