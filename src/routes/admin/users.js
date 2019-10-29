@@ -19,16 +19,43 @@ router.post('/', createUser, (req, res) => {
 })
 
 router.get('/', function(req, res) {
-  User.find({
-    _company: req.user._company,
-    _id: { $ne: req.user._id }
-  })
-    .sort([['_id', -1]])
-    .populate('_department')
-    .populate('_role')
-    .populate('_policy')
-    .then(users => res.status(200).send({ users }))
-    .catch(e => res.status(400).send())
+  let perPage = _.get(req.query, 'perPage', 20)
+  perPage = Math.max(0, parseInt(perPage))
+  let page = _.get(req.query, 'page', 0)
+  page = Math.max(0, parseInt(page))
+
+  Promise.all([
+    User.find({
+      _company: req.user._company,
+      _id: { $ne: req.user._id }
+    })
+      .sort([['_id', -1]])
+      .populate('_department')
+      .populate('_role')
+      .populate('_policy')
+      .limit(perPage)
+      .skip(perPage * page),
+    User.countDocuments({
+      _company: req.user._company,
+      _id: { $ne: req.user._id }
+    })
+  ])
+    .then(results => {
+      let users = results[0]
+      let total = results[1]
+
+      res.status(200).send({
+        page,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        count: users.length,
+        perPage,
+        users
+      })
+    })
+    .catch(e => {
+      res.status(400).send({})
+    })
 })
 
 router.get('/:id', function(req, res) {
