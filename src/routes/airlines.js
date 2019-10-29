@@ -22,6 +22,12 @@ router.get('/search', function(req, res, next) {
           $regex: new RegExp(keyword),
           $options: 'i'
         }
+      },
+      {
+        icao: {
+          $regex: new RegExp(keyword),
+          $options: 'i'
+        }
       }
     ]
   })
