@@ -112,11 +112,16 @@ router.patch('/:id/status', function(req, res) {
   }
 
   let body = _.pick(req.body, ['status'])
+  // verify not other string, not 'default'
+  body.status = ['enabled', 'disabled'].includes(body.status)
+    ? body.status
+    : 'enabled'
 
   Policy.findOneAndUpdate(
     {
       _id: req.params.id,
-      _company: req.user._company
+      _company: req.user._company,
+      status: { $ne: 'default' } // don't allow change status of default policy
     },
     { $set: body },
     { new: true }
