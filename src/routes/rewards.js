@@ -200,6 +200,10 @@ router.get('/ub/:id', urboxCurrencyExchange, async (req, res) => {
   try {
     let reqBody = { ...urboxKey, id: req.params.id }
     let resData = await apiUrbox.getGiftDetail(reqBody)
+    let pricePoint = Math.round(
+      parseInt(resData.data.data.price) * req.currency.rate
+    )
+    pricePoint = pricePoint < 1 ? 1 : pricePoint
 
     let gift = {
       ...resData.data.data,
@@ -207,9 +211,7 @@ router.get('/ub/:id', urboxCurrencyExchange, async (req, res) => {
       supplier: 'urbox',
       country: 'VN',
       currency: 'VND',
-      pricePoint: Math.round(
-        parseInt(resData.data.data.price) * req.currency.rate
-      )
+      pricePoint
     }
 
     res.status(200).send({ gift })
@@ -262,6 +264,7 @@ router.post(
         giftPoint = Math.round(
           parseInt(giftRes.data.data.price) * req.currency.rate
         )
+        giftPoint = giftPoint < 1 ? 1 : giftPoint
 
         if (userPoint < giftPoint) {
           return res.status(400).send({

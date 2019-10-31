@@ -18,7 +18,7 @@ const {
   sabreCurrencyExchange,
   rewardCurrencyRate
 } = require('../middleware/currency')
-const { sabreToken } = require('../middleware/sabre')
+const { sabreRestToken } = require('../middleware/sabre')
 const { makeSabreFlightsData } = require('../modules/utils')
 const {
   makeSabreSearchRequestFromBudget,
@@ -306,7 +306,7 @@ router.get(
 router.post(
   '/',
   sabreCurrencyExchange,
-  sabreToken,
+  sabreRestToken,
   async (req, res, next) => {
     const trip = new Trip(req.body)
     trip._creator = req.user._id
@@ -382,7 +382,7 @@ router.post(
         )
         let sabreRes = await apiSabre.shopping(
           makeSabreRequestData(budgetRequest),
-          req.sabreToken
+          req.sabreRestToken
         )
         sabreRes = sabreRes.data.groupedItineraryResponse
 

@@ -4,6 +4,7 @@ const Department = require('../../models/department')
 const User = require('../../models/user')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
+const { getImageUri } = require('../../modules/utils')
 
 let projectEmployeesFields = {
   'employees.hash': 0,
@@ -15,6 +16,14 @@ let projectEmployeesFields = {
   'employees._department': 0,
   'employees.__v': 0
 }
+
+const departmentParser = department => ({
+  ...department,
+  employees: department.employees.map(employee => ({
+    ...employee,
+    avatar: getImageUri(employee.avatar)
+  }))
+})
 
 router.post('/', function(req, res, next) {
   const department = new Department(req.body)
@@ -70,9 +79,12 @@ router.get('/', (req, res) => {
     }
   ])
     .then(departments => {
+      departments = departments.map(departmentParser)
       res.status(200).send({ departments })
     })
-    .catch(e => res.status(400).send())
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 router.get('/:id', function(req, res) {
@@ -100,6 +112,7 @@ router.get('/:id', function(req, res) {
     }
   ])
     .then(departments => {
+      departments = departments.map(departmentParser)
       res.status(200).send({ department: departments[0] })
     })
     .catch(e => res.status(400).send())

@@ -4,6 +4,7 @@ const Policy = require('../../models/policy')
 const User = require('../../models/user')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
+const { getImageUri } = require('../../modules/utils')
 
 let projectUsersFields = {
   'employees.hash': 0,
@@ -16,6 +17,14 @@ let projectUsersFields = {
   'employees._department': 0,
   'employees.__v': 0
 }
+
+const policyParser = policy => ({
+  ...policy,
+  employees: policy.employees.map(employee => ({
+    ...employee,
+    avatar: getImageUri(employee.avatar)
+  }))
+})
 
 router.post('/', function(req, res, next) {
   const policy = new Policy(req.body)
@@ -71,6 +80,7 @@ router.get('/', (req, res) => {
     }
   ])
     .then(policies => {
+      policies = policies.map(policyParser)
       res.status(200).send({ policies })
     })
     .catch(e => res.status(400).send())
@@ -101,6 +111,7 @@ router.get('/:id', function(req, res) {
     }
   ])
     .then(policies => {
+      policies = policies.map(policyParser)
       res.status(200).send({ policy: policies[0] })
     })
     .catch(e => res.status(400).send())
@@ -112,11 +123,16 @@ router.patch('/:id/status', function(req, res) {
   }
 
   let body = _.pick(req.body, ['status'])
+  // verify not other string, not 'default'
+  body.status = ['enabled', 'disabled'].includes(body.status)
+    ? body.status
+    : 'enabled'
 
   Policy.findOneAndUpdate(
     {
       _id: req.params.id,
-      _company: req.user._company
+      _company: req.user._company,
+      status: { $ne: 'default' } // don't allow change status of default policy
     },
     { $set: body },
     { new: true }

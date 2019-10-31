@@ -186,15 +186,23 @@ const getSegmentForSabreFlight = (fareComponents, index) => {
       if (startIndex + j === index) {
         let cabinCode = fareComponents[i].segments[j].segment.cabinCode
         let bookingCode = fareComponents[i].segments[j].segment.bookingCode
+        let fareComponentNumber = fareComponents[i].ref
         let cabinClass = mapClassOptions[cabinCode]
         let seatsAvailable =
           fareComponents[i].segments[j].segment.seatsAvailable
-        return { cabinClass, seatsAvailable, cabinCode, bookingCode }
+        return {
+          cabinClass,
+          seatsAvailable,
+          cabinCode,
+          bookingCode,
+          fareComponentNumber
+        }
       }
     }
     startIndex += fareComponents[i].segments.length
   }
 }
+
 const getBaggageForSabreFlight = (baggageInformation, index) => {
   let startIndex = 0
   for (let i = 0; i < baggageInformation.length; i++) {
@@ -206,10 +214,30 @@ const getBaggageForSabreFlight = (baggageInformation, index) => {
     startIndex += baggageInformation[i].segments.length
   }
 }
+
+// convert [2,2,3,4,4,5,6] => [1,1,2,3,3,4,5]
+const getNewFareComponentNumber = fareComponentNumbers => {
+  let newFareComponentNumber = []
+  let currentFareIndex = 0
+  for (let i = 0; i < fareComponentNumbers.length; i++) {
+    let isExistedBefore = false
+    for (let j = 0; j < i; j++) {
+      if (fareComponentNumbers[i] === fareComponentNumbers[j]) {
+        isExistedBefore = true
+        break
+      }
+    }
+    if (!isExistedBefore) {
+      currentFareIndex++
+    }
+    newFareComponentNumber.push(currentFareIndex)
+  }
+  return newFareComponentNumber
+}
 const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
   let flights = []
   try {
-    let { itineraryGroups } = sabreRes
+    let { itineraryGroups, fareComponentDescs } = sabreRes
 
     // logger.info('sabreRes: ', sabreRes)
     itineraryGroups.map(l => {
@@ -328,6 +356,10 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
             seatsAvailable: segmentInfor.seatsAvailable,
             cabinCode: segmentInfor.cabinCode,
             bookingCode: segmentInfor.bookingCode,
+            fareComponentNumber: segmentInfor.fareComponentNumber,
+            fareBasisCode:
+              fareComponentDescs[segmentInfor.fareComponentNumber - 1]
+                .fareBasisCode,
             airline: data.carrier.operating,
             marketing: data.carrier.marketing,
             marketingFlightNumber: data.carrier.marketingFlightNumber,
@@ -339,12 +371,22 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
         obj.departureFlight = {
           flightId: ''
         }
+
+        let tempFareComponentNumber = []
         obj.departureSegments.forEach(s => {
           if (obj.departureFlight.flightId === '') {
             obj.departureFlight.flightId += `${s.flightNum}-${s.airline}`
           } else {
             obj.departureFlight.flightId += `-${s.flightNum}-${s.airline}`
           }
+          tempFareComponentNumber.push(s.fareComponentNumber)
+        })
+        // reset fareComponent number for get flight fare rule
+        let newFareComponentNumber = getNewFareComponentNumber(
+          tempFareComponentNumber
+        )
+        newFareComponentNumber.forEach((fare, index) => {
+          obj.departureSegments[index].fareComponentNumber = fare
         })
 
         // calculate overlay time
@@ -462,6 +504,10 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
               seatsAvailable: segmentInfor.seatsAvailable,
               cabinCode: segmentInfor.cabinCode,
               bookingCode: segmentInfor.bookingCode,
+              fareComponentNumber: segmentInfor.fareComponentNumber,
+              fareBasisCode:
+                fareComponentDescs[segmentInfor.fareComponentNumber - 1]
+                  .fareBasisCode,
               airline: data.carrier.operating,
               marketing: data.carrier.marketing,
               marketingFlightNumber: data.carrier.marketingFlightNumber,
@@ -472,12 +518,21 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
           obj.returnFlight = {
             flightId: ''
           }
+          let tempFareComponentNumber = []
           obj.returnSegments.forEach(s => {
             if (obj.returnFlight.flightId === '') {
               obj.returnFlight.flightId += `${s.flightNum}-${s.airline}`
             } else {
               obj.returnFlight.flightId += `-${s.flightNum}-${s.airline}`
             }
+            tempFareComponentNumber.push(s.fareComponentNumber)
+          })
+          // reset fareComponent number for get flight fare rule
+          let newFareComponentNumber = getNewFareComponentNumber(
+            tempFareComponentNumber
+          )
+          newFareComponentNumber.forEach((fare, index) => {
+            obj.departureSegments[index].fareComponentNumber = fare
           })
 
           // calculate overlay time
