@@ -8,25 +8,29 @@ const Airport = require('../../models/airport')
 const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
 const { sabreCurrencyExchange } = require('../../middleware/currency')
-const { sabreToken } = require('../../middleware/sabre')
+const {
+  sabreRestToken,
+  sabreSoapSecurityToken
+} = require('../../middleware/sabre')
 const { makeSabreFlightsData } = require('../../modules/utils')
 const { logger } = require('../../config/winston')
 const { makeSabreRequestData } = require('../../modules/utilsSabre')
 const { makeSabreFlightCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
 const { suggestFlights } = require('../../modules/suggestions')
+const convert = require('xml-js')
 
 router.post(
   '/shopping',
   sabreCurrencyExchange,
-  sabreToken,
+  sabreRestToken,
   async (req, res) => {
     let search = req.body.search
     let cacheKey = makeSabreFlightCacheKey(search)
 
     try {
       let cacheData = await getCache(cacheKey)
-      logger.info('Sabre shopping: ', cacheData.sabreRes)
+      // logger.info('Sabre shopping: ', cacheData.sabreRes)
 
       let flights = makeSabreFlightsData(
         cacheData.sabreRes,
@@ -51,11 +55,11 @@ router.post(
 
       let sabreRes = await apiSabre.shopping(
         makeSabreRequestData(search),
-        req.sabreToken
+        req.sabreRestToken
       )
       sabreRes = sabreRes.data.groupedItineraryResponse
 
-      logger.info('Sabre shopping: ', { sabreRes })
+      // logger.info('Sabre shopping: ', { sabreRes })
       let flights = makeSabreFlightsData(sabreRes, req.currency, search.adults)
 
       let airlines = []
@@ -146,5 +150,81 @@ router.post(
     }
   }
 )
+
+router.post('/getFareRule', sabreSoapSecurityToken, async (req, res) => {
+  try {
+    let { sabreSoapSecurityToken } = req
+    let { flightSegment, numberOfPassenger } = req.body
+    let xml = `
+    <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:eb="http://www.ebxml.org/namespaces/messageHeader" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/1999/XMLSchema">
+    <SOAP-ENV:Header>
+        <eb:MessageHeader SOAP-ENV:mustUnderstand="1" eb:version="1.0">
+            <eb:ConversationId>1</eb:ConversationId>
+            <eb:From>
+                <eb:PartyId type="urn:x12.org:IO5:01">999999</eb:PartyId>
+            </eb:From>
+            <eb:To>
+                <eb:PartyId type="urn:x12.org:IO5:01">123123</eb:PartyId>
+            </eb:To>
+            <eb:CPAId>${process.env.SABRE_USER_ID}</eb:CPAId>
+            <eb:Service eb:type="OTA">StructureFareRulesRQ</eb:Service>
+            <eb:Action>StructureFareRulesRQ</eb:Action>
+        </eb:MessageHeader>
+        <wsse:Security xmlns:wsse="http://schemas.xmlsoap.org/ws/2002/12/secext">
+            <wsse:BinarySecurityToken valueType="String" EncodingType="wsse:Base64Binary">${sabreSoapSecurityToken}</wsse:BinarySecurityToken>
+        </wsse:Security>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <StructureFareRulesRQ Version="1.0.4" xmlns="http://webservices.sabre.com/sabreXML/2003/07" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <PriceRequestInformation>
+                <PassengerTypes>
+                    <PassengerType Code="ADT" Count="${numberOfPassenger}" />
+                </PassengerTypes>
+                <ReturnAllData Value="1" />
+                <FreeBaggageSubscriber Ind="true" />
+            </PriceRequestInformation>
+            <AirItinerary>
+                <OriginDestinationOptions>
+                   
+                        `
+
+    flightSegment.map((segment, index) => {
+      xml += `  <OriginDestinationOption>
+                   <FlightSegment 
+                    DepartureDate="${segment.departureDate}" 
+                    ArrivalDate="${segment.arrivalDate}" 
+                    BookingDate="${moment().format('YYYY-MM-DDThh:mm:ss')}" 
+                    FlightNumber="${segment.flightNum}" 
+                    ResBookDesigCode="${segment.bookingCode}" 
+                    SegmentNumber="0${index + 1}" 
+                    SegmentType="A" 
+                    RealReservationStatus="SS">
+                  <DepartureAirport LocationCode="${segment.departure}"/>
+                  <ArrivalAirport LocationCode="${segment.arrival}"/>
+                  <MarketingAirline Code="${segment.marketing}"/>
+                  <OperatingAirline Code="${segment.operating}"/>
+                    </FlightSegment>
+                    <SegmentInformation SegmentNumber="0${index + 1}"/>
+                      <PaxTypeInformation PassengerType="ADT" FareComponentNumber="${
+                        segment.fareComponentNumber
+                      }" FareBasisCode="${segment.fareBasisCode}"/>
+                </OriginDestinationOption>
+                `
+    })
+    xml += ` 
+              </OriginDestinationOptions>
+          </AirItinerary>
+      </StructureFareRulesRQ>
+  </SOAP-ENV:Body>
+  </SOAP-ENV:Envelope>`
+    // logger.info('xml: ', { xml })
+    let sabreRes = await apiSabre.callSabreSoapAPI(xml)
+    return res
+      .status(200)
+      .send(convert.xml2json(sabreRes.data, { compact: true, spaces: 4 }))
+  } catch (error) {
+    return res.status(400).send(error.msg)
+  }
+})
 
 module.exports = router
