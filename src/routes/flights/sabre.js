@@ -8,7 +8,10 @@ const Airport = require('../../models/airport')
 const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
 const { sabreCurrencyExchange } = require('../../middleware/currency')
-const { sabreToken, securityToken } = require('../../middleware/sabre')
+const {
+  sabreRestToken,
+  sabreSoapSecurityToken
+} = require('../../middleware/sabre')
 const { makeSabreFlightsData } = require('../../modules/utils')
 const { logger } = require('../../config/winston')
 const { makeSabreRequestData } = require('../../modules/utilsSabre')
@@ -20,14 +23,14 @@ const convert = require('xml-js')
 router.post(
   '/shopping',
   sabreCurrencyExchange,
-  sabreToken,
+  sabreRestToken,
   async (req, res) => {
     let search = req.body.search
     let cacheKey = makeSabreFlightCacheKey(search)
 
     try {
       let cacheData = await getCache(cacheKey)
-      logger.info('Sabre shopping: ', cacheData.sabreRes)
+      // logger.info('Sabre shopping: ', cacheData.sabreRes)
 
       let flights = makeSabreFlightsData(
         cacheData.sabreRes,
@@ -52,11 +55,11 @@ router.post(
 
       let sabreRes = await apiSabre.shopping(
         makeSabreRequestData(search),
-        req.sabreToken
+        req.sabreRestToken
       )
       sabreRes = sabreRes.data.groupedItineraryResponse
 
-      logger.info('Sabre shopping: ', { sabreRes })
+      // logger.info('Sabre shopping: ', { sabreRes })
       let flights = makeSabreFlightsData(sabreRes, req.currency, search.adults)
 
       let airlines = []
@@ -148,10 +151,9 @@ router.post(
   }
 )
 
-router.post('/getFareRule', securityToken, async (req, res) => {
+router.post('/getFareRule', sabreSoapSecurityToken, async (req, res) => {
   try {
-    let { securityToken } = req
-    console.log('securityToken: ', securityToken)
+    let { sabreSoapSecurityToken } = req
     let { flightSegment, numberOfPassenger } = req.body
     let xml = `
     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:eb="http://www.ebxml.org/namespaces/messageHeader" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/1999/XMLSchema">
@@ -169,7 +171,7 @@ router.post('/getFareRule', securityToken, async (req, res) => {
             <eb:Action>StructureFareRulesRQ</eb:Action>
         </eb:MessageHeader>
         <wsse:Security xmlns:wsse="http://schemas.xmlsoap.org/ws/2002/12/secext">
-            <wsse:BinarySecurityToken valueType="String" EncodingType="wsse:Base64Binary">${securityToken}</wsse:BinarySecurityToken>
+            <wsse:BinarySecurityToken valueType="String" EncodingType="wsse:Base64Binary">${sabreSoapSecurityToken}</wsse:BinarySecurityToken>
         </wsse:Security>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
@@ -215,7 +217,7 @@ router.post('/getFareRule', securityToken, async (req, res) => {
       </StructureFareRulesRQ>
   </SOAP-ENV:Body>
   </SOAP-ENV:Envelope>`
-    logger.info('xml: ', { xml })
+    // logger.info('xml: ', { xml })
     let sabreRes = await apiSabre.callSabreSoapAPI(xml)
     return res
       .status(200)

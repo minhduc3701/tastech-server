@@ -1,27 +1,52 @@
-const axios = require('axios')
 const { debugServer } = require('../config/debug')
 const apiSabre = require('../modules/apiSabre')
 const convert = require('xml-js')
 const _ = require('lodash')
-const sabreToken = async (req, res, next) => {
+const { getCache, setCache } = require('../config/cache')
+const SABRE_CACHE_REST_TOKEN = 'SABRE_CACHE_REST_TOKEN'
+const SABRE_CACHE_SOAP_SECURITY_TOKEN = 'SABRE_CACHE_SOAP_SECURITY_TOKEN'
+
+const sabreRestToken = async (req, res, next) => {
   if (req.trip && _.get(req.trip, 'flight.supplier') !== 'sabre') {
     next()
     return
   }
   try {
+    let sabreCacheRestToken = await getCache(SABRE_CACHE_REST_TOKEN)
+    req.sabreRestToken = sabreCacheRestToken.data
+    next()
+    return
+  } catch (e) {
+    // do nothing to run the try block below
+  }
+
+  try {
     let encodeId = Buffer.from(process.env.SABRE_CLIENT_ID).toString('base64')
     let encodeKey = Buffer.from(process.env.SABRE_SECRET_KEY).toString('base64')
     let encodeToken = Buffer.from(`${encodeId}:${encodeKey}`).toString('base64')
     let sabreRes = await apiSabre.getToken(encodeToken)
-    req.sabreToken = sabreRes.data.access_token
+    req.sabreRestToken = sabreRes.data.access_token
+    // save all data for using 14 mins later
+    setCache(SABRE_CACHE_REST_TOKEN, { data: req.sabreRestToken }, 840)
   } catch (e) {
     debugServer(e)
-    req.sabreToken = ''
+    req.sabreRestToken = ''
   }
   next()
 }
 
-const securityToken = async (req, res, next) => {
+const sabreSoapSecurityToken = async (req, res, next) => {
+  try {
+    let sabreCacheSoapSecurityToken = await getCache(
+      SABRE_CACHE_SOAP_SECURITY_TOKEN
+    )
+    req.sabreSoapSecurityToken = sabreCacheSoapSecurityToken.data
+    next()
+    return
+  } catch (e) {
+    // do nothing to run the try block below
+  }
+
   try {
     let xmlBodyStr = `<soap-env:Envelope xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:eb="http://www.ebxml.org/namespaces/messageHeader" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/1999/XMLSchema">
     <soap-env:Header>
@@ -62,22 +87,28 @@ const securityToken = async (req, res, next) => {
        <ns:SessionCreateRQ xmlns:ns="http://www.opentravel.org/OTA/2002/11" />
     </soap-env:Body>
  </soap-env:Envelope>`
+
     let sabreRes = await apiSabre.callSabreSoapAPI(xmlBodyStr)
     let result = convert.xml2json(sabreRes.data, { compact: true, spaces: 4 })
     result = JSON.parse(result)
-    req.securityToken = _.get(
+
+    req.sabreSoapSecurityToken = _.get(
       result,
       '[soap-env:Envelope][soap-env:Header][wsse:Security][wsse:BinarySecurityToken][_text]',
       'wrong'
     )
+    setCache(
+      SABRE_CACHE_SOAP_SECURITY_TOKEN,
+      { data: req.sabreSoapSecurityToken },
+      840
+    )
   } catch (e) {
-    console.log(e)
-    req.securityToken = ''
+    req.sabreSoapSecurityToken = ''
   }
   next()
 }
 
 module.exports = {
-  sabreToken,
-  securityToken
+  sabreRestToken,
+  sabreSoapSecurityToken
 }

@@ -10,17 +10,17 @@ const config = {
 }
 
 const apiSabre = {
-  shopping: (data, sabreToken) => {
+  shopping: (data, sabreRestToken) => {
     return flightHttp.post(`/v1/offers/shop`, data, {
       headers: {
-        Authorization: `Bearer ${sabreToken}`
+        Authorization: `Bearer ${sabreRestToken}`
       }
     })
   },
-  createPNR: (data, sabreToken) => {
+  createPNR: (data, sabreRestToken) => {
     return flightHttp.post(`/v2.2.0/passenger/records?mode=create`, data, {
       headers: {
-        Authorization: `Bearer ${sabreToken}`
+        Authorization: `Bearer ${sabreRestToken}`
       }
     })
   },
