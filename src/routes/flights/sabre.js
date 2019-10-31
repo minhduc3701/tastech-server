@@ -223,7 +223,6 @@ router.post('/getFareRule', sabreSoapSecurityToken, async (req, res) => {
       .status(200)
       .send(convert.xml2json(sabreRes.data, { compact: true, spaces: 4 }))
   } catch (error) {
-    console.log(error.data)
     return res.status(400).send(error.msg)
   }
 })
