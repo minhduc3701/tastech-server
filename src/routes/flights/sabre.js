@@ -59,7 +59,7 @@ router.post(
       )
       sabreRes = sabreRes.data.groupedItineraryResponse
 
-      logger.info('Sabre shopping: ', { sabreRes })
+      // logger.info('Sabre shopping: ', { sabreRes })
       let flights = makeSabreFlightsData(sabreRes, req.currency, search.adults)
 
       let airlines = []
