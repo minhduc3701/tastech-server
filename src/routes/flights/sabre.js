@@ -151,7 +151,7 @@ router.post(
 router.post('/getFareRule', securityToken, async (req, res) => {
   try {
     let { securityToken } = req
-    console.log(securityToken)
+    console.log('securityToken: ', securityToken)
     let { flightSegment, numberOfPassenger } = req.body
     let xml = `
     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:eb="http://www.ebxml.org/namespaces/messageHeader" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/1999/XMLSchema">
@@ -216,12 +216,12 @@ router.post('/getFareRule', securityToken, async (req, res) => {
   </SOAP-ENV:Body>
   </SOAP-ENV:Envelope>`
     logger.info('xml: ', { xml })
-    let sabreRes = await apiSabre.getFlightFareRule(xml)
+    let sabreRes = await apiSabre.callSabreSoapAPI(xml)
     return res
       .status(200)
       .send(convert.xml2json(sabreRes.data, { compact: true, spaces: 4 }))
   } catch (error) {
-    console.log(error)
+    console.log(error.data)
     return res.status(400).send(error.msg)
   }
 })
