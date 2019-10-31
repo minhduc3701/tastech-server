@@ -532,7 +532,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
             tempFareComponentNumber
           )
           newFareComponentNumber.forEach((fare, index) => {
-            obj.departureSegments[index].fareComponentNumber = fare
+            obj.returnSegments[index].fareComponentNumber = fare
           })
 
           // calculate overlay time
