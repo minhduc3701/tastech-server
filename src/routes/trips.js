@@ -33,7 +33,7 @@ const {
 const { currentCompany } = require('../middleware/company')
 
 router.get('/', function(req, res, next) {
-  let perPage = _.get(req.query, 'perPage', 20)
+  let perPage = _.get(req.query, 'perPage', 15)
   perPage = Math.max(0, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
