@@ -61,7 +61,6 @@ router.get('/', function(req, res, next) {
         page,
         totalPage: Math.ceil(total / perPage),
         total,
-        count: trips.length,
         perPage,
         trips
       })
