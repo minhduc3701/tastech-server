@@ -50,14 +50,15 @@ router.get('/', function(req, res, next) {
   page = Math.max(0, parseInt(page))
 
   let availableTripIds = []
-  Trip.find({
-    _creator: req.user._id,
-    archived: { $ne: true }
-  })
+  Trip.find(
+    {
+      _creator: req.user._id,
+      archived: { $ne: true }
+    },
+    '_id'
+  )
     .then(trips => {
-      trips.map(trip => {
-        availableTripIds.push(trip._id)
-      })
+      availableTripIds = trips.map(trip => trip._id)
       return Promise.all([
         Expense.find({
           _creator: req.user._id,
@@ -68,7 +69,6 @@ router.get('/', function(req, res, next) {
           .populate('_attendees', 'email')
           .limit(perPage)
           .skip(perPage * page),
-        ,
         Expense.countDocuments({
           _creator: req.user._id,
           _trip: { $in: availableTripIds }
@@ -88,7 +88,8 @@ router.get('/', function(req, res, next) {
       })
     })
     .catch(e => {
-      res.status(400).send()
+      console.log(e)
+      res.status(400).send(e)
     })
 })
 
