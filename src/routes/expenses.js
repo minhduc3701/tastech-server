@@ -44,6 +44,11 @@ router.post('/', currentCompany, upload.array('receipts'), function(
 })
 
 router.get('/', function(req, res, next) {
+  let perPage = _.get(req.query, 'perPage', 15)
+  perPage = Math.max(0, parseInt(perPage))
+  let page = _.get(req.query, 'page', 0)
+  page = Math.max(0, parseInt(page))
+
   let availableTripIds = []
   Trip.find({
     _creator: req.user._id,
@@ -53,16 +58,34 @@ router.get('/', function(req, res, next) {
       trips.map(trip => {
         availableTripIds.push(trip._id)
       })
-      return Expense.find({
-        _creator: req.user._id,
-        _trip: { $in: availableTripIds }
-      })
-        .sort({ updatedAt: -1 })
-        .populate('_trip')
-        .populate('_attendees', 'email')
+      return Promise.all([
+        Expense.find({
+          _creator: req.user._id,
+          _trip: { $in: availableTripIds }
+        })
+          .sort({ updatedAt: -1 })
+          .populate('_trip')
+          .populate('_attendees', 'email')
+          .limit(perPage)
+          .skip(perPage * page),
+        ,
+        Expense.countDocuments({
+          _creator: req.user._id,
+          _trip: { $in: availableTripIds }
+        })
+      ])
     })
-    .then(expenses => {
-      res.status(200).json({ expenses })
+    .then(results => {
+      let expenses = results[0]
+      let total = results[1]
+
+      res.status(200).send({
+        page,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        perPage,
+        expenses
+      })
     })
     .catch(e => {
       res.status(400).send()
