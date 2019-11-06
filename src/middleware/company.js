@@ -16,6 +16,7 @@ const currentCompany = async (req, res, next) => {
     req.company = company
   } catch (e) {
     req.company = {
+      country: company.country,
       currency: process.env.BASE_CURRENCY
     }
   }
