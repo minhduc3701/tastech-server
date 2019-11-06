@@ -2,7 +2,10 @@ const express = require('express')
 const router = express.Router()
 const Country = require('../models/country')
 const FlyerProgram = require('../models/flyerProgram')
-const { supportCurrenciesOptions } = require('../config/currency')
+const {
+  supportCurrenciesOptions,
+  supportExpenseCurrenciesOptions
+} = require('../config/currency')
 const { currentCompany } = require('../middleware/company')
 const api = require('../modules/api')
 const { currenciesExchange } = require('../middleware/currency')
@@ -16,8 +19,7 @@ router.get('/supportCurrencies', (req, res) => {
 router.get('/supportCurrenciesWithRate', currentCompany, async (req, res) => {
   try {
     let currencies = await currenciesExchange()
-
-    let options = supportCurrenciesOptions.map(sourceCurrency => ({
+    let options = supportExpenseCurrenciesOptions.map(sourceCurrency => ({
       ...currencies[`${sourceCurrency.code}-${req.company.currency}`],
       ...sourceCurrency
     }))
