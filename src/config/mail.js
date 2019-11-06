@@ -23,7 +23,17 @@ if (process.env.NODE_ENV === 'production') {
   })
 }
 
-mail.use('compile', inLineCss())
+// https://github.com/niftylettuce/email-templates/issues/303#issuecomment-393605176
+// https://www.npmjs.com/package/juice#options
+// https://www.npmjs.com/package/web-resource-inliner#options
+mail.use(
+  'compile',
+  inLineCss({
+    webResources: {
+      images: false
+    }
+  })
+)
 
 // render mail template util function
 const MAIL_TEMPLATES_DIRECTORY = path.join(
