@@ -19,11 +19,20 @@ router.get('/supportCurrencies', (req, res) => {
 router.get('/supportCurrenciesWithRate', currentCompany, async (req, res) => {
   try {
     let currencies = await currenciesExchange()
-    let options = supportExpenseCurrenciesOptions.map(sourceCurrency => ({
-      ...currencies[`${sourceCurrency.code}-${req.company.currency}`],
-      ...sourceCurrency
-    }))
-
+    let options = supportExpenseCurrenciesOptions.map(sourceCurrency => {
+      // if currency equal company currency => rate : 1
+      if (sourceCurrency.code === req.company.currency) {
+        return {
+          ...sourceCurrency,
+          rate: 1
+        }
+      } else {
+        return {
+          ...currencies[`${sourceCurrency.code}-${req.company.currency}`],
+          ...sourceCurrency
+        }
+      }
+    })
     res.status(200).send({
       currencies: options
     })
