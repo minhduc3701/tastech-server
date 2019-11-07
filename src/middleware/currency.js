@@ -1,5 +1,7 @@
-const { supportCurrencies } = require('../config/currency')
-const axios = require('axios')
+const {
+  supportCurrencies,
+  supportExpenseCurrencies
+} = require('../config/currency')
 const _ = require('lodash')
 const Company = require('../models/company')
 const { debugServer } = require('../config/debug')
@@ -20,6 +22,7 @@ const currenciesExchange = async () => {
 
   let currencies = [
     ...supportCurrencies,
+    ...supportExpenseCurrencies,
     process.env.BASE_CURRENCY,
     process.env.SABRE_BASE_CURRENCY,
     process.env.HOTELBEDS_BASE_CURRENCY,
@@ -28,24 +31,19 @@ const currenciesExchange = async () => {
 
   currencies = _.uniq(currencies)
 
-  let exchangePromises = []
+  let results = await api.exchangeAllCurrencies()
 
-  currencies.forEach(sourceCurrency => {
-    currencies.forEach(targetCurrency => {
-      exchangePromises.push(
-        api.exchangeCurrency(sourceCurrency, targetCurrency)
-      )
-    })
-  })
+  results = results.data.filter(
+    result =>
+      currencies.includes(result.source) && currencies.includes(result.target)
+  )
 
-  let results = await Promise.all(exchangePromises)
   let exchangedResults = {}
 
   results.forEach(result => {
-    let data = result.data[0]
-    exchangedResults[`${data.source}-${data.target}`] = {
-      code: data.target,
-      rate: data.rate
+    exchangedResults[`${result.source}-${result.target}`] = {
+      code: result.target,
+      rate: result.rate
     }
   })
 
