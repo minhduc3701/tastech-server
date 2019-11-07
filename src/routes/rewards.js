@@ -11,13 +11,14 @@ const { makeUrboxGiftData } = require('../modules/utils')
 const moment = require('moment')
 const { emailEzBizTripVoucherInfo } = require('../middleware/email')
 const { urboxCurrencyExchange } = require('../middleware/currency')
+const { currentCompany } = require('../middleware/company')
 
 let urboxKey = {
   app_id: process.env.URBOX_ID,
   app_secret: process.env.URBOX_SECRET
 }
 
-router.get('/countryFilter', async (req, res) => {
+router.get('/countryFilter', currentCompany, async (req, res) => {
   try {
     let reqBody = { ...urboxKey, page_no: 1 }
 
@@ -46,10 +47,17 @@ router.get('/countryFilter', async (req, res) => {
             fullCountryOption => fullCountryOption.cca2 === country._id
           )
           if (matchCountry) {
-            countryOptions.push({
-              value: matchCountry.cca2,
-              label: matchCountry.name.common
-            })
+            if (country._id === req.company.country) {
+              countryOptions.unshift({
+                value: matchCountry.cca2,
+                label: matchCountry.name.common
+              })
+            } else {
+              countryOptions.push({
+                value: matchCountry.cca2,
+                label: matchCountry.name.common
+              })
+            }
           }
         })
 
