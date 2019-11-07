@@ -39,7 +39,7 @@ router.post('/search', function(req, res, next) {
             { city_name_geo_name_id: { $in: cityIds } },
             {
               airport_code: {
-                $regex: '.*' + req.body.name + '.*',
+                $regex: '.*' + req.body.name.trim() + '.*',
                 $options: 'i'
               }
             }
