@@ -6,10 +6,14 @@ const _ = require('lodash')
 const { emailEmployeeChangeTripStatus } = require('../../middleware/email')
 
 router.get('/', function(req, res) {
-  let perPage = _.get(req.query, 'perPage', 20)
-  perPage = Math.max(0, parseInt(perPage))
+  let perPage = _.get(req.query, 'perPage', 15)
+  perPage = Math.max(15, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
+
+  let keyword = _.get(req.query, 's', '')
+    .trim()
+    .toLowerCase()
 
   let status = _.get(req.query, 'status', 'waiting,approved,rejected')
   status = status.split(',')
@@ -23,7 +27,11 @@ router.get('/', function(req, res) {
     Trip.find({
       _company: req.user._company,
       businessTrip: true,
-      status: { $in: status }
+      status: { $in: status },
+      name: {
+        $regex: new RegExp(keyword),
+        $options: 'i'
+      }
     })
       .populate({
         path: '_creator',
@@ -38,7 +46,11 @@ router.get('/', function(req, res) {
     Trip.countDocuments({
       _company: req.user._company,
       businessTrip: true,
-      status: { $in: status }
+      status: { $in: status },
+      name: {
+        $regex: new RegExp(keyword),
+        $options: 'i'
+      }
     })
   ])
     .then(results => {
