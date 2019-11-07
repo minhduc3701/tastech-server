@@ -13,7 +13,7 @@ router.post('/search', function(req, res, next) {
       $match: {
         alternate_names: {
           $elemMatch: {
-            $eq: _.toLower(_.trim(req.body.name))
+            $eq: _.toLower(_.trim(_.toString(req.body.name)))
           }
         }
       }
@@ -39,7 +39,7 @@ router.post('/search', function(req, res, next) {
             { city_name_geo_name_id: { $in: cityIds } },
             {
               airport_code: {
-                $regex: '.*' + req.body.name.trim() + '.*',
+                $regex: '.*' + _.trim(_.toString(req.body.name)) + '.*',
                 $options: 'i'
               }
             }
