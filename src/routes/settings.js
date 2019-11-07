@@ -26,11 +26,10 @@ router.get('/supportCurrenciesWithRate', currentCompany, async (req, res) => {
           ...sourceCurrency,
           rate: 1
         }
-      } else {
-        return {
-          ...currencies[`${sourceCurrency.code}-${req.company.currency}`],
-          ...sourceCurrency
-        }
+      }
+      return {
+        ...currencies[`${sourceCurrency.code}-${req.company.currency}`],
+        ...sourceCurrency
       }
     })
     res.status(200).send({

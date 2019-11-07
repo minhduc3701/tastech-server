@@ -49,6 +49,10 @@ router.get('/', function(req, res, next) {
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
 
+  let keyword = _.get(req.query, 's', '')
+    .trim()
+    .toLowerCase()
+
   let availableTripIds = []
   Trip.find(
     {
@@ -62,7 +66,11 @@ router.get('/', function(req, res, next) {
       return Promise.all([
         Expense.find({
           _creator: req.user._id,
-          _trip: { $in: availableTripIds }
+          _trip: { $in: availableTripIds },
+          name: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
         })
           .sort({ updatedAt: -1 })
           .populate('_trip')
@@ -71,7 +79,11 @@ router.get('/', function(req, res, next) {
           .skip(perPage * page),
         Expense.countDocuments({
           _creator: req.user._id,
-          _trip: { $in: availableTripIds }
+          _trip: { $in: availableTripIds },
+          name: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
         })
       ])
     })

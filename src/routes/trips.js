@@ -38,12 +38,20 @@ router.get('/', function(req, res, next) {
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
 
+  let keyword = _.get(req.query, 's', '')
+    .trim()
+    .toLowerCase()
+
   let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
   Promise.all([
     Trip.find({
       _creator: req.user._id,
       archived: { $ne: true },
-      businessTrip: isBusinessTrip ? true : false
+      businessTrip: isBusinessTrip ? true : false,
+      name: {
+        $regex: new RegExp(keyword),
+        $options: 'i'
+      }
     })
       .sort({ updatedAt: -1 })
       .limit(perPage)
@@ -51,7 +59,11 @@ router.get('/', function(req, res, next) {
     Trip.countDocuments({
       _creator: req.user._id,
       archived: { $ne: true },
-      businessTrip: isBusinessTrip ? true : false
+      businessTrip: isBusinessTrip ? true : false,
+      name: {
+        $regex: new RegExp(keyword),
+        $options: 'i'
+      }
     })
   ])
     .then(results => {
@@ -559,7 +571,9 @@ router.get('/:id/expenses', function(req, res, next) {
     Expense.find({
       _creator: req.user._id,
       _trip: id
-    }).sort({ updatedAt: -1 })
+    })
+      .sort({ updatedAt: -1 })
+      .limit(100)
   ])
     .then(results => {
       let trip = results[0]
