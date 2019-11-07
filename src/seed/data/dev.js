@@ -540,7 +540,7 @@ const policies = [
 ]
 
 const trips = []
-const tripStatus = ['waiting', 'approved', 'rejected']
+const tripStatus = ['waiting', 'approved', 'rejected', 'finished', 'completed']
 
 for (let i = 0; i < 200; i++) {
   let rejectedProps = {}
