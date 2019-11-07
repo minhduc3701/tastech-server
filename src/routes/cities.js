@@ -35,7 +35,15 @@ router.post('/search', function(req, res, next) {
       let countryCodes = cities.map(city => city.country)
       return Promise.all([
         Airport.find({
-          city_name_geo_name_id: { $in: cityIds }
+          $or: [
+            { city_name_geo_name_id: { $in: cityIds } },
+            {
+              airport_code: {
+                $regex: '.*' + req.body.name + '.*',
+                $options: 'i'
+              }
+            }
+          ]
         }),
         IataCity.find({
           city_id: { $in: cityIds }
