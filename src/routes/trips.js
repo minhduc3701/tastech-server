@@ -571,7 +571,9 @@ router.get('/:id/expenses', function(req, res, next) {
     Expense.find({
       _creator: req.user._id,
       _trip: id
-    }).sort({ updatedAt: -1 })
+    })
+      .sort({ updatedAt: -1 })
+      .limit(100)
   ])
     .then(results => {
       let trip = results[0]
