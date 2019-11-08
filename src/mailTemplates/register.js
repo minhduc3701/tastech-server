@@ -1,11 +1,11 @@
 const { renderMail } = require('../config/mail')
 
-async function register(user, token, userCreater) {
+async function register(user, token, userCreator) {
   let html
   if (
-    userCreater &&
+    userCreator &&
     user._role.type === 'admin' &&
-    userCreater._role.type === 'tas-admin'
+    userCreator._role.type === 'tas-admin'
   ) {
     html = await renderMail('register-admin', {
       title: 'Welcome to EzBizTrip',
