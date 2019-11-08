@@ -1,5 +1,6 @@
 const passport = require('passport')
 const User = require('../models/user')
+const Role = require('../models/role')
 const async = require('async')
 const { mail } = require('../config/mail')
 const { register } = require('../mailTemplates/register')
@@ -53,7 +54,9 @@ const createUser = function(req, res, next) {
           })
       },
       async function(user, token, done) {
-        let mailOptions = await register(user, token)
+        await User.populate(user, { path: '_role' })
+        await User.populate(req.admin, { path: '_role' })
+        let mailOptions = await register(user, token, req.admin)
         mail.sendMail(mailOptions, function(err, info) {
           return done(err, user)
         })
