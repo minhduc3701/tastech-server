@@ -24,7 +24,6 @@ router.get('/me', currentCompany, function(req, res, next) {
   res.send({
     user: req.user,
     profileStrength: getUserProfileStrength(req.user),
-    companyCountry: req.company.country,
     currency: req.company.currency,
     exchangedRate: req.company.exchangedRate
   })
