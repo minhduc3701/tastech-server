@@ -1,0 +1,43 @@
+extends ../layout.pug
+
+block content
+
+  h2.text-center Welcome to EzBizTrip!
+
+  p 
+    b Welcome aboard, #{user.firstName}!
+
+  p.
+    Thank you for signing up to the EzBizTrip, the Online Corporate Travel Management, Business Travel Solutions!
+
+  p.
+    We have created account for you:
+
+  p.tab Link: 
+    a(href= loginLink) #{loginLink}
+  p.tab Username: #{user.email}
+  p.tab System role: #{user.role}
+
+  p.tab Password: Click button below to create your own password  (Note: the link will be expired in one week)
+
+
+
+  p.text-center
+    a(class='btn yellow' href= link) Join Now
+
+  br
+
+  h2 Tips for using EzBizTrip
+
+  p Our platform is used by thousands of travel companies & trip organizers to collect payments and manage bookings. Here are some tips for using:
+
+  ul
+    li
+      strong Book flight and hotel:
+      p Book your next business trip and earn rewards along the way. Our flight and hotel search is  based on real-time market rate availability, curated results and no service fee, booking fee or transaction fee.
+    li
+      strong Expense on-the-go:
+      p Snap photo receipts and our technology fills in the rest. When you’re ready, submit your expenses for reimbursement in real time.
+    li
+      strong Your turn to earn:
+      p Enjoy points from booking trip to beating your budget, all redeemable in our rewards store on services.

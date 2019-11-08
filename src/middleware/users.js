@@ -1,5 +1,6 @@
 const passport = require('passport')
 const User = require('../models/user')
+const Role = require('../models/role')
 const async = require('async')
 const { mail } = require('../config/mail')
 const { register } = require('../mailTemplates/register')
@@ -53,6 +54,9 @@ const createUser = function(req, res, next) {
           })
       },
       async function(user, token, done) {
+        await Role.findById(user._role).then(role => {
+          user.role = role.type
+        })
         let mailOptions = await register(user, token)
         mail.sendMail(mailOptions, function(err, info) {
           return done(err, user)
