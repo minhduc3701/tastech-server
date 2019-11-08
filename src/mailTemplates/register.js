@@ -11,7 +11,7 @@ async function register(user, token, userCreator) {
       title: 'Welcome to EzBizTrip',
       link: `${process.env.APP_URI}/reset-password/${token}`,
       user,
-      loginLink: `${process.env.APP_URI}`,
+      loginLink: `${process.env.APP_URI}/login`,
       note:
         process.env.ENV === 'production'
           ? 'We have created account for you:'
