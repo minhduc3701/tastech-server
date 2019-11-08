@@ -64,7 +64,6 @@ const createUser = function(req, res, next) {
     ],
     function(err, user) {
       if (err) {
-        console.log(err)
         debugMail(err)
       }
     }
