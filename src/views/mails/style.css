@@ -37,6 +37,9 @@ body {
 #tas-wrapper p {
   margin: 10px 0;
 }
+#tas-wrapper p.tab {
+  margin: 10px 0px 10px 20px;
+}
 #tas-wrapper li {
   margin-bottom: 10px;
 }
