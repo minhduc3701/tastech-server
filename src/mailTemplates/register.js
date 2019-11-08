@@ -13,7 +13,7 @@ async function register(user, token, userCreator) {
       user,
       loginLink: `${process.env.APP_URI}/login`,
       note:
-        process.env.ENV === 'production'
+        process.env.NODE_ENV === 'production'
           ? 'We have created account for you:'
           : 'We have created 30 days demo account for you:'
     })
