@@ -54,10 +54,9 @@ const createUser = function(req, res, next) {
           })
       },
       async function(user, token, done) {
-        await Role.findById(user._role).then(role => {
-          user.role = role.type
-        })
-        let mailOptions = await register(user, token)
+        await User.populate(user, { path: '_role' })
+        await User.populate(req.admin, { path: '_role' })
+        let mailOptions = await register(user, token, req.admin)
         mail.sendMail(mailOptions, function(err, info) {
           return done(err, user)
         })
@@ -65,6 +64,7 @@ const createUser = function(req, res, next) {
     ],
     function(err, user) {
       if (err) {
+        console.log(err)
         debugMail(err)
       }
     }

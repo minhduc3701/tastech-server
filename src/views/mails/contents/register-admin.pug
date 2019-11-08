@@ -7,16 +7,13 @@ block content
   p 
     b Welcome aboard, #{user.firstName}!
 
-  p.
-    Thank you for signing up to the EzBizTrip, the Online Corporate Travel Management, Business Travel Solutions!
+  p Thank you for signing up to the EzBizTrip, the Online Corporate Travel Management, Business Travel Solutions!
 
-  p.
-    We have created account for you:
-
+  p #{note}
   p.tab Link: 
     a(href= loginLink) #{loginLink}
   p.tab Username: #{user.email}
-  p.tab System role: #{user.role}
+  p.tab System role: #{user._role.type}
 
   p.tab Password: Click button below to create your own password  (Note: the link will be expired in one week)
 
