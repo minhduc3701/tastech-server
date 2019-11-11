@@ -135,6 +135,13 @@ const api = {
         }
       }
     )
+  },
+  exchangeAllCurrencies: () => {
+    return axios.get(`${process.env.TRANSFERWISE_URI}/v1/rates`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TRANSFERWISE_API_KEY}`
+      }
+    })
   }
 }
 

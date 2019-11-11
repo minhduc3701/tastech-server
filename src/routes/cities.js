@@ -13,7 +13,7 @@ router.post('/search', function(req, res, next) {
       $match: {
         alternate_names: {
           $elemMatch: {
-            $eq: _.toLower(_.trim(req.body.name))
+            $eq: _.toLower(_.trim(_.toString(req.body.name)))
           }
         }
       }
@@ -35,7 +35,15 @@ router.post('/search', function(req, res, next) {
       let countryCodes = cities.map(city => city.country)
       return Promise.all([
         Airport.find({
-          city_name_geo_name_id: { $in: cityIds }
+          $or: [
+            { city_name_geo_name_id: { $in: cityIds } },
+            {
+              airport_code: {
+                $regex: '.*' + _.trim(_.toString(req.body.name)) + '.*',
+                $options: 'i'
+              }
+            }
+          ]
         }),
         IataCity.find({
           city_id: { $in: cityIds }

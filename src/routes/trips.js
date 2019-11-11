@@ -33,13 +33,49 @@ const {
 const { currentCompany } = require('../middleware/company')
 
 router.get('/', function(req, res, next) {
-  Trip.find({
-    _creator: req.user._id,
-    archived: { $ne: true }
-  })
-    .sort({ updatedAt: -1 })
-    .then(trips => {
-      res.send({ trips })
+  let perPage = _.get(req.query, 'perPage', 15)
+  perPage = Math.max(0, parseInt(perPage))
+  let page = _.get(req.query, 'page', 0)
+  page = Math.max(0, parseInt(page))
+
+  let keyword = _.get(req.query, 's', '')
+    .trim()
+    .toLowerCase()
+
+  let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
+  Promise.all([
+    Trip.find({
+      _creator: req.user._id,
+      archived: { $ne: true },
+      businessTrip: isBusinessTrip ? true : false,
+      name: {
+        $regex: new RegExp(keyword),
+        $options: 'i'
+      }
+    })
+      .sort({ updatedAt: -1 })
+      .limit(perPage)
+      .skip(perPage * page),
+    Trip.countDocuments({
+      _creator: req.user._id,
+      archived: { $ne: true },
+      businessTrip: isBusinessTrip ? true : false,
+      name: {
+        $regex: new RegExp(keyword),
+        $options: 'i'
+      }
+    })
+  ])
+    .then(results => {
+      let trips = results[0]
+      let total = results[1]
+      res.status(200).send({
+        page,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        perPage,
+        trips
+      })
     })
     .catch(e => {
       res.send({ error: 'Not Found' })
@@ -535,7 +571,9 @@ router.get('/:id/expenses', function(req, res, next) {
     Expense.find({
       _creator: req.user._id,
       _trip: id
-    }).sort({ updatedAt: -1 })
+    })
+      .sort({ updatedAt: -1 })
+      .limit(100)
   ])
     .then(results => {
       let trip = results[0]

@@ -44,28 +44,63 @@ router.post('/', currentCompany, upload.array('receipts'), function(
 })
 
 router.get('/', function(req, res, next) {
+  let perPage = _.get(req.query, 'perPage', 15)
+  perPage = Math.max(0, parseInt(perPage))
+  let page = _.get(req.query, 'page', 0)
+  page = Math.max(0, parseInt(page))
+
+  let keyword = _.get(req.query, 's', '')
+    .trim()
+    .toLowerCase()
+
   let availableTripIds = []
-  Trip.find({
-    _creator: req.user._id,
-    archived: { $ne: true }
-  })
+  Trip.find(
+    {
+      _creator: req.user._id,
+      archived: { $ne: true }
+    },
+    '_id'
+  )
     .then(trips => {
-      trips.map(trip => {
-        availableTripIds.push(trip._id)
-      })
-      return Expense.find({
-        _creator: req.user._id,
-        _trip: { $in: availableTripIds }
-      })
-        .sort({ updatedAt: -1 })
-        .populate('_trip')
-        .populate('_attendees', 'email')
+      availableTripIds = trips.map(trip => trip._id)
+      return Promise.all([
+        Expense.find({
+          _creator: req.user._id,
+          _trip: { $in: availableTripIds },
+          name: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
+        })
+          .sort({ updatedAt: -1 })
+          .populate('_trip')
+          .populate('_attendees', 'email')
+          .limit(perPage)
+          .skip(perPage * page),
+        Expense.countDocuments({
+          _creator: req.user._id,
+          _trip: { $in: availableTripIds },
+          name: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
+        })
+      ])
     })
-    .then(expenses => {
-      res.status(200).json({ expenses })
+    .then(results => {
+      let expenses = results[0]
+      let total = results[1]
+
+      res.status(200).send({
+        page,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        perPage,
+        expenses
+      })
     })
     .catch(e => {
-      res.status(400).send()
+      res.status(400).send(e)
     })
 })
 
