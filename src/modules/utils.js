@@ -25,7 +25,8 @@ const hotelAccomodations = [
   { code: 'HOTEL', text: 'Hotel' },
   { code: 'PENDING', text: 'Pending Category' },
   { code: 'RESORT', text: 'Resort' },
-  { code: 'RURAL', text: 'Rural' }
+  { code: 'RURAL', text: 'Rural' },
+  { code: 'HISTORIC', text: 'Historic' }
 ]
 
 const getImageUri = uriString => {
