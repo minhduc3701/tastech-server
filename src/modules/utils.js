@@ -655,9 +655,11 @@ const makeHotelbedsHotelsData = (
       return pointInfo
     })
 
-    let accommodationTypeName = hotelAccomodations.find(
-      acc => acc.code === hotel.accommodationTypeCode
-    ).text
+    let accommodationTypeName = _.get(
+      hotelAccomodations.find(acc => acc.code === hotel.accommodationTypeCode),
+      'text',
+      ''
+    )
 
     return {
       hotelId: hotel.code,
