@@ -873,6 +873,7 @@ const hotelbedsCheckRate = async (req, res, next) => {
 
     logger.info('CheckRateRS', rateRes.data)
   } catch (error) {
+    logger.error('CheckRateERR', _.get(error, 'response.data'))
     req.checkoutError = error
   }
 
@@ -932,7 +933,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
 
     req.hotelOrder = hotelOrder
   } catch (error) {
-    logger.error('hotelbeds create order', _.get(error, 'response.data'))
+    logger.error('BookingERR', _.get(error, 'response.data'))
 
     req.checkoutError = {
       ...req.checkoutError,
