@@ -709,7 +709,7 @@ const sabreCreatePNR = async (req, res, next) => {
     })
     logger.info('createPNR request', data)
     let sabrePNRres = await apiSabre.createPNR(data, req.sabreRestToken)
-    logger.info('createPNR response', sabrePNRres)
+    logger.info('createPNR response', sabrePNRres.data)
 
     let status = _.get(
       sabrePNRres,
@@ -740,7 +740,7 @@ const sabreCreatePNR = async (req, res, next) => {
       }
     }
   } catch (error) {
-    logger.error('SabrePNRError', { error })
+    logger.error('SabrePNRError', { error: _.get(error, 'response.data', {}) })
     req.checkoutError = {
       ..._.get(error, 'response.data', {}),
       message: _.get(error, 'message'),
@@ -874,7 +874,13 @@ const hotelbedsCheckRate = async (req, res, next) => {
     logger.info('CheckRateRS', rateRes.data)
   } catch (error) {
     logger.error('CheckRateERR', _.get(error, 'response.data'))
-    req.checkoutError = error
+    req.checkoutError = {
+      message: _.get(
+        error,
+        'response.data.error.message',
+        _.get(error, 'message', '')
+      )
+    }
   }
 
   next()
@@ -1063,7 +1069,7 @@ const responseCheckout = async (req, res, next) => {
       hotelOrder
     })
   } catch (error) {
-    logger.info('error', error)
+    logger.error('checkoutERR', _.get(error, 'message', ''))
     // update order status to failed if something went wrong
     if (trip.flight && flightOrder) {
       flightOrder.status = 'failed'
@@ -1076,7 +1082,7 @@ const responseCheckout = async (req, res, next) => {
     }
 
     res.status(400).send({
-      ...error,
+      message: _.get(error, 'message'),
       trip: _.pick(trip, ['_id']),
       flightOrder,
       hotelOrder
