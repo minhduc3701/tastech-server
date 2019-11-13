@@ -48,15 +48,22 @@ router.get('/', function(req, res, next) {
     'waiting,approved,rejected,ongoing,finished,completed'
   )
   status = status.split(',')
+  let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
 
-  let allStatus = [
-    'waiting',
-    'approved',
-    'rejected',
-    'ongoing',
-    'finished',
-    'completed'
-  ]
+  let allStatus = []
+
+  if (isBusinessTrip) {
+    allStatus = [
+      'waiting',
+      'approved',
+      'rejected',
+      'ongoing',
+      'finished',
+      'completed'
+    ]
+  } else {
+    allStatus = ['ongoing', 'finished']
+  }
 
   status = status.filter(s => allStatus.includes(s))
   status = _.isEmpty(status) ? allStatus : status
@@ -77,7 +84,6 @@ router.get('/', function(req, res, next) {
     .trim()
     .toLowerCase()
 
-  let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
   Promise.all([
     Trip.find({
       _creator: req.user._id,
