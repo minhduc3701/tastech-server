@@ -39,8 +39,8 @@ router.get('/', function(req, res, next) {
   page = Math.max(0, parseInt(page))
 
   let sortBy = _.get(req.query, 'sortBy', '')
-  let sort = _.get(req.query, 'sort', 1)
-  sort = parseInt(sort)
+  let sort = _.get(req.query, 'sort', 'desc')
+  sort = sort === 'desc' ? -1 : 1
 
   let status = _.get(
     req.query,
