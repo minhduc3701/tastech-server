@@ -42,19 +42,36 @@ router.get('/', function(req, res, next) {
   let sort = _.get(req.query, 'sort', 1)
   sort = parseInt(sort)
 
-  console.log('asdasdasdasdasdasdadadad')
+  let status = _.get(
+    req.query,
+    'status',
+    'waiting,approved,rejected,ongoing,finished,completed'
+  )
+  status = status.split(',')
+
+  let allStatus = [
+    'waiting',
+    'approved',
+    'rejected',
+    'ongoing',
+    'finished',
+    'completed'
+  ]
+
+  status = status.filter(s => allStatus.includes(s))
+  status = _.isEmpty(status) ? allStatus : status
 
   let objSort = {}
   if (sortBy) {
     if (sortBy === 'amount') {
-      objSort = { 'budgetPassengers.0.totalPrice': 1 }
+      //https://stackoverflow.com/questions/35655747/how-to-sort-by-n-th-element-of-array-in-mongoose
+      objSort = { 'budgetPassengers.0.totalPrice': sort }
     } else {
       objSort[sortBy] = sort
     }
   } else {
     objSort = { updatedAt: -1 }
   }
-  console.log(objSort)
 
   let keyword = _.get(req.query, 's', '')
     .trim()
@@ -66,6 +83,7 @@ router.get('/', function(req, res, next) {
       _creator: req.user._id,
       archived: { $ne: true },
       businessTrip: isBusinessTrip ? true : false,
+      status: { $in: status },
       name: {
         $regex: new RegExp(keyword),
         $options: 'i'
@@ -78,6 +96,7 @@ router.get('/', function(req, res, next) {
       _creator: req.user._id,
       archived: { $ne: true },
       businessTrip: isBusinessTrip ? true : false,
+      status: { $in: status },
       name: {
         $regex: new RegExp(keyword),
         $options: 'i'
