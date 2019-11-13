@@ -38,6 +38,24 @@ router.get('/', function(req, res, next) {
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
 
+  let sortBy = _.get(req.query, 'sortBy', '')
+  let sort = _.get(req.query, 'sort', 1)
+  sort = parseInt(sort)
+
+  console.log('asdasdasdasdasdasdadadad')
+
+  let objSort = {}
+  if (sortBy) {
+    if (sortBy === 'amount') {
+      objSort = { 'budgetPassengers.0.totalPrice': 1 }
+    } else {
+      objSort[sortBy] = sort
+    }
+  } else {
+    objSort = { updatedAt: -1 }
+  }
+  console.log(objSort)
+
   let keyword = _.get(req.query, 's', '')
     .trim()
     .toLowerCase()
@@ -53,7 +71,7 @@ router.get('/', function(req, res, next) {
         $options: 'i'
       }
     })
-      .sort({ updatedAt: -1 })
+      .sort(objSort)
       .limit(perPage)
       .skip(perPage * page),
     Trip.countDocuments({
