@@ -38,28 +38,71 @@ router.get('/', function(req, res, next) {
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
 
+  let sortBy = _.get(req.query, 'sortBy', '')
+  let sort = _.get(req.query, 'sort', 'desc')
+  sort = sort === 'desc' ? -1 : 1
+
+  let status = _.get(
+    req.query,
+    'status',
+    'waiting,approved,rejected,ongoing,finished,completed'
+  )
+  status = status.split(',')
+  let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
+
+  let allStatus = []
+
+  if (isBusinessTrip) {
+    allStatus = [
+      'waiting',
+      'approved',
+      'rejected',
+      'ongoing',
+      'finished',
+      'completed'
+    ]
+  } else {
+    allStatus = ['ongoing', 'finished']
+  }
+
+  status = status.filter(s => allStatus.includes(s))
+  status = _.isEmpty(status) ? allStatus : status
+
+  let objSort = {}
+  if (sortBy) {
+    if (sortBy === 'amount') {
+      //https://stackoverflow.com/questions/35655747/how-to-sort-by-n-th-element-of-array-in-mongoose
+      objSort = { 'budgetPassengers.0.totalPrice': sort }
+    } else {
+      objSort[sortBy] = sort
+    }
+  } else {
+    objSort = { updatedAt: -1 }
+  }
+
   let keyword = _.get(req.query, 's', '')
     .trim()
     .toLowerCase()
 
-  let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
   Promise.all([
     Trip.find({
       _creator: req.user._id,
       archived: { $ne: true },
       businessTrip: isBusinessTrip ? true : false,
+      status: { $in: status },
       name: {
         $regex: new RegExp(keyword),
         $options: 'i'
       }
     })
-      .sort({ updatedAt: -1 })
+      .sort(objSort)
       .limit(perPage)
       .skip(perPage * page),
     Trip.countDocuments({
       _creator: req.user._id,
       archived: { $ne: true },
       businessTrip: isBusinessTrip ? true : false,
+      status: { $in: status },
       name: {
         $regex: new RegExp(keyword),
         $options: 'i'
