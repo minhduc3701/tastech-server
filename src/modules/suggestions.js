@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const { getDistanceFromLatLonInKm } = require('./utils')
 
 const suggestFlights = (flights, trip, user) => {
   let limitFlight = _.get(trip, 'flightLimitation', 0)
@@ -55,6 +56,8 @@ const suggestFlights = (flights, trip, user) => {
 
 const suggestHotelRooms = (hotels, request, user) => {
   let limitHotel = _.get(request, 'trip.hotelLimitation', 0)
+  let targetLat = request.roomRequest.geolocation.latitude
+  let targetLng = request.roomRequest.geolocation.longitude
   let minHotel = _.minBy(hotels, 'lowestPrice')
 
   hotels = hotels.map(hotel => {
@@ -73,6 +76,31 @@ const suggestHotelRooms = (hotels, request, user) => {
     // price
     if (hotel.lowestPrice === minHotel.lowestPrice) {
       point += 4
+    }
+
+    // distance
+    if (
+      getDistanceFromLatLonInKm(
+        targetLat,
+        targetLng,
+        hotel.latitude,
+        hotel.longitude
+      ) *
+        1000 <=
+      150
+    ) {
+      point += 5
+    }
+
+    // if match hotel name
+    if (
+      _.toLower(hotel.name)
+        .split(' ')
+        .every(hotelName =>
+          _.includes(_.toLower(request.locationName), hotelName)
+        )
+    ) {
+      point += 10
     }
 
     return {
