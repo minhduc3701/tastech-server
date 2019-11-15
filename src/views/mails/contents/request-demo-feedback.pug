@@ -1,0 +1,43 @@
+extends ../layout.pug
+
+block content
+
+  h2 Hello #{firstName}, thank you for requesting demo!
+
+  p
+    | Thanks for signing up to the 
+    a( href= appLink) EzBizTrip
+    = ' '
+    | - the Online Corporate Travel Management, Business Travel Solutions! We have forward the following query to Sale team:
+
+  ul
+    li
+      strong Name:
+      = ' '
+      span #{firstName + ' ' + lastName}
+    li
+      strong Email:
+      = ' '
+      span #{email}
+    li
+      strong Phone:
+      = ' '
+      span #{phone}
+    li
+      strong Role:
+      = ' '
+      span #{role}
+    li
+      strong Company:
+      = ' '
+      span #{company}
+    li
+      strong No. of Employee:
+      = ' '
+      span #{NoE}
+    li
+      strong Country:
+      = ' '
+      span #{country}
+  p.
+    Kindly allow us to get back to you on the demo within 1 working day. Meanwhile, if you have any further queries, please feel free to reply this email and we will be happy to assist.
