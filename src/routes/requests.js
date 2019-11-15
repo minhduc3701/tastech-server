@@ -5,18 +5,28 @@ const _ = require('lodash')
 const { mail } = require('../config/mail')
 const { debugMail } = require('../config/debug')
 const { requestDemo } = require('../mailTemplates/requestDemo')
+const { requestDemoFeedback } = require('../mailTemplates/requestDemoFeedback')
 const { contact } = require('../mailTemplates/contact')
 
 router.post('/', function(req, res, next) {
   const request = new Request(req.body)
   request
     .save()
-    .then(() => {
+    .then(async () => {
       res.status(200).json({ request })
+
       let mailOptions = requestDemo(request)
       mail.sendMail(mailOptions, function(err, info) {
         if (err) {
-          debugMail(error)
+          debugMail(err)
+          res.status(400).send()
+        }
+      })
+
+      let mailFeedbackOptions = await requestDemoFeedback(request)
+      mail.sendMail(mailFeedbackOptions, function(err, info) {
+        if (err) {
+          debugMail(err)
           res.status(400).send()
         }
       })
