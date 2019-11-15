@@ -10,7 +10,7 @@ async function sendVoucherInfo(user, gift) {
   })
   return {
     to: process.env.EMAIL_CONTACT,
-    from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
     subject: `${gift.customerInfo.email} requests for voucher "${gift.title}"`,
     html
   }

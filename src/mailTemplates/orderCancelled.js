@@ -24,7 +24,7 @@ async function orderCancelled(order, refundAmount) {
 
   return {
     to: order._customer.email,
-    from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
     subject: `Your order has been cancelled`,
     html
   }

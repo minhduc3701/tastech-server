@@ -10,8 +10,10 @@ async function cancelFlightGiamso(flightOrder) {
   })
   return {
     to: `${process.env.EMAIL_GIAMSO}`,
-    from: `EzBizTrip <${process.env.EMAIL_CONTACT}>`,
-    cc: `EzBizTrip Support <${process.env.EMAIL_CONTACT}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_CONTACT}>`,
+    cc: `${process.env.EMAIL_CONTACT_ALIAS} Support <${
+      process.env.EMAIL_CONTACT
+    }>`,
     subject: `Cancel flight - ${flightOrder.pnr}`,
     html
   }

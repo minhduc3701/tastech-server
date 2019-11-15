@@ -21,7 +21,7 @@ async function pendingExpense(accountants, expenses, employee) {
   return {
     to: accountants[0].email,
     cc: accountants.map(e => e.email).splice(1),
-    from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
     subject: `Please review your colleague's expense claim`,
     html
   }

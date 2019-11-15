@@ -7,7 +7,7 @@ async function claimExpense(user) {
   })
   return {
     to: user.email,
-    from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
     subject: `Your Expense Claim has been submitted`,
     html
   }
