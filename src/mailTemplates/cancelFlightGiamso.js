@@ -11,7 +11,6 @@ async function cancelFlightGiamso(flightOrder) {
   return {
     to: `${process.env.EMAIL_CONTACT}`,
     from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
-    cc: [process.env.EMAIL_GIAMSO],
     subject: `Cancel flight - ${flightOrder.pnr}`,
     html
   }
