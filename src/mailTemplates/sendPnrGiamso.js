@@ -1,5 +1,4 @@
 const { renderMail } = require('../config/mail')
-const Order = require('../models/order')
 
 async function sendPnrGiamso(flightOrder) {
   let html = await renderMail('pnr-giamso', {
@@ -9,12 +8,9 @@ async function sendPnrGiamso(flightOrder) {
     flight: flightOrder.flight,
     passengers: flightOrder.passengers
   })
-
-  await Order.populate(flightOrder, ['_customer'])
-
   return {
     to: `${process.env.EMAIL_GIAMSO}`,
-    from: `${process.env.EMAIL_CONTACT_ALIAS} <${flightOrder._customer.email}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
     cc: [process.env.EMAIL_CONTACT],
     subject: `Request to issue ticket - ${flightOrder.pnr}`,
     html
