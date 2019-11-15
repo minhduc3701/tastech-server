@@ -23,7 +23,9 @@ async function changeTripStatus(user, trip) {
     case 'approved':
       return {
         to: user.email,
-        from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
+        from: `${process.env.EMAIL_CONTACT_ALIAS} <${
+          process.env.EMAIL_NO_REPLY
+        }>`,
         subject: `Your trip request has been approved`,
         html: htmlTripApproved
       }
@@ -31,7 +33,9 @@ async function changeTripStatus(user, trip) {
     default:
       return {
         to: user.email,
-        from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
+        from: `${process.env.EMAIL_CONTACT_ALIAS} <${
+          process.env.EMAIL_NO_REPLY
+        }>`,
         subject: `Your trip request has been rejected`,
         html: htmlTripRejected
       }
