@@ -1,7 +1,7 @@
 function requestDemo(data) {
   return {
     to: process.env.EMAIL_CONTACT,
-    from: `Request Demo - EzBizTrip <${data.email}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} | Request Demo <${data.email}>`,
     subject: `New request demo from email: ${data.email}`,
     text: `You receiced new request demo! \n\nFirst name: ${
       data.firstName

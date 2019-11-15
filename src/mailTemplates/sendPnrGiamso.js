@@ -10,8 +10,10 @@ async function sendPnrGiamso(flightOrder) {
   })
   return {
     to: `${process.env.EMAIL_GIAMSO}`,
-    from: `EzBizTrip <${process.env.EMAIL_CONTACT}>`,
-    cc: `EzBizTrip Support <${process.env.EMAIL_CONTACT}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_CONTACT}>`,
+    cc: `${process.env.EMAIL_CONTACT_ALIAS} Support <${
+      process.env.EMAIL_CONTACT
+    }>`,
     subject: `Request to issue ticket - ${flightOrder.pnr}`,
     html
   }

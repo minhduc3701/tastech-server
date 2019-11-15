@@ -28,7 +28,9 @@ async function changeExpenseStatus(user, expense) {
     case 'approved':
       return {
         to: user.email,
-        from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
+        from: `${process.env.EMAIL_CONTACT_ALIAS} <${
+          process.env.EMAIL_NO_REPLY
+        }>`,
         subject: `Your expense has been reimbursed`,
         html: htmlExpenseApproved
       }
@@ -36,7 +38,9 @@ async function changeExpenseStatus(user, expense) {
     default:
       return {
         to: user.email,
-        from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
+        from: `${process.env.EMAIL_CONTACT_ALIAS} <${
+          process.env.EMAIL_NO_REPLY
+        }>`,
         subject: `Your expense claim has been rejected`,
         html: htmlExpenseRejected
       }
