@@ -11,7 +11,7 @@ async function sendPnrGiamso(flightOrder) {
   return {
     to: `${process.env.EMAIL_GIAMSO}`,
     from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
-    cc: `${process.env.EMAIL_CONTACT}`,
+    cc: [process.env.EMAIL_CONTACT],
     subject: `Request to issue ticket - ${flightOrder.pnr}`,
     html
   }
