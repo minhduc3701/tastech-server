@@ -56,8 +56,8 @@ const suggestFlights = (flights, trip, user) => {
 
 const suggestHotelRooms = (hotels, request, user) => {
   let limitHotel = _.get(request, 'trip.hotelLimitation', 0)
-  let targetLat = request.roomRequest.geolocation.latitude
-  let targetLng = request.roomRequest.geolocation.longitude
+  let targetLat = _.get(request, 'roomRequest.geolocation.latitude', 0)
+  let targetLng = _.get(request, 'roomRequest.geolocation.longitude', 0)
   let minHotel = _.minBy(hotels, 'lowestPrice')
 
   hotels = hotels.map(hotel => {
@@ -78,7 +78,7 @@ const suggestHotelRooms = (hotels, request, user) => {
       point += 4
     }
 
-    // distance
+    // distance from search coordinate to hotel coordinate < 150 m
     if (
       getDistanceFromLatLonInKm(
         targetLat,
