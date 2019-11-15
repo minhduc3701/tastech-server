@@ -66,8 +66,8 @@ async function tripItinerary(user, orders, airlines, airports) {
 
   return {
     to: user.email,
-    from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
-    subject: `EzBizTrip Booking confirmation for your Trip`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
+    subject: `Booking confirmation for your Trip`,
     html
   }
 }

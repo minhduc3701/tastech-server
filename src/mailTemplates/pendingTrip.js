@@ -44,7 +44,7 @@ async function pendingTrip(managers, trip, employee) {
   return {
     to: managers[0].email,
     cc: managers.map(e => e.email).splice(1),
-    from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
     subject: `Please review your colleagues's trip request`,
     html
   }

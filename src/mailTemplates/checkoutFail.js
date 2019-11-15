@@ -43,7 +43,7 @@ async function checkoutFail(req) {
 
   return {
     to: req.user.email,
-    from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
     subject: `Your reservation to EzBizTrip could not complete`,
     html
   }

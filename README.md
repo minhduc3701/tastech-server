@@ -47,6 +47,7 @@ Add config/config.json with the content like below:
     "SMTP_USER": "<your mailtrap user>",
     "SMTP_PASSWORD": "<your mailtrap password>",
     "EMAIL_CONTACT": "support@ezbiztrip.com",
+    "EMAIL_CONTACT_ALIAS": "Dev EzBizTrip",
     "EMAIL_NO_REPLY": "no-reply@ezbiztrip.com",
     "URBOX_ID": <UR_BOX_ID>,
     "URBOX_SECRET": <UR_BOX_SECRET>
@@ -192,6 +193,7 @@ export HOTELBEDS_TOLERANCE=2
 export TRANSFERWISE_URI=https://api.transferwise.com
 export TRANSFERWISE_API_KEY=<TRANSFERWISE_LIVE_KEY>
 export EMAIL_CONTACT=support@ezbiztrip.com
+export EMAIL_CONTACT_ALIAS=EzBizTrip
 export EMAIL_NO_REPLY=no-reply@ezbiztrip.com
 export URBOX_ID=<UR_BOX_ID>
 export URBOX_SECRET=<UR_BOX_SECRET>

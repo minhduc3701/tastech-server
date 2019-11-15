@@ -26,7 +26,7 @@ async function register(user, token, userCreator) {
   }
   return {
     to: user.email,
-    from: `EzBizTrip <${process.env.EMAIL_NO_REPLY}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
     subject: `Welcome to EzBizTrip`,
     html
   }

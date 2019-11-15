@@ -1,7 +1,7 @@
 function contact(data) {
   return {
     to: process.env.EMAIL_CONTACT,
-    from: `Help - EzBizTrip <${data.email}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} | Contact Form <${data.email}>`,
     subject: `New message from email: ${data.email}`,
     text: `You receiced new message! \n\nFirst name: ${
       data.firstName
