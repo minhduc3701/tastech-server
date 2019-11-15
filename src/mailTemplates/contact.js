@@ -1,7 +1,9 @@
 function contact(data) {
   return {
     to: process.env.EMAIL_CONTACT,
-    from: `${process.env.EMAIL_CONTACT_ALIAS} | Contact Form <${data.email}>`,
+    from: `${process.env.EMAIL_CONTACT_ALIAS} | Contact Form <${
+      process.env.EMAIL_NO_REPLY
+    }>`,
     subject: `New message from email: ${data.email}`,
     text: `You receiced new message! \n\nFirst name: ${
       data.firstName
