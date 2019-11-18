@@ -454,7 +454,6 @@ router.post(
       }
 
       // calculate Flight budget
-
       if (trip.budgetPassengers[0].flight.selected) {
         let budgetRequest = makeSabreSearchRequestFromBudget(
           trip.budgetPassengers[0].flight,
@@ -465,7 +464,6 @@ router.post(
           makeSabreRequestData(budgetRequest),
           req.sabreRestToken
         )
-        trip.budgetPassengers[0].flight.class
         sabreRes = sabreRes.data.groupedItineraryResponse
 
         let flights = makeSabreFlightsData(sabreRes, req.currency, 1)
