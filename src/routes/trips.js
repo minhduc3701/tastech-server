@@ -459,6 +459,7 @@ router.post(
           trip.budgetPassengers[0].flight,
           policy
         )
+        trip.budgetPassengers[0].flight.class = policy.flightClass.toLowerCase()
         let sabreRes = await apiSabre.shopping(
           makeSabreRequestData(budgetRequest),
           req.sabreRestToken
