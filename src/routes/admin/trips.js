@@ -27,6 +27,7 @@ router.get('/', function(req, res) {
     Trip.find({
       _company: req.user._company,
       businessTrip: true,
+      isBudgetUpdated: true,
       status: { $in: status },
       name: {
         $regex: new RegExp(keyword),
@@ -46,6 +47,7 @@ router.get('/', function(req, res) {
     Trip.countDocuments({
       _company: req.user._company,
       businessTrip: true,
+      isBudgetUpdated: true,
       status: { $in: status },
       name: {
         $regex: new RegExp(keyword),
