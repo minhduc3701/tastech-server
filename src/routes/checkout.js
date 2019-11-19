@@ -685,7 +685,7 @@ const sabreCreatePNR = async (req, res, next) => {
       data.CreatePassengerNameRecordRQ.AirBook.OriginDestinationInformation.FlightSegment.push(
         {
           DepartureDateTime: segment.DepartureDateTime,
-          FlightNumber: `${segment.operatingFlightNumber}`,
+          FlightNumber: `${segment.marketingFlightNumber}`,
           ArrivalDateTime: segment.ArrivalDateTime,
           Status: 'NN',
           ResBookDesigCode: segment.bookingCode,
@@ -707,6 +707,36 @@ const sabreCreatePNR = async (req, res, next) => {
         }
       )
     })
+
+    // return segments
+    _.get(trip, 'flight.returnSegments', []).map(segment => {
+      // map airline infor
+      data.CreatePassengerNameRecordRQ.AirBook.OriginDestinationInformation.FlightSegment.push(
+        {
+          DepartureDateTime: segment.DepartureDateTime,
+          FlightNumber: `${segment.marketingFlightNumber}`,
+          ArrivalDateTime: segment.ArrivalDateTime,
+          Status: 'NN',
+          ResBookDesigCode: segment.bookingCode,
+          NumberInParty: `${trip.passengers.length}`,
+          MarketingAirline: {
+            Code: `${segment.marketing}`,
+            FlightNumber: `${segment.marketingFlightNumber}`
+          },
+          MarriageGrp: 'O',
+          OperatingAirline: {
+            Code: `${segment.operating}`
+          },
+          OriginLocation: {
+            LocationCode: `${segment.departure}`
+          },
+          DestinationLocation: {
+            LocationCode: `${segment.arrival}`
+          }
+        }
+      )
+    })
+
     logger.info('createPNR request', data)
     let sabrePNRres = await apiSabre.createPNR(data, req.sabreRestToken)
     logger.info('createPNR response', sabrePNRres.data)
