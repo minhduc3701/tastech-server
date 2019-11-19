@@ -142,21 +142,21 @@ var UserSchema = new Schema({
         number: String,
         active: false
       }
-    ],
-    favoriteHotels: [
-      {
-        address: String,
-        cityName: String,
-        country: String,
-        description: String,
-        hotelId: String,
-        latitude: Number,
-        longitude: Number,
-        name: String,
-        starRat: String
-      }
     ]
-  }
+  },
+  favoriteHotels: [
+    {
+      address: String,
+      cityName: String,
+      country: String,
+      description: String,
+      hotelId: String,
+      latitude: Number,
+      longitude: Number,
+      name: String,
+      starRating: String
+    }
+  ]
 })
 
 UserSchema.plugin(passportLocalMongoose)

@@ -92,7 +92,7 @@ const suggestHotelRooms = (hotels, request, user) => {
 
     // if in favorite hotels
     if (
-      _.get(user, 'preferenceHotel.favoriteHotels', []).some(
+      _.get(user, 'favoriteHotels', []).some(
         favoriteHotel => Number(favoriteHotel.hotelId) === hotel.hotelId
       )
     ) {

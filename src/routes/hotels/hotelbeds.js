@@ -25,8 +25,7 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
 
     return res.status(200).send({
       ...suggestData,
-      cacheKey,
-      favoriteHotels: req.user.preferenceHotel.favoriteHotels
+      cacheKey
     })
   } catch (e) {
     // do nothing to run below query
@@ -55,8 +54,7 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
     if (hotelbedsRoomsRes.data) {
       res.status(200).send({
         ...suggestData,
-        cacheKey,
-        favoriteHotels: req.user.preferenceHotel.favoriteHotels
+        cacheKey
       })
     }
 
@@ -137,8 +135,7 @@ router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
 
     if (hotelbedsHotelsRes.data) {
       res.status(200).send({
-        hotel: hotelbedsHotelsData[0],
-        favoriteHotels: req.user.preferenceHotel.favoriteHotels
+        hotel: hotelbedsHotelsData[0]
       })
     }
 
