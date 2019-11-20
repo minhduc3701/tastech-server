@@ -87,7 +87,8 @@ router.patch('/me', async (req, res) => {
     'allowNotification',
     'notExceedBudget',
     'preferenceFlight',
-    'preferenceHotel'
+    'preferenceHotel',
+    'favoriteHotels'
   ])
 
   User.findByIdAndUpdate(
