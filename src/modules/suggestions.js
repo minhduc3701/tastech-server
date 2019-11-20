@@ -62,6 +62,13 @@ const suggestHotelRooms = (hotels, request, user) => {
 
   hotels = hotels.map(hotel => {
     let point = 0
+    let distanceToHotelInMeter =
+      getDistanceFromLatLonInKm(
+        targetLat,
+        targetLng,
+        hotel.latitude,
+        hotel.longitude
+      ) * 1000
 
     // under budget
     if (hotel.lowestPrice <= limitHotel) {
@@ -79,15 +86,15 @@ const suggestHotelRooms = (hotels, request, user) => {
     }
 
     // distance from search coordinate to hotel coordinate < 150 m
+    if (distanceToHotelInMeter <= 150) {
+      point += 5
+    }
+
+    // if in favorite hotels
     if (
-      getDistanceFromLatLonInKm(
-        targetLat,
-        targetLng,
-        hotel.latitude,
-        hotel.longitude
-      ) *
-        1000 <=
-      150
+      _.get(user, 'favoriteHotels', []).some(
+        favoriteHotel => Number(favoriteHotel.hotelId) === hotel.hotelId
+      )
     ) {
       point += 5
     }
@@ -109,9 +116,9 @@ const suggestHotelRooms = (hotels, request, user) => {
     }
   })
 
-  let sortHotels = _.reverse(_.sortBy(hotels, flight => flight.point))
-  let bestHotels = _.slice(sortHotels, 0, 3)
-  let bestHotelRooms = bestHotels.map(hotel => {
+  let bestHotels = _.reverse(_.sortBy(hotels, hotel => hotel.point))
+  let threeBestHotels = _.slice(bestHotels, 0, 3)
+  let bestHotelRooms = threeBestHotels.map(hotel => {
     let minRoom = _.minBy(
       _.get(hotel, 'ratePlans.ratePlanList', []),
       'totalPrice'
@@ -153,7 +160,7 @@ const suggestHotelRooms = (hotels, request, user) => {
   })
 
   return {
-    hotels,
+    hotels: bestHotels,
     bestHotelRooms
   }
 }
