@@ -44,7 +44,7 @@ router.post('/search', function(req, res, next) {
               }
             }
           ]
-        }),
+        }).limit(10), // limit airports to 10
         IataCity.find({
           city_id: { $in: cityIds }
         }),
