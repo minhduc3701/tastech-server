@@ -154,6 +154,7 @@ var UserSchema = new Schema({
       latitude: Number,
       longitude: Number,
       name: String,
+      supplier: String,
       starRating: String
     }
   ]
