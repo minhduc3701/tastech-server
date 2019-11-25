@@ -16,6 +16,22 @@ jobs:
             pm2 stop "server" && \
             PORT=8080 NODE_ENV=development pm2 start ./bin/www --name "server" && \
             echo Deploy development end"
+  deploy_demo:
+    docker:
+      - image: circleci/node:10.15.0-jessie-browsers-legacy
+    steps:
+      - run:
+          name: AWS EC2 deploy (development)
+          command: |
+            ssh -o StrictHostKeyChecking=no $SSH_DEMO_USER@$SSH_DEMO_HOST \
+            "echo Start demo deploy && \
+            cd ~/server && \
+            git fetch --all && \
+            git reset --hard origin/demo && \
+            yarn && \
+            pm2 stop "server" && \
+            PORT=8080 NODE_ENV=development pm2 start ./bin/www --name "server" && \
+            echo Deploy demo end"
   deploy:
     docker:
       - image: circleci/node:10.15.0-jessie-browsers-legacy
@@ -42,6 +58,11 @@ workflows:
             branches:
               only:
                 - develop
+      - deploy_demo:
+          filters:
+            branches:
+              only:
+                - demo
       - deploy:
           filters:
             branches:
