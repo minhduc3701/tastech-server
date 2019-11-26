@@ -19,20 +19,20 @@ block content
       each order in flightOrders
         table(style={width: '100%'})
           tr 
-            td
-              if (order.pnr)
-                  br
-                  span(style={'font-size': '12px', color: '#707070'}) PNR code
-                  br
-                  span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '1px', display: 'inline-block', border: '1px solid #f4b400', 'border-radius': '5px', padding: '5px'})
-                    |#{order.pnr}
-            td
-              if (order.bookingReference)
-                  br
-                  span(style={'font-size': '12px', color: '#707070'}) Booking Reference
-                  br
-                  span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '1px', display: 'inline-block', border: '1px solid #f4b400', 'border-radius': '5px', padding: '5px'})
-                    |#{order.bookingReference}
+            if (order.pnr)
+              td
+                br
+                span(style={'font-size': '12px', color: '#707070'}) PNR code
+                br
+                span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '1px', display: 'inline-block', border: '1px solid #f4b400', 'border-radius': '5px', padding: '5px'})
+                  |#{order.pnr}
+            if (order.bookingReference)
+              td
+                br
+                span(style={'font-size': '12px', color: '#707070'}) Booking Reference
+                br
+                span(style={color: '#f4b400', 'font-size': '22px', 'letter-spacing': '1px', display: 'inline-block', border: '1px solid #f4b400', 'border-radius': '5px', padding: '5px'})
+                  |#{order.bookingReference}
         h4 Departure Flights
         table(style={width: '100%'})
           each segment in order.flight.departureSegments
