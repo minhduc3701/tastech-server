@@ -7,6 +7,7 @@ router.post('/', async (req, res, next) => {
   const token = req.body.token
 
   if (!token) {
+    console.log('not token')
     return res.status(400).send()
   }
 
@@ -37,6 +38,7 @@ router.post('/', async (req, res, next) => {
       }
     })
   } catch (e) {
+    console.log(e)
     res.status(400).send()
   }
 })

@@ -9,6 +9,7 @@ async function register(user, token, userCreator) {
   ) {
     html = await renderMail('register-admin', {
       title: 'Welcome to EzBizTrip',
+      bcc: [process.env.EMAIL_SALES],
       link: `${process.env.APP_URI}/reset-password/${token}`,
       user,
       loginLink: `${process.env.APP_URI}/login`,
