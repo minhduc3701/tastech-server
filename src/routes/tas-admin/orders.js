@@ -14,15 +14,19 @@ router.get('/', function(req, res, next) {
   perPage = Math.max(0, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
-
+  let status = _.get(req.query, 'status', '')
+  let objFind = {}
+  if (status) {
+    objFind.status = status
+  }
   Promise.all([
-    Order.find({})
+    Order.find(objFind)
       .populate('_trip', ['type', 'name', 'contactInfo'])
       .populate('_customer', ['email'])
       .sort({ createdAt: -1 })
       .limit(perPage)
       .skip(perPage * page),
-    Order.countDocuments()
+    Order.countDocuments(objFind)
   ])
     .then(results => {
       let orders = results[0]
@@ -33,7 +37,8 @@ router.get('/', function(req, res, next) {
         total,
         count: orders.length,
         perPage,
-        orders
+        orders,
+        status
       })
     })
     .catch(e => {
@@ -68,7 +73,7 @@ router.patch(
       return res.status(404).send()
     }
 
-    const body = _.pick(req.body, ['status'])
+    const body = _.pick(req.body, ['status', 'bookingReference'])
 
     try {
       let order = await Order.findOneAndUpdate(
