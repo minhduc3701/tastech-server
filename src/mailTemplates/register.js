@@ -2,6 +2,7 @@ const { renderMail } = require('../config/mail')
 
 async function register(user, token, userCreator) {
   let html
+  let bcc
   if (
     userCreator &&
     user._role.type === 'admin' &&
@@ -17,6 +18,7 @@ async function register(user, token, userCreator) {
           ? 'We have created account for you:'
           : 'We have created 30 days demo account for you:'
     })
+    bcc = [process.env.EMAIL_SALES]
   } else {
     html = await renderMail('register', {
       title: 'Welcome to EzBizTrip',
@@ -26,6 +28,7 @@ async function register(user, token, userCreator) {
   }
   return {
     to: user.email,
+    bcc,
     from: `${process.env.EMAIL_CONTACT_ALIAS} <${process.env.EMAIL_NO_REPLY}>`,
     subject: `Welcome to EzBizTrip`,
     html
