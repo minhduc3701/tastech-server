@@ -187,6 +187,7 @@ const createOrFindHotelOrder = async (req, res, next) => {
           passengers: trip.passengers,
           childrenInfo: trip.childrenInfo,
           contactInfo: trip.contactInfo,
+          remark: trip.hotel.remark,
           discountCode: trip.discountCode
         })
       }
@@ -918,7 +919,6 @@ const hotelbedsCheckRate = async (req, res, next) => {
 
 const hotelbedsCreateOrder = async (req, res, next) => {
   const trip = req.trip
-
   if (_.get(trip, 'hotel.supplier') !== 'hotelbeds') {
     next()
     return
@@ -945,7 +945,7 @@ const hotelbedsCreateOrder = async (req, res, next) => {
         trip.hotel.ratePlanCode
       ),
       clientReference: 'EzBizTrip',
-      remark: '',
+      remark: trip.hotel.remark,
       tolerance: Number(process.env.HOTELBEDS_TOLERANCE) * 1.0
     }
 
