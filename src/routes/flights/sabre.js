@@ -12,7 +12,7 @@ const {
   sabreRestToken,
   sabreSoapSecurityToken
 } = require('../../middleware/sabre')
-const { makeSabreFlightsData } = require('../../modules/utils')
+const { makeSabreFlightsData, roundPrice } = require('../../modules/utils')
 const { logger } = require('../../config/winston')
 const { makeSabreRequestData } = require('../../modules/utilsSabre')
 const { makeSabreFlightCacheKey } = require('../../modules/cache')
@@ -247,9 +247,11 @@ router.post(
             time: moment(flightSegment[0].departureDate)
               .add(-1, 'hours')
               .format('LLL'),
-            amount:
+            amount: roundPrice(
               _.get(flightFareRuleRes[2], '_attributes.Amount', 0) *
-              req.currency.rate,
+                req.currency.rate,
+              req.currency.code
+            ),
             rawAmount: _.get(flightFareRuleRes[2], '_attributes.Amount', 0),
             currency: req.currency.code,
             rawCurrency: _.get(
@@ -267,9 +269,11 @@ router.post(
             time: moment(flightSegment[0].departureDate)
               .add(1, 'hours')
               .format('LLL'),
-            amount:
+            amount: roundPrice(
               _.get(flightFareRuleRes[3], '_attributes.Amount', 0) *
-              req.currency.rate,
+                req.currency.rate,
+              req.currency.code
+            ),
             rawAmount: _.get(flightFareRuleRes[3], '_attributes.Amount', 0),
             currency: req.currency.code,
             rawCurrency: _.get(
