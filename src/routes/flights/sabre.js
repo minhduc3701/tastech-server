@@ -217,12 +217,57 @@ router.post('/getFareRule', sabreSoapSecurityToken, async (req, res) => {
       </StructureFareRulesRQ>
   </SOAP-ENV:Body>
   </SOAP-ENV:Envelope>`
-    // logger.info('xml: ', { xml })
+    logger.info('xml req: ', { xml })
     let sabreRes = await apiSabre.callSabreSoapAPI(xml)
-    return res
-      .status(200)
-      .send(convert.xml2json(sabreRes.data, { compact: true, spaces: 4 }))
+    let jsonObjRes = convert.xml2json(sabreRes.data, {
+      compact: true,
+      spaces: 4
+    })
+    logger.info('xml res: ', { data: sabreRes.data })
+    // logger.info('jsonObjRes: ', { 'a': Object.keys(jsonObjRes) })
+
+    let flightFareRuleRes = _.get(
+      JSON.parse(jsonObjRes),
+      "['soap-env:Envelope']['soap-env:Body']['StructureFareRulesRS']['Summary']['PassengerDetails']['PassengerDetail'][PenaltiesInfo][Penalty]",
+      // 'soap-env:Envelope',
+      ''
+    )
+    logger.info('jsonObjRes: ', { data: JSON.parse(jsonObjRes) })
+    logger.info('flightFareRuleRes: ', { data: flightFareRuleRes })
+
+    let flightFareRule = []
+    if (flightFareRuleRes && flightFareRuleRes.length !== 0) {
+      if (
+        _.get(flightFareRuleRes[2], '_attributes.Refundable', false) === 'true'
+      ) {
+        flightFareRule.push({
+          time: moment(flightSegment[0].departureDate)
+            .add(-1, 'hours')
+            .format('LLL'),
+          amount: _.get(flightFareRuleRes[2], '_attributes.Amount', 0),
+          currency: _.get(flightFareRuleRes[2], '_attributes.CurrencyCode', '')
+        })
+      }
+      if (
+        _.get(flightFareRuleRes[3], '_attributes.Refundable', false) === 'true'
+      ) {
+        flightFareRule.push({
+          time: moment(flightSegment[0].departureDate)
+            .add(1, 'hours')
+            .format('LLL'),
+          amount: _.get(flightFareRuleRes[3], '_attributes.Amount', 0),
+          currency: _.get(flightFareRuleRes[3], '_attributes.CurrencyCode', '')
+        })
+      }
+    }
+    return (
+      res
+        .status(200)
+        // .send(convert.xml2json(sabreRes.data, { compact: true, spaces: 4 }))
+        .send({ flightFareRule })
+    )
   } catch (error) {
+    console.log(error)
     return res.status(400).send(error.msg)
   }
 })
