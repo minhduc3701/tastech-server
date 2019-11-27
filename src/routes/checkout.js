@@ -187,7 +187,7 @@ const createOrFindHotelOrder = async (req, res, next) => {
           passengers: trip.passengers,
           childrenInfo: trip.childrenInfo,
           contactInfo: trip.contactInfo,
-          remark: trip.remark,
+          remark: trip.hotel.remark,
           discountCode: trip.discountCode
         })
       }
