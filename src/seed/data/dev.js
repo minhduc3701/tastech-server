@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb')
 const User = require('../../models/user')
+const Partner = require('../../models/partner')
 const Company = require('../../models/company')
 const Role = require('../../models/role')
 const Request = require('../../models/request')
@@ -16,6 +17,8 @@ const tasAdminId = new ObjectID('5cc2d7a24c72b61214af0049')
 const adminId = new ObjectID('5cc2d7a24c72b61214af004a')
 const employeeId = new ObjectID('5cc2d7a24c72b61214af004b')
 const employeeId2 = new ObjectID('5cc2d7a24c72b61214af004c')
+const partnerId = new ObjectID('5cc2d7a24c72b61214aa0001')
+const partnerId2 = new ObjectID()
 const companyId = new ObjectID('5cc2d7a24c72b61214af004d')
 const companyId2 = new ObjectID()
 const companyId3 = new ObjectID()
@@ -237,6 +240,35 @@ const companies = [
     exchangedRate: 10,
     _policy: defaultPolicyId3,
     currency: 'VND'
+  }
+]
+
+const partners = [
+  {
+    _id: partnerId,
+    name: 'Giamso',
+    address: 'Singapore City, Singapore',
+    country: 'Singapore',
+    displayName: 'Giamso Travel',
+    title: 'Mr',
+    fullName: 'Ha Huy',
+    logo: 'http://i.pravatar.cc/150?img=2',
+    email: 'giamso@tastech.asia',
+    phone: '123123123',
+    currency: 'USD'
+  },
+  {
+    _id: partnerId2,
+    name: 'Giamso',
+    address: 'Singapore City, Singapore',
+    country: 'Singapore',
+    displayName: 'Giamso Travel',
+    title: 'Mr',
+    fullName: 'Ha Huy',
+    logo: 'http://i.pravatar.cc/150?img=3',
+    email: 'giamso2@tastech.asia',
+    phone: '123123123',
+    currency: 'USD'
   }
 ]
 
@@ -631,7 +663,7 @@ for (let i = 0; i < 200; i++) {
     namePrefix = 'Personal Trip'
   }
 
-  let startDate = chance.date({ month: 8, year: 2019 })
+  let startDate = chance.date({ month: 11, year: 2019 })
   let startDateObj = new Date(startDate)
   let duration = chance.integer({ min: 1, max: 10 })
   let endDateObj = new Date(startDateObj.getTime() + duration * 86400000)
@@ -732,6 +764,13 @@ const populateUsers = done => {
     .then(res => {
       return Promise.all(res.map(user => user.save()))
     })
+}
+
+const populatePartners = done => {
+  return Partner.deleteMany({}).then(() => {
+    let allParters = partners.map(partner => new Partner(partner))
+    return Promise.all(allParters.map(partner => partner.save()))
+  })
 }
 
 const populateCompanies = done => {
@@ -888,5 +927,7 @@ module.exports = {
   rewards,
   populateRewards,
   vouchers,
-  populateVouchers
+  populateVouchers,
+  partners,
+  populatePartners
 }
