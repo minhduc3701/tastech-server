@@ -151,11 +151,15 @@ router.post(
   }
 )
 
-router.post('/getFareRule', sabreSoapSecurityToken, async (req, res) => {
-  try {
-    let { sabreSoapSecurityToken } = req
-    let { flightSegment, numberOfPassenger } = req.body
-    let xml = `
+router.post(
+  '/getFareRule',
+  sabreCurrencyExchange,
+  sabreSoapSecurityToken,
+  async (req, res) => {
+    try {
+      let { sabreSoapSecurityToken } = req
+      let { flightSegment, numberOfPassenger } = req.body
+      let xml = `
     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:eb="http://www.ebxml.org/namespaces/messageHeader" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/1999/XMLSchema">
     <SOAP-ENV:Header>
         <eb:MessageHeader SOAP-ENV:mustUnderstand="1" eb:version="1.0">
@@ -188,8 +192,8 @@ router.post('/getFareRule', sabreSoapSecurityToken, async (req, res) => {
                    
                         `
 
-    flightSegment.map((segment, index) => {
-      xml += `  <OriginDestinationOption>
+      flightSegment.map((segment, index) => {
+        xml += `  <OriginDestinationOption>
                    <FlightSegment 
                     DepartureDate="${segment.departureDate}" 
                     ArrivalDate="${segment.arrivalDate}" 
@@ -210,66 +214,77 @@ router.post('/getFareRule', sabreSoapSecurityToken, async (req, res) => {
                       }" FareBasisCode="${segment.fareBasisCode}"/>
                 </OriginDestinationOption>
                 `
-    })
-    xml += ` 
+      })
+      xml += ` 
               </OriginDestinationOptions>
           </AirItinerary>
       </StructureFareRulesRQ>
   </SOAP-ENV:Body>
   </SOAP-ENV:Envelope>`
-    logger.info('xml req: ', { xml })
-    let sabreRes = await apiSabre.callSabreSoapAPI(xml)
-    let jsonObjRes = convert.xml2json(sabreRes.data, {
-      compact: true,
-      spaces: 4
-    })
-    logger.info('xml res: ', { data: sabreRes.data })
-    // logger.info('jsonObjRes: ', { 'a': Object.keys(jsonObjRes) })
+      // logger.info('xml req: ', { xml })
+      let sabreRes = await apiSabre.callSabreSoapAPI(xml)
+      let jsonObjRes = convert.xml2json(sabreRes.data, {
+        compact: true,
+        spaces: 4
+      })
+      // logger.info('xml res: ', { data: sabreRes.data })
 
-    let flightFareRuleRes = _.get(
-      JSON.parse(jsonObjRes),
-      "['soap-env:Envelope']['soap-env:Body']['StructureFareRulesRS']['Summary']['PassengerDetails']['PassengerDetail'][PenaltiesInfo][Penalty]",
-      // 'soap-env:Envelope',
-      ''
-    )
-    logger.info('jsonObjRes: ', { data: JSON.parse(jsonObjRes) })
-    logger.info('flightFareRuleRes: ', { data: flightFareRuleRes })
+      let flightFareRuleRes = _.get(
+        JSON.parse(jsonObjRes),
+        "['soap-env:Envelope']['soap-env:Body']['StructureFareRulesRS']['Summary']['PassengerDetails']['PassengerDetail'][PenaltiesInfo][Penalty]",
+        ''
+      )
+      logger.info('jsonObjRes: ', { data: JSON.parse(jsonObjRes) })
+      logger.info('flightFareRuleRes: ', { data: flightFareRuleRes })
 
-    let flightFareRule = []
-    if (flightFareRuleRes && flightFareRuleRes.length !== 0) {
-      if (
-        _.get(flightFareRuleRes[2], '_attributes.Refundable', false) === 'true'
-      ) {
-        flightFareRule.push({
-          time: moment(flightSegment[0].departureDate)
-            .add(-1, 'hours')
-            .format('LLL'),
-          amount: _.get(flightFareRuleRes[2], '_attributes.Amount', 0),
-          currency: _.get(flightFareRuleRes[2], '_attributes.CurrencyCode', '')
-        })
+      let flightFareRule = []
+      if (flightFareRuleRes && flightFareRuleRes.length !== 0) {
+        if (
+          _.get(flightFareRuleRes[2], '_attributes.Refundable', false) ===
+          'true'
+        ) {
+          flightFareRule.push({
+            time: moment(flightSegment[0].departureDate)
+              .add(-1, 'hours')
+              .format('LLL'),
+            amount:
+              _.get(flightFareRuleRes[2], '_attributes.Amount', 0) *
+              req.currency.rate,
+            rawAmount: _.get(flightFareRuleRes[2], '_attributes.Amount', 0),
+            currency: req.currency.code,
+            rawCurrency: _.get(
+              flightFareRuleRes[2],
+              '_attributes.CurrencyCode',
+              ''
+            )
+          })
+        }
+        if (
+          _.get(flightFareRuleRes[3], '_attributes.Refundable', false) ===
+          'true'
+        ) {
+          flightFareRule.push({
+            time: moment(flightSegment[0].departureDate)
+              .add(1, 'hours')
+              .format('LLL'),
+            amount:
+              _.get(flightFareRuleRes[3], '_attributes.Amount', 0) *
+              req.currency.rate,
+            rawAmount: _.get(flightFareRuleRes[3], '_attributes.Amount', 0),
+            currency: req.currency.code,
+            rawCurrency: _.get(
+              flightFareRuleRes[3],
+              '_attributes.CurrencyCode',
+              ''
+            )
+          })
+        }
       }
-      if (
-        _.get(flightFareRuleRes[3], '_attributes.Refundable', false) === 'true'
-      ) {
-        flightFareRule.push({
-          time: moment(flightSegment[0].departureDate)
-            .add(1, 'hours')
-            .format('LLL'),
-          amount: _.get(flightFareRuleRes[3], '_attributes.Amount', 0),
-          currency: _.get(flightFareRuleRes[3], '_attributes.CurrencyCode', '')
-        })
-      }
+      return res.status(200).send({ flightFareRule })
+    } catch (error) {
+      return res.status(400).send(error.msg)
     }
-    return (
-      res
-        .status(200)
-        // .send(convert.xml2json(sabreRes.data, { compact: true, spaces: 4 }))
-        .send({ flightFareRule })
-    )
-  } catch (error) {
-    console.log(error)
-    return res.status(400).send(error.msg)
   }
-})
+)
 
 module.exports = router
