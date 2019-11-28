@@ -158,7 +158,22 @@ router.post(
   async (req, res) => {
     try {
       let { sabreSoapSecurityToken } = req
-      let { flightSegment, numberOfPassenger } = req.body
+      let { departureSegments, returnSegments, numberOfPassenger } = req.body
+
+      let depatureFareBasisCodes = []
+      departureSegments.map(segment =>
+        depatureFareBasisCodes.push(segment.fareBasisCode)
+      )
+      depatureFareBasisCodes = _.uniq(depatureFareBasisCodes)
+
+      let returnFareBasisCodes = []
+      returnSegments.map(segment =>
+        returnFareBasisCodes.push(segment.fareBasisCode)
+      )
+      returnFareBasisCodes = _.uniq(returnFareBasisCodes)
+
+      let flightSegment = departureSegments.concat(returnSegments)
+
       let xml = `
     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:eb="http://www.ebxml.org/namespaces/messageHeader" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/1999/XMLSchema">
     <SOAP-ENV:Header>
@@ -193,6 +208,23 @@ router.post(
                         `
 
       flightSegment.map((segment, index) => {
+        let fareComponentNumber = 0
+        if (index < departureSegments.length) {
+          fareComponentNumber =
+            depatureFareBasisCodes.findIndex(
+              code => segment.fareBasisCode == code
+            ) + 1
+        } else {
+          fareComponentNumber =
+            returnFareBasisCodes.findIndex(
+              code => segment.fareBasisCode == code
+            ) +
+            1 +
+            depatureFareBasisCodes.length
+        }
+        // convert D: A, B, B  --- R: C, C, B
+        // => A, B -- C, B
+        // => 1, 2, 2 -- 3, 3, 4
         xml += `  <OriginDestinationOption>
                    <FlightSegment 
                     DepartureDate="${segment.departureDate}" 
@@ -209,9 +241,9 @@ router.post(
                   <OperatingAirline Code="${segment.operating}"/>
                     </FlightSegment>
                     <SegmentInformation SegmentNumber="0${index + 1}"/>
-                      <PaxTypeInformation PassengerType="ADT" FareComponentNumber="${
-                        segment.fareComponentNumber
-                      }" FareBasisCode="${segment.fareBasisCode}"/>
+                      <PaxTypeInformation PassengerType="ADT" FareComponentNumber="${fareComponentNumber}" FareBasisCode="${
+          segment.fareBasisCode
+        }"/>
                 </OriginDestinationOption>
                 `
       })
@@ -221,7 +253,7 @@ router.post(
       </StructureFareRulesRQ>
   </SOAP-ENV:Body>
   </SOAP-ENV:Envelope>`
-      // logger.info('xml req: ', { xml })
+      logger.info('xml req: ', { xml })
       let sabreRes = await apiSabre.callSabreSoapAPI(xml)
       let jsonObjRes = convert.xml2json(sabreRes.data, {
         compact: true,
@@ -234,8 +266,8 @@ router.post(
         "['soap-env:Envelope']['soap-env:Body']['StructureFareRulesRS']['Summary']['PassengerDetails']['PassengerDetail'][PenaltiesInfo][Penalty]",
         ''
       )
-      logger.info('jsonObjRes: ', { data: JSON.parse(jsonObjRes) })
-      logger.info('flightFareRuleRes: ', { data: flightFareRuleRes })
+      // logger.info('jsonObjRes: ', { data: JSON.parse(jsonObjRes) })
+      // logger.info('flightFareRuleRes: ', { data: flightFareRuleRes })
 
       let flightFareRule = []
       if (flightFareRuleRes && flightFareRuleRes.length !== 0) {
