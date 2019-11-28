@@ -253,7 +253,7 @@ router.post(
       </StructureFareRulesRQ>
   </SOAP-ENV:Body>
   </SOAP-ENV:Envelope>`
-      logger.info('xml req: ', { xml })
+      logger.info('sabreFareRule request: ', { xml })
       let sabreRes = await apiSabre.callSabreSoapAPI(xml)
       let jsonObjRes = convert.xml2json(sabreRes.data, {
         compact: true,
