@@ -197,6 +197,17 @@ const users = [
     _role: employeeRoleId3,
     firstName: chance.first(),
     lastName: chance.last()
+  },
+
+  // partner admin
+  {
+    username: 'partner-admin@tastech.asia',
+    email: 'partner-admin@tastech.asia',
+    _partner: partnerId,
+    avatar: `http://i.pravatar.cc/150?img=1`,
+    _role: partnerRoleId,
+    firstName: 'Thierry',
+    lastName: 'Henry'
   }
 ]
 
@@ -247,10 +258,9 @@ const companies = [
 const partners = [
   {
     _id: partnerId,
-    name: 'Giamso',
+    name: 'Giamso Travel',
     address: 'Singapore City, Singapore',
     country: 'Singapore',
-    displayName: 'Giamso Travel',
     title: 'Mr',
     fullName: 'Ha Huy',
     logo: 'http://i.pravatar.cc/150?img=2',
@@ -260,10 +270,9 @@ const partners = [
   },
   {
     _id: partnerId2,
-    name: 'Giamso',
+    name: 'Giamso 2',
     address: 'Singapore City, Singapore',
     country: 'Singapore',
-    displayName: 'Giamso Travel',
     title: 'Mr',
     fullName: 'Ha Huy',
     logo: 'http://i.pravatar.cc/150?img=3',

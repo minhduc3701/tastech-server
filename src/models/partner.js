@@ -7,7 +7,6 @@ var PartnerSchema = new Schema({
   name: String,
   address: String,
   country: String,
-  displayName: String,
   title: String,
   fullName: String,
   logo: String,
