@@ -47,6 +47,7 @@ const tasAdminRoleId = new ObjectID('5cc2d7a24c72b61214af0058')
 const adminRoleId = new ObjectID('5cc2d7a24c72b61214af0059')
 const adminRoleId2 = new ObjectID()
 const adminRoleId3 = new ObjectID()
+const partnerRoleId = new ObjectID('5cc2d7a24c72b61214af0061')
 const employeeRoleId = new ObjectID('5cc2d7a24c72b61214af0060')
 const employeeRoleId2 = new ObjectID()
 const employeeRoleId3 = new ObjectID()
@@ -285,6 +286,13 @@ const roles = [
     _id: tasAdminRoleId,
     name: 'Tas Admin',
     type: 'tas-admin',
+    permissions: []
+  },
+  {
+    _id: partnerRoleId,
+    name: 'Partner Admin',
+    type: 'partner-admin',
+    _partner: partnerId,
     permissions: []
   },
   {
