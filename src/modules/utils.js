@@ -713,6 +713,7 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
         const images = hotelImages.filter(image => image.roomCode === room.code)
 
         rooms.push({
+          ...rate,
           paymentType: rate.paymentType,
           ratePlanCode: room.rateKey,
           roomCode: room.code,
@@ -723,7 +724,6 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
           totalPrice: roundPrice(Number(price) * currency.rate, currency.code),
           rawTotalPrice: Number(rate.net),
           cancelRules: cancelRules,
-          ratePlanCode: rate.rateKey,
           rateType: rate.rateType,
           boardCode: rate.boardCode,
           boardName: rate.boardName,
