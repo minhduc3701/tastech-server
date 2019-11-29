@@ -9,11 +9,23 @@ const { roles } = require('../../config/roles')
 const api = require('../../modules/api')
 
 router.get('/', function(req, res) {
+  let keyword = _.get(req.query, 's', '')
+    .trim()
+    .toLowerCase()
+
   Promise.all([
     Partner.find({
-      _partner: req.user._partner
-    }).sort([['_id', -1]]),
-    Partner.count({})
+      name: {
+        $regex: new RegExp(keyword),
+        $options: 'i'
+      }
+    }),
+    Partner.count({
+      name: {
+        $regex: new RegExp(keyword),
+        $options: 'i'
+      }
+    })
   ])
     .then(results => {
       let partners = results[0]
