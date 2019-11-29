@@ -82,27 +82,27 @@ router.patch('/:id', function(req, res) {
     })
 })
 
-// router.delete('/:id', function(req, res) {
-//   let id = req.params.id
+router.delete('/:id', function(req, res) {
+  let id = req.params.id
 
-//   if (!ObjectID.isValid(id)) {
-//     return res.status(404).send()
-//   }
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
 
-//   Company.findByIdAndDelete(id)
-//     .then(company => {
-//       if (!company) {
-//         return res.status(404).send()
-//       }
+  Partner.findByIdAndDelete(id)
+    .then(partner => {
+      if (!partner) {
+        return res.status(404).send()
+      }
 
-//       res.status(200).send({ company })
+      res.status(200).send({ partner })
 
-//       return Role.deleteMany({ _company: company._id })
-//     })
-//     .then(roles => {})
-//     .catch(e => {
-//       res.status(400).send()
-//     })
-// })
+      return Role.deleteMany({ _partner: partner._id })
+    })
+    .then(roles => {})
+    .catch(e => {
+      res.status(400).send()
+    })
+})
 
 module.exports = router
