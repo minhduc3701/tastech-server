@@ -715,7 +715,7 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
         rooms.push({
           ...rate,
           paymentType: rate.paymentType,
-          ratePlanCode: room.rateKey,
+          ratePlanCode: rate.rateKey,
           roomCode: room.code,
           roomName: room.name,
           currency: currency.code,
