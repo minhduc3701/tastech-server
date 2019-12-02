@@ -18,7 +18,7 @@ const adminId = new ObjectID('5cc2d7a24c72b61214af004a')
 const employeeId = new ObjectID('5cc2d7a24c72b61214af004b')
 const employeeId2 = new ObjectID('5cc2d7a24c72b61214af004c')
 const partnerId = new ObjectID('5cc2d7a24c72b61214aa0001')
-const partnerId2 = new ObjectID()
+const partnerId2 = new ObjectID('5cc2d7a24c72b61214aa0002')
 const companyId = new ObjectID('5cc2d7a24c72b61214af004d')
 const companyId2 = new ObjectID()
 const companyId3 = new ObjectID()
@@ -48,6 +48,7 @@ const adminRoleId = new ObjectID('5cc2d7a24c72b61214af0059')
 const adminRoleId2 = new ObjectID()
 const adminRoleId3 = new ObjectID()
 const partnerRoleId = new ObjectID('5cc2d7a24c72b61214af0061')
+const partnerRoleId2 = new ObjectID('5cc2d7a24c72b61214af0062')
 const employeeRoleId = new ObjectID('5cc2d7a24c72b61214af0060')
 const employeeRoleId2 = new ObjectID()
 const employeeRoleId3 = new ObjectID()
@@ -208,6 +209,15 @@ const users = [
     _role: partnerRoleId,
     firstName: 'Thierry',
     lastName: 'Henry'
+  },
+  {
+    username: 'partner-admin2@tastech.asia',
+    email: 'partner-admin2@tastech.asia',
+    _partner: partnerId2,
+    avatar: `http://i.pravatar.cc/150?img=2`,
+    _role: partnerRoleId2,
+    firstName: 'Lionel',
+    lastName: 'Messi'
   }
 ]
 
@@ -302,6 +312,13 @@ const roles = [
     name: 'Partner Admin',
     type: 'partner-admin',
     _partner: partnerId,
+    permissions: []
+  },
+  {
+    _id: partnerRoleId2,
+    name: 'Partner Admin',
+    type: 'partner-admin',
+    _partner: partnerId2,
     permissions: []
   },
   {

@@ -28,7 +28,8 @@ router.get('/', function(req, res) {
 
 router.post('/roles', (req, res) => {
   Role.find({
-    _company: req.body.company
+    _company: req.body.company,
+    _partner: req.body.partner
   })
     .then(roles => res.status(200).send({ roles }))
     .catch(e => res.status(400).send())
