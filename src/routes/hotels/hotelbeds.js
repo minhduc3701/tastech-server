@@ -80,6 +80,12 @@ router.post('/checkRate', async (req, res) => {
   try {
     let data = await getCache(cacheKey)
 
+    if (data === 'NOT AVAILABLE') {
+      return res
+        .status(400)
+        .send({ message: 'NOT AVAILABLE. Please do not try again.' })
+    }
+
     return res.status(200).send({
       rate: _.get(data, 'hotel.rooms[0].rates[0]')
     })
@@ -101,9 +107,13 @@ router.post('/checkRate', async (req, res) => {
     return res.status(200).send({
       rate: _.get(response, 'data.hotel.rooms[0].rates[0]')
     })
-  } catch {}
+  } catch {
+    setCache(cacheKey, 'NOT AVAILABLE')
+  }
 
-  res.status(400).send()
+  res.status(400).send({
+    message: 'NOT AVAILABLE'
+  })
 })
 
 router.post('/rateCommentDetails', async (req, res) => {
