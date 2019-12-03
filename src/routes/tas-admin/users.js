@@ -32,7 +32,7 @@ router.post('/roles', (req, res) => {
     _partner: req.body.partner
   })
     .then(roles => res.status(200).send({ roles }))
-    .catch(e => res.status(400).send())
+    .catch(e => res.status(400).send(e))
 })
 
 router.post('/', createUser, (req, res) => {
@@ -65,6 +65,8 @@ router.get('/:id', function(req, res) {
 
   User.findById(id)
     .populate('_company', 'name')
+    .populate('_role')
+    .populate('_partner')
     .then(user => {
       if (!user) {
         return res.status(404).send()
@@ -95,7 +97,8 @@ router.patch('/:id', function(req, res) {
     '_company',
     '_department',
     '_admin',
-    '_role'
+    '_role',
+    '_partner'
   ])
 
   User.findByIdAndUpdate(id, { $set: body }, { new: true })
@@ -107,7 +110,7 @@ router.patch('/:id', function(req, res) {
       res.status(200).send({ user })
     })
     .catch(e => {
-      res.status(400).send()
+      res.status(400).send(e)
     })
 })
 
