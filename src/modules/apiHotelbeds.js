@@ -15,7 +15,8 @@ const endpoints = {
   hotels: `/hotel-api/${HOTELBEDS_CONTENT_VERSION}/hotels`,
   checkRate: `/hotel-api/${HOTELBEDS_CONTENT_VERSION}/checkrates`,
   bookings: `/hotel-api/${HOTELBEDS_BOOKING_VERSION}/bookings`, // required version 1.2 on production
-  bookingsCancel: `/hotel-api/${HOTELBEDS_CONTENT_VERSION}/bookings` // 1.0 for cancel
+  bookingsCancel: `/hotel-api/${HOTELBEDS_CONTENT_VERSION}/bookings`, // 1.0 for cancel,
+  rateCommentDetails: `/hotel-content-api/${HOTELBEDS_CONTENT_VERSION}/types/ratecommentdetails`
 }
 
 const api = {
@@ -39,6 +40,15 @@ const api = {
     return hotelbedsHttp.post(`${endpoints.checkRate}`, request, {
       headers: generateHeader()
     })
+  },
+  fetchRateCommentDetails: request => {
+    let queryParams = Object.keys(request).map(key => `${key}=${request[key]}`)
+    return hotelbedsHttp.get(
+      `${endpoints.rateCommentDetails}?${queryParams.join('&')}`,
+      {
+        headers: generateHeader()
+      }
+    )
   },
   createHotelbedsOrder: request => {
     return hotelbedsHttp.post(`${endpoints.bookings}`, request, {
