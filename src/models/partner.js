@@ -7,23 +7,14 @@ var PartnerSchema = new Schema({
   name: String,
   address: String,
   country: String,
-  title: String,
-  fullName: String,
-  logo: String,
-  email: String,
-  phone: String,
+  contactTitle: String,
+  contactName: String,
+  contactEmail: String,
+  contactPhone: String,
   currency: {
     type: String,
     required: true,
     enum: supportCurrencies
-  },
-  companyRole: {
-    type: 'ObjectId',
-    ref: 'Role'
-  },
-  saleStaff: {
-    type: 'ObjectId',
-    ref: 'User'
   },
   disabled: Boolean
 })

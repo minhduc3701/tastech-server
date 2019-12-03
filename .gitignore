@@ -3,3 +3,4 @@ config.json
 .DS_Store
 combined.log
 error.log
+newrelic_agent.log

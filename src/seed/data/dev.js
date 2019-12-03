@@ -271,11 +271,10 @@ const partners = [
     name: 'Giamso Travel',
     address: 'Singapore City, Singapore',
     country: 'Singapore',
-    title: 'Mr',
-    fullName: 'Ha Huy',
-    logo: 'http://i.pravatar.cc/150?img=2',
-    email: 'giamso@tastech.asia',
-    phone: '123123123',
+    contactTitle: 'Mr',
+    contactName: 'Ha Huy',
+    contactEmail: 'giamso@tastech.asia',
+    contactPhone: '123123123',
     currency: 'USD'
   },
   {
@@ -283,11 +282,10 @@ const partners = [
     name: 'Giamso 2',
     address: 'Singapore City, Singapore',
     country: 'Singapore',
-    title: 'Mr',
-    fullName: 'Ha Huy',
-    logo: 'http://i.pravatar.cc/150?img=3',
-    email: 'giamso2@tastech.asia',
-    phone: '123123123',
+    contactTitle: 'Mr',
+    contactName: 'Ha Huy',
+    contactEmail: 'giamso2@tastech.asia',
+    contactPhone: '123123123',
     currency: 'USD'
   }
 ]
