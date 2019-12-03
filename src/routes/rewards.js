@@ -19,7 +19,6 @@ let urboxKey = {
 }
 
 router.get('/countryFilter', currentCompany, async (req, res) => {
-  console.log('filter')
   try {
     let reqBody = { ...urboxKey, page_no: 1 }
 
