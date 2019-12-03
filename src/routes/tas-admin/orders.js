@@ -73,7 +73,7 @@ router.patch(
       return res.status(404).send()
     }
 
-    const body = _.pick(req.body, ['status', 'bookingReference'])
+    const body = _.pick(req.body, ['status', 'pnr'])
 
     try {
       let order = await Order.findOneAndUpdate(

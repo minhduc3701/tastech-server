@@ -39,7 +39,6 @@ const OrderSchema = new Schema(
       ]
     },
     customerCode: String,
-    bookingReference: String,
     number: String,
     cancelNumber: String,
     currency: String,
