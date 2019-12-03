@@ -12,11 +12,13 @@ router.get('/', function(req, res) {
 
   // @see https://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js
   Promise.all([
-    User.find({})
+    User.find({
+      _id: { $ne: req.user._id } // don't show current tas-admin
+    })
       .limit(perPage)
       .skip(perPage * page)
       .sort([['_id', -1]]),
-    User.count({})
+    User.count({ _id: { $ne: req.user._id } })
   ])
     .then(results => {
       let users = results[0]
@@ -103,20 +105,61 @@ router.patch('/:id', function(req, res) {
     '_department',
     '_admin',
     '_role',
-    '_partner'
+    '_partner',
+    'isTasAdmin'
   ])
 
-  User.findByIdAndUpdate(id, { $set: body }, { new: true })
-    .then(user => {
-      if (!user) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ user })
+  if (body.isTasAdmin) {
+    // CASE: edit user become tas-admin
+    Role.findOne({
+      type: 'tas-admin'
     })
-    .catch(e => {
-      res.status(400).send(e)
-    })
+      .then(role => {
+        if (!role) {
+          return
+        }
+        body._role = role._id
+        return User.findOneAndUpdate(
+          {
+            _id: {
+              $eq: id,
+              $ne: req.user._id // don't allow tas-admin update anything
+            }
+          },
+          { $set: body },
+          { new: true }
+        )
+      })
+      .then(user => {
+        if (!user) {
+          return res.status(404).send()
+        }
+        res.status(200).send({ user })
+      })
+      .catch(e => {
+        res.status(400).send(e)
+      })
+  } else {
+    User.findOneAndUpdate(
+      {
+        _id: {
+          $eq: id,
+          $ne: req.user._id // don't allow tas-admin update anything
+        }
+      },
+      { $set: body },
+      { new: true }
+    )
+      .then(user => {
+        if (!user) {
+          return res.status(404).send()
+        }
+        res.status(200).send({ user })
+      })
+      .catch(e => {
+        res.status(400).send(e)
+      })
+  }
 })
 
 router.delete('/:id', function(req, res) {
