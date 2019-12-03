@@ -3,12 +3,16 @@ extends ../layout.pug
 block content
   h2.text-center Request to issue ticket
   h3 PNR: #{pnr}
+  h3 Price: #{price} #{currency}
   h3 Passengers:
   ul
     each p in passengers
       li
-        |#{p.firstName} #{p.lastName}
-  h3 Price: #{price} #{currency}
+        |#{p.firstName} #{p.lastName} (#{p.businessEmail})
+  h3 Contact:
+  ul
+    li
+      |Email: #{contactInfo.email}
 
   h3 Departure Flights
   ul
