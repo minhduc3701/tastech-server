@@ -754,8 +754,7 @@ const sabreCreatePNR = async (req, res, next) => {
         ['data', 'CreatePassengerNameRecordRS', 'ItineraryRef', 'ID'],
         ''
       )
-      flightOrder.customerCode = pnr
-      flightOrder.pnr = pnr
+      flightOrder.customerCode = pnr // just virtual pnr
       flightOrder.status = 'processing'
       flightOrder.canCancel = true
       await flightOrder.save()

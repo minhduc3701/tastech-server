@@ -12,7 +12,7 @@ const {
   sabreRestToken,
   sabreSoapSecurityToken
 } = require('../../middleware/sabre')
-const { makeSabreFlightsData } = require('../../modules/utils')
+const { makeSabreFlightsData, roundPrice } = require('../../modules/utils')
 const { logger } = require('../../config/winston')
 const { makeSabreRequestData } = require('../../modules/utilsSabre')
 const { makeSabreFlightCacheKey } = require('../../modules/cache')
@@ -151,11 +151,30 @@ router.post(
   }
 )
 
-router.post('/getFareRule', sabreSoapSecurityToken, async (req, res) => {
-  try {
-    let { sabreSoapSecurityToken } = req
-    let { flightSegment, numberOfPassenger } = req.body
-    let xml = `
+router.post(
+  '/getFareRule',
+  sabreCurrencyExchange,
+  sabreSoapSecurityToken,
+  async (req, res) => {
+    try {
+      let { sabreSoapSecurityToken } = req
+      let { departureSegments, returnSegments, numberOfPassenger } = req.body
+
+      let depatureFareBasisCodes = []
+      departureSegments.map(segment =>
+        depatureFareBasisCodes.push(segment.fareBasisCode)
+      )
+      depatureFareBasisCodes = _.uniq(depatureFareBasisCodes)
+
+      let returnFareBasisCodes = []
+      returnSegments.map(segment =>
+        returnFareBasisCodes.push(segment.fareBasisCode)
+      )
+      returnFareBasisCodes = _.uniq(returnFareBasisCodes)
+
+      let flightSegment = departureSegments.concat(returnSegments)
+
+      let xml = `
     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:eb="http://www.ebxml.org/namespaces/messageHeader" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/1999/XMLSchema">
     <SOAP-ENV:Header>
         <eb:MessageHeader SOAP-ENV:mustUnderstand="1" eb:version="1.0">
@@ -188,8 +207,25 @@ router.post('/getFareRule', sabreSoapSecurityToken, async (req, res) => {
                    
                         `
 
-    flightSegment.map((segment, index) => {
-      xml += `  <OriginDestinationOption>
+      flightSegment.map((segment, index) => {
+        let fareComponentNumber = 0
+        if (index < departureSegments.length) {
+          fareComponentNumber =
+            depatureFareBasisCodes.findIndex(
+              code => segment.fareBasisCode == code
+            ) + 1
+        } else {
+          fareComponentNumber =
+            returnFareBasisCodes.findIndex(
+              code => segment.fareBasisCode == code
+            ) +
+            1 +
+            depatureFareBasisCodes.length
+        }
+        // convert D: A, B, B  --- R: C, C, B
+        // => A, B -- C, B
+        // => 1, 2, 2 -- 3, 3, 4
+        xml += `  <OriginDestinationOption>
                    <FlightSegment 
                     DepartureDate="${segment.departureDate}" 
                     ArrivalDate="${segment.arrivalDate}" 
@@ -205,26 +241,86 @@ router.post('/getFareRule', sabreSoapSecurityToken, async (req, res) => {
                   <OperatingAirline Code="${segment.operating}"/>
                     </FlightSegment>
                     <SegmentInformation SegmentNumber="0${index + 1}"/>
-                      <PaxTypeInformation PassengerType="ADT" FareComponentNumber="${
-                        segment.fareComponentNumber
-                      }" FareBasisCode="${segment.fareBasisCode}"/>
+                      <PaxTypeInformation PassengerType="ADT" FareComponentNumber="${fareComponentNumber}" FareBasisCode="${
+          segment.fareBasisCode
+        }"/>
                 </OriginDestinationOption>
                 `
-    })
-    xml += ` 
+      })
+      xml += ` 
               </OriginDestinationOptions>
           </AirItinerary>
       </StructureFareRulesRQ>
   </SOAP-ENV:Body>
   </SOAP-ENV:Envelope>`
-    // logger.info('xml: ', { xml })
-    let sabreRes = await apiSabre.callSabreSoapAPI(xml)
-    return res
-      .status(200)
-      .send(convert.xml2json(sabreRes.data, { compact: true, spaces: 4 }))
-  } catch (error) {
-    return res.status(400).send(error.msg)
+      logger.info('sabreFareRule request: ', { xml })
+      let sabreRes = await apiSabre.callSabreSoapAPI(xml)
+      let jsonObjRes = convert.xml2json(sabreRes.data, {
+        compact: true,
+        spaces: 4
+      })
+      // logger.info('xml res: ', { data: sabreRes.data })
+
+      let flightFareRuleRes = _.get(
+        JSON.parse(jsonObjRes),
+        "['soap-env:Envelope']['soap-env:Body']['StructureFareRulesRS']['Summary']['PassengerDetails']['PassengerDetail'][PenaltiesInfo][Penalty]",
+        ''
+      )
+      // logger.info('jsonObjRes: ', { data: JSON.parse(jsonObjRes) })
+      // logger.info('flightFareRuleRes: ', { data: flightFareRuleRes })
+
+      let flightFareRule = []
+      if (flightFareRuleRes && flightFareRuleRes.length !== 0) {
+        if (
+          _.get(flightFareRuleRes[2], '_attributes.Refundable', false) ===
+          'true'
+        ) {
+          flightFareRule.push({
+            time: moment(flightSegment[0].departureDate)
+              .add(-1, 'hours')
+              .format('LLL'),
+            amount: roundPrice(
+              _.get(flightFareRuleRes[2], '_attributes.Amount', 0) *
+                req.currency.rate,
+              req.currency.code
+            ),
+            rawAmount: _.get(flightFareRuleRes[2], '_attributes.Amount', 0),
+            currency: req.currency.code,
+            rawCurrency: _.get(
+              flightFareRuleRes[2],
+              '_attributes.CurrencyCode',
+              ''
+            )
+          })
+        }
+        if (
+          _.get(flightFareRuleRes[3], '_attributes.Refundable', false) ===
+          'true'
+        ) {
+          flightFareRule.push({
+            time: moment(flightSegment[0].departureDate)
+              .add(1, 'hours')
+              .format('LLL'),
+            amount: roundPrice(
+              _.get(flightFareRuleRes[3], '_attributes.Amount', 0) *
+                req.currency.rate,
+              req.currency.code
+            ),
+            rawAmount: _.get(flightFareRuleRes[3], '_attributes.Amount', 0),
+            currency: req.currency.code,
+            rawCurrency: _.get(
+              flightFareRuleRes[3],
+              '_attributes.CurrencyCode',
+              ''
+            )
+          })
+        }
+      }
+      return res.status(200).send({ flightFareRule })
+    } catch (error) {
+      return res.status(400).send(error.msg)
+    }
   }
-})
+)
 
 module.exports = router
