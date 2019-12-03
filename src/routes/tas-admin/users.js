@@ -46,9 +46,14 @@ router.post('/', createUser, (req, res) => {
           return
         }
 
-        req.user._role = role._id
-
-        return req.user.save()
+        return User.findOneAndUpdate(
+          { _id: req.user._id },
+          {
+            $set: {
+              _role: role._id
+            }
+          }
+        )
       })
       .then(user => {})
       .catch(e => {})
