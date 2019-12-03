@@ -8,6 +8,7 @@ const { logger } = require('../../config/winston')
 const { makeHotelBedsCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
 const { suggestHotelRooms } = require('../../modules/suggestions')
+const _ = require('lodash')
 
 router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
   let cacheKey = makeHotelBedsCacheKey(req.body.roomRequest)
@@ -72,18 +73,96 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
   }
 })
 
-router.post('/checkRate', (req, res) => {
-  const request = req.body
-  api
-    .checkRate(request)
-    .then(response => {
-      if (response.data) {
-        res.status(200).send({ hotel: response.data.hotel })
+router.post('/checkRate', async (req, res) => {
+  const rateKey = req.body.rateKey
+  const cacheKey = `checkRate-${rateKey}`
+
+  try {
+    let data = await getCache(cacheKey)
+
+    if (data === 'NOT AVAILABLE') {
+      return res
+        .status(400)
+        .send({ message: 'NOT AVAILABLE. Please do not try again.' })
+    }
+
+    return res.status(200).send({
+      rate: _.get(data, 'hotel.rooms[0].rates[0]')
+    })
+  } catch (e) {
+    // do nothing to run below query
+  }
+
+  try {
+    let response = await api.checkRate({
+      rooms: [
+        {
+          rateKey
+        }
+      ]
+    })
+
+    setCache(cacheKey, response.data)
+
+    return res.status(200).send({
+      rate: _.get(response, 'data.hotel.rooms[0].rates[0]')
+    })
+  } catch {
+    setCache(cacheKey, 'NOT AVAILABLE')
+  }
+
+  res.status(400).send({
+    message: 'NOT AVAILABLE'
+  })
+})
+
+router.post('/rateCommentDetails', async (req, res) => {
+  const rateCommentsId = req.body.rateCommentsId
+  const checkInDate = req.body.checkInDate
+  const cacheKey = `rateComments-${rateCommentsId}`
+
+  try {
+    let data = await getCache(cacheKey)
+    let responseData = _.omit(data, 'auditData')
+    let description = _.get(responseData, 'rateComments[0].description', '')
+
+    return res.status(200).send({
+      ...responseData,
+      rateComments: {
+        ..._.get(responseData, 'rateComments[0]'),
+        description: _.replace(description, /\n/g, '<br/>')
       }
     })
-    .catch(error => {
-      res.status(400).send()
+  } catch (e) {
+    // do nothing to run below query
+  }
+
+  try {
+    let response = await api.fetchRateCommentDetails({
+      code: rateCommentsId,
+      date: checkInDate,
+      fields: 'all',
+      language: 'ENG',
+      from: '1',
+      to: '100',
+      useSecondaryLanguage: 'True'
     })
+
+    setCache(cacheKey, response.data)
+
+    let responseData = _.omit(response.data, 'auditData')
+    let description = _.get(responseData, 'rateComments[0].description', '')
+
+    return res.status(200).send({
+      ...responseData,
+      rateComments: {
+        ..._.get(responseData, 'rateComments[0]'),
+        description: _.replace(description, /\n/g, '<br/>')
+      }
+    })
+  } catch (e) {}
+
+  res.status(400).send()
 })
 
 router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
