@@ -6,7 +6,8 @@ async function sendPnrGiamso(flightOrder) {
     price: `${flightOrder.flight.rawTotalPrice}`,
     currency: `${flightOrder.flight.rawCurrency}`,
     flight: flightOrder.flight,
-    passengers: flightOrder.passengers
+    passengers: flightOrder.passengers,
+    contactInfo: flightOrder.contactInfo
   })
   return {
     to: `${process.env.EMAIL_GIAMSO}`,
