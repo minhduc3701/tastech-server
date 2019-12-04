@@ -61,8 +61,8 @@ router.post('/', function(req, res) {
     .save()
     .then(partner => {
       let role = new Role({
-        name: 'Partner',
-        type: 'partner',
+        name: 'Partner Admin',
+        type: 'partner-admin',
         _partner: partner._id
       })
       return role.save()

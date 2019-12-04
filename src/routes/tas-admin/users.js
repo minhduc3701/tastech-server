@@ -34,7 +34,7 @@ router.post('/roles', (req, res) => {
     _partner: req.body.partner
   })
     .then(roles => res.status(200).send({ roles }))
-    .catch(e => res.status(400).send(e))
+    .catch(e => res.status(400).send())
 })
 
 router.post('/', createUser, (req, res) => {
@@ -86,7 +86,7 @@ router.get('/:id', function(req, res) {
     })
 })
 
-router.patch('/:id', function(req, res) {
+router.patch('/:id', async function(req, res) {
   let id = req.params.id
 
   if (!ObjectID.isValid(id)) {
@@ -108,39 +108,18 @@ router.patch('/:id', function(req, res) {
     '_partner',
     'isTasAdmin'
   ])
-
-  if (body.isTasAdmin) {
-    // CASE: edit user become tas-admin
-    Role.findOne({
-      type: 'tas-admin'
-    })
-      .then(role => {
-        if (!role) {
-          return
-        }
-        body._role = role._id
-        return User.findOneAndUpdate(
-          {
-            _id: {
-              $eq: id,
-              $ne: req.user._id // don't allow tas-admin update anything
-            }
-          },
-          { $set: body },
-          { new: true }
-        )
+  try {
+    if (body.isTasAdmin) {
+      // CASE: edit user become tas-admin
+      let role = await Role.findOne({
+        type: 'tas-admin'
       })
-      .then(user => {
-        if (!user) {
-          return res.status(404).send()
-        }
-        res.status(200).send({ user })
-      })
-      .catch(e => {
-        res.status(400).send(e)
-      })
-  } else {
-    User.findOneAndUpdate(
+      if (!role) {
+        return res.status(404).send()
+      }
+      body._role = role._id
+    }
+    let user = await User.findOneAndUpdate(
       {
         _id: {
           $eq: id,
@@ -150,15 +129,12 @@ router.patch('/:id', function(req, res) {
       { $set: body },
       { new: true }
     )
-      .then(user => {
-        if (!user) {
-          return res.status(404).send()
-        }
-        res.status(200).send({ user })
-      })
-      .catch(e => {
-        res.status(400).send(e)
-      })
+    if (!user) {
+      return res.status(404).send()
+    }
+    res.status(200).send({ user })
+  } catch (error) {
+    res.status(400).send()
   }
 })
 

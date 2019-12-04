@@ -19,15 +19,4 @@ var PartnerSchema = new Schema({
   disabled: Boolean
 })
 
-PartnerSchema.methods.toJSON = function() {
-  var partner = this
-  var partnerObject = partner.toObject()
-
-  partnerObject.logo = partnerObject.logo
-    ? process.env.AWS_S3_URI + '/' + partnerObject.logo
-    : null
-
-  return partnerObject
-}
-
 module.exports = mongoose.model('Partner', PartnerSchema)
