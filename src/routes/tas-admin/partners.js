@@ -9,6 +9,11 @@ const { roles } = require('../../config/roles')
 const api = require('../../modules/api')
 
 router.get('/', function(req, res) {
+  let perPage = _.get(req.query, 'perPage', 15)
+  perPage = Math.max(0, parseInt(perPage))
+  let page = _.get(req.query, 'page', 0)
+  page = Math.max(0, parseInt(page))
+
   let keyword = _.get(req.query, 's', '')
     .trim()
     .toLowerCase()
@@ -19,7 +24,9 @@ router.get('/', function(req, res) {
         $regex: new RegExp(keyword),
         $options: 'i'
       }
-    }),
+    })
+      .limit(perPage)
+      .skip(perPage * page),
     Partner.count({
       name: {
         $regex: new RegExp(keyword),
@@ -30,7 +37,13 @@ router.get('/', function(req, res) {
     .then(results => {
       let partners = results[0]
       let total = results[1]
-      res.status(200).send({ total, partners })
+      res.status(200).send({
+        page,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        perPage,
+        partners
+      })
     })
     .catch(e => res.status(400).send())
 })
