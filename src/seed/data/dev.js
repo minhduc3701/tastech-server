@@ -22,6 +22,8 @@ const partnerId2 = new ObjectID('5cc2d7a24c72b61214aa0002')
 const companyId = new ObjectID('5cc2d7a24c72b61214af004d')
 const companyId2 = new ObjectID()
 const companyId3 = new ObjectID()
+const companyId4 = new ObjectID()
+const companyId5 = new ObjectID()
 const tripId = new ObjectID('5cc2d7a24c72b61214af0051')
 const tripId2 = new ObjectID('5cc2d7a24c72b61214af0052')
 const tripId3 = new ObjectID('5cc2d7a24c72b61214af0053')
@@ -262,6 +264,22 @@ const companies = [
     exchangedRate: 10,
     _policy: defaultPolicyId3,
     currency: 'VND'
+  },
+  {
+    _id: companyId4,
+    name: 'Company 4',
+    exchangedRate: 10,
+    _policy: defaultPolicyId3,
+    currency: 'USD',
+    _partner: partnerId
+  },
+  {
+    _id: companyId5,
+    name: 'Company 5',
+    exchangedRate: 10,
+    _policy: defaultPolicyId3,
+    currency: 'USD',
+    _partner: partnerId
   }
 ]
 
