@@ -28,7 +28,11 @@ const CompanySchema = new Schema({
   },
   language: '',
   weightUnit: '',
-  lengthUnit: ''
+  lengthUnit: '',
+  _partner: {
+    type: 'ObjectId',
+    ref: 'Partner'
+  }
 })
 
 CompanySchema.methods.toJSON = function() {
