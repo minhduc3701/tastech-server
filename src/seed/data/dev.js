@@ -265,6 +265,14 @@ const companies = [
   }
 ]
 
+for (let i = 3; i < 30; i++) {
+  companies.push({
+    name: chance.company(),
+    exchangedRate: 10,
+    currency: 'USD'
+  })
+}
+
 const partners = [
   {
     _id: partnerId,
@@ -291,13 +299,17 @@ const partners = [
 ]
 
 for (let i = 3; i < 30; i++) {
-  companies.push({
+  partners.push({
     name: chance.company(),
-    exchangedRate: 10,
+    address: chance.address(),
+    country: chance.country(),
+    contactTitle: 'Mr',
+    contactName: chance.name(),
+    contactEmail: chance.email(),
+    contactPhone: chance.phone(),
     currency: 'USD'
   })
 }
-
 const roles = [
   {
     _id: tasAdminRoleId,
