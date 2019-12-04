@@ -22,6 +22,7 @@ const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
 const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
 const tasAdminOrdersRouter = require('./routes/tas-admin/orders')
 const tasAdminRewardsRouter = require('./routes/tas-admin/rewards')
+const tasAdminPartnerRouter = require('./routes/tas-admin/partners')
 const adminCompanyRouter = require('./routes/admin/company')
 const adminUsersRouter = require('./routes/admin/users')
 const adminRolesRouter = require('./routes/admin/roles')
@@ -120,6 +121,13 @@ app.use(
   jwtAuthenticate,
   authenticateRole('tas-admin'),
   tasAdminRewardsRouter
+)
+
+app.use(
+  '/tas-admin/partners',
+  jwtAuthenticate,
+  authenticateRole('tas-admin'),
+  tasAdminPartnerRouter
 )
 
 // admin routes

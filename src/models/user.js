@@ -51,6 +51,10 @@ var UserSchema = new Schema({
     type: 'ObjectId',
     ref: 'Role'
   },
+  _partner: {
+    type: 'ObjectId',
+    ref: 'Partner'
+  },
   _policy: {
     type: 'ObjectId',
     ref: 'Policy'

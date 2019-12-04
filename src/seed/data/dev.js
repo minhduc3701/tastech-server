@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb')
 const User = require('../../models/user')
+const Partner = require('../../models/partner')
 const Company = require('../../models/company')
 const Role = require('../../models/role')
 const Request = require('../../models/request')
@@ -16,6 +17,8 @@ const tasAdminId = new ObjectID('5cc2d7a24c72b61214af0049')
 const adminId = new ObjectID('5cc2d7a24c72b61214af004a')
 const employeeId = new ObjectID('5cc2d7a24c72b61214af004b')
 const employeeId2 = new ObjectID('5cc2d7a24c72b61214af004c')
+const partnerId = new ObjectID('5cc2d7a24c72b61214aa0001')
+const partnerId2 = new ObjectID('5cc2d7a24c72b61214aa0002')
 const companyId = new ObjectID('5cc2d7a24c72b61214af004d')
 const companyId2 = new ObjectID()
 const companyId3 = new ObjectID()
@@ -44,6 +47,8 @@ const tasAdminRoleId = new ObjectID('5cc2d7a24c72b61214af0058')
 const adminRoleId = new ObjectID('5cc2d7a24c72b61214af0059')
 const adminRoleId2 = new ObjectID()
 const adminRoleId3 = new ObjectID()
+const partnerRoleId = new ObjectID('5cc2d7a24c72b61214af0061')
+const partnerRoleId2 = new ObjectID('5cc2d7a24c72b61214af0062')
 const employeeRoleId = new ObjectID('5cc2d7a24c72b61214af0060')
 const employeeRoleId2 = new ObjectID()
 const employeeRoleId3 = new ObjectID()
@@ -193,6 +198,26 @@ const users = [
     _role: employeeRoleId3,
     firstName: chance.first(),
     lastName: chance.last()
+  },
+
+  // partner admin
+  {
+    username: 'partner-admin@tastech.asia',
+    email: 'partner-admin@tastech.asia',
+    _partner: partnerId,
+    avatar: `http://i.pravatar.cc/150?img=1`,
+    _role: partnerRoleId,
+    firstName: 'Thierry',
+    lastName: 'Henry'
+  },
+  {
+    username: 'partner-admin2@tastech.asia',
+    email: 'partner-admin2@tastech.asia',
+    _partner: partnerId2,
+    avatar: `http://i.pravatar.cc/150?img=2`,
+    _role: partnerRoleId2,
+    firstName: 'Lionel',
+    lastName: 'Messi'
   }
 ]
 
@@ -240,6 +265,31 @@ const companies = [
   }
 ]
 
+const partners = [
+  {
+    _id: partnerId,
+    name: 'Giamso Travel',
+    address: 'Singapore City, Singapore',
+    country: 'Singapore',
+    contactTitle: 'Mr',
+    contactName: 'Ha Huy',
+    contactEmail: 'giamso@tastech.asia',
+    contactPhone: '123123123',
+    currency: 'USD'
+  },
+  {
+    _id: partnerId2,
+    name: 'Giamso 2',
+    address: 'Singapore City, Singapore',
+    country: 'Singapore',
+    contactTitle: 'Mr',
+    contactName: 'Ha Huy',
+    contactEmail: 'giamso2@tastech.asia',
+    contactPhone: '123123123',
+    currency: 'USD'
+  }
+]
+
 for (let i = 3; i < 30; i++) {
   companies.push({
     name: chance.company(),
@@ -253,6 +303,20 @@ const roles = [
     _id: tasAdminRoleId,
     name: 'Tas Admin',
     type: 'tas-admin',
+    permissions: []
+  },
+  {
+    _id: partnerRoleId,
+    name: 'Partner Admin',
+    type: 'partner-admin',
+    _partner: partnerId,
+    permissions: []
+  },
+  {
+    _id: partnerRoleId2,
+    name: 'Partner Admin',
+    type: 'partner-admin',
+    _partner: partnerId2,
     permissions: []
   },
   {
@@ -631,7 +695,7 @@ for (let i = 0; i < 200; i++) {
     namePrefix = 'Personal Trip'
   }
 
-  let startDate = chance.date({ month: 8, year: 2019 })
+  let startDate = chance.date({ month: 11, year: 2019 })
   let startDateObj = new Date(startDate)
   let duration = chance.integer({ min: 1, max: 10 })
   let endDateObj = new Date(startDateObj.getTime() + duration * 86400000)
@@ -732,6 +796,13 @@ const populateUsers = done => {
     .then(res => {
       return Promise.all(res.map(user => user.save()))
     })
+}
+
+const populatePartners = done => {
+  return Partner.deleteMany({}).then(() => {
+    let allParters = partners.map(partner => new Partner(partner))
+    return Promise.all(allParters.map(partner => partner.save()))
+  })
 }
 
 const populateCompanies = done => {
@@ -888,5 +959,7 @@ module.exports = {
   rewards,
   populateRewards,
   vouchers,
-  populateVouchers
+  populateVouchers,
+  partners,
+  populatePartners
 }
