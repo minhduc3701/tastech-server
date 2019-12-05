@@ -29,10 +29,37 @@ const CompanySchema = new Schema({
   language: '',
   weightUnit: '',
   lengthUnit: '',
+  // partner flow
   _partner: {
     type: 'ObjectId',
     ref: 'Partner'
-  }
+  },
+  contactName: String,
+  contactEmail: String,
+  contactPhone: String,
+  contactCallingCode: String,
+  onBehalf: Boolean,
+  payment: {
+    type: String,
+    enum: ['deposit', 'credit-card']
+  },
+  isCreditLimitation: Boolean,
+  creditLimitationAmount: Number,
+  warningAmount: Number,
+  sendMailToCompanyAdmin: Boolean,
+  sendMailToPartnerAdmin: Boolean,
+  balance: Number,
+  markupFlight: {
+    type: String,
+    enum: ['net', 'percentage']
+  },
+  markupFlightAmount: Number,
+  markupHotel: {
+    type: String,
+    enum: ['net', 'percentage']
+  },
+  markupHotelAmount: Number,
+  note: String
 })
 
 CompanySchema.methods.toJSON = function() {
