@@ -463,6 +463,34 @@ for (let i = 3; i < 30; i++) {
   })
 }
 
+for (let i = 0; i < 20; i++) {
+  companies.push({
+    _id: new ObjectID(),
+    name: chance.company(),
+    exchangedRate: 10,
+    _policy: defaultPolicyPartnerId4,
+    currency: 'USD',
+    _partner: partnerId,
+    contactName: chance.name(),
+    contactEmail: chance.email(),
+    contactPhone: chance.phone(),
+    contactCallingCode: '+65',
+    onBehalf: true,
+    payment: 'deposit',
+    isCreditLimitation: true,
+    creditLimitationAmount: 2000,
+    warningAmount: 500,
+    sendMailToCompanyAdmin: true,
+    sendMailToPartnerAdmin: true,
+    balance: 0,
+    markupFlight: 'net',
+    markupFlightAmount: 20,
+    markupHotel: 'percentage',
+    markupHotelAmount: 5,
+    note: 'something about company'
+  })
+}
+
 const partners = [
   {
     _id: partnerId,
