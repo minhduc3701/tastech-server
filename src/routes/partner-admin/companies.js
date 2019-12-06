@@ -5,8 +5,10 @@ const _ = require('lodash')
 
 router.get('/', function(req, res) {
   const option = {
-    _partner: req.user._partner
+    _partner: req.user._partner,
+    name: new RegExp(_.get(req, 'query.s', ''), 'i')
   }
+
   const perPage = Number(_.get(req, 'query.perPage', 10))
   const page = Number(_.get(req, 'query.page', 0))
 
@@ -28,20 +30,6 @@ router.get('/', function(req, res) {
       })
     })
     .catch(e => res.status(400).send())
-})
-
-router.post('/search', (req, res) => {
-  Company.find({
-    _partner: req.user._partner,
-    name: new RegExp(req.body.keyword, 'i')
-  })
-    .limit(10)
-    .then(companies => {
-      res.status(200).send({ companies })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
 })
 
 module.exports = router
