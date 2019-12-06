@@ -3,11 +3,6 @@ const router = express.Router()
 const Order = require('../../models/order')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
-const { emailEmployeeItinerary } = require('../../middleware/email')
-const {
-  refundCancelledOrderManually,
-  emailCustomerCancelledOrder
-} = require('../../middleware/orders')
 
 router.get('/', function(req, res, next) {
   let perPage = _.get(req.query, 'perPage', 50)
@@ -15,11 +10,18 @@ router.get('/', function(req, res, next) {
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
   let status = _.get(req.query, 'status', '')
+  let companies = _.get(req.query, 'companies', '')
+
   let objFind = {}
+  objFind._partner = req.user._partner
   if (status) {
     objFind.status = status
   }
-  objFind._partner = null // do not get partner's orders
+  if (!_.isEmpty(companies)) {
+    companies = companies.split(',')
+    objFind._company = { $in: companies }
+  }
+
   Promise.all([
     Order.find(objFind)
       .populate('_trip', ['type', 'name', 'contactInfo'])
@@ -53,7 +55,7 @@ router.get('/:id', function(req, res, next) {
   }
   Order.findOne({
     _id: req.params.id,
-    _partner: null // do not get partner's orders
+    _partner: req.user._partner
   })
     .then(order => {
       if (!order) {
@@ -65,56 +67,5 @@ router.get('/:id', function(req, res, next) {
       res.status(400).send()
     })
 })
-
-router.patch(
-  '/:id',
-  async (req, res, next) => {
-    let id = req.params.id
-
-    if (!ObjectID.isValid(id)) {
-      return res.status(404).send()
-    }
-
-    const body = _.pick(req.body, ['status', 'pnr'])
-
-    try {
-      let order = await Order.findOneAndUpdate(
-        {
-          _id: id,
-          _partner: null, //  don't update partner's orders
-          status: { $ne: 'cancelled' } // don't update cancelled order
-        },
-        { $set: body },
-        { new: true }
-      )
-
-      if (!order) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ order })
-
-      if (order.status === 'completed') {
-        //for sending email to employee
-        req.trip = {
-          _id: order._trip
-        }
-        return next()
-      }
-
-      // refund order manually
-      if (order.status === 'cancelled') {
-        req.cancelledOrder = order
-        req.cancelCharge = req.body.cancelCharge
-        return next()
-      }
-    } catch (e) {
-      res.status(400).send()
-    }
-  },
-  refundCancelledOrderManually,
-  emailCustomerCancelledOrder,
-  emailEmployeeItinerary
-)
 
 module.exports = router
