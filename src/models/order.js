@@ -15,6 +15,10 @@ const OrderSchema = new Schema(
       required: true,
       ref: 'Company'
     },
+    _partner: {
+      type: 'ObjectId',
+      ref: 'Partner'
+    },
     _trip: {
       type: 'ObjectId',
       required: true,

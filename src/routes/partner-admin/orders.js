@@ -8,6 +8,8 @@ const {
   refundCancelledOrderManually,
   emailCustomerCancelledOrder
 } = require('../../middleware/orders')
+const Airline = require('../../models/airline')
+const Airport = require('../../models/airport')
 
 router.get('/', function(req, res, next) {
   let perPage = _.get(req.query, 'perPage', 50)
@@ -15,12 +17,19 @@ router.get('/', function(req, res, next) {
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
   let status = _.get(req.query, 'status', '')
+  let companies = _.get(req.query, 'companies', '')
+
   let objFind = {
-    _partner: null // do not get partner's orders
+    _partner: req.user._partner
   }
   if (status) {
     objFind.status = status
   }
+  if (!_.isEmpty(companies)) {
+    companies = companies.split(',')
+    objFind._company = { $in: companies }
+  }
+
   Promise.all([
     Order.find(objFind)
       .populate('_trip', ['type', 'name', 'contactInfo'])
@@ -52,17 +61,66 @@ router.get('/:id', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
+  let airlines = []
+  let airports = []
   Order.findOne({
     _id: req.params.id,
-    _partner: null // do not get partner's orders
+    _partner: req.user._partner
   })
     .then(order => {
       if (!order) {
         return res.status(404).send()
       }
-      res.status(200).send({ order })
+      if (order.flight) {
+        order.flight.departureSegments.forEach(segment => {
+          airlines.push(segment.airline)
+          airports.push(segment.departure)
+          airports.push(segment.arrival)
+        })
+        order.flight.returnSegments.forEach(segment => {
+          airlines.push(segment.airline)
+          airports.push(segment.departure)
+          airports.push(segment.arrival)
+        })
+      }
+      airlines = _.uniq(airlines)
+      airports = _.uniq(airports)
+
+      return Promise.all([
+        order,
+        Airline.find({
+          iata: {
+            $in: airlines
+          }
+        }),
+        Airport.find({
+          airport_code: {
+            $in: airports
+          }
+        })
+      ])
+    })
+    .then(results => {
+      let order = results[0]
+      let arrAirline = results[1]
+      let arrAirport = results[2]
+      let airlines = {}
+      arrAirline.forEach(airline => {
+        airlines[airline._doc.iata] = airline
+      })
+      let airports = {}
+      arrAirport.forEach(airport => {
+        airports[airport._doc.airport_code] = airport
+      })
+
+      res.status(200).send({
+        order,
+        airlines,
+        airports
+      })
     })
     .catch(e => {
+      console.log(e)
       res.status(400).send()
     })
 })
@@ -82,7 +140,7 @@ router.patch(
       let order = await Order.findOneAndUpdate(
         {
           _id: id,
-          _partner: null, //  don't update partner's orders
+          _partner: req.user._partner,
           status: { $ne: 'cancelled' } // don't update cancelled order
         },
         { $set: body },
