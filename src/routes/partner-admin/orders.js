@@ -8,6 +8,8 @@ const {
   refundCancelledOrderManually,
   emailCustomerCancelledOrder
 } = require('../../middleware/orders')
+const Airline = require('../../models/airline')
+const Airport = require('../../models/airport')
 
 router.get('/', function(req, res, next) {
   let perPage = _.get(req.query, 'perPage', 50)
@@ -58,6 +60,8 @@ router.get('/:id', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
+  let airlines = []
+  let airports = []
   Order.findOne({
     _id: req.params.id,
     _partner: req.user._partner
@@ -66,9 +70,56 @@ router.get('/:id', function(req, res, next) {
       if (!order) {
         return res.status(404).send()
       }
-      res.status(200).send({ order })
+      if (order.flight) {
+        order.flight.departureSegments.forEach(segment => {
+          airlines.push(segment.airline)
+          airports.push(segment.departure)
+          airports.push(segment.arrival)
+        })
+        order.flight.returnSegments.forEach(segment => {
+          airlines.push(segment.airline)
+          airports.push(segment.departure)
+          airports.push(segment.arrival)
+        })
+      }
+      airlines = _.uniq(airlines)
+      airports = _.uniq(airports)
+
+      return Promise.all([
+        order,
+        Airline.find({
+          iata: {
+            $in: airlines
+          }
+        }),
+        Airport.find({
+          airport_code: {
+            $in: airports
+          }
+        })
+      ])
+    })
+    .then(results => {
+      let order = results[0]
+      let arrAirline = results[1]
+      let arrAirport = results[2]
+      let airlines = {}
+      arrAirline.forEach(airline => {
+        airlines[airline._doc.iata] = airline
+      })
+      let airports = {}
+      arrAirport.forEach(airport => {
+        airports[airport._doc.airport_code] = airport
+      })
+
+      res.status(200).send({
+        order,
+        airlines,
+        airports
+      })
     })
     .catch(e => {
+      console.log(e)
       res.status(400).send()
     })
 })
