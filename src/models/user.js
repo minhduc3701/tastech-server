@@ -167,7 +167,12 @@ UserSchema.methods.toJSON = function() {
   var user = this
   var userObject = user.toObject()
 
-  userObject = _.omit(userObject, ['hash', 'salt'])
+  userObject = _.omit(userObject, [
+    'hash',
+    'salt',
+    'resetPasswordToken',
+    'resetPasswordExpires'
+  ])
   userObject.avatar = getImageUri(userObject.avatar)
 
   return userObject
