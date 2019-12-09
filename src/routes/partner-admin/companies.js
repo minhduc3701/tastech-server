@@ -89,7 +89,10 @@ router.get('/:id', (req, res) => {
     return res.status(404).send()
   }
 
-  Company.findById(req.params.id)
+  Company.findOne({
+    _id: req.params.id,
+    _partner: req.user._partner
+  })
     .then(company => {
       if (!company) {
         return res.status(404).send()
@@ -110,7 +113,14 @@ router.patch('/:id', (req, res) => {
 
   const body = _.pick(req.body, companyFields)
 
-  Company.findByIdAndUpdate(req.params.id, { $set: body }, { new: true })
+  Company.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      _partner: req.user._partner
+    },
+    { $set: body },
+    { new: true }
+  )
     .then(company => {
       if (!company) {
         return res.status(404).send()
@@ -130,7 +140,8 @@ router.delete('/:id', function(req, res) {
   }
 
   Company.findOneAndDelete({
-    _id: req.params.id
+    _id: req.params.id,
+    _partner: req.user._partner
   })
     .then(company => {
       if (!company) {
