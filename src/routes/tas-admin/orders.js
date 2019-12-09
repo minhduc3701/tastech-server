@@ -15,11 +15,12 @@ router.get('/', function(req, res, next) {
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
   let status = _.get(req.query, 'status', '')
-  let objFind = {}
+  let objFind = {
+    _partner: null // do not get partner's orders
+  }
   if (status) {
     objFind.status = status
   }
-  objFind._partner = null // do not get partner's orders
   Promise.all([
     Order.find(objFind)
       .populate('_trip', ['type', 'name', 'contactInfo'])

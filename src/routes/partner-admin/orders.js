@@ -19,8 +19,9 @@ router.get('/', function(req, res, next) {
   let status = _.get(req.query, 'status', '')
   let companies = _.get(req.query, 'companies', '')
 
-  let objFind = {}
-  objFind._partner = req.user._partner
+  let objFind = {
+    _partner: req.user._partner
+  }
   if (status) {
     objFind.status = status
   }
