@@ -632,7 +632,6 @@ router.get('/:id/expenses', function(req, res, next) {
 // get orders by trip
 router.get('/:id/orders', function(req, res, next) {
   let id = req.params.id
-  let orders = []
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()
   }
@@ -664,19 +663,16 @@ router.get('/:id/orders', function(req, res, next) {
     }
   })
     .select('-chargeId -chargeInfo')
-    .then(data => {
-      orders = data
-      let flights = []
-      orders.forEach(order => {
-        if (order.flight) {
-          flights.push(order.flight)
-        }
-      })
-      return findAirlinesAirports(flights)
+    .then(orders => {
+      return Promise.all([
+        orders,
+        findAirlinesAirports(orders.map(order => order.flight))
+      ])
     })
     .then(results => {
-      let arrAirline = results[0]
-      let arrAirport = results[1]
+      let orders = results[0]
+      let arrAirline = results[1][0]
+      let arrAirport = results[1][1]
       let airlines = {}
       arrAirline.forEach(airline => {
         airlines[airline._doc.iata] = airline

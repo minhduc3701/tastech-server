@@ -192,12 +192,9 @@ const emailEmployeeItinerary = async (req, res, next) => {
         $in: ['completed', 'processing']
       }
     }).then(async orders => {
-      let flights = []
-      orders
+      let flights = orders
         .filter(order => order.type === 'flight')
-        .forEach(order => {
-          flights.push(order.flight)
-        })
+        .map(order => order.flight)
       // get airlines and airports information
       return Promise.all([
         findAirlinesAirports(flights),
