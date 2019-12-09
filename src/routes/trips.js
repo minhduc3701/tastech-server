@@ -31,6 +31,7 @@ const {
   emailManagerSubmitTrip
 } = require('../middleware/email')
 const { currentCompany } = require('../middleware/company')
+const { findAirlinesAirports } = require('../modules/utils')
 
 router.get('/', function(req, res, next) {
   let perPage = _.get(req.query, 'perPage', 15)
@@ -631,8 +632,7 @@ router.get('/:id/expenses', function(req, res, next) {
 // get orders by trip
 router.get('/:id/orders', function(req, res, next) {
   let id = req.params.id
-  let airlines = []
-  let airports = []
+  let orders = []
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()
   }
@@ -664,43 +664,19 @@ router.get('/:id/orders', function(req, res, next) {
     }
   })
     .select('-chargeId -chargeInfo')
-    .then(orders => {
+    .then(data => {
+      orders = data
+      let flights = []
       orders.forEach(order => {
         if (order.flight) {
-          order.flight.departureSegments.forEach(segment => {
-            airlines.push(segment.airline)
-            airports.push(segment.departure)
-            airports.push(segment.arrival)
-          })
-          order.flight.returnSegments.forEach(segment => {
-            airlines.push(segment.airline)
-            airports.push(segment.departure)
-            airports.push(segment.arrival)
-          })
+          flights.push(order.flight)
         }
       })
-
-      airlines = _.uniq(airlines)
-      airports = _.uniq(airports)
-
-      return Promise.all([
-        orders,
-        Airline.find({
-          iata: {
-            $in: airlines
-          }
-        }),
-        Airport.find({
-          airport_code: {
-            $in: airports
-          }
-        })
-      ])
+      return findAirlinesAirports(flights)
     })
     .then(results => {
-      let orders = results[0]
-      let arrAirline = results[1]
-      let arrAirport = results[2]
+      let arrAirline = results[0]
+      let arrAirport = results[1]
       let airlines = {}
       arrAirline.forEach(airline => {
         airlines[airline._doc.iata] = airline
