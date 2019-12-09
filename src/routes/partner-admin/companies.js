@@ -19,10 +19,13 @@ const companyFields = [
   'lengthUnit',
   'weightUnit',
   'payment',
+  'isCreditLimitation',
   'creditLimitationAmount',
   'warningAmount',
   'sendMailToCompanyAdmin',
   'sendMailToPartnerAdmin',
+  'invoiceThroughEmail',
+  'invoiceInHardCopy',
   'contactName',
   'contactEmail',
   'contactCallingCode',
@@ -31,7 +34,6 @@ const companyFields = [
   'markupFlightAmount',
   'markupHotel',
   'markupHotelAmount',
-  'deposit',
   'note',
   'onBehalf'
 ]
