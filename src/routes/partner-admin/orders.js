@@ -62,22 +62,24 @@ router.get('/:id', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
-  let order = {}
 
   Order.findOne({
     _id: req.params.id,
     _partner: req.user._partner
   })
-    .then(data => {
-      if (!data) {
+    .then(order => {
+      if (!order) {
         return res.status(404).send()
       }
-      order = data
-      return findAirlinesAirports([_.get(order, 'flight', {})])
+      return Promise.all([
+        order,
+        findAirlinesAirports([_.get(order, 'flight', {})])
+      ])
     })
     .then(results => {
-      let arrAirline = results[0]
-      let arrAirport = results[1]
+      let order = results[0]
+      let arrAirline = results[1][0]
+      let arrAirport = results[1][1]
       let airlines = {}
       arrAirline.forEach(airline => {
         airlines[airline._doc.iata] = airline
