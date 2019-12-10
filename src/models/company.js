@@ -48,6 +48,8 @@ const CompanySchema = new Schema({
   warningAmount: Number,
   sendMailToCompanyAdmin: Boolean,
   sendMailToPartnerAdmin: Boolean,
+  invoiceThroughEmail: Boolean,
+  invoiceInHardCopy: Boolean,
   balance: Number,
   markupFlight: {
     type: String,
