@@ -15,6 +15,8 @@ const {
   BND,
   PHP
 } = require('../config/currency')
+const Airline = require('../models/airline')
+const Airport = require('../models/airport')
 
 const hotelAccomodations = [
   { code: 'APARTMENT', text: 'Apartment' },
@@ -923,6 +925,46 @@ const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
   let d = R * c // Distance in km
   return d
 }
+const findAirlinesAirports = (flights = []) => {
+  let airlines = []
+  let airports = []
+  flights.forEach(flight => {
+    _.get(flight, 'departureSegments', []).forEach(segment => {
+      airlines.push(segment.airline)
+      airports.push(segment.departure)
+      airports.push(segment.arrival)
+    })
+    _.get(flight, 'returnSegments', []).forEach(segment => {
+      airlines.push(segment.airline)
+      airports.push(segment.departure)
+      airports.push(segment.arrival)
+    })
+  })
+
+  airlines = _.uniq(airlines)
+  airports = _.uniq(airports)
+
+  return new Promise((resolve, reject) => {
+    Promise.all([
+      Airline.find({
+        iata: {
+          $in: airlines
+        }
+      }),
+      Airport.find({
+        airport_code: {
+          $in: airports
+        }
+      })
+    ])
+      .then(results => {
+        resolve(results)
+      })
+      .catch(e => {
+        reject(e)
+      })
+  })
+}
 
 module.exports = {
   getImageUri,
@@ -938,5 +980,6 @@ module.exports = {
   getUserProfileStrength,
   makeUrboxGiftData,
   roundPrice,
-  getDistanceFromLatLonInKm
+  getDistanceFromLatLonInKm,
+  findAirlinesAirports
 }

@@ -10,6 +10,7 @@ const {
 } = require('../../middleware/orders')
 const Airline = require('../../models/airline')
 const Airport = require('../../models/airport')
+const { findAirlinesAirports } = require('../../modules/utils')
 
 router.get('/', function(req, res, next) {
   let perPage = _.get(req.query, 'perPage', 50)
@@ -61,8 +62,7 @@ router.get('/:id', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
-  let airlines = []
-  let airports = []
+
   Order.findOne({
     _id: req.params.id,
     _partner: req.user._partner
@@ -71,39 +71,15 @@ router.get('/:id', function(req, res, next) {
       if (!order) {
         return res.status(404).send()
       }
-      if (order.flight) {
-        order.flight.departureSegments.forEach(segment => {
-          airlines.push(segment.airline)
-          airports.push(segment.departure)
-          airports.push(segment.arrival)
-        })
-        order.flight.returnSegments.forEach(segment => {
-          airlines.push(segment.airline)
-          airports.push(segment.departure)
-          airports.push(segment.arrival)
-        })
-      }
-      airlines = _.uniq(airlines)
-      airports = _.uniq(airports)
-
       return Promise.all([
         order,
-        Airline.find({
-          iata: {
-            $in: airlines
-          }
-        }),
-        Airport.find({
-          airport_code: {
-            $in: airports
-          }
-        })
+        findAirlinesAirports([_.get(order, 'flight', {})])
       ])
     })
     .then(results => {
       let order = results[0]
-      let arrAirline = results[1]
-      let arrAirport = results[2]
+      let arrAirline = results[1][0]
+      let arrAirport = results[1][1]
       let airlines = {}
       arrAirline.forEach(airline => {
         airlines[airline._doc.iata] = airline

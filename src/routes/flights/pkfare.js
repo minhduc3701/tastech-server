@@ -55,6 +55,7 @@ router.post('/shopping', currencyExchange, async (req, res) => {
       numberOfAdults: Number(req.body.search.adults)
     })
 
+    // Will refactor by findAirlinesAirports function later, path: src/modules/utils
     let airlines = []
     let airports = []
     flights.forEach(flight => {
