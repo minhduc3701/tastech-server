@@ -304,6 +304,7 @@ const users = [
     country: 'VN',
     _partner: partnerId
   },
+
   // user for company partner 2
   {
     _id: adminPartnerId2,
@@ -360,7 +361,25 @@ const users = [
     _partner: partnerId2
   }
 ]
-
+for (let i = 2; i < 50; i++) {
+  let email = `employee${i - 1}Partner@tastech.asia`
+  users.push({
+    _id: new ObjectID(),
+    username: email,
+    email,
+    _company: companyPartnerId,
+    _partner: partnerId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    avatar: `http://i.pravatar.cc/150?img=${i + 1}`,
+    _department: departmentPartnerId,
+    _role: employeeRolePartnerId,
+    _policy: defaultPolicyPartnerId4,
+    phone: (Math.random() * 1000000000).toFixed(0),
+    dateOfBirth: new Date('1990-01-01'),
+    country: 'VN'
+  })
+}
 for (let i = 4; i < 50; i++) {
   let email = `employee${i - 1}@tastech.asia`
 

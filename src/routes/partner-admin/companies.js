@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Company = require('../../models/company')
+const User = require('../../models/user')
 const _ = require('lodash')
 
 router.get('/', function(req, res) {
@@ -26,6 +27,41 @@ router.get('/', function(req, res) {
         total: results[1],
         count: results[0].length,
         totalPage,
+        page
+      })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.get('/:id/employees', function(req, res) {
+  const option = {
+    _partner: req.user._partner,
+    _company: req.params.id
+    // name: new RegExp(_.get(req, 'query.s', ''), 'i')
+  }
+
+  const perPage = Number(_.get(req, 'query.perPage', 10))
+  const page = Number(_.get(req, 'query.page', 0))
+
+  Promise.all([
+    User.find(option)
+      .populate('_department', 'name')
+      .populate('_role', 'name')
+      .populate('_policy', 'name')
+      .sort({ _id: -1 })
+      .limit(perPage)
+      .skip(perPage * page),
+    User.countDocuments(option)
+  ])
+    .then(results => {
+      let employees = results[0]
+      let total = results[1]
+      res.status(200).send({
+        employees,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        count: employees.length,
+        perPage,
         page
       })
     })

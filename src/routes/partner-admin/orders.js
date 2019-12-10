@@ -8,8 +8,6 @@ const {
   refundCancelledOrderManually,
   emailCustomerCancelledOrder
 } = require('../../middleware/orders')
-const Airline = require('../../models/airline')
-const Airport = require('../../models/airport')
 const { findAirlinesAirports } = require('../../modules/utils')
 
 router.get('/', function(req, res, next) {
