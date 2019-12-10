@@ -2,7 +2,11 @@ const express = require('express')
 const router = express.Router()
 const { ObjectID } = require('mongodb')
 const Company = require('../../models/company')
+const Role = require('../../models/role')
+const Policy = require('../../models/policy')
 const _ = require('lodash')
+const { roles } = require('../../config/roles')
+const api = require('../../modules/api')
 
 const companyFields = [
   'logo',
@@ -78,9 +82,59 @@ router.post('/', async (req, res) => {
     }
 
     let company = new Company(newCompanyData)
-    await company.save()
+    await company
+      .save()
+      .then(company => {
+        return Role.insertMany(
+          roles.map(role => ({
+            ...role,
+            _company: company._id
+          }))
+        )
+      })
+      .then(roles => {
+        return api.currency(company.currency)
+      })
+      .then(currency => {
+        let rate = currency.data[0].rate
+        let policy = new Policy({
+          name: 'Default Policy',
+          _company: company._id,
+          status: 'default',
+          flightClass: 'Economy',
+          stops: '0',
+          setDaysBeforeFlights: false,
+          daysBeforeFlights: 7,
+          setFlightLimit: false,
+          flightLimit: 500 * rate,
+          flightNotification: 'no',
+          flightApproval: 'no',
+          hotelClass: 3,
+          hotelSearchDistance: 15,
+          setDaysBeforeLodging: false,
+          daysBeforeLodging: 7,
+          setHotelLimit: false,
+          hotelLimit: 500 * rate,
+          hotelNotification: 'no',
+          hotelApproval: 'no',
+          setTransportLimit: true,
+          transportLimit: 10 * rate,
+          setMealLimit: true,
+          mealLimit: 10 * rate,
+          setProvision: true,
+          provision: 5
+        })
 
-    res.status(200).send({ company })
+        return policy.save()
+      })
+      .then(policy => {
+        company._policy = policy._id
+        return company.save()
+      })
+      .then(company => res.status(200).send({ company }))
+      .catch(e => {
+        res.status(400).send()
+      })
   } catch (error) {
     res.status(400).send()
   }
