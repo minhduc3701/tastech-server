@@ -161,7 +161,7 @@ const makeSabreRequestData = search => {
       },
       TravelPreferences: {
         Baggage: {
-          RequestType: 'C', // C: charge and allownce, A: only allownce
+          RequestType: 'A', // C: charge and allownce, A: only allownce
           Description: true,
           RequestedPieces: 2,
           FreePieceRequired: true
