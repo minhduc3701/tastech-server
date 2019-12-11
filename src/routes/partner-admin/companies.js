@@ -39,7 +39,8 @@ const companyFields = [
   'markupHotel',
   'markupHotelAmount',
   'note',
-  'onBehalf'
+  'onBehalf',
+  'disabled'
 ]
 
 router.get('/', function(req, res) {
