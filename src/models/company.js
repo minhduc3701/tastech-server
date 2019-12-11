@@ -61,7 +61,11 @@ const CompanySchema = new Schema({
     enum: ['net', 'percentage']
   },
   markupHotelAmount: Number,
-  note: String
+  note: String,
+  isActive: {
+    type: Boolean,
+    default: false
+  }
 })
 
 CompanySchema.methods.toJSON = function() {
