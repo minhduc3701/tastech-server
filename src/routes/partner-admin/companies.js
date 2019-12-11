@@ -2,6 +2,8 @@ const express = require('express')
 const router = express.Router()
 const Company = require('../../models/company')
 const User = require('../../models/user')
+const Role = require('../../models/role')
+const Department = require('../../models/department')
 const _ = require('lodash')
 
 router.get('/', function(req, res) {
@@ -36,8 +38,8 @@ router.get('/', function(req, res) {
 router.get('/:id/employees', function(req, res) {
   const option = {
     _partner: req.user._partner,
-    _company: req.params.id
-    // name: new RegExp(_.get(req, 'query.s', ''), 'i')
+    _company: req.params.id,
+    username: new RegExp(_.get(req, 'query.s', ''), 'i')
   }
 
   const perPage = Number(_.get(req, 'query.perPage', 10))
@@ -64,6 +66,26 @@ router.get('/:id/employees', function(req, res) {
         perPage,
         page
       })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.get('/:id/roles', function(req, res) {
+  Role.find({
+    _company: req.params.id
+  })
+    .then(roles => {
+      res.status(200).send({ roles })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.get('/:id/departments', function(req, res) {
+  Department.find({
+    _company: req.params.id
+  })
+    .then(departments => {
+      res.status(200).send({ departments })
     })
     .catch(e => res.status(400).send())
 })
