@@ -9,6 +9,7 @@ const Policy = require('../../models/policy')
 const _ = require('lodash')
 const { roles } = require('../../config/roles')
 const api = require('../../modules/api')
+const { createUser } = require('../../middleware/users')
 
 const companyFields = [
   'logo',
@@ -57,7 +58,7 @@ router.get('/', function(req, res) {
     Company.find(option)
       .limit(perPage)
       .skip(perPage * page)
-      .sort([['_id', -1]]),
+      .sort([['_id', 1]]),
     Company.countDocuments(option)
   ])
     .then(results => {
@@ -108,6 +109,69 @@ router.get('/:id/employees', function(req, res) {
     .catch(e => res.status(400).send())
 })
 
+router.get('/:id/employees/:employeeId', function(req, res) {
+  const option = {
+    _partner: req.user._partner,
+    _company: req.params.id,
+    _id: req.params.employeeId
+  }
+
+  User.findOne(option)
+    .then(user => {
+      res.status(200).send({
+        user
+      })
+    })
+    .catch(e => res.status(400).send())
+})
+router.patch('/:id/employees/:employeeId', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  let body = _.pick(req.body, [
+    'firstName',
+    'lastName',
+    '_department',
+    '_role',
+    '_policy'
+  ])
+
+  User.findOneAndUpdate(
+    {
+      _partner: req.user._partner,
+      _company: req.params.id,
+      _id: req.params.employeeId
+    },
+    { $set: body },
+    { new: true }
+  )
+    .then(user => {
+      if (!user) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ user })
+    })
+    .catch(e => {
+      console.log(e)
+      res.status(400).send()
+    })
+})
+
+router.post('/:id/employees', createUser, (req, res) => {
+  User.findOneAndUpdate(
+    { _id: req.user._id },
+    {
+      $set: {
+        _company: req.params.id
+      }
+    }
+  )
+    .then(user => {})
+    .catch(e => {})
+})
+
 router.get('/:id/roles', function(req, res) {
   Role.find({
     _company: req.params.id
@@ -124,6 +188,16 @@ router.get('/:id/departments', function(req, res) {
   })
     .then(departments => {
       res.status(200).send({ departments })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.get('/:id/policies', function(req, res) {
+  Policy.find({
+    _company: req.params.id
+  })
+    .then(policies => {
+      res.status(200).send({ policies })
     })
     .catch(e => res.status(400).send())
 })
