@@ -13,7 +13,8 @@ router.get('/', function(req, res) {
   // @see https://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js
   Promise.all([
     User.find({
-      _id: { $ne: req.user._id } // don't show current tas-admin
+      _id: { $ne: req.user._id }, // don't show current tas-admin
+      _partner: null // do not get partner's orders
     })
       .limit(perPage)
       .skip(perPage * page)

@@ -58,7 +58,7 @@ router.get('/', function(req, res) {
     Company.find(option)
       .limit(perPage)
       .skip(perPage * page)
-      .sort([['_id', 1]]),
+      .sort([['_id', -1]]),
     Company.countDocuments(option)
   ])
     .then(results => {
