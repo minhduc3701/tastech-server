@@ -14,6 +14,7 @@ const createUser = function(req, res, next) {
         User.register(
           new User({
             username: req.body.email,
+            _partner: req.user._partner, // partnerId or null for tas flow
             ...req.body
           }),
           req.body.password,

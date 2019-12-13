@@ -139,6 +139,12 @@ app.use(
   authenticateRole('partner-admin'),
   partnerAdminOrdersRouter
 )
+app.use(
+  '/partner-admin/companies',
+  jwtAuthenticate,
+  authenticateRole('partner-admin'),
+  partnerAdminCompaniesRouter
+)
 
 // admin routes
 app.use(
@@ -189,14 +195,6 @@ app.use(
   jwtAuthenticate,
   authenticatePermission(CAN_ACCESS_ANALYTICS),
   adminReportsRouter
-)
-
-// partner admin routes
-app.use(
-  '/partner-admin/companies',
-  jwtAuthenticate,
-  authenticateRole('partner-admin'),
-  partnerAdminCompaniesRouter
 )
 
 // flights

@@ -71,8 +71,9 @@ const accountantPartnerId2 = new ObjectID()
 // =======================
 // role, department for partner flow
 const departmentPartnerId = new ObjectID()
+const department2PartnerId = new ObjectID()
 const departmentPartnerId2 = new ObjectID()
-const partnerRoleId = new ObjectID()
+const partnerRoleId = new ObjectID('5df0697ed1b5060fe38626a8')
 const partnerRoleId2 = new ObjectID()
 const adminRolePartnerId = new ObjectID()
 const adminRolePartnerId2 = new ObjectID()
@@ -304,6 +305,7 @@ const users = [
     country: 'VN',
     _partner: partnerId
   },
+
   // user for company partner 2
   {
     _id: adminPartnerId2,
@@ -360,7 +362,25 @@ const users = [
     _partner: partnerId2
   }
 ]
-
+for (let i = 2; i < 50; i++) {
+  let email = `employee${i - 1}Partner@tastech.asia`
+  users.push({
+    _id: new ObjectID(),
+    username: email,
+    email,
+    _company: companyPartnerId,
+    _partner: partnerId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    avatar: `http://i.pravatar.cc/150?img=${i + 1}`,
+    _department: randomItemInArray([departmentPartnerId, department2PartnerId]),
+    _role: employeeRolePartnerId,
+    _policy: defaultPolicyPartnerId4,
+    phone: (Math.random() * 1000000000).toFixed(0),
+    dateOfBirth: change.dateOfBirth(),
+    country: 'VN'
+  })
+}
 for (let i = 4; i < 50; i++) {
   let email = `employee${i - 1}@tastech.asia`
 
@@ -1111,12 +1131,17 @@ const departments = [
   {
     _id: departmentPartnerId,
     _company: companyPartnerId,
-    name: `Department 1`
+    name: `Partner - Department 1`
+  },
+  {
+    _id: department2PartnerId,
+    _company: companyPartnerId,
+    name: `Partner - Department 2`
   },
   {
     _id: departmentPartnerId2,
     _company: companyPartnerId2,
-    name: `Department 2`
+    name: `Partner 2 - Department 1`
   }
 ]
 

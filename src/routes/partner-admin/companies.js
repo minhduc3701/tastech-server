@@ -2,11 +2,14 @@ const express = require('express')
 const router = express.Router()
 const { ObjectID } = require('mongodb')
 const Company = require('../../models/company')
+const User = require('../../models/user')
 const Role = require('../../models/role')
+const Department = require('../../models/department')
 const Policy = require('../../models/policy')
 const _ = require('lodash')
 const { roles } = require('../../config/roles')
 const api = require('../../modules/api')
+const { createUser } = require('../../middleware/users')
 
 const companyFields = [
   'logo',
@@ -68,6 +71,188 @@ router.get('/', function(req, res) {
         totalPage,
         page
       })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.get('/:id/employees', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+  const option = {
+    _partner: req.user._partner,
+    _company: req.params.id,
+    username: new RegExp(_.get(req, 'query.s', ''), 'i')
+  }
+
+  const perPage = Number(_.get(req, 'query.perPage', 10))
+  const page = Number(_.get(req, 'query.page', 0))
+
+  Promise.all([
+    User.find(option)
+      .populate('_department', 'name')
+      .populate('_role', 'name')
+      .populate('_policy', 'name')
+      .sort({ _id: -1 })
+      .limit(perPage)
+      .skip(perPage * page),
+    User.countDocuments(option)
+  ])
+    .then(results => {
+      let employees = results[0]
+      let total = results[1]
+      res.status(200).send({
+        employees,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        count: employees.length,
+        perPage,
+        page
+      })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.get('/:id/employees/:employeeId', function(req, res) {
+  if (
+    !ObjectID.isValid(req.params.id) ||
+    !ObjectID.isValid(req.params.employeeId)
+  ) {
+    return res.status(404).send()
+  }
+
+  const option = {
+    _partner: req.user._partner,
+    _company: req.params.id,
+    _id: req.params.employeeId
+  }
+
+  User.findOne(option)
+    .then(user => {
+      res.status(200).send({
+        user
+      })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.patch('/:id/employees/:employeeId', function(req, res) {
+  if (
+    !ObjectID.isValid(req.params.id) ||
+    !ObjectID.isValid(req.params.employeeId)
+  ) {
+    return res.status(404).send()
+  }
+
+  let body = _.pick(req.body, [
+    'firstName',
+    'lastName',
+    '_department',
+    '_role',
+    '_policy',
+    'disabled'
+  ])
+
+  User.findOneAndUpdate(
+    {
+      _partner: req.user._partner,
+      _company: req.params.id,
+      _id: req.params.employeeId
+    },
+    { $set: body },
+    { new: true }
+  )
+    .then(user => {
+      if (!user) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ user })
+    })
+    .catch(e => {
+      console.log(e)
+      res.status(400).send()
+    })
+})
+
+router.delete('/:id/employees/:employeeId', function(req, res) {
+  if (
+    !ObjectID.isValid(req.params.id) ||
+    !ObjectID.isValid(req.params.employeeId)
+  ) {
+    return res.status(404).send()
+  }
+  User.findOneAndDelete({
+    _id: req.params.employeeId,
+    _company: req.params.id,
+    _partner: req.user._partner
+  })
+    .then(user => {
+      if (!user) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ user })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
+router.post('/:id/employees', createUser, (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+  User.findOneAndUpdate(
+    { _id: req.user._id },
+    {
+      $set: {
+        _company: req.params.id
+      }
+    }
+  )
+    .then(user => {})
+    .catch(e => {})
+})
+
+router.get('/:id/roles', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  Role.find({
+    _company: req.params.id
+  })
+    .then(roles => {
+      res.status(200).send({ roles })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.get('/:id/departments', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  Department.find({
+    _company: req.params.id
+  })
+    .then(departments => {
+      res.status(200).send({ departments })
+    })
+    .catch(e => res.status(400).send())
+})
+
+router.get('/:id/policies', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  Policy.find({
+    _company: req.params.id
+  })
+    .then(policies => {
+      res.status(200).send({ policies })
     })
     .catch(e => res.status(400).send())
 })
