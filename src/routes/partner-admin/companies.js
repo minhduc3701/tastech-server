@@ -75,6 +75,9 @@ router.get('/', function(req, res) {
 })
 
 router.get('/:id/employees', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
   const option = {
     _partner: req.user._partner,
     _company: req.params.id,
@@ -110,6 +113,13 @@ router.get('/:id/employees', function(req, res) {
 })
 
 router.get('/:id/employees/:employeeId', function(req, res) {
+  if (
+    !ObjectID.isValid(req.params.id) ||
+    !ObjectID.isValid(req.params.employeeId)
+  ) {
+    return res.status(404).send()
+  }
+
   const option = {
     _partner: req.user._partner,
     _company: req.params.id,
@@ -124,8 +134,12 @@ router.get('/:id/employees/:employeeId', function(req, res) {
     })
     .catch(e => res.status(400).send())
 })
+
 router.patch('/:id/employees/:employeeId', function(req, res) {
-  if (!ObjectID.isValid(req.params.id)) {
+  if (
+    !ObjectID.isValid(req.params.id) ||
+    !ObjectID.isValid(req.params.employeeId)
+  ) {
     return res.status(404).send()
   }
 
@@ -134,7 +148,8 @@ router.patch('/:id/employees/:employeeId', function(req, res) {
     'lastName',
     '_department',
     '_role',
-    '_policy'
+    '_policy',
+    'disabled'
   ])
 
   User.findOneAndUpdate(
@@ -159,7 +174,34 @@ router.patch('/:id/employees/:employeeId', function(req, res) {
     })
 })
 
+router.delete('/:id/employees/:employeeId', function(req, res) {
+  if (
+    !ObjectID.isValid(req.params.id) ||
+    !ObjectID.isValid(req.params.employeeId)
+  ) {
+    return res.status(404).send()
+  }
+  User.findOneAndDelete({
+    _id: req.params.employeeId,
+    _company: req.params.id,
+    _partner: req.user._partner
+  })
+    .then(user => {
+      if (!user) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ user })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 router.post('/:id/employees', createUser, (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
   User.findOneAndUpdate(
     { _id: req.user._id },
     {
@@ -173,6 +215,10 @@ router.post('/:id/employees', createUser, (req, res) => {
 })
 
 router.get('/:id/roles', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
   Role.find({
     _company: req.params.id
   })
@@ -183,6 +229,10 @@ router.get('/:id/roles', function(req, res) {
 })
 
 router.get('/:id/departments', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
   Department.find({
     _company: req.params.id
   })
@@ -193,6 +243,10 @@ router.get('/:id/departments', function(req, res) {
 })
 
 router.get('/:id/policies', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
   Policy.find({
     _company: req.params.id
   })
