@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const Role = require('../../models/role')
 const User = require('../../models/user')
 const { createUser } = require('../../middleware/users')
 const { ObjectID } = require('mongodb')
@@ -98,14 +99,24 @@ router.patch('/:id', function(req, res) {
     '_policy'
   ])
 
-  User.findOneAndUpdate(
-    {
-      _id: req.params.id,
-      _company: req.user._company
-    },
-    { $set: body },
-    { new: true }
-  )
+  Role.findOne({
+    _id: body._role,
+    _company: req.user._company
+  })
+    .then(role => {
+      if (!role) {
+        return res.status(404).send()
+      }
+
+      return User.findOneAndUpdate(
+        {
+          _id: req.params.id,
+          _company: req.user._company
+        },
+        { $set: body },
+        { new: true }
+      )
+    })
     .then(user => {
       if (!user) {
         return res.status(404).send()
