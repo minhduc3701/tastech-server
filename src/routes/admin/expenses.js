@@ -86,8 +86,8 @@ router.get('/:id', function(req, res) {
     _id: req.params.id,
     _company: req.user._company
   })
-    .populate('_creator')
-    .populate('_attendees')
+    .populate('_creator', 'email avatar firstName lastName')
+    .populate('_attendees', 'email avatar firstName lastName')
     .populate('_trip')
     .then(expense => {
       if (!expense) {
