@@ -20,8 +20,7 @@ const {
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
 } = require('../middleware/email')
-const { calculateBudget } = require('../middleware/trip')
-
+const { calculateBudget } = require('../middleware/trips')
 const { currentCompany } = require('../middleware/company')
 
 router.get('/', function(req, res, next) {
@@ -388,7 +387,7 @@ router.get('/:id/budget', (req, res) => {
 })
 
 router.patch(
-  '/:id/budget',
+  '/:id',
   sabreCurrencyExchange,
   sabreRestToken,
   async (req, res, next) => {
@@ -468,7 +467,7 @@ router.post(
   emailManagerSubmitTrip
 )
 
-router.patch('/:id', function(req, res, next) {
+router.patch('/:id/archived', function(req, res, next) {
   let id = req.params.id
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()

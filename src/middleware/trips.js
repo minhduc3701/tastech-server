@@ -169,9 +169,7 @@ const calculateBudget = async (req, res, next) => {
         budgetPassengers: req.trip.budgetPassengers
       }
     })
-  } catch (error) {
-    console.log(error)
-  }
+  } catch (error) {}
   next()
 }
 
