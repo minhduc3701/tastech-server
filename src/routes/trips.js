@@ -466,7 +466,10 @@ router.patch('/:id/archived', function(req, res, next) {
     {
       _creator: req.user._id,
       _company: req.user._company,
-      _id: id
+      _id: id,
+      status: {
+        $in: ['rejected', 'completed', 'waiting']
+      }
     },
     { $set: body },
     { new: true }
