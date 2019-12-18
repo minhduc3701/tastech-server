@@ -94,22 +94,32 @@ router.patch('/:id', function(req, res) {
 
   let body = _.pick(req.body, ['users'])
 
-  // because user must have role,
-  // so don't need to set to null like department and policy
-  User.updateMany(
-    {
-      _id: {
-        $in: body.users,
-        $ne: req.user._id // don't allow user change their own role
-      },
-      _company: req.user._company
-    },
-    {
-      $set: {
-        _role: req.params.id
+  Role.findOne({
+    _id: req.params.id,
+    _company: req.user._company
+  })
+    .then(role => {
+      if (!role) {
+        return res.status(404).send()
       }
-    }
-  )
+
+      // because user must have role,
+      // so don't need to set to null like department and policy
+      return User.updateMany(
+        {
+          _id: {
+            $in: body.users,
+            $ne: req.user._id // don't allow user change their own role
+          },
+          _company: req.user._company
+        },
+        {
+          $set: {
+            _role: req.params.id
+          }
+        }
+      )
+    })
     .then(results => res.status(200).send())
     .catch(e => res.status(400).send())
 })

@@ -254,13 +254,13 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
         obj.refundable = !i.pricingInformation[0].fare.passengerInfoList[0]
           .passengerInfo.nonRefundable
         // check baggage allowance
-        obj.baggageAllowance = true
+        obj.baggageAllowance = false
         let {
           baggageInformation
         } = i.pricingInformation[0].fare.passengerInfoList[0].passengerInfo
         for (let index = 0; index < baggageInformation.length; index++) {
-          if (baggageInformation[index].provisionType !== 'A') {
-            obj.baggageAllowance = false
+          if (baggageInformation[index].provisionType === 'A') {
+            obj.baggageAllowance = true
             break
           }
         }
