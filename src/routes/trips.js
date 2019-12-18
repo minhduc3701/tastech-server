@@ -373,19 +373,6 @@ router.get(
   }
 )
 
-// get trip's budget to edit
-router.get('/:id/budget', (req, res) => {
-  Trip.findOne({
-    _id: req.params.id,
-    _creator: req.user._id,
-    businessTrip: true,
-    archived: false,
-    status: 'rejected'
-  })
-    .then(trip => res.status(200).send({ trip }))
-    .catch(e => res.status(400).send())
-})
-
 router.patch(
   '/:id',
   sabreCurrencyExchange,
