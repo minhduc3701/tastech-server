@@ -248,7 +248,7 @@ router.get(
       let trip = await Trip.findOne({
         _creator: req.user._id,
         _id: req.params.id
-      }).populate('updatedByAdmin')
+      }).populate('updatedByAdmin', 'firstName lastName email avatar')
 
       let tripsSpend = await Trip.aggregate([
         {
@@ -357,7 +357,7 @@ router.get(
 
       res.status(200).json({
         trip: {
-          ...trip.toObject(),
+          ...trip.toJSON(),
           ...spendData,
           flightBudget,
           hotelBudget,
