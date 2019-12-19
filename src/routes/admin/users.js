@@ -2,11 +2,11 @@ const express = require('express')
 const router = express.Router()
 const Role = require('../../models/role')
 const User = require('../../models/user')
-const { createUser } = require('../../middleware/users')
+const { createUser, validateParameters } = require('../../middleware/users')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
-router.post('/', createUser, (req, res) => {
+router.post('/', validateParameters, createUser, (req, res) => {
   User.findOneAndUpdate(
     { _id: req.user._id },
     {
