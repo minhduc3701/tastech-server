@@ -41,7 +41,7 @@ const CompanySchema = new Schema({
   onBehalf: Boolean,
   payment: {
     type: String,
-    enum: ['deposit', 'credit-card']
+    enum: [null, 'deposit', 'credit-card']
   },
   isCreditLimitation: Boolean,
   creditLimitationAmount: Number,
@@ -53,12 +53,12 @@ const CompanySchema = new Schema({
   balance: Number,
   markupFlight: {
     type: String,
-    enum: ['net', 'percentage']
+    enum: [null, 'net', 'percentage']
   },
   markupFlightAmount: Number,
   markupHotel: {
     type: String,
-    enum: ['net', 'percentage']
+    enum: [null, 'net', 'percentage']
   },
   markupHotelAmount: Number,
   note: String,

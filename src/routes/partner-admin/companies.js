@@ -10,6 +10,7 @@ const _ = require('lodash')
 const { roles } = require('../../config/roles')
 const api = require('../../modules/api')
 const { createUser } = require('../../middleware/users')
+const { currenciesExchange } = require('../../middleware/currency')
 
 const companyFields = [
   'logo',
@@ -170,7 +171,6 @@ router.patch('/:id/employees/:employeeId', function(req, res) {
       res.status(200).send({ user })
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })
@@ -258,70 +258,134 @@ router.get('/:id/policies', function(req, res) {
 })
 
 router.post('/', async (req, res) => {
-  const body = _.pick(req.body, companyFields)
+  let companies = req.body.map(company => {
+    let onBehalf =
+      typeof company.onBehalf === 'boolean' ? company.onBehalf : false
+    let isCreditLimitation =
+      typeof company.isCreditLimitation === 'boolean'
+        ? company.isCreditLimitation
+        : false
+    let sendMailToCompanyAdmin =
+      typeof company.sendMailToCompanyAdmin === 'boolean'
+        ? company.sendMailToCompanyAdmin
+        : false
+    let sendMailToPartnerAdmin =
+      typeof company.sendMailToPartnerAdmin === 'boolean'
+        ? company.sendMailToPartnerAdmin
+        : false
+    let invoiceThroughEmail =
+      typeof company.invoiceThroughEmail === 'boolean'
+        ? company.invoiceThroughEmail
+        : false
+    let invoiceInHardCopy =
+      typeof company.invoiceInHardCopy === 'boolean'
+        ? company.invoiceInHardCopy
+        : false
+    let payment = [null, 'deposit', 'credit-card'].includes(company.payment)
+      ? company.payment
+      : null
+    let markupHotel = [null, 'net', 'percentage'].includes(company.markupHotel)
+      ? company.markupHotel
+      : null
+    let markupFlight = [null, 'net', 'percentage'].includes(
+      company.markupFlight
+    )
+      ? company.markupFlight
+      : null
 
-  try {
-    let newCompanyData = {
-      ...body,
+    return {
+      ...company,
+      onBehalf,
+      isCreditLimitation,
+      sendMailToCompanyAdmin,
+      sendMailToPartnerAdmin,
+      invoiceThroughEmail,
+      invoiceInHardCopy,
+      payment,
+      markupHotel,
+      markupFlight,
+      _id: new ObjectID(),
       _creator: req.user._id,
       _partner: req.user._partner
     }
+  })
 
-    let company = new Company(newCompanyData)
-    await company
-      .save()
-      .then(company => {
-        return Role.insertMany(
-          roles.map(role => ({
-            ...role,
-            _company: company._id
-          }))
-        )
-      })
-      .then(roles => {
-        return api.currency(company.currency)
-      })
-      .then(currency => {
-        let rate = currency.data[0].rate
-        let policy = new Policy({
-          name: 'Default Policy',
-          _company: company._id,
-          status: 'default',
-          flightClass: 'Economy',
-          stops: '0',
-          setDaysBeforeFlights: false,
-          daysBeforeFlights: 7,
-          setFlightLimit: false,
-          flightLimit: 500 * rate,
-          flightNotification: 'no',
-          flightApproval: 'no',
-          hotelClass: 3,
-          hotelSearchDistance: 15,
-          setDaysBeforeLodging: false,
-          daysBeforeLodging: 7,
-          setHotelLimit: false,
-          hotelLimit: 500 * rate,
-          hotelNotification: 'no',
-          hotelApproval: 'no',
-          setTransportLimit: true,
-          transportLimit: 10 * rate,
-          setMealLimit: true,
-          mealLimit: 10 * rate,
-          setProvision: true,
-          provision: 5
+  try {
+    let insertCompaniesResults = await Company.insertMany(companies)
+    let newRoles = []
+    roles.forEach(role => {
+      insertCompaniesResults.forEach(company => {
+        newRoles.push({
+          ...role,
+          _company: company._id
         })
+      })
+    })
 
-        return policy.save()
+    let insertRolesResults = await Role.insertMany(newRoles)
+    let fullCurrenciesExchange = await currenciesExchange()
+
+    let newPolicies = []
+    insertCompaniesResults.forEach(company => {
+      let rate = 1
+      if (company.currency !== process.env.BASE_CURRENCY) {
+        rate =
+          fullCurrenciesExchange[
+            `${company.currency}-${process.env.BASE_CURRENCY}`
+          ]['rate']
+      }
+
+      newPolicies.push({
+        name: 'Default Policy',
+        _company: company._id,
+        status: 'default',
+        flightClass: 'Economy',
+        stops: '0',
+        setDaysBeforeFlights: false,
+        daysBeforeFlights: 7,
+        setFlightLimit: false,
+        flightLimit: 500 * rate,
+        flightNotification: 'no',
+        flightApproval: 'no',
+        hotelClass: 3,
+        hotelSearchDistance: 15,
+        setDaysBeforeLodging: false,
+        daysBeforeLodging: 7,
+        setHotelLimit: false,
+        hotelLimit: 500 * rate,
+        hotelNotification: 'no',
+        hotelApproval: 'no',
+        setTransportLimit: true,
+        transportLimit: 10 * rate,
+        setMealLimit: true,
+        mealLimit: 10 * rate,
+        setProvision: true,
+        provision: 5
       })
-      .then(policy => {
-        company._policy = policy._id
-        return company.save()
+    })
+
+    let insertPoliciesResults = await Policy.insertMany(newPolicies)
+
+    let updatedCompanies = []
+    insertCompaniesResults.forEach(company => {
+      insertPoliciesResults.forEach(policy => {
+        if (policy._company === company._id) {
+          updatedCompanies.push({
+            ...company.toObject(),
+            _policy: policy._id
+          })
+          Company.findByIdAndUpdate(
+            company._id,
+            { $set: { _policy: policy._id } },
+            { new: true }
+          )
+        }
       })
-      .then(company => res.status(200).send({ company }))
-      .catch(e => {
-        res.status(400).send()
-      })
+    })
+
+    res.status(200).send({ companies: updatedCompanies })
   } catch (error) {
+    console.log(error)
     res.status(400).send()
   }
 })
