@@ -74,7 +74,7 @@ const createUser = function(req, res, next) {
   )
 }
 
-const validateParameters = async (req, res, next) => {
+const validateUserProps = async (req, res, next) => {
   let checkParams = []
   try {
     let body = _.pick(req.body, ['_department', '_role', '_policy'])
@@ -103,24 +103,18 @@ const validateParameters = async (req, res, next) => {
       )
     }
     let results = await Promise.all(checkParams)
-    let error = false
-    results.map((r, index) => {
+
+    if (results.filter(result => !result).length > 0) {
       // if any result equal to null, return 404
-      if (r === null) {
-        error = true
-      }
-    })
-    if (error) {
-      return res.status(404).send()
-    } else {
-      next()
+      return res.status(400).send()
     }
   } catch (error) {
     return res.status(400).send()
   }
+  next()
 }
 
 module.exports = {
   createUser,
-  validateParameters
+  validateUserProps
 }

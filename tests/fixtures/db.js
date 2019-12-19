@@ -19,8 +19,8 @@ const adminRoleId = new mongoose.Types.ObjectId()
 const employeeRoleId = new mongoose.Types.ObjectId()
 const managerRoleId = new mongoose.Types.ObjectId()
 const accountantRoleId = new mongoose.Types.ObjectId()
-const company1Department1Id = new mongoose.Types.ObjectId()
-const company1Policy1Id = new mongoose.Types.ObjectId()
+const departmentOne = new mongoose.Types.ObjectId()
+const policyOne = new mongoose.Types.ObjectId()
 const companyOneRoles = [
   {
     _id: tasAdminRoleId,
@@ -70,7 +70,7 @@ const companyOneRoles = [
 
 const companyOneDepartments = [
   {
-    _id: company1Department1Id,
+    _id: departmentOne,
     _company: companyOneId,
     name: `Company 1 - Department 1 `
   }
@@ -78,7 +78,7 @@ const companyOneDepartments = [
 
 const policies = [
   {
-    _id: company1Policy1Id,
+    _id: policyOne,
     name: 'Company 1 - Policy 1',
     _company: companyOneId
   }
@@ -162,6 +162,7 @@ const setupDatabase = async () => {
 }
 
 module.exports = {
+  tasAdminRoleId,
   userOneToken,
   userOneId,
   userOne,
@@ -169,6 +170,7 @@ module.exports = {
   userTwo,
   employeeRoleId,
   adminOneToken,
-  company1Department1Id,
+  departmentOne,
+  policyOne,
   setupDatabase
 }
