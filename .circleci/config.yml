@@ -74,6 +74,11 @@ workflows:
             branches:
               only:
                 - develop
+      - deploy_test:
+          filters:
+            branches:
+              only:
+                - test
       - deploy_demo:
           filters:
             branches:
