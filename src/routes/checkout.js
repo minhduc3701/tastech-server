@@ -28,6 +28,18 @@ const { currentCompany } = require('../middleware/company')
 // See your keys here: https://dashboard.stripe.com/account/apikeys
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
+const verifyPrice = async (req, res, next) => {
+  // get sabre cache key
+  // get sabre-currency -> company currency
+  // find flight, assign rate
+
+  // get hotel cache key
+  // get hotelbeds-currency -> company-currency
+  // find rate, assign rate
+
+  next()
+}
+
 const createOrFindTrip = async (req, res, next) => {
   const { trip, checkoutAgain } = req.body
   let foundTrip
@@ -1122,6 +1134,7 @@ const responseCheckout = async (req, res, next) => {
 
 router.post(
   '/card',
+  verifyPrice,
   sabreRestToken, // get token for sabre api
   createOrFindTrip,
   createOrFindFlightOrder,
