@@ -366,7 +366,10 @@ router.post('/', async (req, res) => {
 
     let insertPoliciesResults = await Policy.insertMany(newPolicies)
 
+    // refer: https://stackoverflow.com/questions/39988848/trying-to-do-a-bulk-upsert-with-mongoose-whats-the-cleanest-way-to-do-this
     let updatedCompanies = []
+    let bulkOps = []
+
     insertCompaniesResults.forEach(company => {
       insertPoliciesResults.forEach(policy => {
         if (policy._company === company._id) {
@@ -374,18 +377,24 @@ router.post('/', async (req, res) => {
             ...company.toObject(),
             _policy: policy._id
           })
-          Company.findByIdAndUpdate(
-            company._id,
-            { $set: { _policy: policy._id } },
-            { new: true }
-          )
+          bulkOps.push({
+            updateOne: {
+              filter: { _id: company._id },
+              update: { _policy: policy._id },
+              upsert: true
+            }
+          })
         }
       })
     })
 
-    res.status(200).send({ companies: updatedCompanies })
+    let bulkWriteResult = await Company.bulkWrite(bulkOps)
+    if (_.get(bulkWriteResult, 'ok') === 1) {
+      res.status(200).send({ companies: updatedCompanies })
+    } else {
+      res.status(400).send()
+    }
   } catch (error) {
-    console.log(error)
     res.status(400).send()
   }
 })
