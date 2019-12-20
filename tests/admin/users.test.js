@@ -2,8 +2,8 @@ const request = require('supertest')
 const app = require('../../src/app')
 const mongoose = require('mongoose')
 const {
-  userOneId,
-  adminOneToken,
+  userId,
+  adminToken,
   setupDatabase,
   employeeRoleId,
   departmentId,
@@ -17,7 +17,7 @@ beforeEach(setupDatabase)
 test('Should create a new user with valid role, department, policy in company', async () => {
   await request(app)
     .post('/admin/users')
-    .set('Authorization', `Bearer ${adminOneToken}`)
+    .set('Authorization', `Bearer ${adminToken}`)
     .send({
       email: 'newUser@tastech.asia',
       password: '12345678',
@@ -33,7 +33,7 @@ test('Should create a new user with valid role, department, policy in company', 
 test('Should not create new employee with tas-admin role', async () => {
   await request(app)
     .post('/admin/users')
-    .set('Authorization', `Bearer ${adminOneToken}`)
+    .set('Authorization', `Bearer ${adminToken}`)
     .send({
       email: 'newUser@tastech.asia',
       password: '12345678',
@@ -49,7 +49,7 @@ test('Should not create new employee with tas-admin role', async () => {
 test('Should not create new user with non-exist role in company', async () => {
   await request(app)
     .post('/admin/users')
-    .set('Authorization', `Bearer ${adminOneToken}`)
+    .set('Authorization', `Bearer ${adminToken}`)
     .send({
       email: 'wrongRole@tastech.asia',
       password: '12345678',
@@ -63,7 +63,7 @@ test('Should not create new user with non-exist role in company', async () => {
 test('Should not create new user with non-exist department in company', async () => {
   await request(app)
     .post('/admin/users')
-    .set('Authorization', `Bearer ${adminOneToken}`)
+    .set('Authorization', `Bearer ${adminToken}`)
     .send({
       email: 'wrongDepartment@tastech.asia',
       password: '12345678',
@@ -77,7 +77,7 @@ test('Should not create new user with non-exist department in company', async ()
 test('Should not create new user with non-exist policy in company', async () => {
   await request(app)
     .post('/admin/users')
-    .set('Authorization', `Bearer ${adminOneToken}`)
+    .set('Authorization', `Bearer ${adminToken}`)
     .send({
       email: 'wrongPolicy@tastech.asia',
       password: '12345678',
@@ -92,8 +92,8 @@ test('Should not create new user with non-exist policy in company', async () => 
 
 test('Should edit user with existing role, department, policy in company', async () => {
   await request(app)
-    .patch(`/admin/users/${userOneId}`)
-    .set('Authorization', `Bearer ${adminOneToken}`)
+    .patch(`/admin/users/${userId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
     .send({
       firstName: 'Ha',
       lastName: 'Phan',
@@ -106,8 +106,8 @@ test('Should edit user with existing role, department, policy in company', async
 
 test('Should not edit user with tas-admin role in company', async () => {
   await request(app)
-    .patch(`/admin/users/${userOneId}`)
-    .set('Authorization', `Bearer ${adminOneToken}`)
+    .patch(`/admin/users/${userId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
     .send({
       firstName: 'Ha',
       lastName: 'Phan',
@@ -118,8 +118,8 @@ test('Should not edit user with tas-admin role in company', async () => {
 
 test('Should not edit user with non-exist role in company', async () => {
   await request(app)
-    .patch(`/admin/users/${userOneId}`)
-    .set('Authorization', `Bearer ${adminOneToken}`)
+    .patch(`/admin/users/${userId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
     .send({
       firstName: 'Ha',
       lastName: 'Phan',
@@ -130,8 +130,8 @@ test('Should not edit user with non-exist role in company', async () => {
 
 test('Should not edit user with non-exist department in company', async () => {
   await request(app)
-    .patch(`/admin/users/${userOneId}`)
-    .set('Authorization', `Bearer ${adminOneToken}`)
+    .patch(`/admin/users/${userId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
     .send({
       firstName: 'Ha',
       lastName: 'Phan',
@@ -142,8 +142,8 @@ test('Should not edit user with non-exist department in company', async () => {
 
 test('Should not edit user with non-exist policy in company', async () => {
   await request(app)
-    .patch(`/admin/users/${userOneId}`)
-    .set('Authorization', `Bearer ${adminOneToken}`)
+    .patch(`/admin/users/${userId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
     .send({
       firstName: 'Ha',
       lastName: 'Phan',

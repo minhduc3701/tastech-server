@@ -119,7 +119,11 @@ router.get('/:id', function(req, res, next) {
     })
 })
 
-router.patch('/:id', upload.array('receipts'), function(req, res, next) {
+router.patch('/:id', upload.array('receipts'), validateExpenseProps, function(
+  req,
+  res,
+  next
+) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
