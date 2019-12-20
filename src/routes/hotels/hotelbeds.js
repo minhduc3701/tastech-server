@@ -51,6 +51,15 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
     )
 
     let suggestData = suggestHotelRooms(hotelbedsHotelsData, req.body, req.user)
+    // for combo select room
+    _.set(
+      suggestData,
+      'bestHotelRooms',
+      suggestData.bestHotelRooms.map(room => ({
+        ...room,
+        cacheKey
+      }))
+    )
 
     if (hotelbedsRoomsRes.data) {
       res.status(200).send({
@@ -181,7 +190,8 @@ router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
     )
 
     return res.status(200).send({
-      hotel: hotelbedsHotelsData[0]
+      hotel: hotelbedsHotelsData[0],
+      cacheKey
     })
   } catch (e) {
     // do nothing to run below query
@@ -214,7 +224,8 @@ router.post('/:id', hotelbedsCurrencyExchange, async (req, res) => {
 
     if (hotelbedsHotelsRes.data) {
       res.status(200).send({
-        hotel: hotelbedsHotelsData[0]
+        hotel: hotelbedsHotelsData[0],
+        cacheKey
       })
     }
 

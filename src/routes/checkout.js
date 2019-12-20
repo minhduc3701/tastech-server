@@ -7,6 +7,7 @@ const api = require('../modules/api')
 const apiSabre = require('../modules/apiSabre')
 const { sabreRestToken } = require('../middleware/sabre')
 const apiHotelbeds = require('../modules/apiHotelbeds')
+const { getCache, setCache } = require('../config/cache')
 const {
   makeSegmentsData,
   makeRoomGuestDetails,
@@ -23,19 +24,104 @@ const {
   emailGiamsoIssueTicket
 } = require('../middleware/email')
 const { currentCompany } = require('../middleware/company')
+const { currenciesExchange } = require('../middleware/currency')
+const {
+  makeSabreFlightsData,
+  makeHotelbedsHotelsData
+} = require('../modules/utils')
 
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
-const verifyPrice = async (req, res, next) => {
+const verifySabrePrice = async (req, res, next) => {
   // get sabre cache key
   // get sabre-currency -> company currency
   // find flight, assign rate
+  let trip = req.body.trip
 
+  // if no flights or flight is not from sabre, go next()
+  if (!trip.flight) {
+    return next()
+  }
+
+  try {
+    let sabreCacheKey = _.get(req.body, 'flightCacheKey.sabre')
+    let sabreCacheData = await getCache(sabreCacheKey)
+    let currencies = await currenciesExchange()
+    let sabreCurrency =
+      currencies[`${process.env.SABRE_BASE_CURRENCY}-${req.company.currency}`]
+
+    let flights = makeSabreFlightsData(
+      sabreCacheData.sabreRes,
+      sabreCurrency,
+      sabreCacheData.numberOfPassengers
+    )
+
+    let flightInCache = flights.find(f => f.id === req.body.trip.flight.id)
+
+    req.body.trip.flight = flightInCache
+  } catch (e) {
+    return res.status(400).send({
+      code: 'SABRE-VERIFY-FLIGHT',
+      message: 'Cannot verify price of this flight'
+    })
+  }
+
+  next()
+}
+
+const verifyHotelbedsPrice = async (req, res, next) => {
   // get hotel cache key
   // get hotelbeds-currency -> company-currency
   // find rate, assign rate
+  let trip = req.body.trip
+
+  // if no hotels or hotel is not from hotelbeds, go next()
+  if (!trip.hotel) {
+    return next()
+  }
+
+  try {
+    let hotelbedsCacheKey = _.get(req.body, 'hotelCacheKey.hotelbeds')
+    let hotelbedsData = await getCache(hotelbedsCacheKey)
+    let currencies = await currenciesExchange()
+    let hotelbedsCurrency =
+      currencies[
+        `${process.env.HOTELBEDS_BASE_CURRENCY}-${req.company.currency}`
+      ]
+
+    let hotels = makeHotelbedsHotelsData(
+      hotelbedsData.hotels,
+      hotelbedsData.rooms,
+      hotelbedsCurrency
+    )
+
+    let hotelInCache = hotels.find(
+      f => f.hotelId === req.body.trip.hotel.hotelId
+    )
+
+    let roomInCache = _.get(hotelInCache, 'ratePlans.ratePlanList', []).find(
+      r => r.ratePlanCode === req.body.trip.hotel.ratePlanCode
+    )
+
+    if (!roomInCache) {
+      throw new Error('Cannot find room in cache')
+    }
+
+    req.body.trip.hotel = {
+      ...req.body.trip.hotel, // checkInDate, checkOutDate
+      ...hotelInCache,
+      ...roomInCache,
+      numberOfAdult: roomInCache.adults,
+      numberOfRoom: roomInCache.rooms
+    }
+  } catch (e) {
+    return res.status(400).send({
+      code: 'HOTELBEDS-VERIFY-HOTEL',
+      message: 'Cannot verify price of this hotel'
+    })
+  }
 
   next()
 }
@@ -1134,12 +1220,13 @@ const responseCheckout = async (req, res, next) => {
 
 router.post(
   '/card',
-  verifyPrice,
+  currentCompany,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
   sabreRestToken, // get token for sabre api
   createOrFindTrip,
   createOrFindFlightOrder,
   createOrFindHotelOrder,
-  currentCompany,
   calculateRewardCost,
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
