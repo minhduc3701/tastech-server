@@ -6,7 +6,6 @@ const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { permissions } = require('../../config/roles')
 const { getImageUri } = require('../../modules/utils')
-const { validateRolesProps } = require('../../middleware/roles')
 
 let projectUsersFields = {
   'users.hash': 0,
