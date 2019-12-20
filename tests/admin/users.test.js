@@ -6,8 +6,8 @@ const {
   adminOneToken,
   setupDatabase,
   employeeRoleId,
-  departmentOne,
-  policyOne,
+  departmentId,
+  policyId,
   tasAdminRoleId
 } = require('../fixtures/db.js')
 
@@ -24,8 +24,8 @@ test('Should create a new user with valid role, department, policy in company', 
       firstName: 'Ha',
       lastName: 'Phan',
       _role: employeeRoleId,
-      _department: departmentOne,
-      _policy: policyOne
+      _department: departmentId,
+      _policy: policyId
     })
     .expect(200)
 })
@@ -40,8 +40,8 @@ test('Should not create new employee with tas-admin role', async () => {
       firstName: 'Ha',
       lastName: 'Phan',
       _role: tasAdminRoleId,
-      _department: departmentOne,
-      _policy: policyOne
+      _department: departmentId,
+      _policy: policyId
     })
     .expect(400)
 })
@@ -98,8 +98,8 @@ test('Should edit user with existing role, department, policy in company', async
       firstName: 'Ha',
       lastName: 'Phan',
       _role: employeeRoleId,
-      _department: departmentOne,
-      _policy: policyOne
+      _department: departmentId,
+      _policy: policyId
     })
     .expect(200)
 })
