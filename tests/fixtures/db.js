@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken')
 const User = require('../../src/models/user')
 const Role = require('../../src/models/role')
 const Company = require('../../src/models/company')
+const Department = require('../../src/models/department')
+const Policy = require('../../src/models/policy')
 
 const companyOneId = new mongoose.Types.ObjectId()
 
@@ -17,6 +19,8 @@ const adminRoleId = new mongoose.Types.ObjectId()
 const employeeRoleId = new mongoose.Types.ObjectId()
 const managerRoleId = new mongoose.Types.ObjectId()
 const accountantRoleId = new mongoose.Types.ObjectId()
+const departmentOne = new mongoose.Types.ObjectId()
+const policyOne = new mongoose.Types.ObjectId()
 const companyOneRoles = [
   {
     _id: tasAdminRoleId,
@@ -64,6 +68,42 @@ const companyOneRoles = [
   }
 ]
 
+const companyOneDepartments = [
+  {
+    _id: departmentOne,
+    _company: companyOneId,
+    name: `Company 1 - Department 1 `
+  }
+]
+
+const policies = [
+  {
+    _id: policyOne,
+    name: 'Company 1 - Policy 1',
+    _company: companyOneId
+  }
+]
+
+const adminOneId = new mongoose.Types.ObjectId()
+const adminOne = {
+  _id: adminOneId,
+  firstName: 'Luis',
+  lastName: 'Suarez',
+  username: 'Suarez@example.com',
+  email: 'Suarez@example.com',
+  password: '56what!!',
+  _company: companyOneId,
+  _role: adminRoleId
+}
+const adminOneToken = jwt.sign(
+  {
+    id: adminOneId,
+    email: adminOne.email,
+    password: adminOne.password
+  },
+  process.env.JWT_SECRET
+)
+
 const userOneId = new mongoose.Types.ObjectId()
 const userOne = {
   _id: userOneId,
@@ -97,6 +137,12 @@ const setupDatabase = async () => {
   await Role.deleteMany()
   await Role.insertMany(companyOneRoles)
 
+  await Policy.deleteMany()
+  await Policy.insertMany(policies)
+
+  await Department.deleteMany()
+  await Department.insertMany(companyOneDepartments)
+
   await Company.deleteMany()
   await new Company(companyOne).save()
 
@@ -109,13 +155,22 @@ const setupDatabase = async () => {
   await userTwoDb.save()
   await userTwoDb.setPassword(userTwo.password)
   await userTwoDb.save()
+  let adminOneDb = await new User(adminOne)
+  await adminOneDb.save()
+  await adminOneDb.setPassword(adminOne.password)
+  // await adminOneDb.save()
 }
 
 module.exports = {
+  tasAdminRoleId,
   userOneToken,
   userOneId,
   userOne,
   userTwoId,
   userTwo,
+  employeeRoleId,
+  adminOneToken,
+  departmentOne,
+  policyOne,
   setupDatabase
 }
