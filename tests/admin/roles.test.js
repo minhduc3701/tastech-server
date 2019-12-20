@@ -41,6 +41,25 @@ test('Should not update role with user of other company', async () => {
     .patch(`/admin/roles/${adminRoleId}`)
     .set('Authorization', `Bearer ${adminToken}`)
     .send({
+      users: [userId, userCompany2Id]
+    })
+    .expect(200)
+
+  let newRole = await Role.findById(adminRoleId)
+  let newNumberUsers = _.get(newRole, 'users', []).length
+
+  //number user of role does not increase
+  expect(newNumberUsers === numberUsers + 1)
+})
+
+test('Should not update role with user of other company', async () => {
+  let role = await Role.findById(adminRoleId)
+  let numberUsers = _.get(role, 'users', []).length
+
+  await request(app)
+    .patch(`/admin/roles/${adminRoleId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send({
       users: [userCompany2Id]
     })
     .expect(200)
