@@ -546,7 +546,6 @@ router.get('/:id/orders', function(req, res, next) {
       $in: status
     }
   })
-    .select('-chargeId -chargeInfo')
     .then(orders => {
       return Promise.all([
         orders,
