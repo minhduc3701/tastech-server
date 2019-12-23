@@ -21,7 +21,10 @@ const validateExpenseProps = async (req, res, next) => {
     if (!_.isEmpty(attendees)) {
       attendees = req.body._attendees.split(',')
       // check each element in attendees is valid ObjectID
-      if (attendees.filter(attendee => ObjectID.isValid(attendee)).length > 0) {
+      if (
+        attendees.filter(attendee => ObjectID.isValid(attendee)).length ===
+        attendees.length
+      ) {
         let users = await User.find({
           _id: { $in: attendees },
           _company: req.user._company
