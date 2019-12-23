@@ -9,7 +9,8 @@ const {
   adminRoleId,
   user2Id,
   userId,
-  userCompany2Id
+  userCompany2Id,
+  adminCompany2RoleId
 } = require('../fixtures/db.js')
 
 beforeEach(setupDatabase)
@@ -88,4 +89,24 @@ test('Should not update role with invalid users', async () => {
   let newNumberUsers = _.get(newRole, 'users', []).length
 
   expect(newNumberUsers === numberUsers)
+})
+
+test('Should not update role with other company role', async () => {
+  await request(app)
+    .patch(`/admin/roles/${adminCompany2RoleId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send({
+      users: [userId, user2Id]
+    })
+    .expect(404)
+})
+
+test('Should not update role with invalid role objectID', async () => {
+  await request(app)
+    .patch(`/admin/roles/12345678`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send({
+      users: [userId, user2Id]
+    })
+    .expect(404)
 })
