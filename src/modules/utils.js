@@ -560,6 +560,11 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
   } catch (error) {
     console.log(error)
   }
+  // assign id for flight
+  flights = flights.map((flight, id) => ({
+    id,
+    ...flight
+  }))
   return flights
 }
 
