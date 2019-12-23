@@ -486,6 +486,35 @@ router.patch('/:id/archived', function(req, res, next) {
     })
 })
 
+router.patch('/:id/rejected', function(req, res, next) {
+  let id = req.params.id
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  let body = { status: 'rejected' }
+
+  Trip.findOneAndUpdate(
+    {
+      _creator: req.user._id,
+      _company: req.user._company,
+      _id: id,
+      status: 'waiting'
+    },
+    { $set: body },
+    { new: true }
+  )
+    .then(trip => {
+      if (!trip) {
+        return res.status(404).send()
+      }
+      res.status(200).send({ trip })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 // get expenses by trip id
 router.get('/:id/expenses', function(req, res, next) {
   let id = req.params.id
