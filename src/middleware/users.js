@@ -1,11 +1,15 @@
 const passport = require('passport')
 const User = require('../models/user')
 const Role = require('../models/role')
+const Department = require('../models/department')
+const Policy = require('../models/policy')
+const { ObjectID } = require('mongodb')
 const async = require('async')
 const { mail } = require('../config/mail')
 const { register } = require('../mailTemplates/register')
 const { debugMail } = require('../config/debug')
 const crypto = require('crypto')
+const _ = require('lodash')
 
 const createUser = function(req, res, next) {
   async.waterfall(
@@ -71,6 +75,47 @@ const createUser = function(req, res, next) {
   )
 }
 
+const validateUserProps = async (req, res, next) => {
+  let checkParams = []
+  try {
+    let body = _.pick(req.body, ['_department', '_role', '_policy'])
+    if (ObjectID.isValid(body._role)) {
+      checkParams.push(
+        Role.findOne({
+          _id: body._role,
+          _company: req.user._company
+        })
+      )
+    }
+    if (ObjectID.isValid(body._department)) {
+      checkParams.push(
+        Department.findOne({
+          _id: body._department,
+          _company: req.user._company
+        })
+      )
+    }
+    if (ObjectID.isValid(body._policy)) {
+      checkParams.push(
+        Policy.findOne({
+          _id: body._policy,
+          _company: req.user._company
+        })
+      )
+    }
+    let results = await Promise.all(checkParams)
+
+    if (results.filter(result => !result).length > 0) {
+      // if any result equal to null, return 404
+      return res.status(400).send()
+    }
+  } catch (error) {
+    return res.status(400).send()
+  }
+  next()
+}
+
 module.exports = {
-  createUser
+  createUser,
+  validateUserProps
 }
