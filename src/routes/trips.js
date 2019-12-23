@@ -2,34 +2,25 @@ const express = require('express')
 const router = express.Router()
 const Trip = require('../models/trip')
 const Expense = require('../models/expense')
-const Company = require('../models/company')
 const User = require('../models/user')
 const Order = require('../models/order')
-const Hotel = require('../models/hotel')
 const Airline = require('../models/airline')
 const Airport = require('../models/airport')
 const { ObjectID } = require('mongodb')
-const { authentication } = require('../config/pkfare')
 const _ = require('lodash')
-const axios = require('axios')
-const Policy = require('../models/policy')
+
 const moment = require('moment')
 const {
   sabreCurrencyExchange,
   rewardCurrencyRate
 } = require('../middleware/currency')
 const { sabreRestToken } = require('../middleware/sabre')
-const { makeSabreFlightsData } = require('../modules/utils')
-const {
-  makeSabreSearchRequestFromBudget,
-  makeSabreRequestData
-} = require('../modules/utilsSabre')
-const apiSabre = require('../modules/apiSabre')
-const htbApi = require('../modules/apiHotelbeds')
+
 const {
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
 } = require('../middleware/email')
+const { calculateBudget } = require('../middleware/trips')
 const { currentCompany } = require('../middleware/company')
 const { findAirlinesAirports } = require('../modules/utils')
 
@@ -258,7 +249,7 @@ router.get(
       let trip = await Trip.findOne({
         _creator: req.user._id,
         _id: req.params.id
-      }).populate('updatedByAdmin')
+      }).populate('updatedByAdmin', 'firstName lastName email avatar')
 
       let tripsSpend = await Trip.aggregate([
         {
@@ -367,7 +358,7 @@ router.get(
 
       res.status(200).json({
         trip: {
-          ...trip.toObject(),
+          ...trip.toJSON(),
           ...spendData,
           flightBudget,
           hotelBudget,
@@ -381,6 +372,57 @@ router.get(
       res.status(400).send()
     }
   }
+)
+
+router.patch(
+  '/:id',
+  sabreCurrencyExchange,
+  sabreRestToken,
+  async (req, res, next) => {
+    try {
+      let body = _.pick(req.body, [
+        'name',
+        'startDate',
+        'endDate',
+        'note',
+        'budgetPassengers'
+      ])
+      body.daysOfTrip =
+        moment(body.endDate).diff(moment(body.startDate), 'days') + 1
+      body.isBudgetUpdated = false
+      body.currency = req.currency.code
+      body.status = 'waiting'
+
+      Trip.findOneAndUpdate(
+        {
+          _id: req.params.id,
+          _creator: req.user._id,
+          businessTrip: true,
+          archived: false,
+          status: 'rejected'
+        },
+        { $set: body },
+        { new: true }
+      )
+        .then(trip => {
+          if (!trip) {
+            return res.status(404).send()
+          }
+          res.status(200).send({ trip })
+          // save for re-calculate budget and sending email to employee
+          req.trip = trip
+          next()
+        })
+        .catch(e => {
+          res.status(400).send()
+        })
+    } catch (error) {
+      res.status(400).send()
+    }
+  },
+  calculateBudget,
+  emailEmployeeSubmitTrip,
+  emailManagerSubmitTrip
 )
 
 router.post(
@@ -402,179 +444,18 @@ router.post(
       // save and send back trip
       await trip.save()
       res.status(200).send({ trip })
-
-      let budget = req.body.budgetPassengers[0]
-      // get Policy
-      let companyPolicies = await Policy.find({
-        _company: req.user._company
-      })
-      let policy = await Policy.findById(req.user._policy)
-      if (!policy || policy.status === 'disabled') {
-        for (let index = 0; index < companyPolicies.length; index++) {
-          if (companyPolicies[index]._doc.status === 'default') {
-            policy = companyPolicies[index]
-            break
-          }
-        }
-      }
-
-      trip.budgetPassengers[0].totalPrice = 0
-      // calcuate transportation budget
-      if (
-        policy.setTransportLimit &&
-        trip.budgetPassengers[0].transportation.selected
-      ) {
-        trip.budgetPassengers[0].transportation.price = Number(
-          policy.transportLimit * countDays
-        )
-        trip.budgetPassengers[0].transportation.limit = policy.transportLimit
-        trip.budgetPassengers[0].totalPrice += Number(
-          policy.transportLimit * countDays
-        )
-      } else {
-        trip.budgetPassengers[0].transportation.price = 0
-      }
-
-      // calcuate meal budget
-      if (policy.setMealLimit && trip.budgetPassengers[0].meal.selected) {
-        trip.budgetPassengers[0].meal.price = Number(
-          policy.mealLimit * countDays
-        )
-        trip.budgetPassengers[0].meal.limit = policy.mealLimit
-        trip.budgetPassengers[0].totalPrice += Number(
-          policy.mealLimit * countDays
-        )
-      } else {
-        trip.budgetPassengers[0].meal.price = 0
-      }
-      //update travel other
-      if (trip.budgetPassengers[0].others.selected) {
-        trip.budgetPassengers[0].totalPrice += Number(
-          trip.budgetPassengers[0].others.amount
-        )
-      }
-
-      // calculate Flight budget
-      if (trip.budgetPassengers[0].flight.selected) {
-        let budgetRequest = makeSabreSearchRequestFromBudget(
-          trip.budgetPassengers[0].flight,
-          policy
-        )
-        trip.budgetPassengers[0].flight.class = policy.flightClass
-        let sabreRes = await apiSabre.shopping(
-          makeSabreRequestData(budgetRequest),
-          req.sabreRestToken
-        )
-        sabreRes = sabreRes.data.groupedItineraryResponse
-
-        let flights = makeSabreFlightsData(sabreRes, req.currency, 1)
-
-        let sumPrice = 0
-        flights.forEach(flight => {
-          sumPrice += Number(flight.price)
-        })
-
-        let averageFlightPrice = Math.round(Number(sumPrice / flights.length))
-        // compare averagePrice with company policy
-        if (policy.setFlightLimit && averageFlightPrice > policy.flightLimit) {
-          trip.budgetPassengers[0].flight.price = policy.flightLimit
-        } else {
-          trip.budgetPassengers[0].flight.price = averageFlightPrice
-        }
-
-        // in case price still equal to 0
-        if (trip.budgetPassengers[0].flight.price === 0) {
-          trip.budgetPassengers[0].flight.price = policy.flightLimit
-        }
-
-        trip.budgetPassengers[0].totalPrice +=
-          trip.budgetPassengers[0].flight.price
-      } // end flight budget
-
-      // hotel budget
-      if (trip.budgetPassengers[0].lodging.selected) {
-        trip.budgetPassengers[0].lodging.class = policy.hotelClass
-        //  Calculate Hotel budget
-        let request = {
-          stay: {
-            checkIn: budget.lodging.checkInDate,
-            checkOut: budget.lodging.checkOutDate
-          },
-          occupancies: [
-            {
-              rooms: 1,
-              adults: 1,
-              children: 0
-            }
-          ],
-          geolocation: {
-            latitude: budget.lodging.regionCoordinates[0],
-            longitude: budget.lodging.regionCoordinates[1],
-            radius: 8,
-            unit: 'km'
-          },
-          filter: {
-            paymentType: 'AT_WEB'
-          }
-        }
-
-        let responseHotel = await htbApi.getRooms(request)
-        let { data } = responseHotel
-        let hotelInfoList = _.get(data, 'hotels.hotels', [])
-        hotelInfoList = hotelInfoList.filter(
-          hotel => parseInt(hotel.categoryCode.charAt(0)) === policy.hotelClass
-        )
-
-        let sumPriceHotelRoom = 0
-        hotelInfoList.forEach(hotel => {
-          sumPriceHotelRoom += Number(hotel.minRate * req.currency.rate)
-        })
-
-        let averageHotelPrice = Math.round(
-          Number(sumPriceHotelRoom / hotelInfoList.length)
-        )
-
-        // compare averagePrice with company policy
-        if (policy.setHotelLimit && averageHotelPrice > policy.hotelLimit) {
-          trip.budgetPassengers[0].lodging.price = policy.hotelLimit
-        } else {
-          trip.budgetPassengers[0].lodging.price = averageHotelPrice
-        }
-
-        // in case price still equal to 0
-        if (trip.budgetPassengers[0].lodging.price === 0) {
-          trip.budgetPassengers[0].lodging.price = policy.hotelLimit
-        }
-
-        trip.budgetPassengers[0].totalPrice +=
-          trip.budgetPassengers[0].lodging.price
-      }
-
-      //Update trip information
-      trip.budgetPassengers[0].totalPrice = Number(
-        trip.budgetPassengers[0].totalPrice
-      )
+      req.trip = trip
+      next()
     } catch (error) {
       res.status(400).send()
     }
-
-    // store for email
-    req.trip = trip
-
-    // error or not, must update isBudgetUpdated to true to show
-    await Trip.findByIdAndUpdate(trip._id, {
-      $set: {
-        isBudgetUpdated: true,
-        budgetPassengers: trip.budgetPassengers
-      }
-    })
-    next()
   },
+  calculateBudget,
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
 )
 
-router.patch('/:id', function(req, res, next) {
+router.patch('/:id/archived', function(req, res, next) {
   let id = req.params.id
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()
@@ -586,7 +467,10 @@ router.patch('/:id', function(req, res, next) {
     {
       _creator: req.user._id,
       _company: req.user._company,
-      _id: id
+      _id: id,
+      status: {
+        $in: ['rejected', 'completed', 'waiting']
+      }
     },
     { $set: body },
     { new: true }
