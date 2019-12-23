@@ -24,6 +24,16 @@ router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
 
     let suggestData = suggestHotelRooms(hotelbedsHotelsData, req.body, req.user)
 
+    // for combo select room
+    _.set(
+      suggestData,
+      'bestHotelRooms',
+      suggestData.bestHotelRooms.map(room => ({
+        ...room,
+        cacheKey
+      }))
+    )
+
     return res.status(200).send({
       ...suggestData,
       cacheKey

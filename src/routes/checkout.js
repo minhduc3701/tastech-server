@@ -39,14 +39,14 @@ const verifySabrePrice = async (req, res, next) => {
   // get sabre-currency -> company currency
   // find flight, assign rate
   let trip = req.body.trip
+  let sabreCacheKey = _.get(req.body, 'flightCacheKey.sabre')
 
   // if no flights or flight is not from sabre, go next()
-  if (!trip.flight) {
+  if (!trip.flight || !sabreCacheKey) {
     return next()
   }
 
   try {
-    let sabreCacheKey = _.get(req.body, 'flightCacheKey.sabre')
     let sabreCacheData = await getCache(sabreCacheKey)
     let currencies = await currenciesExchange()
     let sabreCurrency =
@@ -76,14 +76,14 @@ const verifyHotelbedsPrice = async (req, res, next) => {
   // get hotelbeds-currency -> company-currency
   // find rate, assign rate
   let trip = req.body.trip
+  let hotelbedsCacheKey = _.get(req.body, 'hotelCacheKey.hotelbeds')
 
   // if no hotels or hotel is not from hotelbeds, go next()
-  if (!trip.hotel) {
+  if (!trip.hotel || !hotelbedsCacheKey) {
     return next()
   }
 
   try {
-    let hotelbedsCacheKey = _.get(req.body, 'hotelCacheKey.hotelbeds')
     let hotelbedsData = await getCache(hotelbedsCacheKey)
     let currencies = await currenciesExchange()
     let hotelbedsCurrency =
@@ -150,7 +150,7 @@ const createOrFindTrip = async (req, res, next) => {
           },
           {
             $set: {
-              ..._.omit(trip, ['_id', 'startDate', 'endDate']),
+              ..._.omit(trip, ['_id', 'startDate', 'endDate', 'name']),
               status: 'ongoing'
             }
           },
@@ -168,7 +168,8 @@ const createOrFindTrip = async (req, res, next) => {
     } else {
       foundTrip = new Trip({
         ...trip,
-        _creator: req.user._id
+        _creator: req.user._id,
+        status: 'ongoing'
       })
 
       await foundTrip.save()
@@ -1198,12 +1199,12 @@ const responseCheckout = async (req, res, next) => {
   } catch (error) {
     logger.error('checkoutERR', _.get(error, 'message', ''))
     // update order status to failed if something went wrong
-    if (trip.flight && flightOrder) {
+    if (trip && trip.flight && flightOrder) {
       flightOrder.status = 'failed'
       await flightOrder.save()
     }
 
-    if (trip.hotel && hotelOrder) {
+    if (trip && trip.hotel && hotelOrder) {
       hotelOrder.status = 'failed'
       await hotelOrder.save()
     }
