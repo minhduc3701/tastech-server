@@ -2,7 +2,6 @@ const CAN_ACCESS_BOOKING = 'CAN_ACCESS_BOOKING'
 const CAN_ACCESS_BUDGET = 'CAN_ACCESS_BUDGET'
 const CAN_ACCESS_EXPENSE = 'CAN_ACCESS_EXPENSE'
 const CAN_ACCESS_ANALYTICS = 'CAN_ACCESS_ANALYTICS'
-const CAN_ACCESS_REWARD = 'CAN_ACCESS_REWARD'
 const CAN_ACCESS_COMPANY = 'CAN_ACCESS_COMPANY'
 
 const permissions = [
@@ -21,10 +20,6 @@ const permissions = [
   {
     permission: CAN_ACCESS_BUDGET,
     roles: ['manager', 'admin']
-  },
-  {
-    permission: CAN_ACCESS_REWARD,
-    roles: ['admin']
   },
   {
     permission: CAN_ACCESS_COMPANY,
@@ -68,7 +63,6 @@ module.exports = {
   CAN_ACCESS_BUDGET,
   CAN_ACCESS_EXPENSE,
   CAN_ACCESS_ANALYTICS,
-  CAN_ACCESS_REWARD,
   CAN_ACCESS_COMPANY,
   permissions,
   roles

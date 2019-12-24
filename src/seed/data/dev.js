@@ -261,7 +261,6 @@ const roles = [
     type: 'admin',
     permissions: [
       'CAN_ACCESS_COMPANY',
-      'CAN_ACCESS_REWARD',
       'CAN_ACCESS_BOOKING',
       'CAN_ACCESS_BUDGET',
       'CAN_ACCESS_EXPENSE',
@@ -301,7 +300,6 @@ const roles = [
     type: 'admin',
     permissions: [
       'CAN_ACCESS_COMPANY',
-      'CAN_ACCESS_REWARD',
       'CAN_ACCESS_BOOKING',
       'CAN_ACCESS_BUDGET',
       'CAN_ACCESS_EXPENSE',
@@ -324,7 +322,6 @@ const roles = [
     type: 'admin',
     permissions: [
       'CAN_ACCESS_COMPANY',
-      'CAN_ACCESS_REWARD',
       'CAN_ACCESS_BOOKING',
       'CAN_ACCESS_BUDGET',
       'CAN_ACCESS_EXPENSE',
