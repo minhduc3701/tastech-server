@@ -10,9 +10,13 @@ const Expense = require('../../src/models/expense')
 
 const companyId = new mongoose.Types.ObjectId()
 const company2Id = new mongoose.Types.ObjectId()
+const company3Id = new mongoose.Types.ObjectId()
+const company4Id = new mongoose.Types.ObjectId()
+const company5Id = new mongoose.Types.ObjectId()
 
 const tasAdminRoleId = new mongoose.Types.ObjectId()
 const adminRoleId = new mongoose.Types.ObjectId()
+const partnerAdminRoleId = new mongoose.Types.ObjectId()
 const adminCompany2RoleId = new mongoose.Types.ObjectId()
 const employeeRoleId = new mongoose.Types.ObjectId()
 const managerRoleId = new mongoose.Types.ObjectId()
@@ -25,6 +29,8 @@ const userId = new mongoose.Types.ObjectId()
 const user2Id = new mongoose.Types.ObjectId()
 const userCompany2Id = new mongoose.Types.ObjectId()
 const adminId = new mongoose.Types.ObjectId()
+const partnerId = new mongoose.Types.ObjectId()
+const partnerAdminId = new mongoose.Types.ObjectId()
 const expenseId = new mongoose.Types.ObjectId()
 
 const companies = [
@@ -36,6 +42,24 @@ const companies = [
   {
     _id: company2Id,
     name: 'Company 2',
+    currency: 'USD'
+  },
+  {
+    _id: company3Id,
+    _partner: partnerId,
+    name: 'Company 3',
+    currency: 'USD'
+  },
+  {
+    _id: company4Id,
+    _partner: partnerId,
+    name: 'Company 4',
+    currency: 'USD'
+  },
+  {
+    _id: company5Id,
+    _partner: partnerId,
+    name: 'Company 5',
     currency: 'USD'
   }
 ]
@@ -64,6 +88,12 @@ const companyRoles = [
     _id: tasAdminRoleId,
     name: 'Tas Admin',
     type: 'tas-admin',
+    permissions: []
+  },
+  {
+    _id: partnerAdminRoleId,
+    name: 'Partner Admin',
+    type: 'partner-admin',
     permissions: []
   },
   {
@@ -173,6 +203,25 @@ const adminToken = jwt.sign(
   process.env.JWT_SECRET
 )
 
+const partnerAdminOne = {
+  _id: partnerAdminId,
+  _role: partnerAdminRoleId,
+  _partner: partnerId,
+  firstName: 'Samuel',
+  lastName: 'Eto',
+  username: 'partner-admin@tastech.asia',
+  email: 'partner-admin@tastech.asia',
+  password: '12345678'
+}
+const partnerAdminToken = jwt.sign(
+  {
+    id: partnerAdminId,
+    email: partnerAdminOne.email,
+    password: partnerAdminOne.password
+  },
+  process.env.JWT_SECRET
+)
+
 const userOne = {
   _id: userId,
   firstName: 'Mike',
@@ -209,6 +258,7 @@ const userCompany2 = {
   _company: company2Id,
   _role: employeeRoleId
 }
+
 const setupDatabase = async () => {
   await Trip.deleteMany()
   await Trip.insertMany(trips)
@@ -245,6 +295,11 @@ const setupDatabase = async () => {
   await adminOneDb.save()
   await adminOneDb.setPassword(adminOne.password)
   await adminOneDb.save()
+
+  let partnerAdminOneDb = await new User(partnerAdminOne)
+  await partnerAdminOneDb.save()
+  await partnerAdminOneDb.setPassword(partnerAdminOne.password)
+  await partnerAdminOneDb.save()
 }
 
 module.exports = {
@@ -263,5 +318,9 @@ module.exports = {
   tripWaitingId,
   tripApprovedId,
   userCompany2Id,
-  expenseId
+  expenseId,
+  partnerAdminRoleId,
+  partnerAdminOne,
+  partnerAdminToken,
+  company3Id
 }

@@ -47,6 +47,18 @@ const companyFields = [
   'disabled'
 ]
 
+const requiredFields = [
+  'name',
+  'country',
+  'industry',
+  'language',
+  'currency',
+  'contactName',
+  'contactEmail',
+  'contactCallingCode',
+  'contactPhone'
+]
+
 router.get('/', function(req, res) {
   const option = {
     _partner: req.user._partner,
@@ -258,6 +270,81 @@ router.get('/:id/policies', function(req, res) {
 })
 
 router.post('/', async (req, res) => {
+  const body = _.pick(req.body, companyFields)
+
+  requiredFields.forEach(field => {
+    if (!body[field]) {
+      return res.status(400).send()
+    }
+  })
+
+  try {
+    let newCompanyData = {
+      ...body,
+      _creator: req.user._id,
+      _partner: req.user._partner
+    }
+
+    let company = new Company(newCompanyData)
+    await company
+      .save()
+      .then(company => {
+        return Role.insertMany(
+          roles.map(role => ({
+            ...role,
+            _company: company._id
+          }))
+        )
+      })
+      .then(roles => {
+        return api.currency(company.currency)
+      })
+      .then(currency => {
+        let rate = currency.data[0].rate
+        let policy = new Policy({
+          name: 'Default Policy',
+          _company: company._id,
+          status: 'default',
+          flightClass: 'Economy',
+          stops: '0',
+          setDaysBeforeFlights: false,
+          daysBeforeFlights: 7,
+          setFlightLimit: false,
+          flightLimit: 500 * rate,
+          flightNotification: 'no',
+          flightApproval: 'no',
+          hotelClass: 3,
+          hotelSearchDistance: 15,
+          setDaysBeforeLodging: false,
+          daysBeforeLodging: 7,
+          setHotelLimit: false,
+          hotelLimit: 500 * rate,
+          hotelNotification: 'no',
+          hotelApproval: 'no',
+          setTransportLimit: true,
+          transportLimit: 10 * rate,
+          setMealLimit: true,
+          mealLimit: 10 * rate,
+          setProvision: true,
+          provision: 5
+        })
+
+        return policy.save()
+      })
+      .then(policy => {
+        company._policy = policy._id
+        return company.save()
+      })
+      .then(company => res.status(200).send({ company }))
+      .catch(e => {
+        res.status(400).send()
+      })
+  } catch (error) {
+    res.status(400).send()
+  }
+})
+
+router.post('/bulk', async (req, res) => {
   let companies = req.body.map(company => {
     let onBehalf =
       typeof company.onBehalf === 'boolean' ? company.onBehalf : false
@@ -440,6 +527,13 @@ router.patch('/:id', (req, res) => {
       if (!company) {
         return res.status(404).send()
       }
+
+      requiredFields.forEach(field => {
+        if (!company[field]) {
+          return res.status(400).send()
+        }
+      })
+
       res.status(200).send({
         company
       })
