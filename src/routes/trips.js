@@ -492,8 +492,6 @@ router.patch('/:id/rejected', function(req, res, next) {
     return res.status(404).send()
   }
 
-  let body = { status: 'rejected' }
-
   Trip.findOneAndUpdate(
     {
       _creator: req.user._id,
@@ -501,7 +499,7 @@ router.patch('/:id/rejected', function(req, res, next) {
       _id: id,
       status: 'waiting'
     },
-    { $set: body },
+    { $set: { status: 'rejected' } },
     { new: true }
   )
     .then(trip => {
