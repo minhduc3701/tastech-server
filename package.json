@@ -10,7 +10,8 @@
     "seed-prod": "node ./src/seed/app-prod.js",
     "wipe": "node ./src/seed/wipe.js",
     "debug": "node --inspect bin/www",
-    "test": "NODE_ENV=test jest tests/partner-admin/companies.test.js --runInBand"
+    "test": "NODE_ENV=test jest --watch --runInBand",
+    "test:coverage": "NODE_ENV=test jest --coverage --runInBand"
   },
   "jest": {
     "testEnvironment": "node",
