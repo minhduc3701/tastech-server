@@ -129,7 +129,6 @@ router.get('/', function(req, res, next) {
       })
     })
     .catch(e => {
-      console.log(e)
       res.send({ error: 'Not Found' })
     })
 })
