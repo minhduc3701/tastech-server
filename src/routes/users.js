@@ -218,6 +218,14 @@ router.post('/search', (req, res) => {
   })
     .limit(50)
     .then(users => {
+      users = users.map(user =>
+        _.omit(user.toJSON(), [
+          'preferenceFlight',
+          'preferenceHotel',
+          'favoriteHotels',
+          'passports'
+        ])
+      )
       res.status(200).send({ users })
     })
     .catch(e => {
