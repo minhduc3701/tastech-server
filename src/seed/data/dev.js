@@ -377,7 +377,7 @@ for (let i = 2; i < 50; i++) {
     _role: employeeRolePartnerId,
     _policy: defaultPolicyPartnerId4,
     phone: (Math.random() * 1000000000).toFixed(0),
-    dateOfBirth: change.dateOfBirth(),
+    dateOfBirth: chance.birthday(),
     country: 'VN'
   })
 }
