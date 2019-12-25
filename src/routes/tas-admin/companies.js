@@ -9,7 +9,13 @@ const { roles } = require('../../config/roles')
 const api = require('../../modules/api')
 
 router.get('/', function(req, res) {
-  Promise.all([Company.find({}).sort([['_id', -1]]), Company.count({})])
+  let options = {
+    _partner: null
+  }
+  Promise.all([
+    Company.find(options).sort([['_id', -1]]),
+    Company.count(options)
+  ])
     .then(results => {
       let companies = results[0]
       let total = results[1]
