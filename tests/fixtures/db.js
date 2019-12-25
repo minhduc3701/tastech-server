@@ -263,5 +263,7 @@ module.exports = {
   tripWaitingId,
   tripApprovedId,
   userCompany2Id,
-  expenseId
+  expenseId,
+  adminRoleId,
+  adminCompany2RoleId
 }
