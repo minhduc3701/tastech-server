@@ -91,6 +91,21 @@ test('Should not create a new expense with invalid attendees', async () => {
     .expect(400)
 })
 
+test('Should not create a new expense with invalid attendees objectID', async () => {
+  await request(app)
+    .post('/expenses')
+    .set('Authorization', `Bearer ${userToken}`)
+    .field('_attendees', '1234,5678')
+    .field('name', 'grab')
+    .field('amount', '50')
+    .field('currency', 'USD')
+    .field('category', 'transportation')
+    .field('transactionDate', '2019-03-16')
+    .field('_trip', String(tripApprovedId))
+    .field('account', 'cash')
+    .expect(400)
+})
+
 // update expense test case
 
 test('Should update expense with valid trip and attendees', async () => {
@@ -134,6 +149,15 @@ test('Should not update expense with invalid attendees', async () => {
     .patch(`/expenses/${expenseId}`)
     .set('Authorization', `Bearer ${userToken}`)
     .field('_attendees', String(new mongoose.Types.ObjectId()))
+    .field('_trip', String(tripApprovedId))
+    .expect(400)
+})
+
+test('Should not update expense with invalid attendees objectID', async () => {
+  await request(app)
+    .patch(`/expenses/${expenseId}`)
+    .set('Authorization', `Bearer ${userToken}`)
+    .field('_attendees', '1234,5678')
     .field('_trip', String(tripApprovedId))
     .expect(400)
 })
