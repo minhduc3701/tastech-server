@@ -166,4 +166,13 @@ const OrderSchema = new Schema(
   }
 )
 
+OrderSchema.methods.toJSON = function() {
+  var order = this
+  var orderObject = order.toObject()
+
+  orderObject = _.omit(orderObject, ['chargeInfo', 'chargeId'])
+
+  return orderObject
+}
+
 module.exports = mongoose.model('Order', OrderSchema)

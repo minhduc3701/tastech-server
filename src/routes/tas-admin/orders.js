@@ -60,7 +60,10 @@ router.get('/:id', function(req, res, next) {
       if (!order) {
         return res.status(404).send()
       }
-      res.status(200).send({ order })
+      // restrict order chargeInfo props responsed
+      let orderData = order.toObject()
+      orderData.chargeInfo = _.pick(orderData.chargeInfo, 'amount')
+      res.status(200).send({ order: orderData })
     })
     .catch(e => {
       res.status(400).send()
