@@ -25,7 +25,8 @@ const userId = new mongoose.Types.ObjectId()
 const user2Id = new mongoose.Types.ObjectId()
 const userCompany2Id = new mongoose.Types.ObjectId()
 const adminId = new mongoose.Types.ObjectId()
-const expenseId = new mongoose.Types.ObjectId()
+const expenseWaitingId = new mongoose.Types.ObjectId()
+const expenseRejectedId = new mongoose.Types.ObjectId()
 
 const companies = [
   {
@@ -39,23 +40,33 @@ const companies = [
     currency: 'USD'
   }
 ]
+
+const expenseSample = {
+  _attendees: [],
+  status: 'waiting',
+  receipts: [],
+  _id: expenseWaitingId,
+  name: 'expense 01',
+  amount: 50,
+  category: 'transportation',
+  transactionDate: '2019-03-16',
+  account: 'credit-card',
+  message: 'There are receipts for taxi',
+  city: 'BangKoK',
+  _trip: tripApprovedId,
+  _creator: userId,
+  _company: companyId,
+  currency: 'USD'
+}
 const expensies = [
   {
-    _attendees: [],
-    status: 'waiting',
-    receipts: [],
-    _id: expenseId,
-    name: 'expense 01',
-    amount: 50,
-    category: 'transportation',
-    transactionDate: '2019-03-16',
-    account: 'credit-card',
-    message: 'There are receipts for taxi',
-    city: 'BangKoK',
-    _trip: tripApprovedId,
-    _creator: userId,
-    _company: companyId,
-    currency: 'USD'
+    ...expenseSample,
+    _id: expenseWaitingId
+  },
+  {
+    ...expenseSample,
+    status: 'rejected',
+    _id: expenseRejectedId
   }
 ]
 
@@ -263,7 +274,8 @@ module.exports = {
   tripWaitingId,
   tripApprovedId,
   userCompany2Id,
-  expenseId,
+  expenseWaitingId,
+  expenseRejectedId,
   adminRoleId,
   adminCompany2RoleId
 }

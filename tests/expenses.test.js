@@ -1,6 +1,7 @@
 const request = require('supertest')
 const app = require('../src/app')
 const mongoose = require('mongoose')
+const Expense = require('../src/models/expense')
 
 const {
   userToken,
@@ -10,12 +11,12 @@ const {
   tripWaitingId,
   tripApprovedId,
   setupDatabase,
-  expenseId
+  expenseWaitingId,
+  expenseRejectedId
 } = require('./fixtures/db.js')
 
 beforeEach(setupDatabase)
 
-// create expense test case
 test('Should create a new expense with valid trip and attendees', async () => {
   await request(app)
     .post('/expenses')
@@ -110,7 +111,7 @@ test('Should not create a new expense with invalid attendees objectID', async ()
 
 test('Should update expense with valid trip and attendees', async () => {
   await request(app)
-    .patch(`/expenses/${expenseId}`)
+    .patch(`/expenses/${expenseWaitingId}`)
     .set('Authorization', `Bearer ${userToken}`)
     .field('_attendees', String(adminId) + ',' + String(user2Id))
     .field('_trip', String(tripApprovedId))
@@ -119,7 +120,7 @@ test('Should update expense with valid trip and attendees', async () => {
 
 test('Should not update expense with waiting trip', async () => {
   await request(app)
-    .patch(`/expenses/${expenseId}`)
+    .patch(`/expenses/${expenseWaitingId}`)
     .set('Authorization', `Bearer ${userToken}`)
     .field('_attendees', String(adminId))
     .field('_trip', String(tripWaitingId))
@@ -128,7 +129,7 @@ test('Should not update expense with waiting trip', async () => {
 
 test('Should not update expense with invalid trip', async () => {
   await request(app)
-    .patch(`/expenses/${expenseId}`)
+    .patch(`/expenses/${expenseWaitingId}`)
     .set('Authorization', `Bearer ${userToken}`)
     .field('_attendees', String(adminId))
     .field('_trip', String(new mongoose.Types.ObjectId()))
@@ -137,7 +138,7 @@ test('Should not update expense with invalid trip', async () => {
 
 test('Should not update expense with attendees of other company', async () => {
   await request(app)
-    .patch(`/expenses/${expenseId}`)
+    .patch(`/expenses/${expenseWaitingId}`)
     .set('Authorization', `Bearer ${userToken}`)
     .field('_attendees', String(userCompany2Id))
     .field('_trip', String(tripApprovedId))
@@ -146,7 +147,7 @@ test('Should not update expense with attendees of other company', async () => {
 
 test('Should not update expense with invalid attendees', async () => {
   await request(app)
-    .patch(`/expenses/${expenseId}`)
+    .patch(`/expenses/${expenseWaitingId}`)
     .set('Authorization', `Bearer ${userToken}`)
     .field('_attendees', String(new mongoose.Types.ObjectId()))
     .field('_trip', String(tripApprovedId))
@@ -155,9 +156,68 @@ test('Should not update expense with invalid attendees', async () => {
 
 test('Should not update expense with invalid attendees objectID', async () => {
   await request(app)
-    .patch(`/expenses/${expenseId}`)
+    .patch(`/expenses/${expenseWaitingId}`)
     .set('Authorization', `Bearer ${userToken}`)
     .field('_attendees', '1234,5678')
     .field('_trip', String(tripApprovedId))
     .expect(400)
+})
+
+test('Should update expense with valid trip and attendees', async () => {
+  await request(app)
+    .patch(`/expenses/${expenseWaitingId}`)
+    .set('Authorization', `Bearer ${userToken}`)
+    .field('_attendees', String(adminId) + ',' + String(user2Id))
+    .field('_trip', String(tripApprovedId))
+    .expect(200)
+})
+
+test('Should update expense from status rejected to waiting status', async () => {
+  await request(app)
+    .patch(`/expenses/${expenseRejectedId}`)
+    .set('Authorization', `Bearer ${userToken}`)
+    .field('_trip', String(tripApprovedId))
+    .field('name', 'test name')
+    .expect(200)
+
+  let expense = await Expense.findById(expenseRejectedId)
+  expect(expense.status === 'rejected')
+})
+
+test('Should not update expense from status rejected to any status except waiting ', async () => {
+  await request(app)
+    .patch(`/expenses/${expenseRejectedId}`)
+    .set('Authorization', `Bearer ${userToken}`)
+    .field('_trip', String(tripApprovedId))
+    .field('status', 'claiming')
+    .expect(200)
+
+  let expense = await Expense.findById(expenseRejectedId)
+  expect(expense.status === 'rejected')
+})
+
+test('Should update expense from status waiting to claiming status', async () => {
+  await request(app)
+    .patch(`/expenses`)
+    .set('Authorization', `Bearer ${userToken}`)
+    .send({
+      expenseIds: [expenseWaitingId]
+    })
+    .expect(200)
+
+  let expense = await Expense.findById(expenseWaitingId)
+  expect(expense.status === 'claiming')
+})
+
+test('Should not update expense from any status except waiting to claiming status', async () => {
+  await request(app)
+    .patch(`/expenses`)
+    .set('Authorization', `Bearer ${userToken}`)
+    .send({
+      expenseIds: [expenseRejectedId]
+    })
+    .expect(200)
+
+  let expense = await Expense.findById(expenseRejectedId)
+  expect(expense.status === 'rejected')
 })
