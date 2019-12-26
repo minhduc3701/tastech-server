@@ -101,8 +101,25 @@ router.get('/', function(req, res, next) {
     })
   ])
     .then(results => {
+      return Promise.all([
+        ...results,
+        Expense.find({
+          _trip: { $in: results[0].map(trip => trip._id) }
+        })
+      ])
+    })
+    .then(results => {
       let trips = results[0]
       let total = results[1]
+      let expenses = results[2]
+
+      trips = trips.map(trip => ({
+        ...trip.toObject(),
+        totalExpense: expenses
+          .filter(e => e._trip.toHexString() === trip._id.toHexString())
+          .reduce((acc, e) => acc + e.amount, 0)
+      }))
+
       res.status(200).send({
         page,
         totalPage: Math.ceil(total / perPage),
@@ -479,6 +496,33 @@ router.patch('/:id/archived', function(req, res, next) {
         return res.status(404).send()
       }
 
+      res.status(200).send({ trip })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
+router.patch('/:id/rejected', function(req, res, next) {
+  let id = req.params.id
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  Trip.findOneAndUpdate(
+    {
+      _creator: req.user._id,
+      _company: req.user._company,
+      _id: id,
+      status: 'waiting'
+    },
+    { $set: { status: 'rejected' } },
+    { new: true }
+  )
+    .then(trip => {
+      if (!trip) {
+        return res.status(404).send()
+      }
       res.status(200).send({ trip })
     })
     .catch(e => {
