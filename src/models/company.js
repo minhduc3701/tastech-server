@@ -23,6 +23,7 @@ const CompanySchema = new Schema({
   },
   currency: {
     type: String,
+    required: true,
     enum: supportCurrencies
   },
   language: '',

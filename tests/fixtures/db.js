@@ -33,6 +33,36 @@ const partnerId = new mongoose.Types.ObjectId()
 const partnerAdminId = new mongoose.Types.ObjectId()
 const expenseId = new mongoose.Types.ObjectId()
 
+const partnerSampleCompanyOne = {
+  name: 'Company 9',
+  address: 'Tokyo',
+  country: 'Japan',
+  industry: 'Travel',
+  website: 'www.tas-holding.jp',
+  timezone: '+9',
+  companySize: '50-100',
+  language: 'english',
+  currency: 'USD',
+  lengthUnit: '',
+  weightUnit: '',
+  payment: 'deposit',
+  creditLimitationAmount: 10000,
+  warningAmount: '5000',
+  sendMailToCompanyAdmin: true,
+  sendMailToPartnerAdmin: true,
+  contactName: 'Takaya Tomose',
+  contactEmail: 'takaya@tas-holding.jp',
+  contactCallingCode: '+65',
+  contactPhone: '912333444',
+  markupFlight: 'percentage',
+  markupFlightAmount: 10,
+  markupHotel: 'net',
+  markupHotelAmount: 25,
+  deposit: 1000,
+  note: 'this is a sample note',
+  onBehalf: false
+}
+
 const companies = [
   {
     _id: companyId,
@@ -45,21 +75,21 @@ const companies = [
     currency: 'USD'
   },
   {
+    ...partnerSampleCompanyOne,
     _id: partnerCompanyId,
     _partner: partnerId,
-    name: 'Company 3',
-    currency: 'USD'
+    name: 'Partner Company 1'
   },
   {
     _id: partnerCompany2Id,
     _partner: partnerId,
-    name: 'Company 4',
+    name: 'Partner Company 2',
     currency: 'VND'
   },
   {
     _id: partnerCompany3Id,
     _partner: partnerId,
-    name: 'Company 5',
+    name: 'Partner Company 3',
     currency: 'SGD'
   }
 ]
@@ -300,36 +330,6 @@ const setupDatabase = async () => {
   await partnerAdminOneDb.save()
   await partnerAdminOneDb.setPassword(partnerAdminOne.password)
   await partnerAdminOneDb.save()
-}
-
-const partnerSampleCompanyOne = {
-  name: 'Company 9',
-  address: 'Tokyo',
-  country: 'Japan',
-  industry: 'Travel',
-  website: 'www.tas-holding.jp',
-  timezone: '+9',
-  companySize: '50-100',
-  language: 'english',
-  currency: 'USD',
-  lengthUnit: '',
-  weightUnit: '',
-  payment: 'deposit',
-  creditLimitationAmount: 10000,
-  warningAmount: '5000',
-  sendMailToCompanyAdmin: true,
-  sendMailToPartnerAdmin: true,
-  contactName: 'Takaya Tomose',
-  contactEmail: 'takaya@tas-holding.jp',
-  contactCallingCode: '+65',
-  contactPhone: '912333444',
-  markupFlight: 'percentage',
-  markupFlightAmount: 10,
-  markupHotel: 'net',
-  markupHotelAmount: 25,
-  deposit: 1000,
-  note: 'this is a sample note',
-  onBehalf: false
 }
 
 module.exports = {

@@ -9,6 +9,7 @@ const Policy = require('../../models/policy')
 const _ = require('lodash')
 const { roles } = require('../../config/roles')
 const api = require('../../modules/api')
+const { makeDefaultPolicy } = require('../../modules/utils')
 const { createUser } = require('../../middleware/users')
 const { currenciesExchange } = require('../../middleware/currency')
 
@@ -277,11 +278,9 @@ router.get('/:id/policies', function(req, res) {
 router.post('/', async (req, res) => {
   const body = _.pick(req.body, companyFields)
 
-  requiredFields.forEach(field => {
-    if (!body[field]) {
-      return res.status(400).send()
-    }
-  })
+  if (requiredFields.filter(field => !body[field]).length > 0) {
+    return res.status(400).send()
+  }
 
   try {
     let newCompanyData = {
@@ -306,34 +305,7 @@ router.post('/', async (req, res) => {
       })
       .then(currency => {
         let rate = currency.data[0].rate
-        let policy = new Policy({
-          name: 'Default Policy',
-          _company: company._id,
-          status: 'default',
-          flightClass: 'Economy',
-          stops: '0',
-          setDaysBeforeFlights: false,
-          daysBeforeFlights: 7,
-          setFlightLimit: false,
-          flightLimit: 500 * rate,
-          flightNotification: 'no',
-          flightApproval: 'no',
-          hotelClass: 3,
-          hotelSearchDistance: 15,
-          setDaysBeforeLodging: false,
-          daysBeforeLodging: 7,
-          setHotelLimit: false,
-          hotelLimit: 500 * rate,
-          hotelNotification: 'no',
-          hotelApproval: 'no',
-          setTransportLimit: true,
-          transportLimit: 10 * rate,
-          setMealLimit: true,
-          mealLimit: 10 * rate,
-          setProvision: true,
-          provision: 5
-        })
-
+        let policy = new Policy(makeDefaultPolicy(company._id, rate))
         return policy.save()
       })
       .then(policy => {
@@ -351,28 +323,13 @@ router.post('/', async (req, res) => {
 
 router.post('/bulk', async (req, res) => {
   let companies = req.body.map(company => {
-    let onBehalf =
-      typeof company.onBehalf === 'boolean' ? company.onBehalf : false
-    let isCreditLimitation =
-      typeof company.isCreditLimitation === 'boolean'
-        ? company.isCreditLimitation
-        : false
-    let sendMailToCompanyAdmin =
-      typeof company.sendMailToCompanyAdmin === 'boolean'
-        ? company.sendMailToCompanyAdmin
-        : false
-    let sendMailToPartnerAdmin =
-      typeof company.sendMailToPartnerAdmin === 'boolean'
-        ? company.sendMailToPartnerAdmin
-        : false
-    let invoiceThroughEmail =
-      typeof company.invoiceThroughEmail === 'boolean'
-        ? company.invoiceThroughEmail
-        : false
-    let invoiceInHardCopy =
-      typeof company.invoiceInHardCopy === 'boolean'
-        ? company.invoiceInHardCopy
-        : false
+    let onBehalf = Boolean(company.onBehalf)
+    let isCreditLimitation = Boolean(company.isCreditLimitation)
+    let sendMailToCompanyAdmin = Boolean(company.sendMailToCompanyAdmin)
+    let sendMailToPartnerAdmin = Boolean(company.sendMailToPartnerAdmin)
+    let invoiceThroughEmail = Boolean(company.invoiceThroughEmail)
+    let invoiceInHardCopy = Boolean(company.invoiceInHardCopy)
+
     let payment = ['deposit', 'credit-card'].includes(company.payment)
       ? company.payment
       : 'credit-card'
@@ -441,33 +398,7 @@ router.post('/bulk', async (req, res) => {
           ]['rate']
       }
 
-      newPolicies.push({
-        name: 'Default Policy',
-        _company: company._id,
-        status: 'default',
-        flightClass: 'Economy',
-        stops: '0',
-        setDaysBeforeFlights: false,
-        daysBeforeFlights: 7,
-        setFlightLimit: false,
-        flightLimit: 500 * rate,
-        flightNotification: 'no',
-        flightApproval: 'no',
-        hotelClass: 3,
-        hotelSearchDistance: 15,
-        setDaysBeforeLodging: false,
-        daysBeforeLodging: 7,
-        setHotelLimit: false,
-        hotelLimit: 500 * rate,
-        hotelNotification: 'no',
-        hotelApproval: 'no',
-        setTransportLimit: true,
-        transportLimit: 10 * rate,
-        setMealLimit: true,
-        mealLimit: 10 * rate,
-        setProvision: true,
-        provision: 5
-      })
+      newPolicies.push(makeDefaultPolicy(company._id, rate))
     })
 
     let insertPoliciesResults = await Policy.insertMany(newPolicies)
@@ -548,11 +479,9 @@ router.patch('/:id', (req, res) => {
         return res.status(404).send()
       }
 
-      requiredFields.forEach(field => {
-        if (!company[field]) {
-          return res.status(400).send()
-        }
-      })
+      if (requiredFields.filter(field => !company[field]).length > 0) {
+        return res.status(400).send()
+      }
 
       res.status(200).send({
         company

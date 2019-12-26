@@ -3,6 +3,7 @@ const app = require('../../src/app')
 const mongoose = require('mongoose')
 const Company = require('../../src/models/company')
 const Role = require('../../src/models/role')
+const Policy = require('../../src/models/policy')
 const _ = require('lodash')
 const {
   setupDatabase,
@@ -24,11 +25,22 @@ let companyDataWithoutName = _.omit(partnerSampleCompanyOne, ['name'])
 beforeEach(setupDatabase)
 
 test('Should create new company with valid data', async () => {
-  await request(app)
+  const response = await request(app)
     .post('/partner-admin/companies')
     .set('Authorization', `Bearer ${partnerAdminToken}`)
     .send(partnerSampleCompanyOne)
     .expect(200)
+
+  expect(response.body.company.name).toMatch(partnerSampleCompanyOne.name)
+  expect(response.body.company.contactEmail).toMatch(
+    partnerSampleCompanyOne.contactEmail
+  )
+
+  let roles = await Role.find({ _company: response.body.company._id })
+  expect(roles.length).toEqual(4)
+
+  let policy = await Policy.find({ _company: response.body.company._id })
+  expect(policy.length).toEqual(1)
 })
 
 test('Should not create new company, return 400 because of lacking required data', async () => {
@@ -61,11 +73,15 @@ test('Should not get company, return 404 because of non existing company', async
 })
 
 test('Should update company by Id', async () => {
-  await request(app)
+  const response = await request(app)
     .patch(`/partner-admin/companies/${partnerCompanyId}`)
     .set('Authorization', `Bearer ${partnerAdminToken}`)
-    .send(partnerSampleCompanyOne)
+    .send({
+      name: 'New Company'
+    })
     .expect(200)
+
+  expect(response.body.company.name).toMatch('New Company')
 })
 
 test('Should not update company, return 404 because of non existing company', async () => {
@@ -89,10 +105,12 @@ test('Should not update company, return 400 because of lacking required data', a
 })
 
 test('Should delete company by Id', async () => {
-  await request(app)
+  const response = await request(app)
     .delete(`/partner-admin/companies/${partnerCompanyId}`)
     .set('Authorization', `Bearer ${partnerAdminToken}`)
     .expect(200)
+
+  expect(response.body.company._id).toMatch(partnerCompanyId.toHexString())
 })
 
 test('Should not delete company, return 404 because of non existing company', async () => {
@@ -110,6 +128,25 @@ test('Should create two new companies', async () => {
     .expect(200)
 
   expect(response.body.companies.length).toEqual(2)
+
+  expect(response.body.companies[0].name).toMatch(partnerSampleCompanyOne.name)
+  expect(response.body.companies[1].name).toMatch(partnerSampleCompanyTwo.name)
+  expect(response.body.companies[0].contactEmail).toMatch(
+    partnerSampleCompanyOne.contactEmail
+  )
+  expect(response.body.companies[1].contactEmail).toMatch(
+    partnerSampleCompanyTwo.contactEmail
+  )
+
+  let roles1 = await Role.find({ _company: response.body.companies[0]._id })
+  let roles2 = await Role.find({ _company: response.body.companies[1]._id })
+  expect(roles1.length).toEqual(4)
+  expect(roles2.length).toEqual(4)
+
+  let policy1 = await Policy.find({ _company: response.body.companies[0]._id })
+  let policy2 = await Policy.find({ _company: response.body.companies[1]._id })
+  expect(policy1.length).toEqual(1)
+  expect(policy2.length).toEqual(1)
 }, 20000)
 
 test('Should create one new companies', async () => {
@@ -120,9 +157,20 @@ test('Should create one new companies', async () => {
     .expect(200)
 
   expect(response.body.companies.length).toEqual(1)
+
+  expect(response.body.companies[0].name).toMatch(partnerSampleCompanyOne.name)
+  expect(response.body.companies[0].contactEmail).toMatch(
+    partnerSampleCompanyOne.contactEmail
+  )
+
+  let roles1 = await Role.find({ _company: response.body.companies[0]._id })
+  expect(roles1.length).toEqual(4)
+
+  let policy1 = await Policy.find({ _company: response.body.companies[0]._id })
+  expect(policy1.length).toEqual(1)
 }, 20000)
 
-test('Should create one new companies', async () => {
+test('Should not create new company, return 404 because of invalid data', async () => {
   const response = await request(app)
     .post('/partner-admin/companies/bulk')
     .set('Authorization', `Bearer ${partnerAdminToken}`)
