@@ -353,5 +353,7 @@ module.exports = {
   partnerAdminOne,
   partnerAdminToken,
   partnerCompanyId,
-  partnerSampleCompanyOne
+  partnerSampleCompanyOne,
+  adminRoleId,
+  adminCompany2RoleId
 }

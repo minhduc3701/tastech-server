@@ -7,6 +7,7 @@ const api = require('../modules/api')
 const apiSabre = require('../modules/apiSabre')
 const { sabreRestToken } = require('../middleware/sabre')
 const apiHotelbeds = require('../modules/apiHotelbeds')
+const { getCache, setCache } = require('../config/cache')
 const {
   makeSegmentsData,
   makeRoomGuestDetails,
@@ -23,10 +24,107 @@ const {
   emailGiamsoIssueTicket
 } = require('../middleware/email')
 const { currentCompany } = require('../middleware/company')
+const { currenciesExchange } = require('../middleware/currency')
+const {
+  makeSabreFlightsData,
+  makeHotelbedsHotelsData
+} = require('../modules/utils')
 
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+
+const verifySabrePrice = async (req, res, next) => {
+  // get sabre cache key
+  // get sabre-currency -> company currency
+  // find flight, assign rate
+  let trip = req.body.trip
+  let sabreCacheKey = _.get(req.body, 'flightCacheKey.sabre')
+
+  // if no flights or flight is not from sabre, go next()
+  if (!trip.flight || !sabreCacheKey) {
+    return next()
+  }
+
+  try {
+    let sabreCacheData = await getCache(sabreCacheKey)
+    let currencies = await currenciesExchange()
+    let sabreCurrency =
+      currencies[`${process.env.SABRE_BASE_CURRENCY}-${req.company.currency}`]
+
+    let flights = makeSabreFlightsData(
+      sabreCacheData.sabreRes,
+      sabreCurrency,
+      sabreCacheData.numberOfPassengers
+    )
+
+    let flightInCache = flights.find(f => f.id === req.body.trip.flight.id)
+
+    req.body.trip.flight = flightInCache
+  } catch (e) {
+    return res.status(400).send({
+      code: 'SABRE-VERIFY-FLIGHT',
+      message: 'Cannot verify price of this flight'
+    })
+  }
+
+  next()
+}
+
+const verifyHotelbedsPrice = async (req, res, next) => {
+  // get hotel cache key
+  // get hotelbeds-currency -> company-currency
+  // find rate, assign rate
+  let trip = req.body.trip
+  let hotelbedsCacheKey = _.get(req.body, 'hotelCacheKey.hotelbeds')
+
+  // if no hotels or hotel is not from hotelbeds, go next()
+  if (!trip.hotel || !hotelbedsCacheKey) {
+    return next()
+  }
+
+  try {
+    let hotelbedsData = await getCache(hotelbedsCacheKey)
+    let currencies = await currenciesExchange()
+    let hotelbedsCurrency =
+      currencies[
+        `${process.env.HOTELBEDS_BASE_CURRENCY}-${req.company.currency}`
+      ]
+
+    let hotels = makeHotelbedsHotelsData(
+      hotelbedsData.hotels,
+      hotelbedsData.rooms,
+      hotelbedsCurrency
+    )
+
+    let hotelInCache = hotels.find(
+      f => f.hotelId === req.body.trip.hotel.hotelId
+    )
+
+    let roomInCache = _.get(hotelInCache, 'ratePlans.ratePlanList', []).find(
+      r => r.ratePlanCode === req.body.trip.hotel.ratePlanCode
+    )
+
+    if (!roomInCache) {
+      throw new Error('Cannot find room in cache')
+    }
+
+    req.body.trip.hotel = {
+      ...req.body.trip.hotel, // checkInDate, checkOutDate
+      ...hotelInCache,
+      ...roomInCache,
+      numberOfAdult: roomInCache.adults,
+      numberOfRoom: roomInCache.rooms
+    }
+  } catch (e) {
+    return res.status(400).send({
+      code: 'HOTELBEDS-VERIFY-HOTEL',
+      message: 'Cannot verify price of this hotel'
+    })
+  }
+
+  next()
+}
 
 const createOrFindTrip = async (req, res, next) => {
   const { trip, checkoutAgain } = req.body
@@ -52,7 +150,7 @@ const createOrFindTrip = async (req, res, next) => {
           },
           {
             $set: {
-              ..._.omit(trip, ['_id', 'startDate', 'endDate']),
+              ..._.omit(trip, ['_id', 'startDate', 'endDate', 'name']),
               status: 'ongoing'
             }
           },
@@ -70,7 +168,8 @@ const createOrFindTrip = async (req, res, next) => {
     } else {
       foundTrip = new Trip({
         ...trip,
-        _creator: req.user._id
+        _creator: req.user._id,
+        status: 'ongoing'
       })
 
       await foundTrip.save()
@@ -1102,12 +1201,12 @@ const responseCheckout = async (req, res, next) => {
   } catch (error) {
     logger.error('checkoutERR', _.get(error, 'message', ''))
     // update order status to failed if something went wrong
-    if (trip.flight && flightOrder) {
+    if (trip && trip.flight && flightOrder) {
       flightOrder.status = 'failed'
       await flightOrder.save()
     }
 
-    if (trip.hotel && hotelOrder) {
+    if (trip && trip.hotel && hotelOrder) {
       hotelOrder.status = 'failed'
       await hotelOrder.save()
     }
@@ -1124,11 +1223,13 @@ const responseCheckout = async (req, res, next) => {
 
 router.post(
   '/card',
+  currentCompany,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
   sabreRestToken, // get token for sabre api
   createOrFindTrip,
   createOrFindFlightOrder,
   createOrFindHotelOrder,
-  currentCompany,
   calculateRewardCost,
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
