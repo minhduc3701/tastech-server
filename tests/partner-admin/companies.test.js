@@ -9,42 +9,17 @@ const {
   partnerAdminRoleId,
   partnerAdminOne,
   partnerAdminToken,
-  company3Id
+  partnerCompanyId,
+  partnerSampleCompanyOne
 } = require('../fixtures/db.js')
 
 const newObjectId = new mongoose.Types.ObjectId()
 
-let newCompanyData = {
-  name: 'Company 9',
-  address: 'Tokyo',
-  country: 'Japan',
-  industry: 'Travel',
-  website: 'www.tas-holding.jp',
-  timezone: '+9',
-  companySize: '50-100',
-  language: 'en',
-  currency: 'USD',
-  lengthUnit: '',
-  weightUnit: '',
-  payment: 'deposit',
-  creditLimitationAmount: 10000,
-  warningAmount: '5000',
-  sendMailToCompanyAdmin: true,
-  sendMailToPartnerAdmin: true,
-  contactName: 'Takaya Tomose',
-  contactEmail: 'takaya@tas-holding.jp',
-  contactCallingCode: '+65',
-  contactPhone: '912333444',
-  markupFlight: 'net',
-  markupFlightAmount: 1000,
-  markupHotel: 'net',
-  markupHotelAmount: 300,
-  deposit: 1000,
-  note: 'this is a sample note',
-  onBehalf: false
+let partnerSampleCompanyTwo = {
+  ...partnerSampleCompanyOne,
+  name: 'Company 11'
 }
-
-let companyDataWithoutName = _.omit(newCompanyData, ['name'])
+let companyDataWithoutName = _.omit(partnerSampleCompanyOne, ['name'])
 
 beforeEach(setupDatabase)
 
@@ -52,7 +27,7 @@ test('Should create new company with valid data', async () => {
   await request(app)
     .post('/partner-admin/companies')
     .set('Authorization', `Bearer ${partnerAdminToken}`)
-    .send(newCompanyData)
+    .send(partnerSampleCompanyOne)
     .expect(200)
 })
 
@@ -73,7 +48,7 @@ test('Should get companies', async () => {
 
 test('Should get company by Id', async () => {
   await request(app)
-    .get(`/partner-admin/companies/${company3Id}`)
+    .get(`/partner-admin/companies/${partnerCompanyId}`)
     .set('Authorization', `Bearer ${partnerAdminToken}`)
     .expect(200)
 })
@@ -87,9 +62,9 @@ test('Should not get company, return 404 because of non existing company', async
 
 test('Should update company by Id', async () => {
   await request(app)
-    .patch(`/partner-admin/companies/${company3Id}`)
+    .patch(`/partner-admin/companies/${partnerCompanyId}`)
     .set('Authorization', `Bearer ${partnerAdminToken}`)
-    .send(newCompanyData)
+    .send(partnerSampleCompanyOne)
     .expect(200)
 })
 
@@ -105,7 +80,7 @@ test('Should not update company, return 404 because of non existing company', as
 
 test('Should not update company, return 400 because of lacking required data', async () => {
   await request(app)
-    .patch(`/partner-admin/companies/${company3Id}`)
+    .patch(`/partner-admin/companies/${partnerCompanyId}`)
     .set('Authorization', `Bearer ${partnerAdminToken}`)
     .send({
       name: ''
@@ -115,7 +90,7 @@ test('Should not update company, return 400 because of lacking required data', a
 
 test('Should delete company by Id', async () => {
   await request(app)
-    .delete(`/partner-admin/companies/${company3Id}`)
+    .delete(`/partner-admin/companies/${partnerCompanyId}`)
     .set('Authorization', `Bearer ${partnerAdminToken}`)
     .expect(200)
 })
@@ -127,10 +102,30 @@ test('Should not delete company, return 404 because of non existing company', as
     .expect(404)
 })
 
-test('Should create new companies', async () => {
-  await request(app)
+test('Should create two new companies', async () => {
+  const response = await request(app)
     .post('/partner-admin/companies/bulk')
     .set('Authorization', `Bearer ${partnerAdminToken}`)
-    .send([newCompanyData])
+    .send([partnerSampleCompanyOne, partnerSampleCompanyTwo])
     .expect(200)
-})
+
+  expect(response.body.companies.length).toEqual(2)
+}, 20000)
+
+test('Should create one new companies', async () => {
+  const response = await request(app)
+    .post('/partner-admin/companies/bulk')
+    .set('Authorization', `Bearer ${partnerAdminToken}`)
+    .send([partnerSampleCompanyOne, companyDataWithoutName])
+    .expect(200)
+
+  expect(response.body.companies.length).toEqual(1)
+}, 20000)
+
+test('Should create one new companies', async () => {
+  const response = await request(app)
+    .post('/partner-admin/companies/bulk')
+    .set('Authorization', `Bearer ${partnerAdminToken}`)
+    .send([companyDataWithoutName, companyDataWithoutName])
+    .expect(400)
+}, 20000)

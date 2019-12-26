@@ -56,7 +56,12 @@ const requiredFields = [
   'contactName',
   'contactEmail',
   'contactCallingCode',
-  'contactPhone'
+  'contactPhone',
+  'payment',
+  'markupFlight',
+  'markupFlightAmount',
+  'markupHotel',
+  'markupHotelAmount'
 ]
 
 router.get('/', function(req, res) {
@@ -368,17 +373,17 @@ router.post('/bulk', async (req, res) => {
       typeof company.invoiceInHardCopy === 'boolean'
         ? company.invoiceInHardCopy
         : false
-    let payment = [null, 'deposit', 'credit-card'].includes(company.payment)
+    let payment = ['deposit', 'credit-card'].includes(company.payment)
       ? company.payment
-      : null
-    let markupHotel = [null, 'net', 'percentage'].includes(company.markupHotel)
+      : 'credit-card'
+    let markupHotel = ['net', 'percentage'].includes(company.markupHotel)
       ? company.markupHotel
-      : null
-    let markupFlight = [null, 'net', 'percentage'].includes(
-      company.markupFlight
-    )
+      : 'percentage'
+    let markupFlight = ['net', 'percentage'].includes(company.markupFlight)
       ? company.markupFlight
-      : null
+      : 'net'
+    let markupHotelAmount = _.get(company, 'markupHotelAmount', 0)
+    let markupFlightAmount = _.get(company, 'markupFlightAmount', 0)
 
     return {
       ...company,
@@ -397,8 +402,22 @@ router.post('/bulk', async (req, res) => {
     }
   })
 
+  let validCompanies = []
+  companies.forEach(company => {
+    let isValidData = requiredFields.every(field =>
+      company.hasOwnProperty(field)
+    )
+    if (isValidData) {
+      validCompanies.push(company)
+    }
+  })
+
+  if (validCompanies.length === 0) {
+    return res.status(400).send()
+  }
+
   try {
-    let insertCompaniesResults = await Company.insertMany(companies)
+    let insertCompaniesResults = await Company.insertMany(validCompanies)
     let newRoles = []
     roles.forEach(role => {
       insertCompaniesResults.forEach(company => {
@@ -476,6 +495,7 @@ router.post('/bulk', async (req, res) => {
     })
 
     let bulkWriteResult = await Company.bulkWrite(bulkOps)
+
     if (_.get(bulkWriteResult, 'ok') === 1) {
       res.status(200).send({ companies: updatedCompanies })
     } else {
