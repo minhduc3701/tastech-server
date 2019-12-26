@@ -47,7 +47,7 @@ const currenciesExchange = async () => {
     }
   })
 
-  // logger.info('currenciesExchange', exchangedResults)
+  logger.info('currenciesExchange', exchangedResults)
 
   // save all data for using 1 day later
   setCache(transferwiseCacheKey, exchangedResults, 3600 * 24)
