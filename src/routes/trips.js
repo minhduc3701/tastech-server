@@ -102,8 +102,25 @@ router.get('/', function(req, res, next) {
     })
   ])
     .then(results => {
+      return Promise.all([
+        ...results,
+        Expense.find({
+          _trip: { $in: results[0].map(trip => trip._id) }
+        })
+      ])
+    })
+    .then(results => {
       let trips = results[0]
       let total = results[1]
+      let expenses = results[2]
+
+      trips = trips.map(trip => ({
+        ...trip.toObject(),
+        totalExpense: expenses
+          .filter(e => e._trip.toHexString() === trip._id.toHexString())
+          .reduce((acc, e) => acc + e.amount, 0)
+      }))
+
       res.status(200).send({
         page,
         totalPage: Math.ceil(total / perPage),
