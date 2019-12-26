@@ -10,9 +10,13 @@ const Expense = require('../../src/models/expense')
 
 const companyId = new mongoose.Types.ObjectId()
 const company2Id = new mongoose.Types.ObjectId()
+const partnerCompanyId = new mongoose.Types.ObjectId()
+const partnerCompany2Id = new mongoose.Types.ObjectId()
+const partnerCompany3Id = new mongoose.Types.ObjectId()
 
 const tasAdminRoleId = new mongoose.Types.ObjectId()
 const adminRoleId = new mongoose.Types.ObjectId()
+const partnerAdminRoleId = new mongoose.Types.ObjectId()
 const adminCompany2RoleId = new mongoose.Types.ObjectId()
 const employeeRoleId = new mongoose.Types.ObjectId()
 const managerRoleId = new mongoose.Types.ObjectId()
@@ -25,7 +29,39 @@ const userId = new mongoose.Types.ObjectId()
 const user2Id = new mongoose.Types.ObjectId()
 const userCompany2Id = new mongoose.Types.ObjectId()
 const adminId = new mongoose.Types.ObjectId()
+const partnerId = new mongoose.Types.ObjectId()
+const partnerAdminId = new mongoose.Types.ObjectId()
 const expenseId = new mongoose.Types.ObjectId()
+
+const partnerSampleCompanyOne = {
+  name: 'Company 9',
+  address: 'Tokyo',
+  country: 'Japan',
+  industry: 'Travel',
+  website: 'www.tas-holding.jp',
+  timezone: '+9',
+  companySize: '50-100',
+  language: 'english',
+  currency: 'USD',
+  lengthUnit: '',
+  weightUnit: '',
+  payment: 'deposit',
+  creditLimitationAmount: 10000,
+  warningAmount: '5000',
+  sendMailToCompanyAdmin: true,
+  sendMailToPartnerAdmin: true,
+  contactName: 'Takaya Tomose',
+  contactEmail: 'takaya@tas-holding.jp',
+  contactCallingCode: '+65',
+  contactPhone: '912333444',
+  markupFlight: 'percentage',
+  markupFlightAmount: 10,
+  markupHotel: 'net',
+  markupHotelAmount: 25,
+  deposit: 1000,
+  note: 'this is a sample note',
+  onBehalf: false
+}
 
 const companies = [
   {
@@ -37,6 +73,24 @@ const companies = [
     _id: company2Id,
     name: 'Company 2',
     currency: 'USD'
+  },
+  {
+    ...partnerSampleCompanyOne,
+    _id: partnerCompanyId,
+    _partner: partnerId,
+    name: 'Partner Company 1'
+  },
+  {
+    _id: partnerCompany2Id,
+    _partner: partnerId,
+    name: 'Partner Company 2',
+    currency: 'VND'
+  },
+  {
+    _id: partnerCompany3Id,
+    _partner: partnerId,
+    name: 'Partner Company 3',
+    currency: 'SGD'
   }
 ]
 const expensies = [
@@ -64,6 +118,12 @@ const companyRoles = [
     _id: tasAdminRoleId,
     name: 'Tas Admin',
     type: 'tas-admin',
+    permissions: []
+  },
+  {
+    _id: partnerAdminRoleId,
+    name: 'Partner Admin',
+    type: 'partner-admin',
     permissions: []
   },
   {
@@ -173,6 +233,25 @@ const adminToken = jwt.sign(
   process.env.JWT_SECRET
 )
 
+const partnerAdminOne = {
+  _id: partnerAdminId,
+  _role: partnerAdminRoleId,
+  _partner: partnerId,
+  firstName: 'Samuel',
+  lastName: 'Eto',
+  username: 'partner-admin@tastech.asia',
+  email: 'partner-admin@tastech.asia',
+  password: '12345678'
+}
+const partnerAdminToken = jwt.sign(
+  {
+    id: partnerAdminId,
+    email: partnerAdminOne.email,
+    password: partnerAdminOne.password
+  },
+  process.env.JWT_SECRET
+)
+
 const userOne = {
   _id: userId,
   firstName: 'Mike',
@@ -209,6 +288,7 @@ const userCompany2 = {
   _company: company2Id,
   _role: employeeRoleId
 }
+
 const setupDatabase = async () => {
   await Trip.deleteMany()
   await Trip.insertMany(trips)
@@ -245,6 +325,11 @@ const setupDatabase = async () => {
   await adminOneDb.save()
   await adminOneDb.setPassword(adminOne.password)
   await adminOneDb.save()
+
+  let partnerAdminOneDb = await new User(partnerAdminOne)
+  await partnerAdminOneDb.save()
+  await partnerAdminOneDb.setPassword(partnerAdminOne.password)
+  await partnerAdminOneDb.save()
 }
 
 module.exports = {
@@ -264,6 +349,11 @@ module.exports = {
   tripApprovedId,
   userCompany2Id,
   expenseId,
+  partnerAdminRoleId,
+  partnerAdminOne,
+  partnerAdminToken,
+  partnerCompanyId,
+  partnerSampleCompanyOne,
   adminRoleId,
   adminCompany2RoleId
 }

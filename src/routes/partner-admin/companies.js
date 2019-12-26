@@ -9,7 +9,9 @@ const Policy = require('../../models/policy')
 const _ = require('lodash')
 const { roles } = require('../../config/roles')
 const api = require('../../modules/api')
+const { makeDefaultPolicy } = require('../../modules/utils')
 const { createUser } = require('../../middleware/users')
+const { currenciesExchange } = require('../../middleware/currency')
 
 const companyFields = [
   'logo',
@@ -44,6 +46,23 @@ const companyFields = [
   'note',
   'onBehalf',
   'disabled'
+]
+
+const requiredFields = [
+  'name',
+  'country',
+  'industry',
+  'language',
+  'currency',
+  'contactName',
+  'contactEmail',
+  'contactCallingCode',
+  'contactPhone',
+  'payment',
+  'markupFlight',
+  'markupFlightAmount',
+  'markupHotel',
+  'markupHotelAmount'
 ]
 
 router.get('/', function(req, res) {
@@ -170,7 +189,6 @@ router.patch('/:id/employees/:employeeId', function(req, res) {
       res.status(200).send({ user })
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })
@@ -260,6 +278,10 @@ router.get('/:id/policies', function(req, res) {
 router.post('/', async (req, res) => {
   const body = _.pick(req.body, companyFields)
 
+  if (requiredFields.filter(field => !body[field]).length > 0) {
+    return res.status(400).send()
+  }
+
   try {
     let newCompanyData = {
       ...body,
@@ -283,34 +305,7 @@ router.post('/', async (req, res) => {
       })
       .then(currency => {
         let rate = currency.data[0].rate
-        let policy = new Policy({
-          name: 'Default Policy',
-          _company: company._id,
-          status: 'default',
-          flightClass: 'Economy',
-          stops: '0',
-          setDaysBeforeFlights: false,
-          daysBeforeFlights: 7,
-          setFlightLimit: false,
-          flightLimit: 500 * rate,
-          flightNotification: 'no',
-          flightApproval: 'no',
-          hotelClass: 3,
-          hotelSearchDistance: 15,
-          setDaysBeforeLodging: false,
-          daysBeforeLodging: 7,
-          setHotelLimit: false,
-          hotelLimit: 500 * rate,
-          hotelNotification: 'no',
-          hotelApproval: 'no',
-          setTransportLimit: true,
-          transportLimit: 10 * rate,
-          setMealLimit: true,
-          mealLimit: 10 * rate,
-          setProvision: true,
-          provision: 5
-        })
-
+        let policy = new Policy(makeDefaultPolicy(company._id, rate))
         return policy.save()
       })
       .then(policy => {
@@ -321,6 +316,122 @@ router.post('/', async (req, res) => {
       .catch(e => {
         res.status(400).send()
       })
+  } catch (error) {
+    res.status(400).send()
+  }
+})
+
+router.post('/bulk', async (req, res) => {
+  let companies = req.body.map(company => {
+    let onBehalf = Boolean(company.onBehalf)
+    let isCreditLimitation = Boolean(company.isCreditLimitation)
+    let sendMailToCompanyAdmin = Boolean(company.sendMailToCompanyAdmin)
+    let sendMailToPartnerAdmin = Boolean(company.sendMailToPartnerAdmin)
+    let invoiceThroughEmail = Boolean(company.invoiceThroughEmail)
+    let invoiceInHardCopy = Boolean(company.invoiceInHardCopy)
+
+    let payment = ['deposit', 'credit-card'].includes(company.payment)
+      ? company.payment
+      : 'credit-card'
+    let markupHotel = ['net', 'percentage'].includes(company.markupHotel)
+      ? company.markupHotel
+      : 'percentage'
+    let markupFlight = ['net', 'percentage'].includes(company.markupFlight)
+      ? company.markupFlight
+      : 'net'
+    let markupHotelAmount = _.get(company, 'markupHotelAmount', 0)
+    let markupFlightAmount = _.get(company, 'markupFlightAmount', 0)
+
+    return {
+      ...company,
+      onBehalf,
+      isCreditLimitation,
+      sendMailToCompanyAdmin,
+      sendMailToPartnerAdmin,
+      invoiceThroughEmail,
+      invoiceInHardCopy,
+      payment,
+      markupHotel,
+      markupFlight,
+      _id: new ObjectID(),
+      _creator: req.user._id,
+      _partner: req.user._partner
+    }
+  })
+
+  let validCompanies = []
+  companies.forEach(company => {
+    let isValidData = requiredFields.every(field =>
+      company.hasOwnProperty(field)
+    )
+    if (isValidData) {
+      validCompanies.push(company)
+    }
+  })
+
+  if (validCompanies.length === 0) {
+    return res.status(400).send()
+  }
+
+  try {
+    let insertCompaniesResults = await Company.insertMany(validCompanies)
+    let newRoles = []
+    roles.forEach(role => {
+      insertCompaniesResults.forEach(company => {
+        newRoles.push({
+          ...role,
+          _company: company._id
+        })
+      })
+    })
+
+    let insertRolesResults = await Role.insertMany(newRoles)
+    let fullCurrenciesExchange = await currenciesExchange()
+
+    let newPolicies = []
+    insertCompaniesResults.forEach(company => {
+      let rate = 1
+      if (company.currency !== process.env.BASE_CURRENCY) {
+        rate =
+          fullCurrenciesExchange[
+            `${company.currency}-${process.env.BASE_CURRENCY}`
+          ]['rate']
+      }
+
+      newPolicies.push(makeDefaultPolicy(company._id, rate))
+    })
+
+    let insertPoliciesResults = await Policy.insertMany(newPolicies)
+
+    // refer: https://stackoverflow.com/questions/39988848/trying-to-do-a-bulk-upsert-with-mongoose-whats-the-cleanest-way-to-do-this
+    let updatedCompanies = []
+    let bulkOps = []
+
+    insertCompaniesResults.forEach(company => {
+      insertPoliciesResults.forEach(policy => {
+        if (policy._company === company._id) {
+          updatedCompanies.push({
+            ...company.toObject(),
+            _policy: policy._id
+          })
+          bulkOps.push({
+            updateOne: {
+              filter: { _id: company._id },
+              update: { _policy: policy._id },
+              upsert: true
+            }
+          })
+        }
+      })
+    })
+
+    let bulkWriteResult = await Company.bulkWrite(bulkOps)
+
+    if (_.get(bulkWriteResult, 'ok') === 1) {
+      res.status(200).send({ companies: updatedCompanies })
+    } else {
+      res.status(400).send()
+    }
   } catch (error) {
     res.status(400).send()
   }
@@ -367,6 +478,11 @@ router.patch('/:id', (req, res) => {
       if (!company) {
         return res.status(404).send()
       }
+
+      if (requiredFields.filter(field => !company[field]).length > 0) {
+        return res.status(400).send()
+      }
+
       res.status(200).send({
         company
       })

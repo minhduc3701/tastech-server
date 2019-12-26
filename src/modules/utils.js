@@ -971,6 +971,36 @@ const findAirlinesAirports = (flights = []) => {
   })
 }
 
+const makeDefaultPolicy = (companyId, rate) => {
+  return {
+    name: 'Default Policy',
+    _company: companyId,
+    status: 'default',
+    flightClass: 'Economy',
+    stops: '0',
+    setDaysBeforeFlights: false,
+    daysBeforeFlights: 7,
+    setFlightLimit: false,
+    flightLimit: 500 * rate,
+    flightNotification: 'no',
+    flightApproval: 'no',
+    hotelClass: 3,
+    hotelSearchDistance: 15,
+    setDaysBeforeLodging: false,
+    daysBeforeLodging: 7,
+    setHotelLimit: false,
+    hotelLimit: 500 * rate,
+    hotelNotification: 'no',
+    hotelApproval: 'no',
+    setTransportLimit: true,
+    transportLimit: 10 * rate,
+    setMealLimit: true,
+    mealLimit: 10 * rate,
+    setProvision: true,
+    provision: 5
+  }
+}
+
 module.exports = {
   getImageUri,
   makeSegmentsData,
@@ -986,5 +1016,6 @@ module.exports = {
   makeUrboxGiftData,
   roundPrice,
   getDistanceFromLatLonInKm,
-  findAirlinesAirports
+  findAirlinesAirports,
+  makeDefaultPolicy
 }
