@@ -157,9 +157,8 @@ router.patch('/:id', upload.array('receipts'), validateExpenseProps, function(
   } else {
     body._attendees = []
   }
-  if (body.status === 'rejected') {
-    body.status = 'waiting'
-  }
+  //update status expense to waiting
+  body.status = 'waiting'
   Expense.findOneAndUpdate(
     {
       _id: req.params.id,
@@ -184,6 +183,7 @@ router.patch('/:id', upload.array('receipts'), validateExpenseProps, function(
     })
 })
 
+// route for claiming expenses
 router.patch(
   '/',
   function(req, res, next) {
@@ -194,7 +194,8 @@ router.patch(
       Expense.updateMany(
         {
           _creator: req.user.id,
-          _id: { $in: expenseIds }
+          _id: { $in: expenseIds },
+          status: 'waiting'
         },
         { $set: { status: 'claiming' } },
         function(err, result) {
