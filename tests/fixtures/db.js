@@ -18,7 +18,10 @@ const employeeRoleId = new mongoose.Types.ObjectId()
 const managerRoleId = new mongoose.Types.ObjectId()
 const accountantRoleId = new mongoose.Types.ObjectId()
 const departmentId = new mongoose.Types.ObjectId()
+const departmentCompany2Id = new mongoose.Types.ObjectId()
 const policyId = new mongoose.Types.ObjectId()
+const policy2Id = new mongoose.Types.ObjectId()
+const policyCompany2Id = new mongoose.Types.ObjectId()
 const tripWaitingId = new mongoose.Types.ObjectId()
 const tripApprovedId = new mongoose.Types.ObjectId()
 const userId = new mongoose.Types.ObjectId()
@@ -144,21 +147,38 @@ const companyRoles = [
   }
 ]
 
-const companyOneDepartments = [
-  {
-    _id: departmentId,
-    _company: companyId,
-    name: `Company 1 - Department 1 `
-  }
-]
+const departmentCompany = {
+  _id: departmentId,
+  _company: companyId,
+  name: `Company 1 - Department 1`
+}
 
-const policies = [
-  {
-    _id: policyId,
-    name: 'Company 1 - Policy 1',
-    _company: companyId
-  }
-]
+const departmentCompany2 = {
+  _id: departmentCompany2Id,
+  _company: company2Id,
+  name: `Company 2 - Department 1`
+}
+
+const policyCompany = {
+  _id: policyId,
+  name: 'Company 1 - Policy 1',
+  _company: companyId,
+  status: 'default'
+}
+
+const policy2Company = {
+  _id: policy2Id,
+  name: 'Company 1 - Policy 2',
+  _company: companyId,
+  status: 'enabled'
+}
+
+const policyCompany2 = {
+  _id: policyCompany2Id,
+  name: 'Company 2 - Policy 1',
+  _company: company2Id,
+  status: 'default'
+}
 
 const trips = [
   {
@@ -240,10 +260,10 @@ const setupDatabase = async () => {
   await Role.insertMany(companyRoles)
 
   await Policy.deleteMany()
-  await Policy.insertMany(policies)
+  await Policy.insertMany([policyCompany, policy2Company, policyCompany2])
 
   await Department.deleteMany()
-  await Department.insertMany(companyOneDepartments)
+  await Department.insertMany([departmentCompany, departmentCompany2])
 
   await Company.deleteMany()
   await Company.insertMany(companies)
@@ -291,5 +311,14 @@ module.exports = {
   expenseClaimingId,
   expenseApprovedId,
   adminRoleId,
-  adminCompany2RoleId
+  adminCompany2RoleId,
+  companyId,
+  departmentCompany2Id,
+  departmentCompany,
+  departmentCompany2,
+  policyCompany,
+  policyCompany2Id,
+  policyCompany2,
+  policy2Company,
+  policy2Id
 }

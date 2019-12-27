@@ -112,6 +112,10 @@ router.get('/:id', function(req, res) {
     }
   ])
     .then(departments => {
+      if (!departments[0]) {
+        return res.status(404).send()
+      }
+
       departments = departments.map(departmentParser)
       res.status(200).send({ department: departments[0] })
     })
@@ -124,53 +128,54 @@ router.patch('/:id', function(req, res) {
   }
 
   let body = _.pick(req.body, ['name', 'employees'])
-
-  Promise.all([
-    User.updateMany(
-      {
-        _id: {
-          $in: body.employees
-        },
-        _company: req.user._company
-      },
-      {
-        $set: {
-          _department: req.params.id
-        }
-      }
-    ),
-    User.updateMany(
-      {
-        _department: req.params.id,
-        _id: {
-          $nin: body.employees
-        },
-        _company: req.user._company
-      },
-      {
-        $set: {
-          _department: null
-        }
-      }
-    ),
-    Department.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        _company: req.user._company
-      },
-      {
-        $set: { name: body.name }
-      },
-      { new: true }
-    )
-  ])
-    .then(results => {
-      let department = results[2]
+  Department.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      _company: req.user._company
+    },
+    {
+      $set: { name: body.name }
+    },
+    { new: true }
+  )
+    .then(department => {
       if (!department) {
         return res.status(404).send()
       }
 
-      res.status(200).send({ department })
+      return Promise.all([
+        User.updateMany(
+          {
+            _id: {
+              $in: body.employees
+            },
+            _company: req.user._company
+          },
+          {
+            $set: {
+              _department: req.params.id
+            }
+          }
+        ),
+        User.updateMany(
+          {
+            _department: req.params.id,
+            _id: {
+              $nin: body.employees
+            },
+            _company: req.user._company
+          },
+          {
+            $set: {
+              _department: null
+            }
+          }
+        ),
+        department
+      ])
+    })
+    .then(results => {
+      res.status(200).send({ department: results[2] })
     })
     .catch(e => {
       res.status(400).send()
