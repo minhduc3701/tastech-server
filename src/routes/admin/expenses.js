@@ -112,10 +112,14 @@ router.patch(
 
     const body = _.pick(req.body, ['status', 'adminMessage'])
 
+    if (body.status !== 'approved' && body.status !== 'rejected') {
+      res.status(400).send()
+    }
     Expense.findOneAndUpdate(
       {
         _id: id,
-        _company: req.user._company
+        _company: req.user._company,
+        status: 'claiming' // admin can update only claiming expense
       },
       { $set: body },
       { new: true }
@@ -130,7 +134,6 @@ router.patch(
         next()
       })
       .catch(e => {
-        console.log(e)
         res.status(400).send()
       })
   },

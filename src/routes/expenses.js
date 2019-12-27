@@ -183,7 +183,6 @@ router.patch('/:id', upload.array('receipts'), validateExpenseProps, function(
       res.status(200).send({ expense })
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })

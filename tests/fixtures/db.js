@@ -27,6 +27,8 @@ const userCompany2Id = new mongoose.Types.ObjectId()
 const adminId = new mongoose.Types.ObjectId()
 const expenseWaitingId = new mongoose.Types.ObjectId()
 const expenseRejectedId = new mongoose.Types.ObjectId()
+const expenseClaimingId = new mongoose.Types.ObjectId()
+const expenseApprovedId = new mongoose.Types.ObjectId()
 
 const companies = [
   {
@@ -67,6 +69,16 @@ const expensies = [
     ...expenseSample,
     status: 'rejected',
     _id: expenseRejectedId
+  },
+  {
+    ...expenseSample,
+    status: 'claiming',
+    _id: expenseClaimingId
+  },
+  {
+    ...expenseSample,
+    status: 'approved',
+    _id: expenseApprovedId
   }
 ]
 
@@ -276,6 +288,8 @@ module.exports = {
   userCompany2Id,
   expenseWaitingId,
   expenseRejectedId,
+  expenseClaimingId,
+  expenseApprovedId,
   adminRoleId,
   adminCompany2RoleId
 }
