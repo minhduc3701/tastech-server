@@ -57,7 +57,6 @@ router.post('/', function(req, res, next) {
       res.status(200).json({ policy: newPolicy })
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })
