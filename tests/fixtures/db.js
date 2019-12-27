@@ -18,6 +18,7 @@ const employeeRoleId = new mongoose.Types.ObjectId()
 const managerRoleId = new mongoose.Types.ObjectId()
 const accountantRoleId = new mongoose.Types.ObjectId()
 const departmentId = new mongoose.Types.ObjectId()
+const departmentCompany2Id = new mongoose.Types.ObjectId()
 const policyId = new mongoose.Types.ObjectId()
 const tripWaitingId = new mongoose.Types.ObjectId()
 const tripApprovedId = new mongoose.Types.ObjectId()
@@ -125,7 +126,15 @@ const companyOneDepartments = [
   {
     _id: departmentId,
     _company: companyId,
-    name: `Company 1 - Department 1 `
+    name: `Company 1 - Department 1`
+  }
+]
+
+const companyTwoDepartments = [
+  {
+    _id: departmentCompany2Id,
+    _company: company2Id,
+    name: `Company 2 - Department 1`
   }
 ]
 
@@ -220,7 +229,10 @@ const setupDatabase = async () => {
   await Policy.insertMany(policies)
 
   await Department.deleteMany()
-  await Department.insertMany(companyOneDepartments)
+  await Department.insertMany([
+    ...companyOneDepartments,
+    ...companyTwoDepartments
+  ])
 
   await Company.deleteMany()
   await Company.insertMany(companies)
@@ -265,5 +277,7 @@ module.exports = {
   userCompany2Id,
   expenseId,
   adminRoleId,
-  adminCompany2RoleId
+  adminCompany2RoleId,
+  companyId,
+  departmentCompany2Id
 }
