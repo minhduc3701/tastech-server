@@ -22,7 +22,10 @@ const employeeRoleId = new mongoose.Types.ObjectId()
 const managerRoleId = new mongoose.Types.ObjectId()
 const accountantRoleId = new mongoose.Types.ObjectId()
 const departmentId = new mongoose.Types.ObjectId()
+const departmentCompany2Id = new mongoose.Types.ObjectId()
 const policyId = new mongoose.Types.ObjectId()
+const policy2Id = new mongoose.Types.ObjectId()
+const policyCompany2Id = new mongoose.Types.ObjectId()
 const tripWaitingId = new mongoose.Types.ObjectId()
 const tripApprovedId = new mongoose.Types.ObjectId()
 const userId = new mongoose.Types.ObjectId()
@@ -31,7 +34,10 @@ const userCompany2Id = new mongoose.Types.ObjectId()
 const adminId = new mongoose.Types.ObjectId()
 const partnerId = new mongoose.Types.ObjectId()
 const partnerAdminId = new mongoose.Types.ObjectId()
-const expenseId = new mongoose.Types.ObjectId()
+const expenseWaitingId = new mongoose.Types.ObjectId()
+const expenseRejectedId = new mongoose.Types.ObjectId()
+const expenseClaimingId = new mongoose.Types.ObjectId()
+const expenseApprovedId = new mongoose.Types.ObjectId()
 
 const partnerSampleCompanyOne = {
   name: 'Company 9',
@@ -93,23 +99,43 @@ const companies = [
     currency: 'SGD'
   }
 ]
+
+const expenseSample = {
+  _attendees: [],
+  status: 'waiting',
+  receipts: [],
+  _id: expenseWaitingId,
+  name: 'expense 01',
+  amount: 50,
+  category: 'transportation',
+  transactionDate: '2019-03-16',
+  account: 'credit-card',
+  message: 'There are receipts for taxi',
+  city: 'BangKoK',
+  _trip: tripApprovedId,
+  _creator: userId,
+  _company: companyId,
+  currency: 'USD'
+}
 const expensies = [
   {
-    _attendees: [],
-    status: 'waiting',
-    receipts: [],
-    _id: expenseId,
-    name: 'expense 01',
-    amount: 50,
-    category: 'transportation',
-    transactionDate: '2019-03-16',
-    account: 'credit-card',
-    message: 'There are receipts for taxi',
-    city: 'BangKoK',
-    _trip: tripApprovedId,
-    _creator: userId,
-    _company: companyId,
-    currency: 'USD'
+    ...expenseSample,
+    _id: expenseWaitingId
+  },
+  {
+    ...expenseSample,
+    status: 'rejected',
+    _id: expenseRejectedId
+  },
+  {
+    ...expenseSample,
+    status: 'claiming',
+    _id: expenseClaimingId
+  },
+  {
+    ...expenseSample,
+    status: 'approved',
+    _id: expenseApprovedId
   }
 ]
 
@@ -181,21 +207,38 @@ const companyRoles = [
   }
 ]
 
-const companyOneDepartments = [
-  {
-    _id: departmentId,
-    _company: companyId,
-    name: `Company 1 - Department 1 `
-  }
-]
+const departmentCompany = {
+  _id: departmentId,
+  _company: companyId,
+  name: `Company 1 - Department 1`
+}
 
-const policies = [
-  {
-    _id: policyId,
-    name: 'Company 1 - Policy 1',
-    _company: companyId
-  }
-]
+const departmentCompany2 = {
+  _id: departmentCompany2Id,
+  _company: company2Id,
+  name: `Company 2 - Department 1`
+}
+
+const policyCompany = {
+  _id: policyId,
+  name: 'Company 1 - Policy 1',
+  _company: companyId,
+  status: 'default'
+}
+
+const policy2Company = {
+  _id: policy2Id,
+  name: 'Company 1 - Policy 2',
+  _company: companyId,
+  status: 'enabled'
+}
+
+const policyCompany2 = {
+  _id: policyCompany2Id,
+  name: 'Company 2 - Policy 1',
+  _company: company2Id,
+  status: 'default'
+}
 
 const trips = [
   {
@@ -297,10 +340,10 @@ const setupDatabase = async () => {
   await Role.insertMany(companyRoles)
 
   await Policy.deleteMany()
-  await Policy.insertMany(policies)
+  await Policy.insertMany([policyCompany, policy2Company, policyCompany2])
 
   await Department.deleteMany()
-  await Department.insertMany(companyOneDepartments)
+  await Department.insertMany([departmentCompany, departmentCompany2])
 
   await Company.deleteMany()
   await Company.insertMany(companies)
@@ -348,12 +391,24 @@ module.exports = {
   tripWaitingId,
   tripApprovedId,
   userCompany2Id,
-  expenseId,
   partnerAdminRoleId,
   partnerAdminOne,
   partnerAdminToken,
   partnerCompanyId,
   partnerSampleCompanyOne,
+  expenseWaitingId,
+  expenseRejectedId,
+  expenseClaimingId,
+  expenseApprovedId,
   adminRoleId,
-  adminCompany2RoleId
+  adminCompany2RoleId,
+  companyId,
+  departmentCompany2Id,
+  departmentCompany,
+  departmentCompany2,
+  policyCompany,
+  policyCompany2Id,
+  policyCompany2,
+  policy2Company,
+  policy2Id
 }
