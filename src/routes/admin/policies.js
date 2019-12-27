@@ -27,7 +27,8 @@ const policyParser = policy => ({
 })
 
 router.post('/', function(req, res, next) {
-  const policy = new Policy(req.body)
+  const body = _.omit(req.body, 'status')
+  const policy = new Policy(body)
   policy._company = req.user._company
 
   let employees = req.body.employees
@@ -111,6 +112,10 @@ router.get('/:id', function(req, res) {
     }
   ])
     .then(policies => {
+      if (!policies[0]) {
+        return res.status(404).send()
+      }
+
       policies = policies.map(policyParser)
       res.status(200).send({ policy: policies[0] })
     })
@@ -183,50 +188,52 @@ router.patch('/:id', function(req, res) {
     'employees'
   ])
 
-  Promise.all([
-    User.updateMany(
-      {
-        _id: {
-          $in: body.employees
-        },
-        _company: req.user._company
-      },
-      {
-        $set: {
-          _policy: id
-        }
-      }
-    ),
-    User.updateMany(
-      {
-        _policy: req.params.id,
-        _id: {
-          $nin: body.employees
-        },
-        _company: req.user._company
-      },
-      {
-        $set: {
-          _policy: null
-        }
-      }
-    ),
-    Policy.findOneAndUpdate(
-      {
-        _id: id,
-        _company: req.user._company
-      },
-      { $set: body },
-      { new: true }
-    )
-  ])
-    .then(results => {
-      let policy = results[2]
+  Policy.findOneAndUpdate(
+    {
+      _id: id,
+      _company: req.user._company
+    },
+    { $set: body },
+    { new: true }
+  )
+    .then(policy => {
       if (!policy) {
         return res.status(404).send()
       }
 
-      res.status(200).send({ policy })
+      return Promise.all([
+        User.updateMany(
+          {
+            _id: {
+              $in: body.employees
+            },
+            _company: req.user._company
+          },
+          {
+            $set: {
+              _policy: id
+            }
+          }
+        ),
+        User.updateMany(
+          {
+            _policy: req.params.id,
+            _id: {
+              $nin: body.employees
+            },
+            _company: req.user._company
+          },
+          {
+            $set: {
+              _policy: null
+            }
+          }
+        ),
+        policy
+      ])
+    })
+    .then(results => {
+      res.status(200).send({ policy: results[2] })
     })
     .catch(e => {
       res.status(400).send()
@@ -240,17 +247,11 @@ router.delete('/:id', function(req, res) {
     return res.status(404).send()
   }
 
-  Policy.findById(id)
-    .then(policy => {
-      if (policy.status === 'default') {
-        return res.status(400).send()
-      }
-
-      return Policy.findOneAndDelete({
-        _id: req.params.id,
-        _company: req.user._company
-      })
-    })
+  Policy.findOneAndDelete({
+    _id: req.params.id,
+    _company: req.user._company,
+    status: { $ne: 'default' }
+  })
     .then(policy => {
       if (!policy) {
         return res.status(404).send()
