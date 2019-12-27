@@ -13,7 +13,7 @@ const {
   companyId,
   departmentId,
   departmentCompany2Id,
-  companyOneDepartments
+  companyDepartment
 } = require('../fixtures/db.js')
 
 beforeEach(setupDatabase)
@@ -72,9 +72,9 @@ test('Should get department list', async () => {
 
   expect(res.body.departments.length).toBe(1)
   expect(res.body.departments[0]).toMatchObject({
-    _id: companyOneDepartments[0]._id.toHexString(),
-    name: companyOneDepartments[0].name,
-    _company: companyOneDepartments[0]._company.toHexString()
+    _id: companyDepartment._id.toHexString(),
+    name: companyDepartment.name,
+    _company: companyDepartment._company.toHexString()
   })
 })
 
@@ -85,9 +85,9 @@ test('Should get a department', async () => {
     .expect(200)
 
   expect(res.body.department).toMatchObject({
-    _id: companyOneDepartments[0]._id.toHexString(),
-    name: companyOneDepartments[0].name,
-    _company: companyOneDepartments[0]._company.toHexString()
+    _id: companyDepartment._id.toHexString(),
+    name: companyDepartment.name,
+    _company: companyDepartment._company.toHexString()
   })
 })
 
@@ -232,9 +232,9 @@ test('Should delete department', async () => {
     .expect(200)
 
   expect(res.body.department).toMatchObject({
-    _id: companyOneDepartments[0]._id.toHexString(),
-    name: companyOneDepartments[0].name,
-    _company: companyOneDepartments[0]._company.toHexString()
+    _id: companyDepartment._id.toHexString(),
+    name: companyDepartment.name,
+    _company: companyDepartment._company.toHexString()
   })
 
   let departmentsCount = await Department.countDocuments({

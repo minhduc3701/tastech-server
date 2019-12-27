@@ -122,21 +122,17 @@ const companyRoles = [
   }
 ]
 
-const companyOneDepartments = [
-  {
-    _id: departmentId,
-    _company: companyId,
-    name: `Company 1 - Department 1`
-  }
-]
+const companyDepartment = {
+  _id: departmentId,
+  _company: companyId,
+  name: `Company 1 - Department 1`
+}
 
-const companyTwoDepartments = [
-  {
-    _id: departmentCompany2Id,
-    _company: company2Id,
-    name: `Company 2 - Department 1`
-  }
-]
+const company2Department = {
+  _id: departmentCompany2Id,
+  _company: company2Id,
+  name: `Company 2 - Department 1`
+}
 
 const policies = [
   {
@@ -229,10 +225,7 @@ const setupDatabase = async () => {
   await Policy.insertMany(policies)
 
   await Department.deleteMany()
-  await Department.insertMany([
-    ...companyOneDepartments,
-    ...companyTwoDepartments
-  ])
+  await Department.insertMany([companyDepartment, company2Department])
 
   await Company.deleteMany()
   await Company.insertMany(companies)
@@ -280,5 +273,6 @@ module.exports = {
   adminCompany2RoleId,
   companyId,
   departmentCompany2Id,
-  companyOneDepartments
+  companyDepartment,
+  company2Department
 }
