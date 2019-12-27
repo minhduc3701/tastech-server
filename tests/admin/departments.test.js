@@ -13,7 +13,7 @@ const {
   companyId,
   departmentId,
   departmentCompany2Id,
-  companyDepartment
+  departmentCompany
 } = require('../fixtures/db.js')
 
 beforeEach(setupDatabase)
@@ -72,9 +72,9 @@ test('Should get department list', async () => {
 
   expect(res.body.departments.length).toBe(1)
   expect(res.body.departments[0]).toMatchObject({
-    _id: companyDepartment._id.toHexString(),
-    name: companyDepartment.name,
-    _company: companyDepartment._company.toHexString()
+    _id: departmentCompany._id.toHexString(),
+    name: departmentCompany.name,
+    _company: departmentCompany._company.toHexString()
   })
 })
 
@@ -85,10 +85,17 @@ test('Should get a department', async () => {
     .expect(200)
 
   expect(res.body.department).toMatchObject({
-    _id: companyDepartment._id.toHexString(),
-    name: companyDepartment.name,
-    _company: companyDepartment._company.toHexString()
+    _id: departmentCompany._id.toHexString(),
+    name: departmentCompany.name,
+    _company: departmentCompany._company.toHexString()
   })
+})
+
+test('Should not get a department of other company', async () => {
+  let res = await request(app)
+    .get(`/admin/departments/${departmentCompany2Id}`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(404)
 })
 
 test('Should not get a department with invalid id', async () => {
@@ -160,7 +167,7 @@ test('Should not edit employees department from other company when update', asyn
   expect(departmentOtherUsersCount).toBe(0)
 })
 
-test('Should remove current employees in department when not in request list', async () => {
+test('Should remove current employees in department that not in request list', async () => {
   await request(app)
     .patch(`/admin/departments/${departmentId}`)
     .set('Authorization', `Bearer ${adminToken}`)
@@ -194,7 +201,7 @@ test('Should remove current employees in department when not in request list', a
   expect(departmentUsersCount).toBe(1)
 })
 
-test('Should not edit if invalid id', async () => {
+test('Should not edit department if invalid id', async () => {
   await request(app)
     .patch(`/admin/departments/invalid-department-id`)
     .set('Authorization', `Bearer ${adminToken}`)
@@ -232,14 +239,41 @@ test('Should delete department', async () => {
     .expect(200)
 
   expect(res.body.department).toMatchObject({
-    _id: companyDepartment._id.toHexString(),
-    name: companyDepartment.name,
-    _company: companyDepartment._company.toHexString()
+    _id: departmentCompany._id.toHexString(),
+    name: departmentCompany.name,
+    _company: departmentCompany._company.toHexString()
   })
 
   let departmentsCount = await Department.countDocuments({
-    _company: companyId
+    _id: departmentId
   })
 
   expect(departmentsCount).toBe(0)
+})
+
+test('Should not delete department with invalid object id', async () => {
+  let res = await request(app)
+    .delete(`/admin/departments/invalid-department-id`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(404)
+})
+
+test('Should not delete non-exist policy', async () => {
+  let res = await request(app)
+    .delete(`/admin/departments/${new mongoose.Types.ObjectId()}`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(404)
+})
+
+test('Should not delete policy of other company', async () => {
+  let res = await request(app)
+    .delete(`/admin/departments/${departmentCompany2Id}`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(404)
+
+  expect(
+    await Department.countDocuments({
+      _id: departmentCompany2Id
+    })
+  ).toBe(1)
 })
