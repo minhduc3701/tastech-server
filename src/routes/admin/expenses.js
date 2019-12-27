@@ -113,7 +113,7 @@ router.patch(
     const body = _.pick(req.body, ['status', 'adminMessage'])
 
     if (body.status !== 'approved' && body.status !== 'rejected') {
-      res.status(400).send()
+      return res.status(400).send()
     }
     Expense.findOneAndUpdate(
       {
