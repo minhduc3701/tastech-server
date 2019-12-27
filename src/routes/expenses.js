@@ -157,12 +157,8 @@ router.patch('/:id', upload.array('receipts'), validateExpenseProps, function(
   } else {
     body._attendees = []
   }
-  //just only edit expense status from rejected to waiting
-  if (body.status === 'rejected') {
-    body.status = 'waiting'
-  } else {
-    body.status = ''
-  }
+  //update status expense to waiting
+  body.status = 'waiting'
   Expense.findOneAndUpdate(
     {
       _id: req.params.id,

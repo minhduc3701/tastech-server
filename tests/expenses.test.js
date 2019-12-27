@@ -181,7 +181,7 @@ test('Should update expense from status rejected to waiting status', async () =>
     .expect(200)
 
   let expense = await Expense.findById(expenseRejectedId)
-  expect(expense.status === 'rejected')
+  expect(expense.status === 'waiting')
 })
 
 test('Should not update expense from status rejected to any status except waiting ', async () => {
@@ -193,7 +193,7 @@ test('Should not update expense from status rejected to any status except waitin
     .expect(200)
 
   let expense = await Expense.findById(expenseRejectedId)
-  expect(expense.status === 'rejected')
+  expect(expense.status === 'waiting')
 })
 
 test('Should update expense from status waiting to claiming status', async () => {
