@@ -2,6 +2,7 @@ const request = require('supertest')
 const app = require('../../src/app')
 const mongoose = require('mongoose')
 const User = require('../../src/models/user')
+const Department = require('../../src/models/department')
 const _ = require('lodash')
 const {
   adminToken,
@@ -11,7 +12,8 @@ const {
   userCompany2Id,
   companyId,
   departmentId,
-  departmentCompany2Id
+  departmentCompany2Id,
+  companyOneDepartments
 } = require('../fixtures/db.js')
 
 beforeEach(setupDatabase)
@@ -60,6 +62,47 @@ test('Should not update other company employee department when create', async ()
   })
 
   expect(departmentUsersCount).toBe(2)
+})
+
+test('Should get department list', async () => {
+  let res = await request(app)
+    .get(`/admin/departments`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(200)
+
+  expect(res.body.departments.length).toBe(1)
+  expect(res.body.departments[0]).toMatchObject({
+    _id: companyOneDepartments[0]._id.toHexString(),
+    name: companyOneDepartments[0].name,
+    _company: companyOneDepartments[0]._company.toHexString()
+  })
+})
+
+test('Should get a department', async () => {
+  let res = await request(app)
+    .get(`/admin/departments/${departmentId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(200)
+
+  expect(res.body.department).toMatchObject({
+    _id: companyOneDepartments[0]._id.toHexString(),
+    name: companyOneDepartments[0].name,
+    _company: companyOneDepartments[0]._company.toHexString()
+  })
+})
+
+test('Should not get a department with invalid id', async () => {
+  let res = await request(app)
+    .get(`/admin/departments/invalid-department-id`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(404)
+})
+
+test('Should not get a department with non-exist id', async () => {
+  let res = await request(app)
+    .get(`/admin/departments/${new mongoose.Types.ObjectId()}`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(404)
 })
 
 test('Should edit department name and employees', async () => {
@@ -153,7 +196,7 @@ test('Should remove current employees in department when not in request list', a
 
 test('Should not edit if invalid id', async () => {
   await request(app)
-    .patch(`/admin/departments/invalid`)
+    .patch(`/admin/departments/invalid-department-id`)
     .set('Authorization', `Bearer ${adminToken}`)
     .send({})
     .expect(404)
@@ -175,4 +218,28 @@ test('Should not update department of other company to employees', async () => {
   })
 
   expect(departmentUsersCount).toBe(0)
+
+  let departmentCompany2 = await Department.findOne({
+    _id: departmentCompany2Id
+  })
+  expect(departmentCompany2.name).not.toBe('Company 2 - update department')
+})
+
+test('Should delete department', async () => {
+  let res = await request(app)
+    .delete(`/admin/departments/${departmentId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(200)
+
+  expect(res.body.department).toMatchObject({
+    _id: companyOneDepartments[0]._id.toHexString(),
+    name: companyOneDepartments[0].name,
+    _company: companyOneDepartments[0]._company.toHexString()
+  })
+
+  let departmentsCount = await Department.countDocuments({
+    _company: companyId
+  })
+
+  expect(departmentsCount).toBe(0)
 })

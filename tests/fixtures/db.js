@@ -279,5 +279,6 @@ module.exports = {
   adminRoleId,
   adminCompany2RoleId,
   companyId,
-  departmentCompany2Id
+  departmentCompany2Id,
+  companyOneDepartments
 }

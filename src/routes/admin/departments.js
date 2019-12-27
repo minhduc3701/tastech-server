@@ -112,6 +112,10 @@ router.get('/:id', function(req, res) {
     }
   ])
     .then(departments => {
+      if (!departments[0]) {
+        return res.status(404).send()
+      }
+
       departments = departments.map(departmentParser)
       res.status(200).send({ department: departments[0] })
     })
