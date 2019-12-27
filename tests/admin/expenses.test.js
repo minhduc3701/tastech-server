@@ -40,6 +40,16 @@ test('Should update expense from status claiming to rejected status', async () =
   expect(expense.status === 'rejected')
 })
 
+test('Should not update expense with invalid expenseId', async () => {
+  await request(app)
+    .patch(`/admin/expenses/012345678`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send({
+      status: 'rejected'
+    })
+    .expect(404)
+})
+
 test('Should not update expense from status claiming to waiting status', async () => {
   await request(app)
     .patch(`/admin/expenses/${expenseClaimingId}`)
