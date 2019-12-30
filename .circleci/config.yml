@@ -1,5 +1,26 @@
 version: 2
 jobs:
+  test:
+    docker:
+      - image: node:10.15.0-jessie-browsers-legacy
+      - image: circleci/mongo:4.0.9
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Install dependencies
+          command: yarn
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - run:
+          name: Run tests
+          command: yarn test auth
+          environment:
+            NODE_ENV: test
+            MONGODB_URI: mongodb://localhost:27017/dbTest
   deploy_dev:
     docker:
       - image: circleci/node:10.15.0-jessie-browsers-legacy
@@ -69,6 +90,7 @@ workflows:
   version: 2
   test_and_deploy:
     jobs:
+      - test
       - deploy_dev:
           filters:
             branches:

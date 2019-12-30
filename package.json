@@ -13,10 +13,6 @@
     "test": "NODE_ENV=test jest --watch --runInBand",
     "test:coverage": "NODE_ENV=test jest --coverage --runInBand"
   },
-  "jest": {
-    "testEnvironment": "node",
-    "collectCoverage": true
-  },
   "dependencies": {
     "async": "^2.6.2",
     "aws-sdk": "^2.429.0",
