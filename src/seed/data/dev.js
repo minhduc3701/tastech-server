@@ -9,6 +9,7 @@ const Trip = require('../../models/trip')
 const Expense = require('../../models/expense')
 const Reward = require('../../models/reward')
 const Voucher = require('../../models/voucher')
+const Option = require('../../models/option')
 const Change = require('chance')
 const chance = new Change()
 
@@ -865,6 +866,26 @@ const populateVouchers = () => {
   })
 }
 
+let options = [
+  {
+    name: 'hotel',
+    markupType: 'percentage',
+    number: 5
+  },
+  {
+    name: 'flight',
+    markupType: 'net',
+    number: 20
+  }
+]
+
+const populateOptions = () => {
+  return Option.deleteMany({}).then(() => {
+    let allOptions = options.map(option => new Option(option))
+    return Promise.all(allOptions.map(option => option.save()))
+  })
+}
+
 module.exports = {
   users,
   populateUsers,
@@ -885,5 +906,7 @@ module.exports = {
   rewards,
   populateRewards,
   vouchers,
-  populateVouchers
+  populateVouchers,
+  options,
+  populateOptions
 }
