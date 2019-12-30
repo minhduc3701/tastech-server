@@ -21,7 +21,11 @@ const upload = multer({
     key: function(req, file, cb) {
       let fileType = file.mimetype.split('/')
       let extension = fileType[fileType.length - 1]
-      cb(null, Date.now().toString() + `.${extension}`)
+      let fileName = Date.now().toString()
+      if (extension === 'pdf') {
+        fileName += `.${extension}`
+      }
+      cb(null, fileName)
     }
   }),
   // @see https://www.npmjs.com/package/multer#limits
