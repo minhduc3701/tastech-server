@@ -538,19 +538,27 @@ router.get('/:id/expenses', function(req, res, next) {
     return res.status(404).send()
   }
 
-  Promise.all([
-    Trip.findById(id),
-    Expense.find({
-      _creator: req.user._id,
-      _trip: id
+  Trip.findOne({
+    _id: id,
+    _creator: req.user._id
+  })
+    .then(trip => {
+      if (!trip) {
+        return res.status(404).send()
+      }
+      return Promise.all([
+        trip,
+        Expense.find({
+          _creator: req.user._id,
+          _trip: id
+        })
+          .sort({ updatedAt: -1 })
+          .limit(100)
+      ])
     })
-      .sort({ updatedAt: -1 })
-      .limit(100)
-  ])
     .then(results => {
       let trip = results[0]
       let expenses = results[1]
-
       res.status(200).send({ trip, expenses })
     })
     .catch(e => res.status(400).send())
