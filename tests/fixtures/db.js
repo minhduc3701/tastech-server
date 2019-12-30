@@ -243,6 +243,14 @@ const userTwo = {
   _role: employeeRoleId
 }
 
+const user2Token = jwt.sign(
+  {
+    id: user2Id,
+    email: userTwo.email
+  },
+  process.env.JWT_SECRET
+)
+
 const userCompany2 = {
   _id: userCompany2Id,
   firstName: 'Jess',
@@ -293,6 +301,7 @@ const setupDatabase = async () => {
 module.exports = {
   tasAdminRoleId,
   userToken,
+  user2Token,
   userId,
   userOne,
   user2Id,
