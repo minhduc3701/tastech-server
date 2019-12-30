@@ -104,7 +104,6 @@ const users = [
     email: 'tas-admin@tastech.asia',
     firstName: chance.first(),
     lastName: chance.last(),
-    avatar: `http://i.pravatar.cc/150?img=1`,
     _role: tasAdminRoleId
   },
   {
@@ -112,7 +111,6 @@ const users = [
     username: 'admin@tastech.asia',
     email: 'admin@tastech.asia',
     _company: companyId,
-    avatar: `http://i.pravatar.cc/150?img=2`,
     _role: adminRoleId
   },
   {
@@ -120,7 +118,6 @@ const users = [
     username: 'employee@tastech.asia',
     email: 'employee@tastech.asia',
     _company: companyId,
-    avatar: `http://i.pravatar.cc/150?img=3`,
     _role: employeeRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
@@ -134,7 +131,6 @@ const users = [
     username: 'manager@tastech.asia',
     email: 'manager@tastech.asia',
     _company: companyId,
-    avatar: `http://i.pravatar.cc/150?img=3`,
     _role: managerRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
@@ -147,7 +143,6 @@ const users = [
     username: 'manager2@tastech.asia',
     email: 'manager2@tastech.asia',
     _company: companyId,
-    avatar: `http://i.pravatar.cc/150?img=3`,
     _role: managerRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
@@ -161,7 +156,6 @@ const users = [
     username: 'accountant@tastech.asia',
     email: 'accountant@tastech.asia',
     _company: companyId,
-    avatar: `http://i.pravatar.cc/150?img=3`,
     _role: accountantRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
@@ -174,7 +168,6 @@ const users = [
     username: 'accountant2@tastech.asia',
     email: 'accountant2@tastech.asia',
     _company: companyId,
-    avatar: `http://i.pravatar.cc/150?img=3`,
     _role: accountantRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
@@ -188,7 +181,6 @@ const users = [
     username: 'employee2@tastech.asia',
     email: 'employee2@tastech.asia',
     _company: companyId,
-    avatar: `http://i.pravatar.cc/150?img=4`,
     _role: employeeRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
@@ -200,14 +192,12 @@ const users = [
     username: 'a1c2@tastech.asia',
     email: 'a1c2@tastech.asia',
     _company: companyId2,
-    avatar: `http://i.pravatar.cc/150?img=2`,
     _role: adminRoleId2
   },
   {
     username: 'e1c2@tastech.asia',
     email: 'e1c2@tastech.asia',
     _company: companyId2,
-    avatar: `http://i.pravatar.cc/150?img=3`,
     _role: employeeRoleId2,
     firstName: chance.first(),
     lastName: chance.last()
@@ -218,14 +208,12 @@ const users = [
     username: 'a1c3@tastech.asia',
     email: 'a1c3@tastech.asia',
     _company: companyId3,
-    avatar: `http://i.pravatar.cc/150?img=2`,
     _role: adminRoleId3
   },
   {
     username: 'e1c3@tastech.asia',
     email: 'e1c3@tastech.asia',
     _company: companyId3,
-    avatar: `http://i.pravatar.cc/150?img=3`,
     _role: employeeRoleId3,
     firstName: chance.first(),
     lastName: chance.last()
@@ -391,7 +379,7 @@ for (let i = 4; i < 50; i++) {
     _company: companyId,
     firstName: chance.first(),
     lastName: chance.last(),
-    avatar: `http://i.pravatar.cc/150?img=${i + 1}`,
+    avatar: i < 40 ? '' : `http://i.pravatar.cc/150?img=${i + 1}`,
     _department: randomItemInArray([departmentId, departmentId2]),
     _role: employeeRoleId,
     _policy: randomItemInArray([policyId1, policyId2]),
