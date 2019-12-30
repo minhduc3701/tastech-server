@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: node:10.15.0-jessie-browsers-legacy
+      - image: circleci/node:10.15.0-jessie-browsers-legacy
       - image: circleci/mongo:4.0.9
     steps:
       - checkout
@@ -17,9 +17,8 @@ jobs:
             - node_modules
       - run:
           name: Run tests
-          command: yarn test auth
+          command: yarn test
           environment:
-            NODE_ENV: test
             MONGODB_URI: mongodb://localhost:27017/dbTest
   deploy_dev:
     docker:
