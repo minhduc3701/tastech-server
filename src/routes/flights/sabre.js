@@ -8,6 +8,8 @@ const Airport = require('../../models/airport')
 const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
 const { sabreCurrencyExchange } = require('../../middleware/currency')
+const { getTasAdminOption } = require('../../middleware/options')
+
 const {
   sabreRestToken,
   sabreSoapSecurityToken
@@ -23,11 +25,11 @@ const convert = require('xml-js')
 router.post(
   '/shopping',
   sabreCurrencyExchange,
+  getTasAdminOption,
   sabreRestToken,
   async (req, res) => {
     let search = req.body.search
     let cacheKey = makeSabreFlightCacheKey(search)
-
     try {
       let cacheData = await getCache(cacheKey)
       // logger.info('Sabre shopping: ', cacheData.sabreRes)
@@ -35,7 +37,8 @@ router.post(
       let flights = makeSabreFlightsData(
         cacheData.sabreRes,
         req.currency,
-        cacheData.numberOfPassengers
+        cacheData.numberOfPassengers,
+        req.option.flight
       )
 
       let suggestData = suggestFlights(flights, req.body.trip, req.user)
@@ -60,7 +63,12 @@ router.post(
       sabreRes = sabreRes.data.groupedItineraryResponse
 
       // logger.info('Sabre shopping: ', { sabreRes })
-      let flights = makeSabreFlightsData(sabreRes, req.currency, search.adults)
+      let flights = makeSabreFlightsData(
+        sabreRes,
+        req.currency,
+        search.adults,
+        req.option.flight
+      )
 
       let airlines = []
       let airports = []

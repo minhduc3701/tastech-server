@@ -75,8 +75,8 @@ router.patch('/', async (req, res) => {
       } else {
         let flightOption = new Option({
           name: 'flight',
-          markupType: flight.markupType || 'percentage',
-          value: flight.value || 5
+          markupType: flight.markupType || 'net',
+          value: flight.value || 20
         })
         promises.push(flightOption.save())
       }

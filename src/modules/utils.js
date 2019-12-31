@@ -2,6 +2,7 @@ const _ = require('lodash')
 const moment = require('moment')
 const { logger } = require('../config/winston')
 const validator = require('validator')
+
 const {
   USD,
   VND,
@@ -235,7 +236,12 @@ const getNewFareComponentNumber = fareComponentNumbers => {
   }
   return newFareComponentNumber
 }
-const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
+const makeSabreFlightsData = (
+  sabreRes,
+  currency,
+  numberOfPassengers,
+  flightOption
+) => {
   let flights = []
   try {
     let { itineraryGroups, fareComponentDescs } = sabreRes
@@ -547,8 +553,11 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
         obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
         obj.currency = currency.code
         obj.price = roundPrice(
-          roundPrice(obj.rawTotalPrice * currency.rate, currency.code) /
-            numberOfPassengers,
+          roundPriceWithMarkup(
+            obj.rawTotalPrice * currency.rate,
+            currency,
+            flightOption
+          ) / numberOfPassengers,
           currency.code
         )
         obj.totalPrice = obj.price * numberOfPassengers
@@ -819,6 +828,20 @@ const roundPrice = (amount, currency) => {
   }
 
   return Number(Number(amount).toFixed(2))
+}
+
+const roundPriceWithMarkup = (amount, currency, option) => {
+  if (option.markupType === 'percentage') {
+    amount += (amount * option.value) / 100
+  } else {
+    amount += option.value * currency.rate
+  }
+  switch (currency.code) {
+    case VND:
+      return Math.round(amount)
+    default:
+      return Number(Number(amount).toFixed(2))
+  }
 }
 
 const formatLocaleMoney = (amount, currency) => {

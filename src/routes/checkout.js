@@ -25,6 +25,8 @@ const {
 } = require('../middleware/email')
 const { currentCompany } = require('../middleware/company')
 const { currenciesExchange } = require('../middleware/currency')
+const { getTasAdminOption } = require('../middleware/options')
+
 const {
   makeSabreFlightsData,
   makeHotelbedsHotelsData
@@ -55,7 +57,8 @@ const verifySabrePrice = async (req, res, next) => {
     let flights = makeSabreFlightsData(
       sabreCacheData.sabreRes,
       sabreCurrency,
-      sabreCacheData.numberOfPassengers
+      sabreCacheData.numberOfPassengers,
+      req.option.flight
     )
 
     let flightInCache = flights.find(f => f.id === req.body.trip.flight.id)
@@ -1222,6 +1225,7 @@ const responseCheckout = async (req, res, next) => {
 router.post(
   '/card',
   currentCompany,
+  getTasAdminOption,
   verifySabrePrice,
   verifyHotelbedsPrice,
   sabreRestToken, // get token for sabre api

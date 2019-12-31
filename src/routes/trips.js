@@ -21,6 +21,7 @@ const {
   emailManagerSubmitTrip
 } = require('../middleware/email')
 const { calculateBudget } = require('../middleware/trips')
+const { getTasAdminOption } = require('../middleware/options')
 const { currentCompany } = require('../middleware/company')
 
 router.get('/', function(req, res, next) {
@@ -436,6 +437,7 @@ router.patch(
       res.status(400).send()
     }
   },
+  getTasAdminOption,
   calculateBudget,
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
