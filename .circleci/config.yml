@@ -26,6 +26,8 @@ jobs:
             JWT_SECRET: test-jwt-secret
             PKFARE_PARTNER_ID: mock-pkfare-partner-id
             PKFARE_PARTNER_KEY: mock-pkfare-partner-key
+      - store_test_results:
+          path: tests
   deploy_dev:
     docker:
       - image: circleci/node:10.15.0-jessie-browsers-legacy
@@ -104,6 +106,7 @@ workflows:
                 - demo
                 - master
                 - /release-.*/
+                - ez1422
       - deploy_dev:
           requires:
             - test
