@@ -1,5 +1,31 @@
 version: 2
 jobs:
+  test:
+    docker:
+      - image: circleci/node:10.15.0-jessie-browsers-legacy
+      - image: circleci/mongo:4.0.9
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Install dependencies
+          command: yarn
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - run:
+          name: Run tests
+          command: yarn test:ci --detectOpenHandles
+          environment:
+            MONGODB_URI: mongodb://localhost:27017/dbTest
+            AWS_S3_NAME: 'mock-s3-name'
+            AWS_S3_REGION: 'mock-s3-region'
+            BASE_CURRENCY: 'SGD'
+            JWT_SECRET: 'test-jwt-secret'
+            PKFARE_PARTNER_ID: 'mock-pkfare-partner-id'
+            PKFARE_PARTNER_KEY: 'mock-pkfare-partner-key'
   deploy_dev:
     docker:
       - image: circleci/node:10.15.0-jessie-browsers-legacy
@@ -69,22 +95,39 @@ workflows:
   version: 2
   test_and_deploy:
     jobs:
+      - test:
+          filters:
+            branches:
+              only:
+                - develop
+                - test
+                - demo
+                - master
+                - /release-.*/
       - deploy_dev:
+          requires:
+            - test
           filters:
             branches:
               only:
                 - develop
       - deploy_test:
+          requires:
+            - test
           filters:
             branches:
               only:
                 - test
       - deploy_demo:
+          requires:
+            - test
           filters:
             branches:
               only:
                 - demo
       - deploy:
+          requires:
+            - test
           filters:
             branches:
               only:
