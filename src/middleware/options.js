@@ -2,28 +2,34 @@ const Option = require('../models/option')
 const _ = require('lodash')
 
 const getTasAdminOption = async (req, res, next) => {
-  let defaultOption = {
+  let markupOptions = {
     hotel: {
-      markupType: 'percentage',
-      value: 5
+      value: {
+        type: 'percentage',
+        amount: 5
+      }
     },
     flight: {
-      markupType: 'net',
-      value: 20
+      value: {
+        type: 'net',
+        amount: 20
+      }
     }
   }
   try {
     options = await Option.find()
     let hotel =
-      options.find(option => option.name === 'hotel') || defaultOption.hotel
+      options.find(option => option.name === 'hotel-markup') ||
+      markupOptions.hotel
     let flight =
-      options.find(option => option.name === 'flight') || defaultOption.flight
-    req.option = {
+      options.find(option => option.name === 'flight-markup') ||
+      markupOptions.flight
+    req.markupOptions = {
       hotel,
       flight
     }
   } catch (e) {
-    req.option = defaultOption
+    req.markupOptions = markupOptions
   }
   next()
 }

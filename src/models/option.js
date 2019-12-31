@@ -3,13 +3,17 @@ const Schema = mongoose.Schema
 
 const OptionSchema = new Schema(
   {
-    name: String,
-    markupType: {
+    name: {
       type: String,
-      enum: ['net', 'percentage'],
-      default: 'net'
+      required: true,
+      unique: true
     },
-    value: Number
+    // markupType: {
+    //   type: String,
+    //   enum: ['net', 'percentage'],
+    //   default: 'net'
+    // },
+    value: Object
   },
   {
     timestamps: true

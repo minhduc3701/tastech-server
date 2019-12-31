@@ -38,7 +38,7 @@ router.post(
         cacheData.sabreRes,
         req.currency,
         cacheData.numberOfPassengers,
-        req.option.flight
+        req.markupOptions.flight
       )
 
       let suggestData = suggestFlights(flights, req.body.trip, req.user)
@@ -67,7 +67,7 @@ router.post(
         sabreRes,
         req.currency,
         search.adults,
-        req.option.flight
+        req.markupOptions.flight
       )
 
       let airlines = []

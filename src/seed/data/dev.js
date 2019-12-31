@@ -868,14 +868,18 @@ const populateVouchers = () => {
 
 let options = [
   {
-    name: 'hotel',
-    markupType: 'percentage',
-    value: 5
+    name: 'hotel-markup',
+    value: {
+      type: 'percentage',
+      amount: 5
+    }
   },
   {
-    name: 'flight',
-    markupType: 'net',
-    value: 20
+    name: 'flight-markup',
+    value: {
+      type: 'net',
+      amount: 20
+    }
   }
 ]
 

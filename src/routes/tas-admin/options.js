@@ -25,7 +25,7 @@ router.patch('/', async (req, res) => {
     if (!_.isEmpty(hotel)) {
       // find hotel option, if existed - update, else create new
       let existedHotelOption = await Option.findOne({
-        name: 'hotel'
+        name: 'hotel-markup'
       })
       if (existedHotelOption) {
         promises.push(
@@ -35,8 +35,10 @@ router.patch('/', async (req, res) => {
             },
             {
               $set: {
-                markupType: hotel.markupType || 'percentage',
-                value: hotel.value || 5
+                value: {
+                  type: _.get(hotel, 'value.type', 'percentage'),
+                  amount: _.get(hotel, 'value.amount', 5)
+                }
               }
             },
             { new: true }
@@ -44,9 +46,11 @@ router.patch('/', async (req, res) => {
         )
       } else {
         let hotelOption = new Option({
-          name: 'hotel',
-          markupType: hotel.markupType || 'percentage',
-          value: hotel.value || 5
+          name: 'hotel-markup',
+          value: {
+            type: 'percentage',
+            amount: 5
+          }
         })
         promises.push(hotelOption.save())
       }
@@ -55,7 +59,7 @@ router.patch('/', async (req, res) => {
     if (!_.isEmpty(flight)) {
       // find flight option, if existed - update, else create new
       let existedFlightOption = await Option.findOne({
-        name: 'flight'
+        name: 'flight-markup'
       })
       if (existedFlightOption) {
         promises.push(
@@ -65,8 +69,10 @@ router.patch('/', async (req, res) => {
             },
             {
               $set: {
-                markupType: flight.markupType || 'percentage',
-                value: flight.value || 5
+                value: {
+                  type: _.get(flight, 'value.type', 'net'),
+                  amount: _.get(flight, 'value.amount', 20)
+                }
               }
             },
             { new: true }
@@ -74,9 +80,11 @@ router.patch('/', async (req, res) => {
         )
       } else {
         let flightOption = new Option({
-          name: 'flight',
-          markupType: flight.markupType || 'net',
-          value: flight.value || 20
+          name: 'flight-markup',
+          value: {
+            type: 'net',
+            amount: 20
+          }
         })
         promises.push(flightOption.save())
       }

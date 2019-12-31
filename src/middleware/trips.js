@@ -78,7 +78,7 @@ const calculateBudget = async (req, res, next) => {
         sabreRes,
         req.currency,
         1,
-        req.option.flight
+        req.markupOptions.flight
       )
       let sumPrice = 0
       flights.forEach(flight => {

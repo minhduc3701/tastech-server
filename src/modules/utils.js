@@ -830,12 +830,15 @@ const roundPrice = (amount, currency) => {
   return Number(Number(amount).toFixed(2))
 }
 
-const roundPriceWithMarkup = (amount, currency, option) => {
-  if (option.markupType === 'percentage') {
-    amount += (amount * option.value) / 100
+const roundPriceWithMarkup = (amount, currency, markupOption) => {
+  console.log('old amount: ', amount)
+  if (_.get(markupOption, 'value.type') === 'percentage') {
+    amount += (amount * _.get(markupOption, 'value.amount', 0)) / 100
   } else {
-    amount += option.value * currency.rate
+    amount += _.get(markupOption, 'value.amount', 0) * currency.rate
   }
+  console.log('new amount: ', amount)
+
   switch (currency.code) {
     case VND:
       return Math.round(amount)
