@@ -17,9 +17,8 @@ const {
 
 beforeEach(setupDatabase)
 
-afterAll(done => {
-  mongoose.disconnect()
-  done()
+afterAll(async () => {
+  await new Promise(resolve => setTimeout(() => resolve(), 500)) // avoid jest open handle error
 })
 
 test('Should create a new expense with valid trip and attendees', async () => {

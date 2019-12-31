@@ -15,9 +15,8 @@ const {
 
 beforeEach(setupDatabase)
 
-afterAll(done => {
-  mongoose.disconnect()
-  done()
+afterAll(async () => {
+  await new Promise(resolve => setTimeout(() => resolve(), 500)) // avoid jest open handle error
 })
 
 // Update user list in Role

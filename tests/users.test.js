@@ -6,9 +6,8 @@ const mongoose = require('mongoose')
 
 beforeEach(setupDatabase)
 
-afterAll(done => {
-  mongoose.disconnect()
-  done()
+afterAll(async () => {
+  await new Promise(resolve => setTimeout(() => resolve(), 500)) // avoid jest open handle error
 })
 
 test('Should get profile for user', async () => {
