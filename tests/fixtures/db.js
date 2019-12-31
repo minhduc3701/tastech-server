@@ -50,8 +50,7 @@ const expenseSample = {
   _attendees: [],
   status: 'waiting',
   receipts: [],
-  _id: expenseWaitingId,
-  name: 'expense 01',
+  name: 'waiting expense',
   amount: 50,
   category: 'transportation',
   transactionDate: '2019-03-16',
@@ -66,21 +65,25 @@ const expenseSample = {
 const expensies = [
   {
     ...expenseSample,
+    name: 'expense 1',
     _id: expenseWaitingId
   },
   {
     ...expenseSample,
     status: 'rejected',
+    name: 'expense 2',
     _id: expenseRejectedId
   },
   {
     ...expenseSample,
     status: 'claiming',
+    name: 'expense 3',
     _id: expenseClaimingId
   },
   {
     ...expenseSample,
     status: 'approved',
+    name: 'expense 4',
     _id: expenseApprovedId
   }
 ]
