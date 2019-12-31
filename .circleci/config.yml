@@ -17,12 +17,12 @@ jobs:
             - node_modules
       - run:
           name: Run tests
-          command: yarn test:ci
+          command: yarn test:ci --detectOpenHandles
           environment:
             PORT: 8081
             MONGODB_URI: mongodb://localhost:27017/dbTest
       - run:
-          name: Stop mongodb service
+          name: Stop mongodb services
           command: sudo service mongodb stop
   deploy_dev:
     docker:
