@@ -25,8 +25,8 @@ router.post(
         data.hotels,
         data.rooms,
         req.currency,
-        [],
-        [],
+        null,
+        null,
         req.markupOptions.hotel
       )
 
@@ -72,8 +72,8 @@ router.post(
         hotelbedsHotelsRes.data.hotels,
         hotelbedsRoomsRes.data.hotels,
         req.currency,
-        [],
-        [],
+        null,
+        null,
         req.markupOptions.hotel
       )
 
@@ -109,7 +109,6 @@ router.post(
         3600
       )
     } catch (error) {
-      console.log(error)
       res.status(400).send()
     }
   }

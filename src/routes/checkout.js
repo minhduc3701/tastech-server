@@ -98,9 +98,9 @@ const verifyHotelbedsPrice = async (req, res, next) => {
       hotelbedsData.hotels,
       hotelbedsData.rooms,
       hotelbedsCurrency,
-      [],
-      [],
-      req.markupOptions.flight
+      null,
+      null,
+      req.markupOptions.hotel
     )
 
     let hotelInCache = hotels.find(

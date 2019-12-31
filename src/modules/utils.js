@@ -592,7 +592,8 @@ const addRoomsToHotels = (
       const ratePlans = makeHotelbedsRoomsRatePlans(
         matchingHotel,
         currency,
-        hotel.images
+        hotel.images,
+        hotelMarkupOption
       )
       return {
         ...hotel,
@@ -624,8 +625,6 @@ const makeHotelbedsHotelsData = (
   hotelFacilityGroups,
   hotelMarkupOption
 ) => {
-  console.log('hotels: ', hotels)
-  console.log('hotelMarkupOption: ', hotelMarkupOption)
   let hotelsData = hotels.map(hotel => {
     let images = _.get(hotel, 'images', [])
     let featuredImage =
@@ -854,13 +853,11 @@ const roundPrice = (amount, currency) => {
 }
 
 const roundPriceWithMarkup = (amount, currency, markupOption) => {
-  console.log('old amount: ', amount)
   if (_.get(markupOption, 'value.type') === 'percentage') {
     amount += (amount * _.get(markupOption, 'value.amount', 0)) / 100
   } else {
     amount += _.get(markupOption, 'value.amount', 0) * currency.rate
   }
-  console.log('new amount: ', amount)
 
   switch (currency.code) {
     case VND:
