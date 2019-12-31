@@ -240,7 +240,7 @@ const makeSabreFlightsData = (
   sabreRes,
   currency,
   numberOfPassengers,
-  flightOption
+  flightMarkupOption
 ) => {
   let flights = []
   try {
@@ -556,7 +556,7 @@ const makeSabreFlightsData = (
           roundPriceWithMarkup(
             obj.rawTotalPrice * currency.rate,
             currency,
-            flightOption
+            flightMarkupOption
           ) / numberOfPassengers,
           currency.code
         )
@@ -577,7 +577,12 @@ const makeSabreFlightsData = (
   return flights
 }
 
-const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
+const addRoomsToHotels = (
+  hotels,
+  roomHotelsData,
+  currency,
+  hotelMarkupOption
+) => {
   return hotels.map(hotel => {
     let matchingHotel = _.get(roomHotelsData, 'hotels', []).find(
       roomHotel => roomHotel.code === hotel.hotelId
@@ -591,9 +596,10 @@ const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
       )
       return {
         ...hotel,
-        lowestPrice: roundPrice(
+        lowestPrice: roundPriceWithMarkup(
           matchingHotel.minRate * currency.rate,
-          currency.code
+          currency,
+          hotelMarkupOption
         ),
         ratePlans: ratePlans
       }
@@ -615,8 +621,11 @@ const makeHotelbedsHotelsData = (
   roomHotelsData,
   currency,
   hotelFacilities,
-  hotelFacilityGroups
+  hotelFacilityGroups,
+  hotelMarkupOption
 ) => {
+  console.log('hotels: ', hotels)
+  console.log('hotelMarkupOption: ', hotelMarkupOption)
   let hotelsData = hotels.map(hotel => {
     let images = _.get(hotel, 'images', [])
     let featuredImage =
@@ -702,11 +711,21 @@ const makeHotelbedsHotelsData = (
     }
   })
 
-  hotelsData = addRoomsToHotels(hotelsData, roomHotelsData, currency)
+  hotelsData = addRoomsToHotels(
+    hotelsData,
+    roomHotelsData,
+    currency,
+    hotelMarkupOption
+  )
   return hotelsData
 }
 
-const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
+const makeHotelbedsRoomsRatePlans = (
+  hotel,
+  currency,
+  hotelImages,
+  hotelMarkupOption
+) => {
   const rooms = []
   hotel.rooms.forEach(room => {
     room.rates
@@ -735,7 +754,11 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
           currency: currency.code,
           rawCurrency: hotel.currency,
           rawNet: Number(rate.net),
-          totalPrice: roundPrice(Number(price) * currency.rate, currency.code),
+          totalPrice: roundPriceWithMarkup(
+            Number(price) * currency.rate,
+            currency,
+            hotelMarkupOption
+          ),
           rawTotalPrice: Number(rate.net),
           cancelRules: cancelRules,
           rateType: rate.rateType,
