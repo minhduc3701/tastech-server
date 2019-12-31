@@ -19,7 +19,11 @@ jobs:
           name: Run tests
           command: yarn test:ci
           environment:
+            PORT: 8081
             MONGODB_URI: mongodb://localhost:27017/dbTest
+      - run:
+          name: Stop mongodb service
+          command: sudo service mongodb stop
   deploy_dev:
     docker:
       - image: circleci/node:10.15.0-jessie-browsers-legacy
