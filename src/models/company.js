@@ -62,7 +62,10 @@ const CompanySchema = new Schema({
   },
   markupHotelAmount: Number,
   note: String,
-  disabled: Boolean
+  disabled: Boolean,
+  deposit: Number,
+  remainingCredit: Number,
+  logs: Array
 })
 
 CompanySchema.methods.toJSON = function() {

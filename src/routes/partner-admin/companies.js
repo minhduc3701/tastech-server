@@ -45,7 +45,19 @@ const companyFields = [
   'markupHotelAmount',
   'note',
   'onBehalf',
-  'disabled'
+  'disabled',
+  'deposit',
+  'remainingCredit',
+  'logs',
+  'depositAdding',
+  'note'
+]
+
+const logFields = [
+  'creditLimitationAmount',
+  'warningAmount',
+  'deposit',
+  'remainingCredit'
 ]
 
 const requiredFields = [
@@ -459,37 +471,133 @@ router.get('/:id', (req, res) => {
     })
 })
 
-router.patch('/:id', (req, res) => {
+router.patch('/:id/deposit', async (req, res) => {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
 
   const body = _.pick(req.body, companyFields)
 
-  Company.findOneAndUpdate(
-    {
+  try {
+    if (_.get(body, 'depositAdding', 0) <= 0) {
+      return res.status(400).send()
+    }
+    const company = await Company.findOne({
       _id: req.params.id,
       _partner: req.user._partner
-    },
-    { $set: body },
-    { new: true }
-  )
-    .then(company => {
-      if (!company) {
-        return res.status(404).send()
-      }
+    })
 
-      if (requiredFields.filter(field => !company[field]).length > 0) {
-        return res.status(400).send()
-      }
+    let { deposit, remainingCredit, creditLimitationAmount } = company
+    const spendingCredit = creditLimitationAmount - remainingCredit
 
-      res.status(200).send({
-        company
+    // if remainingCredit = limit, add to deposit, otherwise, add unitl full limit, then add to deposit
+    if (remainingCredit === company.creditLimitationAmount) {
+      deposit += body.depositAdding
+    } else {
+      if (body.depositAdding <= spendingCredit) {
+        remainingCredit += body.depositAdding
+      } else {
+        remainingCredit = creditLimitationAmount
+        deposit += body.depositAdding - spendingCredit
+      }
+    }
+
+    const updatedAt = new Date()
+    let newLogs = _.get(company, 'logs', [])
+
+    if (deposit !== company.deposit) {
+      newLogs.push({
+        updatedAt,
+        _editor: req.user._id,
+        field: 'deposit',
+        oldValue: company['deposit'],
+        newValue: deposit,
+        note: body['note']
       })
+    }
+
+    if (remainingCredit !== company.remainingCredit) {
+      newLogs.push({
+        updatedAt,
+        _editor: req.user._id,
+        field: 'remainingCredit',
+        oldValue: company['remainingCredit'],
+        newValue: remainingCredit,
+        note: body['note']
+      })
+    }
+
+    const updatedData = {
+      ...body,
+      logs: newLogs
+    }
+
+    const updatedCompany = await Company.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        _partner: req.user._partner
+      },
+      { $set: updatedData },
+      { new: true }
+    )
+
+    if (!updatedCompany) {
+      return res.status(400).send()
+    }
+
+    res.status(200).send({
+      company: updatedCompany
     })
-    .catch(e => {
-      res.status(400).send()
+  } catch (error) {
+    res.status(400).send()
+  }
+})
+
+router.patch('/:id', async (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  const body = _.pick(req.body, companyFields)
+
+  try {
+    const company = await Company.findOne({
+      _id: req.params.id,
+      _partner: req.user._partner
     })
+
+    const updatedAt = new Date()
+    let newLogs = _.get(company, 'logs', [])
+    Object.keys(body).forEach(key => {
+      if (logFields.includes(key) && company[key] !== body[key]) {
+        newLogs.push({
+          updatedAt,
+          _editor: req.user._id,
+          field: key,
+          oldValue: company[key],
+          newValue: body[key]
+        })
+      }
+    })
+
+    const updatedData = {
+      ...body,
+      logs: newLogs
+    }
+
+    const updatedCompany = await Company.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        _partner: req.user._partner
+      },
+      { $set: updatedData },
+      { new: true }
+    )
+
+    res.status(200).send({ company: updatedCompany })
+  } catch (error) {
+    res.status(400).send()
+  }
 })
 
 router.delete('/:id', function(req, res) {
