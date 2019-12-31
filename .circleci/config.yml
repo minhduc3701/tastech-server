@@ -18,7 +18,7 @@ jobs:
             - node_modules
       - run:
           name: JavaScript Test Suite
-          command: yarn test:ci -- --ci --testResultsProcessor="jest-junit"
+          command: yarn test:ci --ci --testResultsProcessor="jest-junit"
           environment:
             MONGODB_URI: mongodb://localhost:27017/dbTest
             AWS_S3_NAME: mock-s3-name
@@ -27,7 +27,8 @@ jobs:
             JWT_SECRET: test-jwt-secret
             PKFARE_PARTNER_ID: mock-pkfare-partner-id
             PKFARE_PARTNER_KEY: mock-pkfare-partner-key
-            JEST_JUNIT_OUTPUT: reports/junit/js-test-results.xml
+            JEST_JUNIT_OUTPUT_DIR: reports/junit/
+            JEST_JUNIT_OUTPUT_NAME: js-test-results.xml
       - store_test_results:
           path: reports/junit
       - store_artifacts:
