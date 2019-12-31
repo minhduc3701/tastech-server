@@ -23,6 +23,7 @@ beforeEach(setupDatabase)
 
 afterAll(async () => {
   await new Promise(resolve => setTimeout(() => resolve(), 500)) // avoid jest open handle error
+  mongoose.disconnect()
 })
 
 test('Should create new policy which is enabled', async () => {
