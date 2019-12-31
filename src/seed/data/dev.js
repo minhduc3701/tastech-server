@@ -870,12 +870,12 @@ let options = [
   {
     name: 'hotel',
     markupType: 'percentage',
-    number: 5
+    value: 5
   },
   {
     name: 'flight',
     markupType: 'net',
-    number: 20
+    value: 20
   }
 ]
 
