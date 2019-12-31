@@ -11,7 +11,10 @@ const {
 
 beforeEach(setupDatabase)
 
-afterAll(done => done())
+afterAll(done => {
+  mongoose.disconnect()
+  done()
+})
 
 // get expenses by trip id
 test('Should get expense with valid tripId', async () => {

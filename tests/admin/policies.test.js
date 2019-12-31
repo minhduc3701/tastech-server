@@ -21,7 +21,10 @@ const {
 
 beforeEach(setupDatabase)
 
-afterAll(done => done())
+afterAll(done => {
+  mongoose.disconnect()
+  done()
+})
 
 test('Should create new policy which is enabled', async () => {
   let newPolicy = await request(app)

@@ -15,7 +15,10 @@ const {
 
 beforeEach(setupDatabase)
 
-afterAll(done => done())
+afterAll(done => {
+  mongoose.disconnect()
+  done()
+})
 
 // Update user list in Role
 test('Should update role with valid users', async () => {

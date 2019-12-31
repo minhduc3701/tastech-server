@@ -17,7 +17,10 @@ const {
 
 beforeEach(setupDatabase)
 
-afterAll(done => done())
+afterAll(done => {
+  mongoose.disconnect()
+  done()
+})
 
 test('Should create a new expense with valid trip and attendees', async () => {
   await request(app)

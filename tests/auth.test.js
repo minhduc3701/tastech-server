@@ -2,10 +2,14 @@ const request = require('supertest')
 const app = require('../src/app')
 const User = require('../src/models/user')
 const { userId, userOne, setupDatabase } = require('./fixtures/db.js')
+const mongoose = require('mongoose')
 
 beforeEach(setupDatabase)
 
-afterAll(done => done())
+afterAll(done => {
+  mongoose.disconnect()
+  done()
+})
 
 test('Should login an user', async () => {
   const response = await request(app)

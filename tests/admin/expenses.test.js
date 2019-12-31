@@ -14,7 +14,10 @@ const {
 
 beforeEach(setupDatabase)
 
-afterAll(done => done())
+afterAll(done => {
+  mongoose.disconnect()
+  done()
+})
 
 test('Should update expense from status claiming to approved status', async () => {
   await request(app)

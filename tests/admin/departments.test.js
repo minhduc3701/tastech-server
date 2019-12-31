@@ -18,7 +18,10 @@ const {
 
 beforeEach(setupDatabase)
 
-afterAll(done => done())
+afterAll(done => {
+  mongoose.disconnect()
+  done()
+})
 
 test('Should create new department', async () => {
   let newDepartment = await request(app)

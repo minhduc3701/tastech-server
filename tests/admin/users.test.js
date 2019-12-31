@@ -13,7 +13,10 @@ const {
 
 beforeEach(setupDatabase)
 
-afterAll(done => done())
+afterAll(done => {
+  mongoose.disconnect()
+  done()
+})
 
 // Create user
 test('Should create a new user with valid role, department, policy in company', async () => {
