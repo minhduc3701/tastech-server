@@ -17,6 +17,8 @@ const {
 
 beforeEach(setupDatabase)
 
+afterAll(done => done())
+
 test('Should create a new expense with valid trip and attendees', async () => {
   await request(app)
     .post('/expenses')

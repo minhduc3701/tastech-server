@@ -14,6 +14,8 @@ const {
 
 beforeEach(setupDatabase)
 
+afterAll(done => done())
+
 test('Should update expense from status claiming to approved status', async () => {
   await request(app)
     .patch(`/admin/expenses/${expenseClaimingId}`)

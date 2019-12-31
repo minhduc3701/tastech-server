@@ -21,6 +21,8 @@ const {
 
 beforeEach(setupDatabase)
 
+afterAll(done => done())
+
 test('Should create new policy which is enabled', async () => {
   let newPolicy = await request(app)
     .post(`/admin/policies`)

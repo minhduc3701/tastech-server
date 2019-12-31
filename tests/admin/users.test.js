@@ -13,6 +13,8 @@ const {
 
 beforeEach(setupDatabase)
 
+afterAll(done => done())
+
 // Create user
 test('Should create a new user with valid role, department, policy in company', async () => {
   await request(app)

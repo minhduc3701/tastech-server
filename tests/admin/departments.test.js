@@ -18,6 +18,8 @@ const {
 
 beforeEach(setupDatabase)
 
+afterAll(done => done())
+
 test('Should create new department', async () => {
   let newDepartment = await request(app)
     .post(`/admin/departments`)

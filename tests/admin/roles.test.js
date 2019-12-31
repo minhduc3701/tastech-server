@@ -15,6 +15,8 @@ const {
 
 beforeEach(setupDatabase)
 
+afterAll(done => done())
+
 // Update user list in Role
 test('Should update role with valid users', async () => {
   let role = await Role.findById(adminRoleId)

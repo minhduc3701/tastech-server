@@ -5,6 +5,8 @@ const { userId, userOne, setupDatabase } = require('./fixtures/db.js')
 
 beforeEach(setupDatabase)
 
+afterAll(done => done())
+
 test('Should login an user', async () => {
   const response = await request(app)
     .post('/auth/login')

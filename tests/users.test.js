@@ -5,6 +5,8 @@ const { userToken, setupDatabase } = require('./fixtures/db.js')
 
 beforeEach(setupDatabase)
 
+afterAll(done => done())
+
 test('Should get profile for user', async () => {
   await request(app)
     .get('/users/me')

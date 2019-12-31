@@ -11,6 +11,8 @@ const {
 
 beforeEach(setupDatabase)
 
+afterAll(done => done())
+
 // get expenses by trip id
 test('Should get expense with valid tripId', async () => {
   await request(app)
