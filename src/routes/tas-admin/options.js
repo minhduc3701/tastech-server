@@ -17,81 +17,42 @@ router.get('/', async (req, res) => {
 
 router.patch('/', async (req, res) => {
   try {
-    let hotel = _.get(req.body, 'hotel')
-    let flight = _.get(req.body, 'flight')
+    let { options } = req.body
 
     let promises = []
 
-    if (!_.isEmpty(hotel)) {
-      // find hotel option, if existed - update, else create new
-      let existedHotelOption = await Option.findOne({
-        name: 'hotel-markup'
-      })
-      if (existedHotelOption) {
-        promises.push(
-          Option.findByIdAndUpdate(
-            {
-              _id: existedHotelOption._id
-            },
-            {
-              $set: {
-                value: {
-                  type: _.get(hotel, 'value.type', 'percentage'),
-                  amount: _.get(hotel, 'value.amount', 5)
-                }
-              }
-            },
-            { new: true }
-          )
+    options.map(option => {
+      promises.push(
+        Option.findOneAndUpdate(
+          {
+            name: option.name
+          },
+          {
+            $set: {
+              value: option.value
+            }
+          },
+          { new: true }
         )
-      } else {
-        let hotelOption = new Option({
-          name: 'hotel-markup',
-          value: {
-            type: 'percentage',
-            amount: 5
-          }
-        })
-        promises.push(hotelOption.save())
-      }
-    }
+      )
+    })
 
-    if (!_.isEmpty(flight)) {
-      // find flight option, if existed - update, else create new
-      let existedFlightOption = await Option.findOne({
-        name: 'flight-markup'
-      })
-      if (existedFlightOption) {
-        promises.push(
-          Option.findByIdAndUpdate(
-            {
-              _id: existedFlightOption._id
-            },
-            {
-              $set: {
-                value: {
-                  type: _.get(flight, 'value.type', 'net'),
-                  amount: _.get(flight, 'value.amount', 20)
-                }
-              }
-            },
-            { new: true }
-          )
-        )
-      } else {
-        let flightOption = new Option({
-          name: 'flight-markup',
-          value: {
-            type: 'net',
-            amount: 20
-          }
-        })
-        promises.push(flightOption.save())
-      }
-    }
+    promises = promises.map(p => p.catch(e => undefined))
+    let updateResults = await Promise.all(promises)
 
-    let results = await Promise.all(promises)
-    return res.status(200).send(results)
+    // filter new options
+    insertOptions = options.filter((option, index) => !updateResults[index])
+
+    let insertPromises = []
+
+    insertOptions.map(option => {
+      let newOption = new Option(option)
+      insertPromises.push(newOption.save())
+    })
+
+    let insertResults = await Promise.all(insertPromises)
+
+    return res.status(200).send({ updateResults, insertResults })
   } catch (error) {
     return res.status(400).send()
   }
