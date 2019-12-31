@@ -97,21 +97,29 @@ workflows:
     jobs:
       - test
       - deploy_dev:
+          requires:
+            - test
           filters:
             branches:
               only:
                 - develop
       - deploy_test:
+          requires:
+            - test
           filters:
             branches:
               only:
                 - test
       - deploy_demo:
+          requires:
+            - test
           filters:
             branches:
               only:
                 - demo
       - deploy:
+          requires:
+            - test
           filters:
             branches:
               only:
