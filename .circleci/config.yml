@@ -104,7 +104,6 @@ workflows:
                 - demo
                 - master
                 - /release-.*/
-                - ez1422
       - deploy_dev:
           requires:
             - test
