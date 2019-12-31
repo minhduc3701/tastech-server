@@ -13,6 +13,13 @@ const {
 
 beforeEach(setupDatabase)
 
+// @see https://github.com/visionmedia/supertest/issues/520#issuecomment-469044925
+// @see https://github.com/facebook/jest/issues/7287
+afterAll(async () => {
+  await new Promise(resolve => setTimeout(() => resolve(), 500)) // avoid jest open handle error
+  mongoose.disconnect()
+})
+
 // Create user
 test('Should create a new user with valid role, department, policy in company', async () => {
   await request(app)

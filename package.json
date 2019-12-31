@@ -11,11 +11,8 @@
     "wipe": "node ./src/seed/wipe.js",
     "debug": "node --inspect bin/www",
     "test": "NODE_ENV=test jest --watch --runInBand",
+    "test:ci": "NODE_ENV=production jest --runInBand --forceExit --detectOpenHandles",
     "test:coverage": "NODE_ENV=test jest --coverage --runInBand"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "collectCoverage": true
   },
   "dependencies": {
     "async": "^2.6.2",
