@@ -17,7 +17,7 @@ jobs:
             - node_modules
       - run:
           name: Run tests
-          command: yarn test
+          command: yarn test:all
           environment:
             MONGODB_URI: mongodb://localhost:27017/dbTest
   deploy_dev:

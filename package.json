@@ -11,6 +11,7 @@
     "wipe": "node ./src/seed/wipe.js",
     "debug": "node --inspect bin/www",
     "test": "NODE_ENV=test jest --watch --runInBand",
+    "test:all": "NODE_ENV=test jest --runInBand",
     "test:coverage": "NODE_ENV=test jest --coverage --runInBand"
   },
   "dependencies": {
