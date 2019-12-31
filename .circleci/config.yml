@@ -20,12 +20,12 @@ jobs:
           command: yarn test:ci --detectOpenHandles
           environment:
             MONGODB_URI: mongodb://localhost:27017/dbTest
-            AWS_S3_NAME: 'mock-s3-name'
-            AWS_S3_REGION: 'mock-s3-region'
-            BASE_CURRENCY: 'SGD'
-            JWT_SECRET: 'test-jwt-secret'
-            PKFARE_PARTNER_ID: 'mock-pkfare-partner-id'
-            PKFARE_PARTNER_KEY: 'mock-pkfare-partner-key'
+            AWS_S3_NAME: mock-s3-name
+            AWS_S3_REGION: mock-s3-region
+            BASE_CURRENCY: SGD
+            JWT_SECRET: test-jwt-secret
+            PKFARE_PARTNER_ID: mock-pkfare-partner-id
+            PKFARE_PARTNER_KEY: mock-pkfare-partner-key
   deploy_dev:
     docker:
       - image: circleci/node:10.15.0-jessie-browsers-legacy
@@ -104,6 +104,7 @@ workflows:
                 - demo
                 - master
                 - /release-.*/
+                - ez1422
       - deploy_dev:
           requires:
             - test
