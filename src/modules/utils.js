@@ -570,7 +570,6 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
   return flights
 }
 const markupFlights = (flights, currency, markupFlightOption) => {
-  // console.log("markupFlights: ", flights)
   try {
     return flights.map(flight => {
       return {
@@ -581,9 +580,7 @@ const markupFlights = (flights, currency, markupFlightOption) => {
           flight.numberOfPassengers
       }
     })
-  } catch (error) {
-    console.log(error)
-  }
+  } catch (error) {}
 }
 
 const markupHotels = (hotels, currency, markupHotelOption) => {
@@ -605,9 +602,7 @@ const markupHotels = (hotels, currency, markupHotelOption) => {
           )
         }
       }
-    } catch (error) {
-      console.log(error)
-    }
+    } catch (error) {}
   })
 }
 
@@ -806,7 +801,7 @@ const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
           currency: currency.code,
           rawCurrency: hotel.currency,
           rawNet: Number(rate.net),
-          totalPrice: roundPrice(Number(price) * currency.rate, currency),
+          totalPrice: roundPrice(Number(price) * currency.rate, currency.code),
           rawTotalPrice: Number(rate.net),
           cancelRules: cancelRules,
           rateType: rate.rateType,
@@ -902,13 +897,11 @@ const roundPrice = (amount, currency) => {
 }
 
 const roundPriceWithMarkup = (amount, currency, markupOption) => {
-  console.log('old: ', amount)
   if (_.get(markupOption, 'type') === 'percentage') {
     amount += (amount * _.get(markupOption, 'amount', 0)) / 100
   } else {
     amount += _.get(markupOption, 'amount', 0) * currency.rate
   }
-  console.log('new: ', amount)
 
   switch (currency.code) {
     case VND:

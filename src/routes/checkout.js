@@ -131,7 +131,6 @@ const verifyHotelbedsPrice = async (req, res, next) => {
       numberOfRoom: roomInCache.rooms
     }
   } catch (e) {
-    console.log(e)
     return res.status(400).send({
       code: 'HOTELBEDS-VERIFY-HOTEL',
       message: 'Cannot verify price of this hotel'
