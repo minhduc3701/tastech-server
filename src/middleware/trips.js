@@ -74,12 +74,13 @@ const calculateBudget = async (req, res, next) => {
         req.sabreRestToken
       )
       sabreRes = sabreRes.data.groupedItineraryResponse
-      let flights = makeSabreFlightsData(
-        sabreRes,
+      let flights = makeSabreFlightsData(sabreRes, req.currency, 1)
+      flights = markupFlights(
+        flights,
         req.currency,
-        1,
-        req.markupOptions.flight
+        req.markupOptions.flight.value
       )
+
       let sumPrice = 0
       flights.forEach(flight => {
         sumPrice += Number(flight.price)

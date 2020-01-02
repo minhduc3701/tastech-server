@@ -14,7 +14,11 @@ const {
   sabreRestToken,
   sabreSoapSecurityToken
 } = require('../../middleware/sabre')
-const { makeSabreFlightsData, roundPrice } = require('../../modules/utils')
+const {
+  makeSabreFlightsData,
+  roundPrice,
+  markupFlights
+} = require('../../modules/utils')
 const { logger } = require('../../config/winston')
 const { makeSabreRequestData } = require('../../modules/utilsSabre')
 const { makeSabreFlightCacheKey } = require('../../modules/cache')
@@ -37,8 +41,12 @@ router.post(
       let flights = makeSabreFlightsData(
         cacheData.sabreRes,
         req.currency,
-        cacheData.numberOfPassengers,
-        req.markupOptions.flight
+        cacheData.numberOfPassengers
+      )
+      flights = markupFlights(
+        flights,
+        req.currency,
+        req.markupOptions.flight.value
       )
 
       let suggestData = suggestFlights(flights, req.body.trip, req.user)
@@ -63,11 +71,11 @@ router.post(
       sabreRes = sabreRes.data.groupedItineraryResponse
 
       // logger.info('Sabre shopping: ', { sabreRes })
-      let flights = makeSabreFlightsData(
-        sabreRes,
+      let flights = makeSabreFlightsData(sabreRes, req.currency, search.adults)
+      flights = markupFlights(
+        flights,
         req.currency,
-        search.adults,
-        req.markupOptions.flight
+        req.markupOptions.flight.value
       )
 
       let airlines = []

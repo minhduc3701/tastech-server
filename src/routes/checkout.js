@@ -57,8 +57,12 @@ const verifySabrePrice = async (req, res, next) => {
     let flights = makeSabreFlightsData(
       sabreCacheData.sabreRes,
       sabreCurrency,
-      sabreCacheData.numberOfPassengers,
-      req.markupOptions.flight
+      sabreCacheData.numberOfPassengers
+    )
+    flights = markupFlights(
+      flights,
+      req.currency,
+      req.markupOptions.flight.value
     )
 
     let flightInCache = flights.find(f => f.id === req.body.trip.flight.id)

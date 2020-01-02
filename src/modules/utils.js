@@ -236,12 +236,7 @@ const getNewFareComponentNumber = fareComponentNumbers => {
   }
   return newFareComponentNumber
 }
-const makeSabreFlightsData = (
-  sabreRes,
-  currency,
-  numberOfPassengers,
-  flightMarkupOption
-) => {
+const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
   let flights = []
   try {
     let { itineraryGroups, fareComponentDescs } = sabreRes
@@ -553,11 +548,8 @@ const makeSabreFlightsData = (
         obj.rawTotalPrice = i.pricingInformation[0].fare.totalFare.totalPrice
         obj.currency = currency.code
         obj.price = roundPrice(
-          roundPriceWithMarkup(
-            obj.rawTotalPrice * currency.rate,
-            currency,
-            flightMarkupOption
-          ) / numberOfPassengers,
+          roundPrice(obj.rawTotalPrice * currency.rate, currency.code) /
+            numberOfPassengers,
           currency.code
         )
         obj.totalPrice = obj.price * numberOfPassengers
@@ -575,6 +567,14 @@ const makeSabreFlightsData = (
     ...flight
   }))
   return flights
+}
+const markupFlights = (flights, currency, markupFlightOption) => {
+  return flights.map(flight => {
+    return {
+      ...flight,
+      price: roundPriceWithMarkup(flight.price, currency, markupFlightOption)
+    }
+  })
 }
 
 const addRoomsToHotels = (
@@ -853,10 +853,10 @@ const roundPrice = (amount, currency) => {
 }
 
 const roundPriceWithMarkup = (amount, currency, markupOption) => {
-  if (_.get(markupOption, 'value.type') === 'percentage') {
-    amount += (amount * _.get(markupOption, 'value.amount', 0)) / 100
+  if (_.get(markupOption, 'type') === 'percentage') {
+    amount += (amount * _.get(markupOption, 'amount', 0)) / 100
   } else {
-    amount += _.get(markupOption, 'value.amount', 0) * currency.rate
+    amount += _.get(markupOption, 'amount', 0) * currency.rate
   }
 
   switch (currency.code) {
@@ -979,6 +979,7 @@ module.exports = {
   getImageUri,
   makeSegmentsData,
   makeSabreFlightsData,
+  markupFlights,
   makeRoomGuestDetails,
   makeHtbRoomPaxes,
   removeSpaces,
