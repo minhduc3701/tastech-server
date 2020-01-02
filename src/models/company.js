@@ -63,9 +63,24 @@ const CompanySchema = new Schema({
   markupHotelAmount: Number,
   note: String,
   disabled: Boolean,
-  deposit: Number,
-  remainingCredit: Number,
-  logs: Array
+  deposit: {
+    type: Number,
+    default: 0
+  },
+  remainingCredit: {
+    type: Number,
+    default: 0
+  },
+  logs: [
+    {
+      updatedAt: Date,
+      _editor: mongoose.Schema.Types.ObjectId,
+      field: String,
+      oldValue: Number,
+      newValue: Number,
+      note: String
+    }
+  ]
 })
 
 CompanySchema.methods.toJSON = function() {

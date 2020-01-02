@@ -479,7 +479,7 @@ router.patch('/:id/deposit', async (req, res) => {
   const body = _.pick(req.body, companyFields)
 
   try {
-    if (_.get(body, 'depositAdding', 0) <= 0) {
+    if (Number(_.get(body, 'depositAdding', 0)) <= 0) {
       return res.status(400).send()
     }
     const company = await Company.findOne({
@@ -489,23 +489,28 @@ router.patch('/:id/deposit', async (req, res) => {
 
     let { deposit, remainingCredit, creditLimitationAmount } = company
     const spendingCredit = creditLimitationAmount - remainingCredit
+    const depositAdding = Number(body.depositAdding)
 
     // if remainingCredit = limit, add to deposit, otherwise, add unitl full limit, then add to deposit
     if (remainingCredit === company.creditLimitationAmount) {
-      deposit += body.depositAdding
+      deposit += depositAdding
     } else {
-      if (body.depositAdding <= spendingCredit) {
-        remainingCredit += body.depositAdding
+      if (depositAdding <= spendingCredit) {
+        remainingCredit += depositAdding
       } else {
         remainingCredit = creditLimitationAmount
-        deposit += body.depositAdding - spendingCredit
+        deposit += depositAdding - spendingCredit
       }
     }
 
+    let updatedData = {
+      ...body
+    }
     const updatedAt = new Date()
     let newLogs = _.get(company, 'logs', [])
 
     if (deposit !== company.deposit) {
+      updatedData.deposit = deposit
       newLogs.push({
         updatedAt,
         _editor: req.user._id,
@@ -517,6 +522,7 @@ router.patch('/:id/deposit', async (req, res) => {
     }
 
     if (remainingCredit !== company.remainingCredit) {
+      updatedData.remainingCredit = remainingCredit
       newLogs.push({
         updatedAt,
         _editor: req.user._id,
@@ -527,10 +533,7 @@ router.patch('/:id/deposit', async (req, res) => {
       })
     }
 
-    const updatedData = {
-      ...body,
-      logs: newLogs
-    }
+    updatedData.logs = newLogs
 
     const updatedCompany = await Company.findOneAndUpdate(
       {
