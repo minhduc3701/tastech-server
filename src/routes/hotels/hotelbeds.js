@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const api = require('../../modules/apiHotelbeds')
 const axios = require('axios')
-const { makeHotelbedsHotelsData } = require('../../modules/utils')
+const { makeHotelbedsHotelsData, markupHotels } = require('../../modules/utils')
 const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
 const { getTasAdminOption } = require('../../middleware/options')
 const { logger } = require('../../config/winston')
@@ -26,8 +26,12 @@ router.post(
         data.rooms,
         req.currency,
         null,
-        null,
-        req.markupOptions.hotel
+        null
+      )
+      hotelbedsHotelsData = markupHotels(
+        hotelbedsHotelsData,
+        req.currency,
+        req.markupOptions.hotel.value
       )
 
       let suggestData = suggestHotelRooms(
@@ -73,8 +77,12 @@ router.post(
         hotelbedsRoomsRes.data.hotels,
         req.currency,
         null,
-        null,
-        req.markupOptions.hotel
+        null
+      )
+      hotelbedsHotelsData = markupHotels(
+        hotelbedsHotelsData,
+        req.currency,
+        req.markupOptions.hotel.value
       )
 
       let suggestData = suggestHotelRooms(
@@ -222,8 +230,12 @@ router.post(
         data.rooms,
         req.currency,
         data.facilities,
-        data.facilityGroups,
-        req.markupOptions.hotel
+        data.facilityGroups
+      )
+      hotelbedsHotelsData = markupHotels(
+        hotelbedsHotelsData,
+        req.currency,
+        req.markupOptions.hotel.value
       )
 
       return res.status(200).send({
@@ -256,8 +268,12 @@ router.post(
         hotelbedsRoomsRes.data.hotels,
         req.currency,
         hotelFacilityRes.data.facilities,
-        hotelFacilityGroupRes.data.facilityGroups,
-        req.markupOptions.hotel
+        hotelFacilityGroupRes.data.facilityGroups
+      )
+      hotelbedsHotelsData = markupHotels(
+        hotelbedsHotelsData,
+        req.currency,
+        req.markupOptions.hotel.value
       )
 
       if (hotelbedsHotelsRes.data) {

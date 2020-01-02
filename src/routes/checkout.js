@@ -29,7 +29,9 @@ const { getTasAdminOption } = require('../middleware/options')
 
 const {
   makeSabreFlightsData,
-  makeHotelbedsHotelsData
+  makeHotelbedsHotelsData,
+  markupHotels,
+  markupFlights
 } = require('../modules/utils')
 
 // Set your secret key: remember to change this to your live secret key in production
@@ -105,6 +107,11 @@ const verifyHotelbedsPrice = async (req, res, next) => {
       null,
       null,
       req.markupOptions.hotel
+    )
+    hotelbedsHotelsData = markupHotels(
+      hotelbedsHotelsData,
+      req.currency,
+      req.markupOptions.hotel.value
     )
 
     let hotelInCache = hotels.find(

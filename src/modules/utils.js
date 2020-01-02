@@ -577,12 +577,47 @@ const markupFlights = (flights, currency, markupFlightOption) => {
   })
 }
 
-const addRoomsToHotels = (
-  hotels,
-  roomHotelsData,
-  currency,
-  hotelMarkupOption
-) => {
+const markupHotels = (hotels, currency, markupHotelOption) => {
+  return hotels.map(hotel => {
+    try {
+      return {
+        ...hotel,
+        lowestPrice: roundPriceWithMarkup(
+          hotel.lowestPrice,
+          currency,
+          markupHotelOption
+        ),
+        ratePlans: {
+          ...hotel.ratePlans,
+          ratePlanList: !_.isEmpty(hotel.ratePlans.ratePlanList)
+            ? markupHotelRooms(
+                hotel.ratePlans.ratePlanList,
+                currency,
+                markupHotelOption
+              )
+            : []
+        }
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  })
+}
+
+const markupHotelRooms = (rooms, currency, markupHotelOption) => {
+  return rooms.map(room => {
+    return {
+      ...room,
+      totalPrice: roundPriceWithMarkup(
+        room.totalPrice,
+        currency,
+        markupHotelOption
+      )
+    }
+  })
+}
+
+const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
   return hotels.map(hotel => {
     let matchingHotel = _.get(roomHotelsData, 'hotels', []).find(
       roomHotel => roomHotel.code === hotel.hotelId
@@ -592,15 +627,13 @@ const addRoomsToHotels = (
       const ratePlans = makeHotelbedsRoomsRatePlans(
         matchingHotel,
         currency,
-        hotel.images,
-        hotelMarkupOption
+        hotel.images
       )
       return {
         ...hotel,
-        lowestPrice: roundPriceWithMarkup(
+        lowestPrice: roundPrice(
           matchingHotel.minRate * currency.rate,
-          currency,
-          hotelMarkupOption
+          currency
         ),
         ratePlans: ratePlans
       }
@@ -622,8 +655,7 @@ const makeHotelbedsHotelsData = (
   roomHotelsData,
   currency,
   hotelFacilities,
-  hotelFacilityGroups,
-  hotelMarkupOption
+  hotelFacilityGroups
 ) => {
   let hotelsData = hotels.map(hotel => {
     let images = _.get(hotel, 'images', [])
@@ -710,21 +742,11 @@ const makeHotelbedsHotelsData = (
     }
   })
 
-  hotelsData = addRoomsToHotels(
-    hotelsData,
-    roomHotelsData,
-    currency,
-    hotelMarkupOption
-  )
+  hotelsData = addRoomsToHotels(hotelsData, roomHotelsData, currency)
   return hotelsData
 }
 
-const makeHotelbedsRoomsRatePlans = (
-  hotel,
-  currency,
-  hotelImages,
-  hotelMarkupOption
-) => {
+const makeHotelbedsRoomsRatePlans = (hotel, currency, hotelImages) => {
   const rooms = []
   hotel.rooms.forEach(room => {
     room.rates
@@ -753,11 +775,7 @@ const makeHotelbedsRoomsRatePlans = (
           currency: currency.code,
           rawCurrency: hotel.currency,
           rawNet: Number(rate.net),
-          totalPrice: roundPriceWithMarkup(
-            Number(price) * currency.rate,
-            currency,
-            hotelMarkupOption
-          ),
+          totalPrice: roundPrice(Number(price) * currency.rate, currency),
           rawTotalPrice: Number(rate.net),
           cancelRules: cancelRules,
           rateType: rate.rateType,
@@ -853,11 +871,13 @@ const roundPrice = (amount, currency) => {
 }
 
 const roundPriceWithMarkup = (amount, currency, markupOption) => {
+  console.log('old: ', amount)
   if (_.get(markupOption, 'type') === 'percentage') {
     amount += (amount * _.get(markupOption, 'amount', 0)) / 100
   } else {
     amount += _.get(markupOption, 'amount', 0) * currency.rate
   }
+  console.log('new: ', amount)
 
   switch (currency.code) {
     case VND:
@@ -980,6 +1000,7 @@ module.exports = {
   makeSegmentsData,
   makeSabreFlightsData,
   markupFlights,
+  markupHotels,
   makeRoomGuestDetails,
   makeHtbRoomPaxes,
   removeSpaces,
