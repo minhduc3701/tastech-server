@@ -44,8 +44,14 @@ const CompanySchema = new Schema({
     enum: ['deposit', 'credit-card']
   },
   isCreditLimitation: Boolean,
-  creditLimitationAmount: Number,
-  warningAmount: Number,
+  creditLimitationAmount: {
+    type: Number,
+    default: 0
+  },
+  warningAmount: {
+    type: Number,
+    default: 0
+  },
   sendMailToCompanyAdmin: Boolean,
   sendMailToPartnerAdmin: Boolean,
   invoiceThroughEmail: Boolean,
