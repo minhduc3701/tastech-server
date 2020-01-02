@@ -6,13 +6,13 @@ const getTasAdminOption = async (req, res, next) => {
     hotel: {
       value: {
         type: 'percentage',
-        amount: 5
+        amount: 10
       }
     },
     flight: {
       value: {
         type: 'net',
-        amount: 20
+        amount: 25
       }
     }
   }
