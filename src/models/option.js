@@ -15,4 +15,4 @@ const OptionSchema = new Schema(
   }
 )
 
-module.exports = mongoose.model('Options', OptionSchema)
+module.exports = mongoose.model('Option', OptionSchema)

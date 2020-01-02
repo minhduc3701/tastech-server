@@ -468,6 +468,7 @@ router.post(
       res.status(400).send()
     }
   },
+  getTasAdminOption,
   calculateBudget,
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip

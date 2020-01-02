@@ -595,52 +595,26 @@ const markupHotels = (hotels, currency, markupHotelOption) => {
         ),
         ratePlans: {
           ...hotel.ratePlans,
-          ratePlanList: markupHotelRooms(
-            hotel.ratePlans.ratePlanList,
-            currency,
-            markupHotelOption
-          )
+          ratePlanList: hotel.ratePlans.ratePlanList.map(room => ({
+            ...room,
+            totalPrice: roundPriceWithMarkup(
+              room.totalPrice,
+              currency,
+              markupHotelOption
+            ),
+            cancelRules: room.cancelRules.map(rule => ({
+              ...rule,
+              cancelCharge: roundPriceWithMarkup(
+                rule.cancelCharge,
+                currency,
+                markupHotelOption
+              )
+            }))
+          }))
         }
       }
     } catch (error) {}
   })
-}
-
-const markupHotelRooms = (rooms, currency, markupHotelOption) => {
-  if (!_.isEmpty(rooms)) {
-    return rooms.map(room => {
-      return {
-        ...room,
-        totalPrice: roundPriceWithMarkup(
-          room.totalPrice,
-          currency,
-          markupHotelOption
-        ),
-        cancelRules: markupHotelCancelCharge(
-          room.cancelRules,
-          currency,
-          markupHotelOption
-        )
-      }
-    })
-  }
-  return []
-}
-
-const markupHotelCancelCharge = (rules, currency, markupHotelOption) => {
-  if (!_.isEmpty(rules)) {
-    return rules.map(rule => {
-      return {
-        ...rule,
-        cancelCharge: roundPriceWithMarkup(
-          rule.cancelCharge,
-          currency,
-          markupHotelOption
-        )
-      }
-    })
-  }
-  return []
 }
 
 const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
