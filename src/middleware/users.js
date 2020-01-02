@@ -62,7 +62,7 @@ const createUser = function(req, res, next) {
         await User.populate(req.admin, { path: '_role' })
         let mailOptions = await register(user, token, req.admin)
         mail.sendMail(mailOptions, function(err, info) {
-          return done(err, user)
+          // return done(err, user)
         })
       }
     ],

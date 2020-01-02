@@ -1,12 +1,13 @@
 const { renderMail } = require('../config/mail')
 const moment = require('moment')
 const { formatLocaleMoney } = require('../modules/utils')
+const _ = require('lodash')
 
 async function changeExpenseStatus(user, expense) {
   let htmlExpenseApproved = await renderMail('expense-approved', {
     title: '',
     employeeName: user.firstName,
-    tripName: expense._trip.name,
+    tripName: _.get(expense, '_trip.name'),
     paymentDate: moment(expense.transactionDate).format('ll'),
     paymentAmount: formatLocaleMoney(expense.amount, expense.currency),
     expenseLink: `${process.env.APP_URI}/employee/expenses/${expense._id}`
