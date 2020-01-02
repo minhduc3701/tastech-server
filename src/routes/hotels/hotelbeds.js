@@ -24,9 +24,7 @@ router.post(
       let hotelbedsHotelsData = makeHotelbedsHotelsData(
         data.hotels,
         data.rooms,
-        req.currency,
-        null,
-        null
+        req.currency
       )
       hotelbedsHotelsData = markupHotels(
         hotelbedsHotelsData,
@@ -75,9 +73,7 @@ router.post(
       let hotelbedsHotelsData = makeHotelbedsHotelsData(
         hotelbedsHotelsRes.data.hotels,
         hotelbedsRoomsRes.data.hotels,
-        req.currency,
-        null,
-        null
+        req.currency
       )
       hotelbedsHotelsData = markupHotels(
         hotelbedsHotelsData,

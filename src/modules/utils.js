@@ -554,6 +554,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
         )
         obj.totalPrice = obj.price * numberOfPassengers
         obj.supplier = 'sabre'
+        obj.numberOfPassengers = numberOfPassengers
 
         flights.push(obj)
       })
@@ -569,12 +570,20 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
   return flights
 }
 const markupFlights = (flights, currency, markupFlightOption) => {
-  return flights.map(flight => {
-    return {
-      ...flight,
-      price: roundPriceWithMarkup(flight.price, currency, markupFlightOption)
-    }
-  })
+  // console.log("markupFlights: ", flights)
+  try {
+    return flights.map(flight => {
+      return {
+        ...flight,
+        price: roundPriceWithMarkup(flight.price, currency, markupFlightOption),
+        totalPrice:
+          roundPriceWithMarkup(flight.price, currency, markupFlightOption) *
+          flight.numberOfPassengers
+      }
+    })
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 const markupHotels = (hotels, currency, markupHotelOption) => {
@@ -589,13 +598,11 @@ const markupHotels = (hotels, currency, markupHotelOption) => {
         ),
         ratePlans: {
           ...hotel.ratePlans,
-          ratePlanList: !_.isEmpty(hotel.ratePlans.ratePlanList)
-            ? markupHotelRooms(
-                hotel.ratePlans.ratePlanList,
-                currency,
-                markupHotelOption
-              )
-            : []
+          ratePlanList: markupHotelRooms(
+            hotel.ratePlans.ratePlanList,
+            currency,
+            markupHotelOption
+          )
         }
       }
     } catch (error) {
@@ -605,16 +612,40 @@ const markupHotels = (hotels, currency, markupHotelOption) => {
 }
 
 const markupHotelRooms = (rooms, currency, markupHotelOption) => {
-  return rooms.map(room => {
-    return {
-      ...room,
-      totalPrice: roundPriceWithMarkup(
-        room.totalPrice,
-        currency,
-        markupHotelOption
-      )
-    }
-  })
+  if (!_.isEmpty(rooms)) {
+    return rooms.map(room => {
+      return {
+        ...room,
+        totalPrice: roundPriceWithMarkup(
+          room.totalPrice,
+          currency,
+          markupHotelOption
+        ),
+        cancelRules: markupHotelCancelCharge(
+          room.cancelRules,
+          currency,
+          markupHotelOption
+        )
+      }
+    })
+  }
+  return []
+}
+
+const markupHotelCancelCharge = (rules, currency, markupHotelOption) => {
+  if (!_.isEmpty(rules)) {
+    return rules.map(rule => {
+      return {
+        ...rule,
+        cancelCharge: roundPriceWithMarkup(
+          rule.cancelCharge,
+          currency,
+          markupHotelOption
+        )
+      }
+    })
+  }
+  return []
 }
 
 const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
@@ -633,7 +664,7 @@ const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
         ...hotel,
         lowestPrice: roundPrice(
           matchingHotel.minRate * currency.rate,
-          currency
+          currency.code
         ),
         ratePlans: ratePlans
       }
@@ -871,11 +902,13 @@ const roundPrice = (amount, currency) => {
 }
 
 const roundPriceWithMarkup = (amount, currency, markupOption) => {
+  console.log('old: ', amount)
   if (_.get(markupOption, 'type') === 'percentage') {
     amount += (amount * _.get(markupOption, 'amount', 0)) / 100
   } else {
     amount += _.get(markupOption, 'amount', 0) * currency.rate
   }
+  console.log('new: ', amount)
 
   switch (currency.code) {
     case VND:

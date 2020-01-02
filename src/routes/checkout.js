@@ -63,7 +63,7 @@ const verifySabrePrice = async (req, res, next) => {
     )
     flights = markupFlights(
       flights,
-      req.currency,
+      sabreCurrency,
       req.markupOptions.flight.value
     )
 
@@ -103,14 +103,11 @@ const verifyHotelbedsPrice = async (req, res, next) => {
     let hotels = makeHotelbedsHotelsData(
       hotelbedsData.hotels,
       hotelbedsData.rooms,
-      hotelbedsCurrency,
-      null,
-      null,
-      req.markupOptions.hotel
+      hotelbedsCurrency
     )
-    hotelbedsHotelsData = markupHotels(
-      hotelbedsHotelsData,
-      req.currency,
+    hotels = markupHotels(
+      hotels,
+      hotelbedsCurrency,
       req.markupOptions.hotel.value
     )
 
@@ -134,6 +131,7 @@ const verifyHotelbedsPrice = async (req, res, next) => {
       numberOfRoom: roomInCache.rooms
     }
   } catch (e) {
+    console.log(e)
     return res.status(400).send({
       code: 'HOTELBEDS-VERIFY-HOTEL',
       message: 'Cannot verify price of this hotel'
