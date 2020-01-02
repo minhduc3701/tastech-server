@@ -871,14 +871,14 @@ let options = [
     name: 'hotel-markup',
     value: {
       type: 'percentage',
-      amount: 5
+      amount: 10
     }
   },
   {
     name: 'flight-markup',
     value: {
       type: 'net',
-      amount: 20
+      amount: 25
     }
   }
 ]
