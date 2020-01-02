@@ -8,11 +8,6 @@ const OptionSchema = new Schema(
       required: true,
       unique: true
     },
-    // markupType: {
-    //   type: String,
-    //   enum: ['net', 'percentage'],
-    //   default: 'net'
-    // },
     value: Object
   },
   {

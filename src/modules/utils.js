@@ -871,13 +871,11 @@ const roundPrice = (amount, currency) => {
 }
 
 const roundPriceWithMarkup = (amount, currency, markupOption) => {
-  console.log('old: ', amount)
   if (_.get(markupOption, 'type') === 'percentage') {
     amount += (amount * _.get(markupOption, 'amount', 0)) / 100
   } else {
     amount += _.get(markupOption, 'amount', 0) * currency.rate
   }
-  console.log('new: ', amount)
 
   switch (currency.code) {
     case VND:
@@ -1001,6 +999,7 @@ module.exports = {
   makeSabreFlightsData,
   markupFlights,
   markupHotels,
+  roundPriceWithMarkup,
   makeRoomGuestDetails,
   makeHtbRoomPaxes,
   removeSpaces,

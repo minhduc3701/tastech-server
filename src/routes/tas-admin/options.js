@@ -32,7 +32,11 @@ router.patch('/', async (req, res) => {
               value: option.value
             }
           },
-          { new: true }
+          {
+            new: true,
+            upsert: true,
+            setDefaultsOnInsert: true
+          }
         )
       )
     })
@@ -40,19 +44,7 @@ router.patch('/', async (req, res) => {
     promises = promises.map(p => p.catch(e => undefined))
     let updateResults = await Promise.all(promises)
 
-    // filter new options
-    insertOptions = options.filter((option, index) => !updateResults[index])
-
-    let insertPromises = []
-
-    insertOptions.map(option => {
-      let newOption = new Option(option)
-      insertPromises.push(newOption.save())
-    })
-
-    let insertResults = await Promise.all(insertPromises)
-
-    return res.status(200).send({ updateResults, insertResults })
+    return res.status(200).send({ updateResults })
   } catch (error) {
     return res.status(400).send()
   }
