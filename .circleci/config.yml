@@ -18,7 +18,7 @@ jobs:
             - node_modules
       - run:
           name: JavaScript Test Suite
-          command: yarn test:ci --ci --testResultsProcessor="jest-junit"
+          command: yarn test:ci
           environment:
             MONGODB_URI: mongodb://localhost:27017/dbTest
             AWS_S3_NAME: mock-s3-name
