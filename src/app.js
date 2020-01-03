@@ -1,5 +1,5 @@
 require('./config/config')
-require('newrelic')
+require('./config/newrelic')
 require('./config/mongoose')
 require('./config/mail')
 require('./config/aws')

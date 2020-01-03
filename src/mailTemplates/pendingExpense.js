@@ -1,13 +1,14 @@
 const { renderMail } = require('../config/mail')
 const moment = require('moment')
 const { formatLocaleMoney } = require('../modules/utils')
+const _ = require('lodash')
 
 async function pendingExpense(accountants, expenses, employee) {
   let html = await renderMail('expense-pending', {
     title: '',
     employeeName: employee.firstName,
     employeeEmail: employee.email,
-    tripName: expenses[0]._trip.name,
+    tripName: _.get(expenses, '[0]._trip.name'),
     expenses: expenses.map(e => ({
       name: e.name,
       category: e.category,
