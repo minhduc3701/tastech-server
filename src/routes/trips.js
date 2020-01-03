@@ -451,6 +451,7 @@ router.post(
     const trip = new Trip(req.body)
     trip._creator = req.user._id
     trip._company = req.user._company
+    trip.status = 'waiting' // set default status is waiting
     trip.businessTrip = true
     trip.currency = req.currency.code
     let countDays =
