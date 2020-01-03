@@ -44,8 +44,14 @@ const CompanySchema = new Schema({
     enum: ['deposit', 'credit-card']
   },
   isCreditLimitation: Boolean,
-  creditLimitationAmount: Number,
-  warningAmount: Number,
+  creditLimitationAmount: {
+    type: Number,
+    default: 0
+  },
+  warningAmount: {
+    type: Number,
+    default: 0
+  },
   sendMailToCompanyAdmin: Boolean,
   sendMailToPartnerAdmin: Boolean,
   invoiceThroughEmail: Boolean,
@@ -62,7 +68,29 @@ const CompanySchema = new Schema({
   },
   markupHotelAmount: Number,
   note: String,
-  disabled: Boolean
+  disabled: Boolean,
+  deposit: {
+    type: Number,
+    default: 0
+  },
+  remainingCredit: {
+    type: Number,
+    default: 0
+  },
+  logs: [
+    {
+      _creator: {
+        type: 'ObjectId',
+        required: true,
+        ref: 'User'
+      },
+      createdAt: Date,
+      field: String,
+      old: Number,
+      new: Number,
+      note: String
+    }
+  ]
 })
 
 CompanySchema.methods.toJSON = function() {

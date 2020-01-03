@@ -45,7 +45,18 @@ const companyFields = [
   'markupHotelAmount',
   'note',
   'onBehalf',
-  'disabled'
+  'disabled',
+  'deposit',
+  'remainingCredit',
+  'depositAdding',
+  'note'
+]
+
+const logFields = [
+  'creditLimitationAmount',
+  'warningAmount',
+  'deposit',
+  'remainingCredit'
 ]
 
 const requiredFields = [
@@ -459,37 +470,134 @@ router.get('/:id', (req, res) => {
     })
 })
 
-router.patch('/:id', (req, res) => {
+router.patch('/:id/deposit', async (req, res) => {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
 
   const body = _.pick(req.body, companyFields)
 
-  Company.findOneAndUpdate(
-    {
+  try {
+    if (Number(_.get(body, 'depositAdding', 0)) <= 0) {
+      return res.status(400).send()
+    }
+    const company = await Company.findOne({
       _id: req.params.id,
       _partner: req.user._partner
-    },
-    { $set: body },
-    { new: true }
-  )
-    .then(company => {
-      if (!company) {
-        return res.status(404).send()
-      }
+    })
 
-      if (requiredFields.filter(field => !company[field]).length > 0) {
-        return res.status(400).send()
-      }
+    let { deposit, remainingCredit, creditLimitationAmount } = company
+    const spendingCredit = creditLimitationAmount - remainingCredit
+    const depositAdding = Number(body.depositAdding)
 
-      res.status(200).send({
-        company
+    // if remainingCredit = limit, add to deposit, otherwise, add unitl full limit, then add to deposit
+    if (remainingCredit === company.creditLimitationAmount) {
+      deposit += depositAdding
+    } else {
+      if (depositAdding <= spendingCredit) {
+        remainingCredit += depositAdding
+      } else {
+        remainingCredit = creditLimitationAmount
+        deposit += depositAdding - spendingCredit
+      }
+    }
+
+    const createdAt = new Date()
+    let updatedData = {}
+    let newLogs = []
+
+    if (deposit !== company.deposit) {
+      updatedData.deposit = deposit
+      newLogs.push({
+        _creator: req.user._id,
+        createdAt,
+        field: 'deposit',
+        old: company['deposit'],
+        new: deposit,
+        note: body['note']
       })
+    }
+
+    if (remainingCredit !== company.remainingCredit) {
+      updatedData.remainingCredit = remainingCredit
+      newLogs.push({
+        _creator: req.user._id,
+        createdAt,
+        field: 'remainingCredit',
+        old: company['remainingCredit'],
+        new: remainingCredit,
+        note: body['note']
+      })
+    }
+
+    const updatedCompany = await Company.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        _partner: req.user._partner
+      },
+      {
+        $set: updatedData,
+        $push: { logs: newLogs }
+      },
+      { new: true }
+    )
+
+    if (!updatedCompany) {
+      return res.status(400).send()
+    }
+
+    res.status(200).send({
+      company: updatedCompany
     })
-    .catch(e => {
-      res.status(400).send()
+  } catch (error) {
+    res.status(400).send()
+  }
+})
+
+router.patch('/:id', async (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  const updatedData = _.pick(req.body, companyFields)
+
+  try {
+    const company = await Company.findOne({
+      _id: req.params.id,
+      _partner: req.user._partner
     })
+
+    const createdAt = new Date()
+    let newLogs = []
+
+    Object.keys(updatedData).forEach(key => {
+      if (logFields.includes(key) && company[key] !== updatedData[key]) {
+        newLogs.push({
+          _creator: req.user._id,
+          createdAt,
+          field: key,
+          old: company[key],
+          new: updatedData[key]
+        })
+      }
+    })
+
+    const updatedCompany = await Company.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        _partner: req.user._partner
+      },
+      {
+        $set: updatedData,
+        $push: { logs: newLogs }
+      },
+      { new: true }
+    )
+
+    res.status(200).send({ company: updatedCompany })
+  } catch (error) {
+    res.status(400).send()
+  }
 })
 
 router.delete('/:id', function(req, res) {
