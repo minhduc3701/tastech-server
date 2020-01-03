@@ -1,15 +1,14 @@
 const { renderMail } = require('../config/mail')
 const moment = require('moment')
+const _ = require('lodash')
 const { formatLocaleMoney } = require('../modules/utils')
 
 async function pendingTrip(managers, trip, employee) {
-  let {
-    flight,
-    lodging,
-    transportation,
-    meal,
-    others
-  } = trip.budgetPassengers[0]
+  let flight = _.get(trip, 'budgetPassengers[0].flight', {})
+  let lodging = _.get(trip, 'budgetPassengers[0].lodging', {})
+  let transportation = _.get(trip, 'budgetPassengers[0].transportation', {})
+  let meal = _.get(trip, 'budgetPassengers[0].meal', {})
+  let others = _.get(trip, 'budgetPassengers[0].others', {})
 
   let html = await renderMail('trip-pending', {
     title: '',
@@ -35,7 +34,7 @@ async function pendingTrip(managers, trip, employee) {
     other: formatLocaleMoney(others.amount, trip.currency),
     note: others.reason,
     budget: formatLocaleMoney(
-      trip.budgetPassengers[0].totalPrice,
+      _.get(trip, 'budgetPassengers[0].totalPrice', 0),
       trip.currency
     ),
     reviewLink: `${process.env.APP_URI}/admin/trips/${trip._id}`
