@@ -25,7 +25,7 @@ const {
 } = require('../middleware/email')
 const { currentCompany } = require('../middleware/company')
 const { currenciesExchange } = require('../middleware/currency')
-const { getTasAdminOption } = require('../middleware/options')
+const { getTasAdminOptions } = require('../middleware/options')
 
 const {
   makeSabreFlightsData,
@@ -1236,7 +1236,7 @@ const responseCheckout = async (req, res, next) => {
 router.post(
   '/card',
   currentCompany,
-  getTasAdminOption,
+  getTasAdminOptions,
   verifySabrePrice,
   verifyHotelbedsPrice,
   sabreRestToken, // get token for sabre api

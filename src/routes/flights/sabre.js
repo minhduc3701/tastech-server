@@ -8,7 +8,7 @@ const Airport = require('../../models/airport')
 const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
 const { sabreCurrencyExchange } = require('../../middleware/currency')
-const { getTasAdminOption } = require('../../middleware/options')
+const { getTasAdminOptions } = require('../../middleware/options')
 
 const {
   sabreRestToken,
@@ -29,7 +29,7 @@ const convert = require('xml-js')
 router.post(
   '/shopping',
   sabreCurrencyExchange,
-  getTasAdminOption,
+  getTasAdminOptions,
   sabreRestToken,
   async (req, res) => {
     let search = req.body.search

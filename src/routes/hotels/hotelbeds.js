@@ -4,7 +4,7 @@ const api = require('../../modules/apiHotelbeds')
 const axios = require('axios')
 const { makeHotelbedsHotelsData, markupHotels } = require('../../modules/utils')
 const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
-const { getTasAdminOption } = require('../../middleware/options')
+const { getTasAdminOptions } = require('../../middleware/options')
 const { logger } = require('../../config/winston')
 const { makeHotelBedsCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
@@ -13,7 +13,7 @@ const _ = require('lodash')
 
 router.post(
   '/hotels',
-  getTasAdminOption,
+  getTasAdminOptions,
   hotelbedsCurrencyExchange,
   async (req, res) => {
     let cacheKey = makeHotelBedsCacheKey(req.body.roomRequest)
@@ -213,7 +213,7 @@ router.post('/rateCommentDetails', async (req, res) => {
 router.post(
   '/:id',
   hotelbedsCurrencyExchange,
-  getTasAdminOption,
+  getTasAdminOptions,
   async (req, res) => {
     let hotelId = req.params.id
     let cacheKey = makeHotelBedsCacheKey(req.body.roomRequest)

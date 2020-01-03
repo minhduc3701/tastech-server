@@ -1,7 +1,7 @@
 const Option = require('../models/option')
 const _ = require('lodash')
 
-const getTasAdminOption = async (req, res, next) => {
+const getTasAdminOptions = async (req, res, next) => {
   let markupOptions = {
     hotel: {
       value: {
@@ -35,5 +35,5 @@ const getTasAdminOption = async (req, res, next) => {
 }
 
 module.exports = {
-  getTasAdminOption
+  getTasAdminOptions
 }
