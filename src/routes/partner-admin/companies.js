@@ -48,7 +48,6 @@ const companyFields = [
   'disabled',
   'deposit',
   'remainingCredit',
-  'logs',
   'depositAdding',
   'note'
 ]
@@ -503,20 +502,18 @@ router.patch('/:id/deposit', async (req, res) => {
       }
     }
 
-    let updatedData = {
-      ...body
-    }
-    const updatedAt = new Date()
-    let newLogs = _.get(company, 'logs', [])
+    const createdAt = new Date()
+    let updatedData = {}
+    let newLogs = []
 
     if (deposit !== company.deposit) {
       updatedData.deposit = deposit
       newLogs.push({
-        updatedAt,
-        _editor: req.user._id,
+        _creator: req.user._id,
+        createdAt,
         field: 'deposit',
-        oldValue: company['deposit'],
-        newValue: deposit,
+        old: company['deposit'],
+        new: deposit,
         note: body['note']
       })
     }
@@ -524,23 +521,24 @@ router.patch('/:id/deposit', async (req, res) => {
     if (remainingCredit !== company.remainingCredit) {
       updatedData.remainingCredit = remainingCredit
       newLogs.push({
-        updatedAt,
-        _editor: req.user._id,
+        _creator: req.user._id,
+        createdAt,
         field: 'remainingCredit',
-        oldValue: company['remainingCredit'],
-        newValue: remainingCredit,
+        old: company['remainingCredit'],
+        new: remainingCredit,
         note: body['note']
       })
     }
-
-    updatedData.logs = newLogs
 
     const updatedCompany = await Company.findOneAndUpdate(
       {
         _id: req.params.id,
         _partner: req.user._partner
       },
-      { $set: updatedData },
+      {
+        $set: updatedData,
+        $push: { logs: newLogs }
+      },
       { new: true }
     )
 
@@ -561,7 +559,7 @@ router.patch('/:id', async (req, res) => {
     return res.status(404).send()
   }
 
-  const body = _.pick(req.body, companyFields)
+  const updatedData = _.pick(req.body, companyFields)
 
   try {
     const company = await Company.findOne({
@@ -569,31 +567,30 @@ router.patch('/:id', async (req, res) => {
       _partner: req.user._partner
     })
 
-    const updatedAt = new Date()
-    let newLogs = _.get(company, 'logs', [])
-    Object.keys(body).forEach(key => {
-      if (logFields.includes(key) && company[key] !== body[key]) {
+    const createdAt = new Date()
+    let newLogs = []
+
+    Object.keys(updatedData).forEach(key => {
+      if (logFields.includes(key) && company[key] !== updatedData[key]) {
         newLogs.push({
-          updatedAt,
-          _editor: req.user._id,
+          _creator: req.user._id,
+          createdAt,
           field: key,
-          oldValue: company[key],
-          newValue: body[key]
+          old: company[key],
+          new: updatedData[key]
         })
       }
     })
-
-    const updatedData = {
-      ...body,
-      logs: newLogs
-    }
 
     const updatedCompany = await Company.findOneAndUpdate(
       {
         _id: req.params.id,
         _partner: req.user._partner
       },
-      { $set: updatedData },
+      {
+        $set: updatedData,
+        $push: { logs: newLogs }
+      },
       { new: true }
     )
 

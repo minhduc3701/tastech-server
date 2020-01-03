@@ -79,11 +79,15 @@ const CompanySchema = new Schema({
   },
   logs: [
     {
-      updatedAt: Date,
-      _editor: mongoose.Schema.Types.ObjectId,
+      _creator: {
+        type: 'ObjectId',
+        required: true,
+        ref: 'User'
+      },
+      createdAt: Date,
       field: String,
-      oldValue: Number,
-      newValue: Number,
+      old: Number,
+      new: Number,
       note: String
     }
   ]
