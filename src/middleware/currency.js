@@ -47,6 +47,14 @@ const currenciesExchange = async () => {
     }
   })
 
+  // for SGD-SGD, VND-VND, ...
+  currencies.forEach(currency => {
+    exchangedResults[`${currency}-${currency}`] = {
+      code: currency,
+      rate: 1
+    }
+  })
+
   logger.info('currenciesExchange', exchangedResults)
 
   // save all data for using 1 day later
