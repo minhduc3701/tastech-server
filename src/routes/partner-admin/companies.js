@@ -567,6 +567,10 @@ router.patch('/:id', async (req, res) => {
       _partner: req.user._partner
     })
 
+    if (!company) {
+      return res.status(404).send()
+    }
+
     const createdAt = new Date()
     let newLogs = []
 
@@ -593,6 +597,10 @@ router.patch('/:id', async (req, res) => {
       },
       { new: true }
     )
+
+    if (requiredFields.filter(field => !updatedCompany[field]).length > 0) {
+      return res.status(400).send()
+    }
 
     res.status(200).send({ company: updatedCompany })
   } catch (error) {
