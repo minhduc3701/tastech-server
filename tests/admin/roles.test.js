@@ -110,3 +110,31 @@ test('Should not update role with invalid role objectID', async () => {
     })
     .expect(404)
 })
+
+test('Should get users of all roles without resetPasswordToken and resetPasswordExpires', async () => {
+  let res = await request(app)
+    .get(`/admin/roles`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(200)
+  res.body.roles.map(role => {
+    role.users.map(user =>
+      expect(
+        !user.hasOwnProperty('resetPasswordToken') &&
+          !user.hasOwnProperty('resetPasswordExpires')
+      )
+    )
+  })
+})
+
+test('Should get users of role without resetPasswordToken and resetPasswordExpires', async () => {
+  let res = await request(app)
+    .get(`/admin/roles/${adminRoleId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(200)
+  res.body.role.users.map(user =>
+    expect(
+      !user.hasOwnProperty('resetPasswordToken') &&
+        !user.hasOwnProperty('resetPasswordExpires')
+    )
+  )
+})

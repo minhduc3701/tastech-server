@@ -223,7 +223,10 @@ const userOne = {
   email: 'mike@example.com',
   password: '56what!!',
   _company: companyId,
-  _role: employeeRoleId
+  _role: employeeRoleId,
+  _department: departmentId,
+  resetPasswordToken: 'resetPasswordToken',
+  resetPasswordExpires: '2020-01-06 05:51:26.004Z'
 }
 const userToken = jwt.sign(
   {
