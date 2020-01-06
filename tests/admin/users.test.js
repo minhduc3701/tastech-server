@@ -157,12 +157,10 @@ test('Should get all users without resetPasswordToken and resetPasswordExpires',
     .get(`/admin/users`)
     .set('Authorization', `Bearer ${adminToken}`)
     .expect(200)
-  res.body.users.map(user =>
-    expect(
-      !user.hasOwnProperty('resetPasswordToken') &&
-        !user.hasOwnProperty('resetPasswordExpires')
-    )
-  )
+  res.body.users.forEach(user => {
+    expect(user).not.toHaveProperty('resetPasswordToken')
+    expect(user).not.toHaveProperty('resetPasswordExpires')
+  })
 })
 
 test('Should get user without resetPasswordToken and resetPasswordExpires', async () => {
@@ -171,6 +169,6 @@ test('Should get user without resetPasswordToken and resetPasswordExpires', asyn
     .set('Authorization', `Bearer ${adminToken}`)
     .expect(200)
 
-  expect(!res.body.user.hasOwnProperty('resetPasswordToken'))
-  expect(!res.body.user.hasOwnProperty('resetPasswordExpires'))
+  expect(res.body.user).not.toHaveProperty('resetPasswordToken')
+  expect(res.body.user).not.toHaveProperty('resetPasswordExpires')
 })

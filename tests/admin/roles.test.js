@@ -117,12 +117,10 @@ test('Should get users of all roles without resetPasswordToken and resetPassword
     .set('Authorization', `Bearer ${adminToken}`)
     .expect(200)
   res.body.roles.map(role => {
-    role.users.map(user =>
-      expect(
-        !user.hasOwnProperty('resetPasswordToken') &&
-          !user.hasOwnProperty('resetPasswordExpires')
-      )
-    )
+    role.users.map(user => {
+      expect(user).not.toHaveProperty('resetPasswordToken')
+      expect(user).not.toHaveProperty('resetPasswordExpires')
+    })
   })
 })
 
@@ -131,10 +129,8 @@ test('Should get users of role without resetPasswordToken and resetPasswordExpir
     .get(`/admin/roles/${adminRoleId}`)
     .set('Authorization', `Bearer ${adminToken}`)
     .expect(200)
-  res.body.role.users.map(user =>
-    expect(
-      !user.hasOwnProperty('resetPasswordToken') &&
-        !user.hasOwnProperty('resetPasswordExpires')
-    )
-  )
+  res.body.role.users.forEach(user => {
+    expect(user).not.toHaveProperty('resetPasswordToken')
+    expect(user).not.toHaveProperty('resetPasswordExpires')
+  })
 })
