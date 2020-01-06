@@ -157,7 +157,7 @@ test('Should get all users without resetPasswordToken and resetPasswordExpires',
     .get(`/admin/users`)
     .set('Authorization', `Bearer ${adminToken}`)
     .expect(200)
-  res.body.users.forEach(user => {
+  res.body.users.map(user => {
     expect(user).not.toHaveProperty('resetPasswordToken')
     expect(user).not.toHaveProperty('resetPasswordExpires')
   })

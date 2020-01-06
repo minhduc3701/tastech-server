@@ -9,17 +9,6 @@ const _ = require('lodash')
 const { currentCompany } = require('../middleware/company')
 const { getUserProfileStrength } = require('../modules/utils')
 
-// get list user coworker
-router.get('/', function(req, res) {
-  User.find({
-    _company: req.user._company,
-    _id: { $ne: req.user._id },
-    _role: req.user._role
-  })
-    .then(users => res.status(200).send({ users }))
-    .catch(e => res.status(400).send())
-})
-
 router.get('/me', currentCompany, function(req, res, next) {
   res.send({
     user: req.user,
