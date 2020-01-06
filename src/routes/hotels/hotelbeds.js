@@ -11,6 +11,32 @@ const { getCache, setCache } = require('../../config/cache')
 const { suggestHotelRooms } = require('../../modules/suggestions')
 const _ = require('lodash')
 
+const hideRoomOriginalPrices = room =>
+  _.omit(room, ['net', 'rawNet', 'ratePlans', 'cancellationPolicies'])
+
+const hideHotelsOriginalPrices = data => {
+  let suggestData = { ...data }
+  suggestData.hotels = suggestData.hotels.map(hotel =>
+    _.omit(hotel, ['ratePlans'])
+  )
+  suggestData.bestHotelRooms = suggestData.bestHotelRooms.map(
+    hideRoomOriginalPrices
+  )
+  return suggestData
+}
+
+const hideSingleHotelOriginalPrices = data => {
+  let hotels = [...data]
+  hotels.forEach(hotel => {
+    _.set(
+      hotel,
+      'ratePlans.ratePlanList',
+      _.get(hotel, 'ratePlans.ratePlanList', []).map(hideRoomOriginalPrices)
+    )
+  })
+  return hotels
+}
+
 router.post(
   '/hotels',
   getTasAdminOptions,
@@ -37,6 +63,8 @@ router.post(
         req.body,
         req.user
       )
+
+      suggestData = hideHotelsOriginalPrices(suggestData)
 
       // for combo select room
       _.set(
@@ -96,6 +124,8 @@ router.post(
         }))
       )
 
+      suggestData = hideHotelsOriginalPrices(suggestData)
+
       if (hotelbedsRoomsRes.data) {
         res.status(200).send({
           ...suggestData,
@@ -132,7 +162,7 @@ router.post('/checkRate', async (req, res) => {
     }
 
     return res.status(200).send({
-      rate: _.get(data, 'hotel.rooms[0].rates[0]')
+      rate: _.pick(_.get(data, 'hotel.rooms[0].rates[0]'), 'rateComments')
     })
   } catch (e) {
     // do nothing to run below query
@@ -150,7 +180,10 @@ router.post('/checkRate', async (req, res) => {
     setCache(cacheKey, response.data)
 
     return res.status(200).send({
-      rate: _.get(response, 'data.hotel.rooms[0].rates[0]')
+      rate: _.pick(
+        _.get(response, 'data.hotel.rooms[0].rates[0]'),
+        'rateComments'
+      )
     })
   } catch {
     setCache(cacheKey, 'NOT AVAILABLE')
@@ -234,6 +267,9 @@ router.post(
         req.markupOptions.hotel.value
       )
 
+      // hide original room prices
+      hotelbedsHotelsData = hideSingleHotelOriginalPrices(hotelbedsHotelsData)
+
       return res.status(200).send({
         hotel: hotelbedsHotelsData[0],
         cacheKey
@@ -271,6 +307,9 @@ router.post(
         req.currency,
         req.markupOptions.hotel.value
       )
+
+      // hide original room prices
+      hotelbedsHotelsData = hideSingleHotelOriginalPrices(hotelbedsHotelsData)
 
       if (hotelbedsHotelsRes.data) {
         res.status(200).send({

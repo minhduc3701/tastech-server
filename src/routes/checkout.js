@@ -1212,8 +1212,12 @@ const responseCheckout = async (req, res, next) => {
     res.status(200).send({
       status: _.get(req, 'charge.status'),
       trip: _.pick(trip, ['_id']),
-      flightOrder,
-      hotelOrder
+      flightOrder: {
+        status: flightOrder.status
+      },
+      hotelOrder: {
+        status: hotelOrder.status
+      }
     })
   } catch (error) {
     logger.error('checkoutERR', _.get(error, 'message', ''))
@@ -1231,8 +1235,12 @@ const responseCheckout = async (req, res, next) => {
     res.status(400).send({
       message: _.get(error, 'message'),
       trip: _.pick(trip, ['_id']),
-      flightOrder,
-      hotelOrder
+      flightOrder: {
+        status: flightOrder.status
+      },
+      hotelOrder: {
+        status: hotelOrder.status
+      }
     })
   }
   next() // next for sent email

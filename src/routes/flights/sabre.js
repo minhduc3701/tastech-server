@@ -17,7 +17,8 @@ const {
 const {
   makeSabreFlightsData,
   roundPrice,
-  markupFlights
+  markupFlights,
+  hideFlightOriginalPrices
 } = require('../../modules/utils')
 const { logger } = require('../../config/winston')
 const { makeSabreRequestData } = require('../../modules/utilsSabre')
@@ -25,6 +26,15 @@ const { makeSabreFlightCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
 const { suggestFlights } = require('../../modules/suggestions')
 const convert = require('xml-js')
+
+const hideFlightsOriginalPrices = data => {
+  const hideMapping = flight =>
+    _.omit(flight, ['originalTotalPrice', 'exchangedTotalPrice'])
+  let suggestData = { ...data }
+  suggestData.flights = suggestData.flights.map(hideMapping)
+  suggestData.bestFlights = suggestData.bestFlights.map(hideMapping)
+  return suggestData
+}
 
 router.post(
   '/shopping',
@@ -50,6 +60,9 @@ router.post(
       )
 
       let suggestData = suggestFlights(flights, req.body.trip, req.user)
+
+      // hide original prices
+      suggestData = hideFlightsOriginalPrices(suggestData)
 
       return res.status(200).send({
         ...suggestData,
@@ -141,6 +154,9 @@ router.post(
           })
 
         let suggestData = suggestFlights(flights, req.body.trip, req.user)
+
+        // hide original prices
+        suggestData = hideFlightsOriginalPrices(suggestData)
 
         res.status(200).send({
           ...suggestData,
