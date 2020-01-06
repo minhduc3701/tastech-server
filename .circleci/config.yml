@@ -107,6 +107,7 @@ workflows:
             branches:
               only:
                 - develop
+                - test
                 - master
       - deploy_dev:
           requires:
