@@ -8,14 +8,14 @@ const { permissions } = require('../../config/roles')
 const { getImageUri } = require('../../modules/utils')
 
 let projectUsersFields = {
-  'users.hash': 0,
-  'users.salt': 0,
-  'users.username': 0,
-  'users._company': 0,
-  'users._policy': 0,
-  'users._role': 0,
-  'users._department': 0,
-  'users.__v': 0
+  'users.email': 1,
+  'users.firstName': 1,
+  'users.lastName': 1,
+  'users._id': 1,
+  _company: 1,
+  name: 1,
+  permissions: 1,
+  type: 1
 }
 
 const roleParser = role => ({

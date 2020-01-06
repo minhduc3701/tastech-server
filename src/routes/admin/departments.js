@@ -7,14 +7,12 @@ const _ = require('lodash')
 const { getImageUri } = require('../../modules/utils')
 
 let projectEmployeesFields = {
-  'employees.hash': 0,
-  'employees.salt': 0,
-  'employees.username': 0,
-  'employees._company': 0,
-  'employees._policy': 0,
-  'employees._role': 0,
-  'employees._department': 0,
-  'employees.__v': 0
+  'employees.email': 1,
+  'employees.firstName': 1,
+  'employees.lastName': 1,
+  'employees._id': 1,
+  _company: 1,
+  name: 1
 }
 
 const departmentParser = department => ({
