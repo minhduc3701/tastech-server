@@ -577,7 +577,14 @@ const markupFlights = (flights, currency, markupFlightOption) => {
         price: roundPriceWithMarkup(flight.price, currency, markupFlightOption),
         totalPrice:
           roundPriceWithMarkup(flight.price, currency, markupFlightOption) *
-          flight.numberOfPassengers
+          flight.numberOfPassengers,
+        rawTotalPrice: roundPriceWithMarkup(
+          flight.rawTotalPrice,
+          { code: 'SGD', rate: 1 },
+          markupFlightOption
+        ),
+        originalTotalPrice: flight.rawTotalPrice,
+        exchangedTotalPrice: flight.rawTotalPrice * currency.rate
       }
     })
   } catch (error) {}
@@ -600,6 +607,11 @@ const markupHotels = (hotels, currency, markupHotelOption) => {
             totalPrice: roundPriceWithMarkup(
               room.totalPrice,
               currency,
+              markupHotelOption
+            ),
+            rawTotalPrice: roundPriceWithMarkup(
+              room.rawTotalPrice,
+              { code: 'SGD', rate: 1 },
               markupHotelOption
             ),
             cancelRules: room.cancelRules.map(rule => ({

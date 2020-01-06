@@ -124,7 +124,8 @@ const verifyHotelbedsPrice = async (req, res, next) => {
     }
 
     req.body.trip.hotel = {
-      ...req.body.trip.hotel, // checkInDate, checkOutDate
+      checkInDate: req.body.trip.hotel.checkInDate,
+      checkOutDate: req.body.trip.hotel.checkOutDate,
       ...hotelInCache,
       ...roomInCache,
       numberOfAdult: roomInCache.adults,
@@ -237,7 +238,11 @@ const createOrFindFlightOrder = async (req, res, next) => {
           rawTotalPrice: trip.flight.rawTotalPrice,
           type: 'flight',
           _trip: trip._id,
-          flight: trip.flight,
+          flight: {
+            ...trip.flight,
+            rawTotalPrice: trip.flight.originalTotalPrice,
+            totalPrice: trip.flight.exchangedTotalPrice
+          },
           _customer: req.user._id,
           _company: req.user._company,
           passengers: trip.passengers,
