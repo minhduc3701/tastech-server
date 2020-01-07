@@ -584,7 +584,10 @@ const markupFlights = (flights, currency, markupFlightOption) => {
           markupFlightOption
         ),
         originalTotalPrice: flight.rawTotalPrice,
-        exchangedTotalPrice: flight.rawTotalPrice * currency.rate
+        exchangedTotalPrice: roundPrice(
+          flight.rawTotalPrice * currency.rate,
+          currency
+        )
       }
     })
   } catch (error) {}
@@ -889,12 +892,7 @@ const roundPriceWithMarkup = (amount, currency, markupOption) => {
     amount += _.get(markupOption, 'amount', 0) * currency.rate
   }
 
-  switch (currency.code) {
-    case VND:
-      return Math.round(amount)
-    default:
-      return Number(Number(amount).toFixed(2))
-  }
+  return roundPrice(amount, currency)
 }
 
 const formatLocaleMoney = (amount, currency) => {
