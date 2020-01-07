@@ -86,8 +86,7 @@ router.post('/forgot-password', function(req, res) {
             }
 
             res.status(200).send({
-              email: user.email,
-              resetPasswordToken: user.resetPasswordToken
+              email: user.email
             })
             done(null, token, user)
           })
@@ -124,7 +123,9 @@ router.get('/reset-password/:token', function(req, res) {
 
       res.status(200).send({
         message: 'Password reset token is valid.',
-        user
+        user: {
+          email: user.email
+        }
       })
     })
     .catch(e => {
