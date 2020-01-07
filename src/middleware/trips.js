@@ -1,5 +1,8 @@
 const Policy = require('../models/policy')
-const { makeSabreFlightsData } = require('../modules/utils')
+const {
+  makeSabreFlightsData,
+  roundPriceWithMarkup
+} = require('../modules/utils')
 const {
   makeSabreSearchRequestFromBudget,
   makeSabreRequestData
@@ -74,7 +77,6 @@ const calculateBudget = async (req, res, next) => {
         req.sabreRestToken
       )
       sabreRes = sabreRes.data.groupedItineraryResponse
-
       let flights = makeSabreFlightsData(sabreRes, req.currency, 1)
 
       let sumPrice = 0
@@ -83,6 +85,11 @@ const calculateBudget = async (req, res, next) => {
       })
 
       let averageFlightPrice = Math.round(Number(sumPrice / flights.length))
+      averageFlightPrice = roundPriceWithMarkup(
+        averageFlightPrice,
+        req.currency,
+        req.markupOptions.flight.value
+      )
       // compare averagePrice with company policy
       if (policy.setFlightLimit && averageFlightPrice > policy.flightLimit) {
         req.trip.budgetPassengers[0].flight.price = policy.flightLimit
@@ -140,6 +147,11 @@ const calculateBudget = async (req, res, next) => {
 
       let averageHotelPrice = Math.round(
         Number(sumPriceHotelRoom / hotelInfoList.length)
+      )
+      averageHotelPrice = roundPriceWithMarkup(
+        averageHotelPrice,
+        req.currency,
+        req.markupOptions.hotel.value
       )
 
       // compare averagePrice with company policy

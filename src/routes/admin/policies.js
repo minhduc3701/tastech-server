@@ -15,7 +15,9 @@ let projectUsersFields = {
   'employees._policy': 0,
   'employees._role': 0,
   'employees._department': 0,
-  'employees.__v': 0
+  'employees.__v': 0,
+  'employees.resetPasswordExpires': 0,
+  'employees.resetPasswordToken': 0
 }
 
 const policyParser = policy => ({

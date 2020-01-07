@@ -47,3 +47,17 @@ test('Should not login nonexistent user', async () => {
     })
     .expect(400)
 })
+
+test('Should not return resetPasswordToken & resetPasswordExpires after submiting forgot-password', async () => {
+  const response = await request(app)
+    .post('/auth/forgot-password')
+    .send({
+      email: userOne.email
+    })
+    .expect(200)
+  expect(response.body).toMatchObject({
+    email: userOne.email
+  })
+  expect(response.body).not.toHaveProperty('resetPasswordToken')
+  expect(response.body).not.toHaveProperty('resetPasswordExpires')
+})
