@@ -248,6 +248,7 @@ const userOne = {
   _company: companyId,
   _role: employeeRoleId,
   _department: departmentId,
+  _policy: policy2Id,
   resetPasswordToken: 'resetPasswordToken',
   resetPasswordExpires: '2020-01-06 05:51:26.004Z'
 }
