@@ -2,8 +2,16 @@ const request = require('supertest')
 const app = require('../src/app')
 const User = require('../src/models/user')
 const { userId, userOne, setupDatabase } = require('./fixtures/db.js')
+const mongoose = require('mongoose')
 
 beforeEach(setupDatabase)
+
+// @see https://github.com/visionmedia/supertest/issues/520#issuecomment-469044925
+// @see https://github.com/facebook/jest/issues/7287
+afterAll(async () => {
+  await new Promise(resolve => setTimeout(() => resolve(), 500)) // avoid jest open handle error
+  mongoose.disconnect()
+})
 
 test('Should login an user', async () => {
   const response = await request(app)

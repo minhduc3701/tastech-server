@@ -28,6 +28,7 @@ router.get('/', function(req, res) {
       _company: req.user._company,
       businessTrip: true,
       isBudgetUpdated: true,
+      archived: false,
       status: { $in: status },
       name: {
         $regex: new RegExp(keyword),
@@ -48,6 +49,7 @@ router.get('/', function(req, res) {
       _company: req.user._company,
       businessTrip: true,
       isBudgetUpdated: true,
+      archived: false,
       status: { $in: status },
       name: {
         $regex: new RegExp(keyword),
@@ -117,7 +119,8 @@ router.patch(
     Trip.findOneAndUpdate(
       {
         _id: id,
-        _company: req.user._company
+        _company: req.user._company,
+        archived: false
       },
       { $set: body },
       { new: true }

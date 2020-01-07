@@ -1,5 +1,38 @@
 version: 2
 jobs:
+  test:
+    docker:
+      - image: circleci/node:10.15.0-jessie-browsers-legacy
+      - image: circleci/mongo:4.0.9
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Install dependencies
+          command: yarn
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - run:
+          name: JavaScript Test Suite
+          command: yarn test:ci
+          environment:
+            MONGODB_URI: mongodb://localhost:27017/dbTest
+            AWS_S3_NAME: mock-s3-name
+            AWS_S3_REGION: mock-s3-region
+            BASE_CURRENCY: SGD
+            JWT_SECRET: test-jwt-secret
+            PKFARE_PARTNER_ID: mock-pkfare-partner-id
+            PKFARE_PARTNER_KEY: mock-pkfare-partner-key
+            JEST_JUNIT_OUTPUT_DIR: reports/junit/
+            JEST_JUNIT_OUTPUT_NAME: js-test-results.xml
+      - store_test_results:
+          path: reports/junit
+      - store_artifacts:
+          path: reports/junit
   deploy_dev:
     docker:
       - image: circleci/node:10.15.0-jessie-browsers-legacy
@@ -16,12 +49,28 @@ jobs:
             pm2 stop "server" && \
             PORT=8080 NODE_ENV=development pm2 start ./bin/www --name "server" && \
             echo Deploy development end"
+  deploy_test:
+    docker:
+      - image: circleci/node:10.15.0-jessie-browsers-legacy
+    steps:
+      - run:
+          name: AWS EC2 deploy (test)
+          command: |
+            ssh -o StrictHostKeyChecking=no $SSH_DEMO_USER@$SSH_DEMO_HOST \
+            "echo Start test deploy && \
+            cd ~/server-test && \
+            git fetch --all && \
+            git reset --hard origin/test && \
+            yarn && \
+            pm2 stop "test-server" && \
+            PORT=8081 NODE_ENV=test pm2 start ./bin/www --name "test-server" && \
+            echo Deploy test end"
   deploy_demo:
     docker:
       - image: circleci/node:10.15.0-jessie-browsers-legacy
     steps:
       - run:
-          name: AWS EC2 deploy (development)
+          name: AWS EC2 deploy (demo)
           command: |
             ssh -o StrictHostKeyChecking=no $SSH_DEMO_USER@$SSH_DEMO_HOST \
             "echo Start demo deploy && \
@@ -53,17 +102,37 @@ workflows:
   version: 2
   test_and_deploy:
     jobs:
-      - deploy_dev:
+      - test:
           filters:
             branches:
               only:
                 - develop
+                - test
+                - master
+      - deploy_dev:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - develop
+      - deploy_test:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - test
       - deploy_demo:
+          requires:
+            - test
           filters:
             branches:
               only:
                 - demo
       - deploy:
+          requires:
+            - test
           filters:
             branches:
               only:
