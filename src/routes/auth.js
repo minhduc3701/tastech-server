@@ -123,7 +123,9 @@ router.get('/reset-password/:token', function(req, res) {
 
       res.status(200).send({
         message: 'Password reset token is valid.',
-        user
+        user: {
+          email: user.email
+        }
       })
     })
     .catch(e => {
