@@ -586,7 +586,7 @@ const markupFlights = (flights, currency, markupFlightOption) => {
         originalTotalPrice: flight.rawTotalPrice,
         exchangedTotalPrice: roundPrice(
           flight.rawTotalPrice * currency.rate,
-          currency
+          currency.code
         )
       }
     })
@@ -892,7 +892,7 @@ const roundPriceWithMarkup = (amount, currency, markupOption) => {
     amount += _.get(markupOption, 'amount', 0) * currency.rate
   }
 
-  return roundPrice(amount, currency)
+  return roundPrice(amount, currency.code)
 }
 
 const formatLocaleMoney = (amount, currency) => {
