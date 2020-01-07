@@ -7,6 +7,7 @@ const Department = require('../../src/models/department')
 const Policy = require('../../src/models/policy')
 const Trip = require('../../src/models/trip')
 const Expense = require('../../src/models/expense')
+const Request = require('../../src/models/request')
 
 const companyId = new mongoose.Types.ObjectId()
 const company2Id = new mongoose.Types.ObjectId()
@@ -28,11 +29,12 @@ const userId = new mongoose.Types.ObjectId()
 const user2Id = new mongoose.Types.ObjectId()
 const userCompany2Id = new mongoose.Types.ObjectId()
 const adminId = new mongoose.Types.ObjectId()
+const tasAdminId = new mongoose.Types.ObjectId()
 const expenseWaitingId = new mongoose.Types.ObjectId()
 const expenseRejectedId = new mongoose.Types.ObjectId()
 const expenseClaimingId = new mongoose.Types.ObjectId()
 const expenseApprovedId = new mongoose.Types.ObjectId()
-
+const emailEmployee = 'employee@example.com'
 const companies = [
   {
     _id: companyId,
@@ -197,6 +199,28 @@ const trips = [
   }
 ]
 
+const requests = [
+  {
+    email: emailEmployee
+  }
+]
+const tasAdmin = {
+  _id: tasAdminId,
+  firstName: 'Tas',
+  lastName: 'Admin',
+  username: 'tas-admin@example.com',
+  email: 'tas-admin@example.com',
+  password: '56what!!',
+  _role: tasAdminRoleId
+}
+const tasAdminToken = jwt.sign(
+  {
+    id: tasAdminId,
+    email: tasAdmin.email
+  },
+  process.env.JWT_SECRET
+)
+
 const adminOne = {
   _id: adminId,
   firstName: 'Luis',
@@ -210,8 +234,7 @@ const adminOne = {
 const adminToken = jwt.sign(
   {
     id: adminId,
-    email: adminOne.email,
-    password: adminOne.password
+    email: adminOne.email
   },
   process.env.JWT_SECRET
 )
@@ -219,11 +242,15 @@ const adminToken = jwt.sign(
 const userOne = {
   _id: userId,
   firstName: 'Mike',
-  username: 'mike@example.com',
-  email: 'mike@example.com',
+  username: emailEmployee,
+  email: emailEmployee,
   password: '56what!!',
   _company: companyId,
-  _role: employeeRoleId
+  _role: employeeRoleId,
+  _department: departmentId,
+  _policy: policy2Id,
+  resetPasswordToken: 'resetPasswordToken',
+  resetPasswordExpires: '2020-01-06 05:51:26.004Z'
 }
 const userToken = jwt.sign(
   {
@@ -260,6 +287,7 @@ const userCompany2 = {
   _company: company2Id,
   _role: employeeRoleId
 }
+
 const setupDatabase = async () => {
   await Trip.deleteMany()
   await Trip.insertMany(trips)
@@ -279,6 +307,9 @@ const setupDatabase = async () => {
   await Expense.deleteMany()
   await Expense.insertMany(expensies)
 
+  await Request.deleteMany()
+  await Request.insertMany(requests)
+
   await User.deleteMany()
   let userOneDb = await new User(userOne)
   await userOneDb.save()
@@ -296,6 +327,10 @@ const setupDatabase = async () => {
   await adminOneDb.save()
   await adminOneDb.setPassword(adminOne.password)
   await adminOneDb.save()
+  let tasAdminDb = await new User(tasAdmin)
+  await tasAdminDb.save()
+  await tasAdminDb.setPassword(tasAdmin.password)
+  await tasAdminDb.save()
 }
 
 module.exports = {
@@ -329,5 +364,6 @@ module.exports = {
   policyCompany2Id,
   policyCompany2,
   policy2Company,
-  policy2Id
+  policy2Id,
+  tasAdminToken
 }

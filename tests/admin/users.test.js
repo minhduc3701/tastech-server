@@ -151,3 +151,24 @@ test('Should not edit user with non-exist policy in company', async () => {
     })
     .expect(400)
 })
+
+test('Should get all users without resetPasswordToken and resetPasswordExpires', async () => {
+  let res = await request(app)
+    .get(`/admin/users`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(200)
+  res.body.users.map(user => {
+    expect(user).not.toHaveProperty('resetPasswordToken')
+    expect(user).not.toHaveProperty('resetPasswordExpires')
+  })
+})
+
+test('Should get user without resetPasswordToken and resetPasswordExpires', async () => {
+  let res = await request(app)
+    .get(`/admin/users/${userId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(200)
+
+  expect(res.body.user).not.toHaveProperty('resetPasswordToken')
+  expect(res.body.user).not.toHaveProperty('resetPasswordExpires')
+})
