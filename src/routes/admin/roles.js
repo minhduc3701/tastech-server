@@ -11,6 +11,7 @@ let projectUsersFields = {
   'users.email': 1,
   'users.firstName': 1,
   'users.lastName': 1,
+  'users.avatar': 1,
   'users._id': 1,
   _company: 1,
   name: 1,

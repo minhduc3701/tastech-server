@@ -10,6 +10,7 @@ let projectEmployeesFields = {
   'employees.email': 1,
   'employees.firstName': 1,
   'employees.lastName': 1,
+  'employees.avatar': 1,
   'employees._id': 1,
   _company: 1,
   name: 1
