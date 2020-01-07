@@ -2,6 +2,7 @@ const _ = require('lodash')
 const moment = require('moment')
 const { logger } = require('../config/winston')
 const validator = require('validator')
+
 const {
   USD,
   VND,
@@ -555,6 +556,7 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
         )
         obj.totalPrice = obj.price * numberOfPassengers
         obj.supplier = 'sabre'
+        obj.numberOfPassengers = numberOfPassengers
 
         flights.push(obj)
       })
@@ -568,6 +570,68 @@ const makeSabreFlightsData = (sabreRes, currency, numberOfPassengers) => {
     ...flight
   }))
   return flights
+}
+const markupFlights = (flights, currency, markupFlightOption) => {
+  try {
+    return flights.map(flight => {
+      return {
+        ...flight,
+        price: roundPriceWithMarkup(flight.price, currency, markupFlightOption),
+        totalPrice:
+          roundPriceWithMarkup(flight.price, currency, markupFlightOption) *
+          flight.numberOfPassengers,
+        rawTotalPrice: roundPriceWithMarkup(
+          flight.rawTotalPrice,
+          { code: 'SGD', rate: 1 },
+          markupFlightOption
+        ),
+        originalTotalPrice: flight.rawTotalPrice,
+        exchangedTotalPrice: roundPrice(
+          flight.rawTotalPrice * currency.rate,
+          currency.code
+        )
+      }
+    })
+  } catch (error) {}
+}
+
+const markupHotels = (hotels, currency, markupHotelOption) => {
+  return hotels.map(hotel => {
+    try {
+      return {
+        ...hotel,
+        lowestPrice: roundPriceWithMarkup(
+          hotel.lowestPrice,
+          currency,
+          markupHotelOption
+        ),
+        ratePlans: {
+          ...hotel.ratePlans,
+          ratePlanList: hotel.ratePlans.ratePlanList.map(room => ({
+            ...room,
+            totalPrice: roundPriceWithMarkup(
+              room.totalPrice,
+              currency,
+              markupHotelOption
+            ),
+            rawTotalPrice: roundPriceWithMarkup(
+              room.rawTotalPrice,
+              { code: 'SGD', rate: 1 },
+              markupHotelOption
+            ),
+            cancelRules: room.cancelRules.map(rule => ({
+              ...rule,
+              cancelCharge: roundPriceWithMarkup(
+                rule.cancelCharge,
+                currency,
+                markupHotelOption
+              )
+            }))
+          }))
+        }
+      }
+    } catch (error) {}
+  })
 }
 
 const addRoomsToHotels = (hotels, roomHotelsData, currency) => {
@@ -823,6 +887,16 @@ const roundPrice = (amount, currency) => {
   return Number(Number(amount).toFixed(2))
 }
 
+const roundPriceWithMarkup = (amount, currency, markupOption) => {
+  if (_.get(markupOption, 'type') === 'percentage') {
+    amount += (amount * _.get(markupOption, 'amount', 0)) / 100
+  } else {
+    amount += _.get(markupOption, 'amount', 0) * currency.rate
+  }
+
+  return roundPrice(amount, currency.code)
+}
+
 const formatLocaleMoney = (amount, currency) => {
   let locale = 'en'
 
@@ -1005,6 +1079,9 @@ module.exports = {
   getImageUri,
   makeSegmentsData,
   makeSabreFlightsData,
+  markupFlights,
+  markupHotels,
+  roundPriceWithMarkup,
   makeRoomGuestDetails,
   makeHtbRoomPaxes,
   removeSpaces,
