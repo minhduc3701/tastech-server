@@ -3,11 +3,11 @@ const router = express.Router()
 const Expense = require('../models/expense')
 const Trip = require('../models/trip')
 const { ObjectID } = require('mongodb')
-const { fileUpload } = require('../config/aws')
-const upload = fileUpload('receipts')
-const multiUpload = upload.array('receipts')
 const _ = require('lodash')
-const { validateExpenseProps } = require('../middleware/expense')
+const {
+  validateExpenseProps,
+  uploadMultiImages
+} = require('../middleware/expense')
 const { currentCompany } = require('../middleware/company')
 const {
   emailEmployeeClaimExpense,
@@ -17,16 +17,7 @@ const {
 router.post(
   '/',
   currentCompany,
-  function(req, res, next) {
-    multiUpload(req, res, function(err, some) {
-      if (err) {
-        return res.status(422).send({
-          code: err.code
-        })
-      }
-      next()
-    })
-  },
+  uploadMultiImages,
   validateExpenseProps,
   function(req, res, next) {
     try {
@@ -130,79 +121,69 @@ router.get('/:id', function(req, res, next) {
     })
 })
 
-router.patch(
-  '/:id',
-  function(req, res, next) {
-    multiUpload(req, res, function(err, some) {
-      if (err) {
-        return res.status(422).send({
-          code: err.code
-        })
-      }
-      next()
-    })
-  },
-  validateExpenseProps,
-  function(req, res, next) {
-    if (!ObjectID.isValid(req.params.id)) {
-      return res.status(404).send()
-    }
-    let body = _.pick(req.body, [
-      '_attendees',
-      'name',
-      'amount',
-      'rawAmount',
-      'rawCurrency',
-      'category',
-      'claimed',
-      'transactionDate',
-      'status',
-      '_trip',
-      'account',
-      'message',
-      'city',
-      'vendor',
-      'oldReceipts'
-    ])
-
-    body.receipts = []
-    if (!_.isEmpty(body.oldReceipts)) {
-      body.receipts = body.oldReceipts.split(',')
-    }
-    if (!_.isEmpty(req.files)) {
-      body.receipts = body.receipts.concat(req.files.map(file => file.key))
-    }
-    if (!_.isEmpty(body._attendees)) {
-      body._attendees = req.body._attendees.split(',')
-    } else {
-      body._attendees = []
-    }
-    //update status expense to waiting
-    body.status = 'waiting'
-    Expense.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        _creator: req.user.id,
-        status: {
-          $in: ['waiting', 'rejected']
-        }
-      },
-      { $set: body },
-      { new: true }
-    )
-
-      .then(expense => {
-        if (!expense) {
-          return res.status(404).send()
-        }
-
-        res.status(200).send({ expense })
-      })
-      .catch(e => {
-        res.status(400).send()
-      })
+router.patch('/:id', uploadMultiImages, validateExpenseProps, function(
+  req,
+  res,
+  next
+) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
   }
-)
+  let body = _.pick(req.body, [
+    '_attendees',
+    'name',
+    'amount',
+    'rawAmount',
+    'rawCurrency',
+    'category',
+    'claimed',
+    'transactionDate',
+    'status',
+    '_trip',
+    'account',
+    'message',
+    'city',
+    'vendor',
+    'oldReceipts'
+  ])
+
+  body.receipts = []
+  if (!_.isEmpty(body.oldReceipts)) {
+    body.receipts = body.oldReceipts.split(',')
+  }
+  if (!_.isEmpty(req.files)) {
+    body.receipts = body.receipts.concat(req.files.map(file => file.key))
+  }
+  if (!_.isEmpty(body._attendees)) {
+    body._attendees = req.body._attendees.split(',')
+  } else {
+    body._attendees = []
+  }
+  //update status expense to waiting
+  body.status = 'waiting'
+  Expense.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      _creator: req.user.id,
+      status: {
+        $in: ['waiting', 'rejected']
+      }
+    },
+    { $set: body },
+    { new: true }
+  )
+
+    .then(expense => {
+      if (!expense) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ expense })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
 
 // route for claiming expenses
 router.patch(

@@ -1,8 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const Company = require('../../models/company')
-// const { upload } = require('../../config/aws')
-// const singleUpload = upload.single('logo')
 
 const { fileUpload } = require('../../config/aws')
 const upload = fileUpload('avatar')

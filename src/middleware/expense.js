@@ -1,6 +1,8 @@
 const User = require('../models/user')
 const Trip = require('../models/trip')
-
+const { fileUpload } = require('../config/aws')
+const upload = fileUpload('receipts')
+const multiUpload = upload.array('receipts')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
@@ -43,6 +45,17 @@ const validateExpenseProps = async (req, res, next) => {
   }
 }
 
+const uploadMultiImages = function(req, res, next) {
+  multiUpload(req, res, function(err, some) {
+    if (err) {
+      return res.status(422).send({
+        code: err.code
+      })
+    }
+    next()
+  })
+}
 module.exports = {
-  validateExpenseProps
+  validateExpenseProps,
+  uploadMultiImages
 }
