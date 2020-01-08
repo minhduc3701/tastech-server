@@ -1,8 +1,13 @@
 const express = require('express')
 const router = express.Router()
 const Company = require('../../models/company')
-const { upload } = require('../../config/aws')
+// const { upload } = require('../../config/aws')
+// const singleUpload = upload.single('logo')
+
+const { fileUpload } = require('../../config/aws')
+const upload = fileUpload('avatar')
 const singleUpload = upload.single('logo')
+
 const _ = require('lodash')
 const { currentCompany } = require('../../middleware/company')
 
@@ -52,7 +57,7 @@ router.post('/logo', function(req, res) {
   singleUpload(req, res, function(err, some) {
     if (err) {
       return res.status(422).send({
-        errors: [{ title: 'Image Upload Error', detail: err.message }]
+        code: err.code
       })
     }
 

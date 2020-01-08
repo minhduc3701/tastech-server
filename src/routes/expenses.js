@@ -3,7 +3,9 @@ const router = express.Router()
 const Expense = require('../models/expense')
 const Trip = require('../models/trip')
 const { ObjectID } = require('mongodb')
-const { upload } = require('../config/aws')
+const { fileUpload } = require('../config/aws')
+const upload = fileUpload('receipts')
+const multiUpload = upload.array('receipts')
 const _ = require('lodash')
 const { validateExpenseProps } = require('../middleware/expense')
 const { currentCompany } = require('../middleware/company')
@@ -18,25 +20,32 @@ router.post(
   upload.array('receipts'),
   validateExpenseProps,
   function(req, res, next) {
-    try {
-      const expense = new Expense(req.body)
-      expense._creator = req.user._id
-      expense._company = req.user._company
-      expense.currency = req.company.currency
-      if (!_.isEmpty(req.files)) {
-        expense.receipts = req.files.map(file => file.key)
+    multiUpload(req, res, function(err, some) {
+      if (err) {
+        return res.status(422).send({
+          code: err.code
+        })
       }
-      if (!_.isEmpty(req.body._attendees)) {
-        expense._attendees = req.body._attendees.split(',')
-      } else {
-        expense._attendees = []
+      try {
+        const expense = new Expense(req.body)
+        expense._creator = req.user._id
+        expense._company = req.user._company
+        expense.currency = req.company.currency
+        if (!_.isEmpty(req.files)) {
+          expense.receipts = req.files.map(file => file.key)
+        }
+        if (!_.isEmpty(req.body._attendees)) {
+          expense._attendees = req.body._attendees.split(',')
+        } else {
+          expense._attendees = []
+        }
+        expense.save().then(() => {
+          return res.status(200).json({ expense })
+        })
+      } catch (error) {
+        return res.status(400).send()
       }
-      expense.save().then(() => {
-        return res.status(200).json({ expense })
-      })
-    } catch (error) {
-      return res.status(400).send()
-    }
+    })
   }
 )
 
