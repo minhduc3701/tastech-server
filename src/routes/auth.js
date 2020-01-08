@@ -8,6 +8,9 @@ const async = require('async')
 const { mail } = require('../config/mail')
 const { debugMail } = require('../config/debug')
 const { forgotPassword } = require('../mailTemplates/forgotPassword')
+const apiRecaptcha = require('../modules/apiRecaptcha')
+const _ = require('lodash')
+
 router.post('/login', function(req, res, next) {
   if (!req.body.email || !req.body.password) {
     return res.status(400).json({
@@ -54,7 +57,24 @@ router.post('/login', function(req, res, next) {
   })(req, res)
 })
 
-router.post('/forgot-password', function(req, res) {
+router.post('/forgot-password', async (req, res) => {
+  let captchaResponse = _.get(req.body, 'captchaResponse')
+
+  // must have captcha client
+  if (!captchaResponse) {
+    return res.status(400).send()
+  }
+
+  // verify recaptcha
+  try {
+    let recaptchaVerifyRes = await apiRecaptcha.verify(captchaResponse)
+    if (!recaptchaVerifyRes.data.success) {
+      throw new Error('verify fail')
+    }
+  } catch (e) {
+    return res.status(400).send()
+  }
+
   async.waterfall(
     [
       function(done) {
