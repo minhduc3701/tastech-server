@@ -8,6 +8,9 @@ const async = require('async')
 const { mail } = require('../config/mail')
 const { debugMail } = require('../config/debug')
 const { forgotPassword } = require('../mailTemplates/forgotPassword')
+const { verifyRecaptcha } = require('../middleware/recaptcha')
+const _ = require('lodash')
+
 router.post('/login', function(req, res, next) {
   if (!req.body.email || !req.body.password) {
     return res.status(400).json({
@@ -54,7 +57,7 @@ router.post('/login', function(req, res, next) {
   })(req, res)
 })
 
-router.post('/forgot-password', function(req, res) {
+router.post('/forgot-password', verifyRecaptcha, (req, res) => {
   async.waterfall(
     [
       function(done) {
