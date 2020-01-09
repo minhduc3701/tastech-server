@@ -7,8 +7,9 @@ const { debugMail } = require('../config/debug')
 const { requestDemo } = require('../mailTemplates/requestDemo')
 const { requestDemoFeedback } = require('../mailTemplates/requestDemoFeedback')
 const { contact } = require('../mailTemplates/contact')
+const { verifyRecaptcha } = require('../middleware/recaptcha')
 
-router.post('/', function(req, res, next) {
+router.post('/', verifyRecaptcha, function(req, res, next) {
   const request = new Request(req.body)
   request
     .save()
@@ -32,11 +33,11 @@ router.post('/', function(req, res, next) {
       })
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })
-router.post('/contact', function(req, res) {
+
+router.post('/contact', verifyRecaptcha, function(req, res) {
   try {
     let { data } = req.body
     data = _.pick(data, ['firstName', 'lastName', 'email', 'phone', 'message'])
