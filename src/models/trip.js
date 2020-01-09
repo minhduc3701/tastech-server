@@ -100,6 +100,10 @@ const TripSchema = new Schema(
     isBudgetUpdated: {
       type: Boolean,
       default: false
+    },
+    isBookedByPartner: {
+      type: Boolean,
+      default: false
     }
   },
   {
