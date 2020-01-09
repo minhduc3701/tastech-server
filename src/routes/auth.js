@@ -69,7 +69,7 @@ router.post('/forgot-password', async (req, res) => {
   try {
     let recaptchaVerifyRes = await apiRecaptcha.verify(captchaResponse)
     if (!recaptchaVerifyRes.data.success) {
-      throw new Error('verify fail')
+      throw new Error('verify captcha fail')
     }
   } catch (e) {
     return res.status(400).send()
