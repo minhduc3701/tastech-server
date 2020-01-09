@@ -39,8 +39,13 @@ router.post('/', verifyRecaptcha, function(req, res, next) {
 
 router.post('/contact', verifyRecaptcha, function(req, res) {
   try {
-    let { data } = req.body
-    data = _.pick(data, ['firstName', 'lastName', 'email', 'phone', 'message'])
+    let data = _.pick(req.body, [
+      'firstName',
+      'lastName',
+      'email',
+      'phone',
+      'message'
+    ])
     let mailOptions = contact(data)
     mail.sendMail(mailOptions, function(err, info) {
       if (err) {
