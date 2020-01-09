@@ -45,7 +45,7 @@ const validateExpenseProps = async (req, res, next) => {
   }
 }
 
-const uploadMultiImages = function(req, res, next) {
+const uploadReceipts = function(req, res, next) {
   multiUpload(req, res, function(err, some) {
     if (err) {
       return res.status(422).send({
@@ -57,5 +57,5 @@ const uploadMultiImages = function(req, res, next) {
 }
 module.exports = {
   validateExpenseProps,
-  uploadMultiImages
+  uploadReceipts
 }
