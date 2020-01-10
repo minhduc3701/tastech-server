@@ -3,42 +3,42 @@ const router = express.Router()
 const Expense = require('../models/expense')
 const Trip = require('../models/trip')
 const { ObjectID } = require('mongodb')
-const { upload } = require('../config/aws')
 const _ = require('lodash')
-const { validateExpenseProps } = require('../middleware/expense')
+const {
+  validateExpenseProps,
+  uploadReceipts
+} = require('../middleware/expense')
 const { currentCompany } = require('../middleware/company')
 const {
   emailEmployeeClaimExpense,
   emailAccountantClaimExpense
 } = require('../middleware/email')
 
-router.post(
-  '/',
-  currentCompany,
-  upload.array('receipts'),
-  validateExpenseProps,
-  function(req, res, next) {
-    try {
-      const expense = new Expense(req.body)
-      expense._creator = req.user._id
-      expense._company = req.user._company
-      expense.currency = req.company.currency
-      if (!_.isEmpty(req.files)) {
-        expense.receipts = req.files.map(file => file.key)
-      }
-      if (!_.isEmpty(req.body._attendees)) {
-        expense._attendees = req.body._attendees.split(',')
-      } else {
-        expense._attendees = []
-      }
-      expense.save().then(() => {
-        return res.status(200).json({ expense })
-      })
-    } catch (error) {
-      return res.status(400).send()
+router.post('/', currentCompany, uploadReceipts, validateExpenseProps, function(
+  req,
+  res,
+  next
+) {
+  try {
+    const expense = new Expense(req.body)
+    expense._creator = req.user._id
+    expense._company = req.user._company
+    expense.currency = req.company.currency
+    if (!_.isEmpty(req.files)) {
+      expense.receipts = req.files.map(file => file.key)
     }
+    if (!_.isEmpty(req.body._attendees)) {
+      expense._attendees = req.body._attendees.split(',')
+    } else {
+      expense._attendees = []
+    }
+    expense.save().then(() => {
+      return res.status(200).json({ expense })
+    })
+  } catch (error) {
+    return res.status(400).send()
   }
-)
+})
 
 router.get('/', function(req, res, next) {
   let perPage = _.get(req.query, 'perPage', 15)
@@ -119,7 +119,7 @@ router.get('/:id', function(req, res, next) {
     })
 })
 
-router.patch('/:id', upload.array('receipts'), validateExpenseProps, function(
+router.patch('/:id', uploadReceipts, validateExpenseProps, function(
   req,
   res,
   next
