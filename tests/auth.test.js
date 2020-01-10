@@ -52,7 +52,8 @@ test('Should not return resetPasswordToken & resetPasswordExpires after submitin
   const response = await request(app)
     .post('/auth/forgot-password')
     .send({
-      email: userOne.email
+      email: userOne.email,
+      captchaResponse: 'fake-captcha-response'
     })
     .expect(200)
   expect(response.body).toMatchObject({

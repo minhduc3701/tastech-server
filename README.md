@@ -61,7 +61,8 @@ Add config/config.json with the content like below:
     "EMAIL_GIAMSO": "",
     "REWARD_BASE_CURRENCY": "SGD",
     "NEWRELIC_APP_NAME": "Dev EzBizTrip API",
-    "NEWRELIC_LICENSE_KEY": ""
+    "NEWRELIC_LICENSE_KEY": "",
+    "RECAPTCHA_SECRET_KEY": ""
   }
 }
 
@@ -211,6 +212,7 @@ export EMAIL_GIAMSO=<EMAIL_GIAMSO>
 export REWARD_BASE_CURRENCY=SGD
 export NEWRELIC_APP_NAME=EzBizTrip API
 export NEWRELIC_LICENSE_KEY=<NEWRELIC_LICENSE_KEY>
+export RECAPTCHA_SECRET_KEY=<RECAPTCHA_SECRET_KEY>
 ```
 
 Now you ready to run your app
