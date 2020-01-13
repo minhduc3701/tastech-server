@@ -95,7 +95,7 @@ router.post('/forgot-password', function(req, res) {
           })
       },
       async function(token, user, done) {
-        let mailOptions = await forgotPassword(user, token)
+        let mailOptions = await forgotPassword(req.headers.origin, user, token)
         mail.sendMail(mailOptions, function(err, info) {
           done(err, user)
         })
