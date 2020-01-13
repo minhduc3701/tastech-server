@@ -1213,10 +1213,10 @@ const responseCheckout = async (req, res, next) => {
       status: _.get(req, 'charge.status'),
       trip: _.pick(trip, ['_id']),
       flightOrder: {
-        status: flightOrder.status
+        status: _.get(flightOrder, 'status')
       },
       hotelOrder: {
-        status: hotelOrder.status
+        status: _.get(hotelOrder, 'status')
       }
     })
   } catch (error) {
@@ -1236,10 +1236,10 @@ const responseCheckout = async (req, res, next) => {
       message: _.get(error, 'message'),
       trip: _.pick(trip, ['_id']),
       flightOrder: {
-        status: flightOrder.status
+        status: _.get(flightOrder, 'status')
       },
       hotelOrder: {
-        status: hotelOrder.status
+        status: _.get(hotelOrder, 'status')
       }
     })
   }
