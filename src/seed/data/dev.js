@@ -224,7 +224,7 @@ const users = [
   {
     username: 'partner-admin@tastech.asia',
     email: 'partner-admin@tastech.asia',
-    _partner: partnerId,
+    _id: partnerId,
     avatar: `http://i.pravatar.cc/150?img=1`,
     _role: partnerRoleId,
     firstName: 'Thierry',
