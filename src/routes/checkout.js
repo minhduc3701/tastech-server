@@ -49,11 +49,7 @@ const isPartnerBooking = async (req, res, next) => {
       let user = await User.findById(req.body.onBehalf)
       req.user = user
     }
-    console.log('partnerAdmin: ', req.partnerAdmin)
-    console.log('user: ', req.user)
-  } catch (error) {
-    console.log(error)
-  }
+  } catch (error) {}
   next()
 }
 const verifySabrePrice = async (req, res, next) => {

@@ -126,7 +126,6 @@ const validateUserIdPartner = async (req, res, next) => {
     }
 
     req.userPartner = user
-    console.log(req.userPartner)
   } catch (error) {
     return res.status(400).send()
   }
