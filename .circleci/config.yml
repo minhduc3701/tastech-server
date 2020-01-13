@@ -29,6 +29,7 @@ jobs:
             PKFARE_PARTNER_KEY: mock-pkfare-partner-key
             JEST_JUNIT_OUTPUT_DIR: reports/junit/
             JEST_JUNIT_OUTPUT_NAME: js-test-results.xml
+            RECAPTCHA_SECRET_KEY: 6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
       - store_test_results:
           path: reports/junit
       - store_artifacts:
@@ -124,8 +125,6 @@ workflows:
               only:
                 - test
       - deploy_demo:
-          requires:
-            - test
           filters:
             branches:
               only:
