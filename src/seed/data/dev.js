@@ -59,9 +59,10 @@ const accountantRoleId = new ObjectID()
 // partner id
 const partnerId = new ObjectID('5cc2d7a24c72b61214aa0001')
 const partnerId2 = new ObjectID('5cc2d7a24c72b61214aa0002')
+const partnerAdminId = new ObjectID('5cc2d7a24c72b61214aa0003')
 const companyPartnerId = new ObjectID('5de9f4b1c9bda20d4b4b8497')
 const companyPartnerId2 = new ObjectID()
-const adminPartnerId = new ObjectID()
+const adminPartnerId = new ObjectID('5cc2d7a24c72b61214aa0004')
 const adminPartnerId2 = new ObjectID()
 const employeeParterId = new ObjectID('5de88939a7d0a4095eddfede')
 const employeeParterId2 = new ObjectID()
@@ -222,9 +223,10 @@ const users = [
 
   // partner admin
   {
+    _id: partnerAdminId,
     username: 'partner-admin@tastech.asia',
     email: 'partner-admin@tastech.asia',
-    _id: partnerId,
+    _partner: partnerId,
     avatar: `http://i.pravatar.cc/150?img=1`,
     _role: partnerRoleId,
     firstName: 'Thierry',

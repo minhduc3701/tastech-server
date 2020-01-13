@@ -597,7 +597,7 @@ const stripeCharging = async (req, res, next) => {
     // find the card
     let foundCard = await Card.findOne({
       _id: cardId,
-      owner: req.user._id
+      owner: req.partnerAdmin ? req.partnerAdmin._id : req.user._id // if partner book onbehalf, use partner's card
     })
 
     if (!foundCard) {

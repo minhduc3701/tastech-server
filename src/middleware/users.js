@@ -119,14 +119,14 @@ const validateUserIdPartner = async (req, res, next) => {
   try {
     let user = await User.findOne({
       _id: req.params.id,
-      _partner: req.user.id
+      _partner: req.user._partner
     })
-
     if (!user) {
       return res.status(400).send()
     }
 
     req.userPartner = user
+    console.log(req.userPartner)
   } catch (error) {
     return res.status(400).send()
   }

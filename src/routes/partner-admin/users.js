@@ -6,7 +6,8 @@ const _ = require('lodash')
 router.post('/search', (req, res) => {
   let email = _.toLower(_.trim(req.body.email))
   User.find({
-    _partner: req.user._id,
+    _partner: req.user._partner,
+    _id: { $ne: req.user._id },
     $or: [
       {
         email: {
