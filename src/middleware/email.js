@@ -125,7 +125,12 @@ const emailManagerSubmitTrip = (req, res) => {
     })
     .then(async users => {
       if (!_.isEmpty(users)) {
-        let mailOptions = await pendingTrip(users, req.trip, req.user)
+        let mailOptions = await pendingTrip(
+          req.headers.origin,
+          users,
+          req.trip,
+          req.user
+        )
         mail.sendMail(mailOptions, function(err, info) {
           if (err) {
             debugMail(err)
