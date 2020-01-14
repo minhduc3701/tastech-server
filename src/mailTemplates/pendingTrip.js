@@ -3,7 +3,7 @@ const moment = require('moment')
 const _ = require('lodash')
 const { formatLocaleMoney } = require('../modules/utils')
 
-async function pendingTrip(managers, trip, employee) {
+async function pendingTrip(origin, managers, trip, employee) {
   let flight = _.get(trip, 'budgetPassengers[0].flight', {})
   let lodging = _.get(trip, 'budgetPassengers[0].lodging', {})
   let transportation = _.get(trip, 'budgetPassengers[0].transportation', {})
@@ -37,7 +37,7 @@ async function pendingTrip(managers, trip, employee) {
       _.get(trip, 'budgetPassengers[0].totalPrice', 0),
       trip.currency
     ),
-    reviewLink: `${process.env.APP_URI}/admin/trips/${trip._id}`
+    reviewLink: `${origin}/admin/trips/${trip._id}`
   })
 
   return {
