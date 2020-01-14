@@ -24,6 +24,7 @@ const tasAdminOrdersRouter = require('./routes/tas-admin/orders')
 const tasAdminRewardsRouter = require('./routes/tas-admin/rewards')
 const tasAdminPartnerRouter = require('./routes/tas-admin/partners')
 const partnerAdminOrdersRouter = require('./routes/partner-admin/orders')
+const partnerAdminTripsRouter = require('./routes/partner-admin/trips')
 const tasAdminOptionsRouter = require('./routes/tas-admin/options')
 const adminCompanyRouter = require('./routes/admin/company')
 const adminUsersRouter = require('./routes/admin/users')
@@ -34,6 +35,7 @@ const adminTripsRouter = require('./routes/admin/trips')
 const adminExpensesRouter = require('./routes/admin/expenses')
 const adminReportsRouter = require('./routes/admin/reports')
 const partnerAdminCompaniesRouter = require('./routes/partner-admin/companies')
+const partnerAdminUsersRouter = require('./routes/partner-admin/users')
 const flightsPkfareRouter = require('./routes/flights/pkfare')
 const flightsSabreRouter = require('./routes/flights/sabre')
 const hotelsPkfareRouter = require('./routes/hotels/pkfare')
@@ -151,6 +153,18 @@ app.use(
   jwtAuthenticate,
   authenticateRole('partner-admin'),
   partnerAdminCompaniesRouter
+)
+app.use(
+  '/partner-admin/users',
+  jwtAuthenticate,
+  authenticateRole('partner-admin'),
+  partnerAdminUsersRouter
+)
+app.use(
+  '/partner-admin/trips',
+  jwtAuthenticate,
+  authenticateRole('partner-admin'),
+  partnerAdminTripsRouter
 )
 
 // admin routes
