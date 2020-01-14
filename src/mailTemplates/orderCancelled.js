@@ -1,7 +1,7 @@
 const { renderMail } = require('../config/mail')
 const { formatLocaleMoney } = require('../modules/utils')
 
-async function orderCancelled(order, refundAmount) {
+async function orderCancelled(origin, order, refundAmount) {
   let html = ''
 
   try {
@@ -14,9 +14,7 @@ async function orderCancelled(order, refundAmount) {
       flight: order.flight,
       isHotelOrder: order.type === 'hotel',
       hotel: order.hotel,
-      orderLink: `${process.env.APP_URI}/employee/travel/${
-        order._trip
-      }?tab=itinerary`
+      orderLink: `${origin}/employee/travel/${order._trip}?tab=itinerary`
     })
   } catch (e) {
     console.log(e)

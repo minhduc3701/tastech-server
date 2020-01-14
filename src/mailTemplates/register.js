@@ -1,6 +1,6 @@
 const { renderMail } = require('../config/mail')
 
-async function register(user, token, userCreator) {
+async function register(origin, user, token, userCreator) {
   let html
   let bcc
   if (
@@ -10,9 +10,9 @@ async function register(user, token, userCreator) {
   ) {
     html = await renderMail('register-admin', {
       title: 'Welcome to EzBizTrip',
-      link: `${process.env.APP_URI}/reset-password/${token}`,
+      link: `${origin}/reset-password/${token}`,
       user,
-      loginLink: `${process.env.APP_URI}/login`,
+      loginLink: `${origin}/login`,
       note:
         process.env.NODE_ENV === 'production'
           ? 'We have created account for you:'
@@ -22,7 +22,7 @@ async function register(user, token, userCreator) {
   } else {
     html = await renderMail('register', {
       title: 'Welcome to EzBizTrip',
-      link: `${process.env.APP_URI}/reset-password/${token}`,
+      link: `${origin}/reset-password/${token}`,
       user
     })
   }
