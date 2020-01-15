@@ -9,6 +9,7 @@ const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
 const { sabreCurrencyExchange } = require('../../middleware/currency')
 const { getTasAdminOptions } = require('../../middleware/options')
+const { isPartnerBooking } = require('../../middleware/partnerAdmin')
 
 const {
   sabreRestToken,
@@ -39,6 +40,7 @@ const hideFlightsOriginalPrices = data => {
 
 router.post(
   '/shopping',
+  isPartnerBooking,
   sabreCurrencyExchange,
   getTasAdminOptions,
   sabreRestToken,

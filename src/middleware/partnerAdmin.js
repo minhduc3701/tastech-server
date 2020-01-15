@@ -7,10 +7,14 @@ const isPartnerBooking = async (req, res, next) => {
     if (role.type === 'partner-admin') {
       req.partnerAdmin = req.user
 
-      let user = await User.findById(req.body.onBehalf)
-      req.user = user
+      if (req.body.onBehalf) {
+        let user = await User.findById(req.body.onBehalf)
+        req.user = user
+      }
     }
   } catch (error) {}
+  console.log(req.partnerAdmin)
+  console.log(req.user)
   next()
 }
 
