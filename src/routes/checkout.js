@@ -29,6 +29,7 @@ const {
   makeSabreFlightsData,
   makeHotelbedsHotelsData
 } = require('../modules/utils')
+const { ObjectID } = require('mongodb')
 
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
@@ -588,6 +589,76 @@ const stripeCharging = async (req, res, next) => {
 
     if (hotelOrder) {
       hotelOrder.chargeId = charge.id
+      hotelOrder.chargeInfo = charge
+      await hotelOrder.save()
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const depositCharging = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const flightOrder = req.flightOrder
+    const hotelOrder = req.hotelOrder
+
+    // START CHARGING =======
+
+    // calculate the trip price here
+    let currency = ''
+    let amount = 0
+
+    // if have flight
+    if (flightOrder && flightOrder.flight) {
+      amount += flightOrder.totalPrice
+
+      currency = flightOrder.currency
+    }
+
+    // if have hotel
+    if (hotelOrder && hotelOrder.hotel) {
+      amount += hotelOrder.totalPrice
+
+      currency = hotelOrder.currency
+    }
+
+    // rounding amount
+    let company = req.company
+    let companyDeposit = company.deposit
+    if (companyDeposit >= amount) {
+      company.deposit = companyDeposit - amount
+      await company.save()
+    }
+
+    let charge = {
+      amount,
+      currency,
+      _id: new ObjectID(),
+      _company: company._id,
+      _createdAt: new Date()
+    }
+
+    req.charge = charge
+
+    // AFTER CHARGING =======
+
+    // save charge info data
+    if (flightOrder) {
+      flightOrder.chargeId = charge._id
+      flightOrder.chargeInfo = charge
+
+      await flightOrder.save()
+    }
+
+    if (hotelOrder) {
+      hotelOrder.chargeId = charge._id
       hotelOrder.chargeInfo = charge
 
       await hotelOrder.save()
@@ -1181,6 +1252,55 @@ const refundFailedOrder = async (req, res, next) => {
   next()
 }
 
+const refundDepositFailedOrder = async (req, res, next) => {
+  // exit if no checkout errors
+  // or no charge, run to another middleware
+  if (!req.checkoutError || !req.charge) {
+    next()
+    return
+  }
+  try {
+    let refundAmount = 0
+
+    // refund for flight booking failed
+    if (req.checkoutError && req.checkoutError.flight) {
+      let flightOrder = req.flightOrder
+      refundAmount += flightOrder.totalPrice
+
+      // refund for combo (flight & hotel) if flight booking failed
+      let hotelOrder = req.hotelOrder
+      if (!_.isEmpty(hotelOrder)) {
+        refundAmount += hotelOrder.totalPrice
+      }
+
+      // if only hotel failed
+    } else if (req.checkoutError && req.checkoutError.hotel) {
+      // refund for hotel booking failed
+      let hotelOrder = req.hotelOrder
+      refundAmount += hotelOrder.totalPrice
+
+      // success flight and fail hotel
+      if (req.flightOrder) {
+        req.checkoutError = undefined
+
+        // change status of hotel to failed
+        hotelOrder.status = 'failed'
+        await hotelOrder.save()
+      }
+    }
+
+    // refund
+    let company = req.company
+    let companyDeposit = company.deposit
+    company.deposit = companyDeposit + refundAmount
+    await company.save()
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
 const responseCheckout = async (req, res, next) => {
   // from createOrFindTrip
   const trip = req.trip
@@ -1240,6 +1360,31 @@ router.post(
   hotelbedsCreateOrder,
   demoForceCompletedOrders,
   refundFailedOrder,
+  responseCheckout,
+  emailGiamsoIssueTicket,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary
+)
+
+router.post(
+  '/deposit',
+  currentCompany,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
+  sabreRestToken, // get token for sabre api
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  calculateRewardCost,
+  pkfareFlightPreBooking,
+  hotelbedsCheckRate,
+  depositCharging,
+  pkfareFlightTicketing,
+  sabreCreatePNR,
+  pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
+  demoForceCompletedOrders,
+  refundDepositFailedOrder,
   responseCheckout,
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
