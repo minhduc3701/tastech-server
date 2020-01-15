@@ -24,16 +24,20 @@ const getTasAdminOptions = async (req, res, next) => {
         _id: req.user._company,
         _partner: req.user._partner
       })
+      // not found company
+      if (!company) {
+        throw 'Not found'
+      }
       hotel = {
         value: {
-          type: company.markupHotel || 'percentage',
-          amount: company.markupHotelAmount || 10
+          type: _.get(company, 'markupHotel', 'percentage'),
+          amount: _.get(company, 'markupHotelAmount', 10)
         }
       }
       flight = {
         value: {
-          type: company.markupFlight || 'net',
-          amount: company.markupFlightAmount || 25
+          type: _.get(company, 'markupFlight', 'net'),
+          amount: _.get(company, 'markupFlightAmount', 25)
         }
       }
     } else {

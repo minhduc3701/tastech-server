@@ -2,9 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Card = require('../models/card')
 const Trip = require('../models/trip')
-const Role = require('../models/role')
 const Order = require('../models/order')
-const User = require('../models/user')
 const api = require('../modules/api')
 const apiSabre = require('../modules/apiSabre')
 const { sabreRestToken } = require('../middleware/sabre')
@@ -28,6 +26,7 @@ const {
 const { currentCompany } = require('../middleware/company')
 const { currenciesExchange } = require('../middleware/currency')
 const { getTasAdminOptions } = require('../middleware/options')
+const { isPartnerBooking } = require('../middleware/partnerAdmin')
 
 const {
   makeSabreFlightsData,
@@ -40,18 +39,6 @@ const {
 // See your keys here: https://dashboard.stripe.com/account/apikeys
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
-const isPartnerBooking = async (req, res, next) => {
-  try {
-    let role = await Role.findById(req.user._role)
-    if (role.type === 'partner-admin') {
-      req.partnerAdmin = req.user
-
-      let user = await User.findById(req.body.onBehalf)
-      req.user = user
-    }
-  } catch (error) {}
-  next()
-}
 const verifySabrePrice = async (req, res, next) => {
   // get sabre cache key
   // get sabre-currency -> company currency
