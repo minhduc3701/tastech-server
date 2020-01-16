@@ -61,7 +61,12 @@ const createUser = function(req, res, next) {
       async function(user, token, done) {
         await User.populate(user, { path: '_role' })
         await User.populate(req.admin, { path: '_role' })
-        let mailOptions = await register(user, token, req.admin)
+        let mailOptions = await register(
+          req.headers.origin,
+          user,
+          token,
+          req.admin
+        )
         mail.sendMail(mailOptions, function(err, info) {
           // return done(err, user)
         })
@@ -115,7 +120,25 @@ const validateUserProps = async (req, res, next) => {
   next()
 }
 
+const validateUserIdPartner = async (req, res, next) => {
+  try {
+    let user = await User.findOne({
+      _id: req.params.id,
+      _partner: req.user._partner
+    })
+    if (!user) {
+      return res.status(400).send()
+    }
+
+    req.userPartner = user
+  } catch (error) {
+    return res.status(400).send()
+  }
+  next()
+}
+
 module.exports = {
   createUser,
-  validateUserProps
+  validateUserProps,
+  validateUserIdPartner
 }

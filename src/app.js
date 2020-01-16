@@ -24,6 +24,7 @@ const tasAdminOrdersRouter = require('./routes/tas-admin/orders')
 const tasAdminRewardsRouter = require('./routes/tas-admin/rewards')
 const tasAdminPartnerRouter = require('./routes/tas-admin/partners')
 const partnerAdminOrdersRouter = require('./routes/partner-admin/orders')
+const tasAdminOptionsRouter = require('./routes/tas-admin/options')
 const adminCompanyRouter = require('./routes/admin/company')
 const adminUsersRouter = require('./routes/admin/users')
 const adminRolesRouter = require('./routes/admin/roles')
@@ -33,6 +34,7 @@ const adminTripsRouter = require('./routes/admin/trips')
 const adminExpensesRouter = require('./routes/admin/expenses')
 const adminReportsRouter = require('./routes/admin/reports')
 const partnerAdminCompaniesRouter = require('./routes/partner-admin/companies')
+const partnerAdminUsersRouter = require('./routes/partner-admin/users')
 const flightsPkfareRouter = require('./routes/flights/pkfare')
 const flightsSabreRouter = require('./routes/flights/sabre')
 const hotelsPkfareRouter = require('./routes/hotels/pkfare')
@@ -75,9 +77,21 @@ app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
 // limit cors for 1 origin (client app uri)
+const origins = process.env.ALLOW_ORIGIN
+  ? process.env.ALLOW_ORIGIN.split(',')
+  : ''
 app.use(
   cors({
-    origin: process.env.ALLOW_ORIGIN
+    // @see https://expressjs.com/en/resources/middleware/cors.html
+    origin: Array.isArray(origins)
+      ? function(origin, callback) {
+          if (origins.indexOf(origin) !== -1) {
+            callback(null, true)
+          } else {
+            callback(new Error('Not allowed by CORS'))
+          }
+        }
+      : '' // empty allow all origin
   })
 )
 
@@ -124,6 +138,12 @@ app.use(
   authenticateRole('tas-admin'),
   tasAdminRewardsRouter
 )
+app.use(
+  '/tas-admin/options',
+  jwtAuthenticate,
+  authenticateRole('tas-admin'),
+  tasAdminOptionsRouter
+)
 
 app.use(
   '/tas-admin/partners',
@@ -144,6 +164,12 @@ app.use(
   jwtAuthenticate,
   authenticateRole('partner-admin'),
   partnerAdminCompaniesRouter
+)
+app.use(
+  '/partner-admin/users',
+  jwtAuthenticate,
+  authenticateRole('partner-admin'),
+  partnerAdminUsersRouter
 )
 
 // admin routes

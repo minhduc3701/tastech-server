@@ -1,11 +1,11 @@
 const { renderMail } = require('../config/mail')
 
-async function forgotPassword(user, token) {
+async function forgotPassword(origin, user, token) {
   let html = await renderMail('reset-password', {
     title: 'Reset Your Password',
     name: `${user.firstName}`,
     email: user.email,
-    resetLink: `${process.env.APP_URI}/reset-password/${token}`
+    resetLink: `${origin}/reset-password/${token}`
   })
 
   return {

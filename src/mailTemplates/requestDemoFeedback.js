@@ -1,6 +1,6 @@
 const { renderMail } = require('../config/mail')
 
-async function requestDemoFeedback(data) {
+async function requestDemoFeedback(origin, data) {
   let html = await renderMail('request-demo-feedback', {
     title: '',
     firstName: data.firstName,
@@ -11,7 +11,7 @@ async function requestDemoFeedback(data) {
     company: data.company,
     NoE: data.numberOfEmployees,
     country: data.country,
-    appLink: `${process.env.APP_URI}`
+    appLink: `${origin}`
   })
 
   return {

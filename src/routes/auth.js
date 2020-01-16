@@ -8,6 +8,9 @@ const async = require('async')
 const { mail } = require('../config/mail')
 const { debugMail } = require('../config/debug')
 const { forgotPassword } = require('../mailTemplates/forgotPassword')
+const { verifyRecaptcha } = require('../middleware/recaptcha')
+const _ = require('lodash')
+
 router.post('/login', function(req, res, next) {
   if (!req.body.email || !req.body.password) {
     return res.status(400).json({
@@ -54,7 +57,7 @@ router.post('/login', function(req, res, next) {
   })(req, res)
 })
 
-router.post('/forgot-password', function(req, res) {
+router.post('/forgot-password', verifyRecaptcha, (req, res) => {
   async.waterfall(
     [
       function(done) {
@@ -86,8 +89,7 @@ router.post('/forgot-password', function(req, res) {
             }
 
             res.status(200).send({
-              email: user.email,
-              resetPasswordToken: user.resetPasswordToken
+              email: user.email
             })
             done(null, token, user)
           })
@@ -96,7 +98,7 @@ router.post('/forgot-password', function(req, res) {
           })
       },
       async function(token, user, done) {
-        let mailOptions = await forgotPassword(user, token)
+        let mailOptions = await forgotPassword(req.headers.origin, user, token)
         mail.sendMail(mailOptions, function(err, info) {
           done(err, user)
         })
@@ -124,7 +126,9 @@ router.get('/reset-password/:token', function(req, res) {
 
       res.status(200).send({
         message: 'Password reset token is valid.',
-        user
+        user: {
+          email: user.email
+        }
       })
     })
     .catch(e => {

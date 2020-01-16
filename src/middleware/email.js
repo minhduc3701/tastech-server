@@ -32,7 +32,11 @@ const emailEmployeeChangeExpenseStatus = async (req, res) => {
     ]).then(async results => {
       let user = results[0]
       let expense = results[1]
-      let mailOptions = await changeExpenseStatus(user, expense)
+      let mailOptions = await changeExpenseStatus(
+        req.headers.origin,
+        user,
+        expense
+      )
       mail.sendMail(mailOptions, function(err, info) {
         if (err) {
           debugMail(err)
@@ -83,6 +87,7 @@ const emailAccountantClaimExpense = async (req, res) => {
       .then(async accountants => {
         if (!_.isEmpty(accountants)) {
           let mailOptions = await pendingExpense(
+            req.headers.origin,
             accountants,
             req.expenses,
             req.user
@@ -127,7 +132,12 @@ const emailManagerSubmitTrip = (req, res) => {
     })
     .then(async users => {
       if (!_.isEmpty(users)) {
-        let mailOptions = await pendingTrip(users, req.trip, req.user)
+        let mailOptions = await pendingTrip(
+          req.headers.origin,
+          users,
+          req.trip,
+          req.user
+        )
         mail.sendMail(mailOptions, function(err, info) {
           if (err) {
             debugMail(err)
@@ -139,7 +149,11 @@ const emailManagerSubmitTrip = (req, res) => {
 const emailEmployeeChangeTripStatus = (req, res) => {
   if (req.trip) {
     Users.findById(req.trip._creator).then(async user => {
-      let mailOptions = await changeTripStatus(user, req.trip)
+      let mailOptions = await changeTripStatus(
+        req.headers.origin,
+        user,
+        req.trip
+      )
       mail.sendMail(mailOptions, function(err, info) {
         if (err) {
           debugMail(err)
@@ -213,7 +227,13 @@ const emailEmployeeItinerary = async (req, res, next) => {
           airports[airport._doc.airport_code] = airport.toObject()
         })
         let user = results[1]
-        let mailOptions = await tripItinerary(user, orders, airlines, airports)
+        let mailOptions = await tripItinerary(
+          req.headers.origin,
+          user,
+          orders,
+          airlines,
+          airports
+        )
         return mail.sendMail(mailOptions, function(err, info) {
           if (err) {
             debugMail(err)
@@ -326,7 +346,13 @@ const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
         arrAirport.forEach(airport => {
           airports[airport._doc.airport_code] = airport.toObject()
         })
-        let mailOptions = await tripItinerary(user, orders, airlines, airports)
+        let mailOptions = await tripItinerary(
+          req.headers.origin,
+          user,
+          orders,
+          airlines,
+          airports
+        )
         return mail.sendMail(mailOptions, function(err, info) {
           if (err) {
             debugMail(err)

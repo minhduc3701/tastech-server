@@ -68,6 +68,19 @@ router.get('/:id', function(req, res) {
     })
 })
 
+router.post('/search', (req, res) => {
+  Partner.find({
+    name: new RegExp(req.body.s, 'i')
+  })
+    .limit(10)
+    .then(partners => {
+      res.status(200).send({ partners })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 router.post('/', function(req, res) {
   let partner = new Partner(req.body)
   partner

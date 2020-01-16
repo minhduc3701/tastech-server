@@ -3,14 +3,14 @@ const moment = require('moment')
 const { formatLocaleMoney } = require('../modules/utils')
 const _ = require('lodash')
 
-async function changeExpenseStatus(user, expense) {
+async function changeExpenseStatus(origin, user, expense) {
   let htmlExpenseApproved = await renderMail('expense-approved', {
     title: '',
     employeeName: user.firstName,
     tripName: _.get(expense, '_trip.name'),
     paymentDate: moment(expense.transactionDate).format('ll'),
     paymentAmount: formatLocaleMoney(expense.amount, expense.currency),
-    expenseLink: `${process.env.APP_URI}/employee/expenses/${expense._id}`
+    expenseLink: `${origin}/employee/expenses/${expense._id}`
   })
 
   let htmlExpenseRejected = await renderMail('expense-rejected', {
@@ -22,7 +22,7 @@ async function changeExpenseStatus(user, expense) {
     description: expense.message,
     amount: formatLocaleMoney(expense.amount, expense.currency),
     adminMessage: expense.adminMessage,
-    expenseLink: `${process.env.APP_URI}/employee/expenses/${expense._id}`
+    expenseLink: `${origin}/employee/expenses/${expense._id}`
   })
 
   switch (expense.status) {

@@ -3,22 +3,12 @@ var router = express.Router()
 const User = require('../models/user')
 const Company = require('../models/company')
 const Policy = require('../models/policy')
-const { upload } = require('../config/aws')
+const { fileUpload } = require('../config/aws')
+const upload = fileUpload('avatar')
 const singleUpload = upload.single('image')
 const _ = require('lodash')
 const { currentCompany } = require('../middleware/company')
 const { getUserProfileStrength } = require('../modules/utils')
-
-// get list user coworker
-router.get('/', function(req, res) {
-  User.find({
-    _company: req.user._company,
-    _id: { $ne: req.user._id },
-    _role: req.user._role
-  })
-    .then(users => res.status(200).send({ users }))
-    .catch(e => res.status(400).send())
-})
 
 router.get('/me', currentCompany, function(req, res, next) {
   res.send({
@@ -116,7 +106,7 @@ router.post('/me/avatar', function(req, res) {
   singleUpload(req, res, function(err, some) {
     if (err) {
       return res.status(422).send({
-        errors: [{ title: 'Image Upload Error', detail: err.message }]
+        code: err.code
       })
     }
 

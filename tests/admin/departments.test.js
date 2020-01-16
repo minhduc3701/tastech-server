@@ -284,3 +284,27 @@ test('Should not delete policy of other company', async () => {
     })
   ).toBe(1)
 })
+
+test('Should get users of all departments without resetPasswordToken and resetPasswordExpires', async () => {
+  let res = await request(app)
+    .get(`/admin/departments`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(200)
+  res.body.departments.map(department => {
+    department.employees.map(employee => {
+      expect(employee).not.toHaveProperty('resetPasswordToken')
+      expect(employee).not.toHaveProperty('resetPasswordExpires')
+    })
+  })
+})
+
+test('Should get users of department without resetPasswordToken and resetPasswordExpires', async () => {
+  let res = await request(app)
+    .get(`/admin/departments/${departmentId}`)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .expect(200)
+  res.body.department.employees.map(employee => {
+    expect(employee).not.toHaveProperty('resetPasswordToken')
+    expect(employee).not.toHaveProperty('resetPasswordExpires')
+  })
+})

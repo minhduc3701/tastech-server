@@ -11,7 +11,6 @@ Add config/config.json with the content like below:
     "PORT": "8080",
     "MONGODB_URI": "mongodb://localhost:27017/server-db",
     "JWT_SECRET": "ds99s9ds9s9sd09ds90sd9d09",
-    "APP_URI": "http://localhost:3000",
     "ALLOW_ORIGIN": "http://localhost:3000",
     "AWS_ACCESS_KEY_ID": <AWS_ACCESS_KEY_ID>,
     "AWS_SECRET_ACCESS_KEY": <AWS_SECRET_ACCESS_KEY>,
@@ -61,7 +60,8 @@ Add config/config.json with the content like below:
     "EMAIL_GIAMSO": "",
     "REWARD_BASE_CURRENCY": "SGD",
     "NEWRELIC_APP_NAME": "Dev EzBizTrip API",
-    "NEWRELIC_LICENSE_KEY": ""
+    "NEWRELIC_LICENSE_KEY": "",
+    "RECAPTCHA_SECRET_KEY": ""
   }
 }
 
@@ -164,7 +164,6 @@ export MONGODB_URI=<production mongodb uri>
 export JWT_SECRET=<production jwt secret>
 export NODE_ENV=production
 export SENDGRID_API_KEY=<sendgrid api key>
-export APP_URI=<frontend app uri>
 export ALLOW_ORIGIN=<frontend app uri>
 export AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
 export AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
@@ -211,6 +210,7 @@ export EMAIL_GIAMSO=<EMAIL_GIAMSO>
 export REWARD_BASE_CURRENCY=SGD
 export NEWRELIC_APP_NAME=EzBizTrip API
 export NEWRELIC_LICENSE_KEY=<NEWRELIC_LICENSE_KEY>
+export RECAPTCHA_SECRET_KEY=<RECAPTCHA_SECRET_KEY>
 ```
 
 Now you ready to run your app

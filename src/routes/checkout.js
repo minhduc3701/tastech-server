@@ -26,9 +26,14 @@ const {
 } = require('../middleware/email')
 const { currentCompany } = require('../middleware/company')
 const { currenciesExchange } = require('../middleware/currency')
+const { getTasAdminOptions } = require('../middleware/options')
+const { isPartnerBooking } = require('../middleware/partnerAdmin')
+
 const {
   makeSabreFlightsData,
-  makeHotelbedsHotelsData
+  makeHotelbedsHotelsData,
+  markupHotels,
+  markupFlights
 } = require('../modules/utils')
 const { ObjectID } = require('mongodb')
 
@@ -58,6 +63,11 @@ const verifySabrePrice = async (req, res, next) => {
       sabreCacheData.sabreRes,
       sabreCurrency,
       sabreCacheData.numberOfPassengers
+    )
+    flights = markupFlights(
+      flights,
+      sabreCurrency,
+      req.markupOptions.flight.value
     )
 
     let flightInCache = flights.find(f => f.id === req.body.trip.flight.id)
@@ -98,6 +108,11 @@ const verifyHotelbedsPrice = async (req, res, next) => {
       hotelbedsData.rooms,
       hotelbedsCurrency
     )
+    hotels = markupHotels(
+      hotels,
+      hotelbedsCurrency,
+      req.markupOptions.hotel.value
+    )
 
     let hotelInCache = hotels.find(
       f => f.hotelId === req.body.trip.hotel.hotelId
@@ -112,7 +127,8 @@ const verifyHotelbedsPrice = async (req, res, next) => {
     }
 
     req.body.trip.hotel = {
-      ...req.body.trip.hotel, // checkInDate, checkOutDate
+      checkInDate: req.body.trip.hotel.checkInDate,
+      checkOutDate: req.body.trip.hotel.checkOutDate,
       ...hotelInCache,
       ...roomInCache,
       numberOfAdult: roomInCache.adults,
@@ -225,7 +241,11 @@ const createOrFindFlightOrder = async (req, res, next) => {
           rawTotalPrice: trip.flight.rawTotalPrice,
           type: 'flight',
           _trip: trip._id,
-          flight: trip.flight,
+          flight: {
+            ...trip.flight,
+            rawTotalPrice: trip.flight.originalTotalPrice,
+            totalPrice: trip.flight.exchangedTotalPrice
+          },
           _customer: req.user._id,
           _company: req.user._company,
           _partner: _.get(req, 'user._partner', null),
@@ -678,6 +698,85 @@ const depositCharging = async (req, res, next) => {
 
     if (hotelOrder) {
       hotelOrder.chargeId = charge._id
+      hotelOrder.chargeInfo = charge
+
+      await hotelOrder.save()
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const stripePartnerCharging = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const flightOrder = req.flightOrder
+    const hotelOrder = req.hotelOrder
+
+    const { card } = req.body
+    let cardId = card.id
+
+    // START CHARGING =======
+
+    // calculate the trip price here
+    let currency = ''
+
+    let amount = 0
+
+    // if have flight
+    if (flightOrder && flightOrder.flight) {
+      amount += flightOrder.totalPrice
+
+      currency = flightOrder.currency
+    } // end flight
+
+    // if have hotel
+    if (hotelOrder && hotelOrder.hotel) {
+      amount += hotelOrder.totalPrice
+
+      currency = hotelOrder.currency
+    }
+
+    // rounding amount
+    amount = roundingAmountStripe(amount, currency)
+
+    // find the card
+    let foundCard = await Card.findOne({
+      _id: cardId,
+      owner: req.partnerAdmin._id // use partner's card
+    })
+
+    if (!foundCard) {
+      throw { message: 'Cannot find card' }
+    }
+
+    // charge the customer
+    const charge = await stripe.charges.create({
+      amount,
+      currency,
+      customer: foundCard.customer.id, // Previously stored, then retrieved
+      capture: false
+    })
+
+    req.charge = charge
+    // AFTER CHARGING =======
+
+    // save charge info data
+    if (flightOrder) {
+      flightOrder.chargeId = charge.id
+      flightOrder.chargeInfo = charge
+
+      await flightOrder.save()
+    }
+
+    if (hotelOrder) {
+      hotelOrder.chargeId = charge.id
       hotelOrder.chargeInfo = charge
 
       await hotelOrder.save()
@@ -1348,8 +1447,12 @@ const responseCheckout = async (req, res, next) => {
     res.status(200).send({
       status: _.get(req, 'charge.status'),
       trip: _.pick(trip, ['_id']),
-      flightOrder,
-      hotelOrder
+      flightOrder: {
+        status: _.get(flightOrder, 'status')
+      },
+      hotelOrder: {
+        status: _.get(hotelOrder, 'status')
+      }
     })
   } catch (error) {
     logger.error('checkoutERR', _.get(error, 'message', ''))
@@ -1367,8 +1470,12 @@ const responseCheckout = async (req, res, next) => {
     res.status(400).send({
       message: _.get(error, 'message'),
       trip: _.pick(trip, ['_id']),
-      flightOrder,
-      hotelOrder
+      flightOrder: {
+        status: _.get(flightOrder, 'status')
+      },
+      hotelOrder: {
+        status: _.get(hotelOrder, 'status')
+      }
     })
   }
   next() // next for sent email
@@ -1377,6 +1484,7 @@ const responseCheckout = async (req, res, next) => {
 router.post(
   '/card',
   currentCompany,
+  getTasAdminOptions,
   verifySabrePrice,
   verifyHotelbedsPrice,
   sabreRestToken, // get token for sabre api
@@ -1387,6 +1495,33 @@ router.post(
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
   stripeCharging,
+  pkfareFlightTicketing,
+  sabreCreatePNR,
+  pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
+  demoForceCompletedOrders,
+  refundFailedOrder,
+  responseCheckout,
+  emailGiamsoIssueTicket,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary
+)
+
+router.post(
+  '/partner-card',
+  isPartnerBooking,
+  currentCompany,
+  getTasAdminOptions,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
+  sabreRestToken, // get token for sabre api
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  calculateRewardCost,
+  pkfareFlightPreBooking,
+  hotelbedsCheckRate,
+  stripePartnerCharging,
   pkfareFlightTicketing,
   sabreCreatePNR,
   pkfareHotelCreateOrder,

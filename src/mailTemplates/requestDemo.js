@@ -4,7 +4,7 @@ function requestDemo(data) {
     from: `${process.env.EMAIL_CONTACT_ALIAS} | Request Demo <${
       process.env.EMAIL_NO_REPLY
     }>`,
-    subject: `New request demo from email: ${data.email}`,
+    subject: `New request demo from: ${data.email}`,
     text: `You receiced new request demo! \n\nFirst name: ${
       data.firstName
     } \n\nLast name: ${data.lastName} \n\nEmail: ${
