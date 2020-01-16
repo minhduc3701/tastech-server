@@ -9,6 +9,7 @@ const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
 const { sabreCurrencyExchange } = require('../../middleware/currency')
 const { getTasAdminOptions } = require('../../middleware/options')
+const { isPartnerBooking } = require('../../middleware/partnerAdmin')
 
 const {
   sabreRestToken,
@@ -39,12 +40,14 @@ const hideFlightsOriginalPrices = data => {
 
 router.post(
   '/shopping',
+  isPartnerBooking,
   sabreCurrencyExchange,
   getTasAdminOptions,
   sabreRestToken,
   async (req, res) => {
     let search = req.body.search
     let cacheKey = makeSabreFlightCacheKey(search)
+
     try {
       let cacheData = await getCache(cacheKey)
       // logger.info('Sabre shopping: ', cacheData.sabreRes)

@@ -61,8 +61,10 @@ const partnerId = new ObjectID('5cc2d7a24c72b61214aa0001')
 const partnerId2 = new ObjectID('5cc2d7a24c72b61214aa0002')
 const partnerAdminId = new ObjectID('5cc2d7a24c72b61214aa0003')
 const companyPartnerId = new ObjectID('5de9f4b1c9bda20d4b4b8497')
-const companyPartnerId2 = new ObjectID()
+const company2PartnerId = new ObjectID('5de9f4b1c9bda20d4b4b8498')
+const companyPartner2Id = new ObjectID()
 const adminPartnerId = new ObjectID('5cc2d7a24c72b61214aa0004')
+const adminCompany2PartnerId = new ObjectID('5cc2d7a24c72b61214aa0005')
 const adminPartnerId2 = new ObjectID()
 const employeeParterId = new ObjectID('5de88939a7d0a4095eddfede')
 const employeeParterId2 = new ObjectID()
@@ -78,6 +80,7 @@ const departmentPartnerId2 = new ObjectID()
 const partnerRoleId = new ObjectID('5df0697ed1b5060fe38626a8')
 const partnerRoleId2 = new ObjectID()
 const adminRolePartnerId = new ObjectID()
+const adminRoleCompany2PartnerId = new ObjectID()
 const adminRolePartnerId2 = new ObjectID()
 const employeeRolePartnerId = new ObjectID()
 const employeeRolePartnerId2 = new ObjectID()
@@ -296,13 +299,22 @@ const users = [
     country: 'VN',
     _partner: partnerId
   },
-
+  // user for company 2 partner 1
+  {
+    _id: adminCompany2PartnerId,
+    username: 'adminCompany2Partner@tastech.asia',
+    email: 'adminCompany2Partner@tastech.asia',
+    _company: company2PartnerId,
+    avatar: `http://i.pravatar.cc/150?img=2`,
+    _role: adminRoleCompany2PartnerId,
+    _partner: partnerId
+  },
   // user for company partner 2
   {
     _id: adminPartnerId2,
     username: 'adminPartner2@tastech.asia',
     email: 'adminPartner2@tastech.asia',
-    _company: companyPartnerId2,
+    _company: companyPartner2Id,
     avatar: `http://i.pravatar.cc/150?img=2`,
     _role: adminRolePartnerId2,
     _partner: partnerId2
@@ -311,7 +323,7 @@ const users = [
     _id: employeeParterId2,
     username: 'employeePartner2@tastech.asia',
     email: 'employeePartner2@tastech.asia',
-    _company: companyPartnerId2,
+    _company: companyPartner2Id,
     avatar: `http://i.pravatar.cc/150?img=3`,
     _role: employeeRolePartnerId,
     firstName: chance.first(),
@@ -326,7 +338,7 @@ const users = [
     _id: managerPartnerId2,
     username: 'managerPartner2@tastech.asia',
     email: 'managerPartner2@tastech.asia',
-    _company: companyPartnerId2,
+    _company: companyPartner2Id,
     avatar: `http://i.pravatar.cc/150?img=3`,
     _role: managerRolePartnerId2,
     firstName: chance.first(),
@@ -341,7 +353,7 @@ const users = [
     _id: accountantPartnerId2,
     username: 'accountantPartner2@tastech.asia',
     email: 'accountantPartner2@tastech.asia',
-    _company: companyPartnerId2,
+    _company: companyPartner2Id,
     avatar: `http://i.pravatar.cc/150?img=3`,
     _role: accountantRolePartnerId2,
     firstName: chance.first(),
@@ -424,7 +436,7 @@ const companies = [
     contactName: 'Henry Suju',
     contactEmail: 'henry@gmail.com',
     contactPhone: '0981234234',
-    contactCallingCode: '+44',
+    contactCallingCode: '44',
     onBehalf: true,
     payment: 'deposit',
     isCreditLimitation: true,
@@ -437,10 +449,41 @@ const companies = [
     markupFlightAmount: 20,
     markupHotel: 'percentage',
     markupHotelAmount: 5,
-    note: 'something about company'
+    note: 'something about company',
+    industry: 'Advertising',
+    country: 'VN',
+    language: 'Vietnamese'
   },
   {
-    _id: companyPartnerId2,
+    _id: company2PartnerId,
+    name: 'Partner company 2',
+    exchangedRate: 10,
+    _policy: defaultPolicyPartnerId4,
+    currency: 'VND',
+    _partner: partnerId,
+    contactName: 'Choi Siwon Suju',
+    contactEmail: 'siwon.suju@gmail.com',
+    contactPhone: '0981234234',
+    contactCallingCode: '44',
+    onBehalf: true,
+    payment: 'deposit',
+    isCreditLimitation: true,
+    creditLimitationAmount: 2000,
+    warningAmount: 500,
+    sendMailToCompanyAdmin: true,
+    sendMailToPartnerAdmin: true,
+    balance: 0,
+    markupFlight: 'net',
+    markupFlightAmount: 20,
+    markupHotel: 'percentage',
+    markupHotelAmount: 5,
+    note: 'something about company',
+    industry: 'Advertising',
+    country: 'VN',
+    language: 'Vietnamese'
+  },
+  {
+    _id: companyPartner2Id,
     name: 'Partner company 2',
     exchangedRate: 10,
     _policy: defaultPolicyPartnerId5,
@@ -449,7 +492,7 @@ const companies = [
     contactName: 'Ha phan',
     contactEmail: 'phan@gmail.com',
     contactPhone: '0819020796',
-    contactCallingCode: '+44',
+    contactCallingCode: '84',
     onBehalf: false,
     payment: 'credit-card',
     isCreditLimitation: true,
@@ -462,45 +505,48 @@ const companies = [
     markupFlightAmount: 20,
     markupHotel: 'percentage',
     markupHotelAmount: 5,
-    note: 'something about company'
+    note: 'something about company',
+    industry: 'Advertising',
+    country: 'VN',
+    language: 'Vietnamese'
   }
 ]
 
-for (let i = 3; i < 30; i++) {
-  companies.push({
-    name: chance.company(),
-    exchangedRate: 10,
-    currency: 'USD'
-  })
-}
+// for (let i = 3; i < 30; i++) {
+//   companies.push({
+//     name: chance.company(),
+//     exchangedRate: 10,
+//     currency: 'USD'
+//   })
+// }
 
-for (let i = 0; i < 20; i++) {
-  companies.push({
-    _id: new ObjectID(),
-    name: chance.company(),
-    exchangedRate: 10,
-    _policy: defaultPolicyPartnerId4,
-    currency: 'USD',
-    _partner: partnerId,
-    contactName: chance.name(),
-    contactEmail: chance.email(),
-    contactPhone: chance.phone(),
-    contactCallingCode: '+65',
-    onBehalf: true,
-    payment: 'deposit',
-    isCreditLimitation: true,
-    creditLimitationAmount: 2000,
-    warningAmount: 500,
-    sendMailToCompanyAdmin: true,
-    sendMailToPartnerAdmin: true,
-    balance: 0,
-    markupFlight: 'net',
-    markupFlightAmount: 20,
-    markupHotel: 'percentage',
-    markupHotelAmount: 5,
-    note: 'something about company'
-  })
-}
+// for (let i = 0; i < 20; i++) {
+//   companies.push({
+//     _id: new ObjectID(),
+//     name: chance.company(),
+//     exchangedRate: 10,
+//     _policy: defaultPolicyPartnerId4,
+//     currency: 'USD',
+//     _partner: partnerId,
+//     contactName: chance.name(),
+//     contactEmail: chance.email(),
+//     contactPhone: chance.phone(),
+//     contactCallingCode: '+65',
+//     onBehalf: true,
+//     payment: 'deposit',
+//     isCreditLimitation: true,
+//     creditLimitationAmount: 2000,
+//     warningAmount: 500,
+//     sendMailToCompanyAdmin: true,
+//     sendMailToPartnerAdmin: true,
+//     balance: 0,
+//     markupFlight: 'net',
+//     markupFlightAmount: 20,
+//     markupHotel: 'percentage',
+//     markupHotelAmount: 5,
+//     note: 'something about company'
+//   })
+// }
 
 const partners = [
   {
@@ -685,6 +731,21 @@ const roles = [
     _company: companyPartnerId,
     _partner: partnerId
   },
+  {
+    _id: adminRoleCompany2PartnerId,
+    name: 'Admin',
+    type: 'admin',
+    permissions: [
+      'CAN_ACCESS_COMPANY',
+      'CAN_ACCESS_REWARD',
+      'CAN_ACCESS_BOOKING',
+      'CAN_ACCESS_BUDGET',
+      'CAN_ACCESS_EXPENSE',
+      'CAN_ACCESS_ANALYTICS'
+    ],
+    _company: company2PartnerId,
+    _partner: partnerId
+  },
   // partner 2 role
   {
     _id: adminRolePartnerId2,
@@ -698,7 +759,7 @@ const roles = [
       'CAN_ACCESS_EXPENSE',
       'CAN_ACCESS_ANALYTICS'
     ],
-    _company: companyPartnerId2,
+    _company: companyPartner2Id,
     _partner: partnerId2
   },
   {
@@ -706,7 +767,7 @@ const roles = [
     name: 'Employee',
     type: 'employee',
     permissions: ['CAN_ACCESS_BOOKING'],
-    _company: companyPartnerId2,
+    _company: companyPartner2Id,
     _partner: partnerId2
   },
   {
@@ -718,7 +779,7 @@ const roles = [
       'CAN_ACCESS_ANALYTICS',
       'CAN_ACCESS_BOOKING'
     ],
-    _company: companyPartnerId2,
+    _company: companyPartner2Id,
     _partner: partnerId2
   },
   {
@@ -726,7 +787,7 @@ const roles = [
     name: 'Accountant',
     type: 'accountant',
     permissions: ['CAN_ACCESS_BOOKING', 'CAN_ACCESS_EXPENSE'],
-    _company: companyPartnerId2,
+    _company: companyPartner2Id,
     _partner: partnerId2
   }
 ]
@@ -937,7 +998,7 @@ const policies = [
   {
     ...defaultPolicy,
     _id: defaultPolicyPartnerId5,
-    _company: companyPartnerId2
+    _company: companyPartner2Id
   }
 ]
 
@@ -1128,7 +1189,7 @@ const departments = [
   },
   {
     _id: departmentPartnerId2,
-    _company: companyPartnerId2,
+    _company: companyPartner2Id,
     name: `Partner 2 - Department 1`
   }
 ]

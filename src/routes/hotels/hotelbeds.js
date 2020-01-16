@@ -5,6 +5,7 @@ const axios = require('axios')
 const { makeHotelbedsHotelsData, markupHotels } = require('../../modules/utils')
 const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
 const { getTasAdminOptions } = require('../../middleware/options')
+const { isPartnerBooking } = require('../../middleware/partnerAdmin')
 const { logger } = require('../../config/winston')
 const { makeHotelBedsCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
@@ -39,6 +40,7 @@ const hideSingleHotelOriginalPrices = data => {
 
 router.post(
   '/hotels',
+  isPartnerBooking,
   getTasAdminOptions,
   hotelbedsCurrencyExchange,
   async (req, res) => {
@@ -245,6 +247,7 @@ router.post('/rateCommentDetails', async (req, res) => {
 
 router.post(
   '/:id',
+  isPartnerBooking,
   hotelbedsCurrencyExchange,
   getTasAdminOptions,
   async (req, res) => {

@@ -2,9 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Card = require('../models/card')
 const Trip = require('../models/trip')
-const Role = require('../models/role')
 const Order = require('../models/order')
-const User = require('../models/user')
 const api = require('../modules/api')
 const apiSabre = require('../modules/apiSabre')
 const { sabreRestToken } = require('../middleware/sabre')
@@ -28,6 +26,7 @@ const {
 const { currentCompany } = require('../middleware/company')
 const { currenciesExchange } = require('../middleware/currency')
 const { getTasAdminOptions } = require('../middleware/options')
+const { isPartnerBooking } = require('../middleware/partnerAdmin')
 
 const {
   makeSabreFlightsData,
@@ -40,18 +39,6 @@ const {
 // See your keys here: https://dashboard.stripe.com/account/apikeys
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
-const isPartnerBooking = async (req, res, next) => {
-  try {
-    let role = await Role.findById(req.user._role)
-    if (role.type === 'partner-admin') {
-      req.partnerAdmin = req.user
-
-      let user = await User.findById(req.body.onBehalf)
-      req.user = user
-    }
-  } catch (error) {}
-  next()
-}
 const verifySabrePrice = async (req, res, next) => {
   // get sabre cache key
   // get sabre-currency -> company currency
@@ -593,7 +580,86 @@ const stripeCharging = async (req, res, next) => {
     // find the card
     let foundCard = await Card.findOne({
       _id: cardId,
-      owner: req.partnerAdmin ? req.partnerAdmin._id : req.user._id // if partner book onbehalf, use partner's card
+      owner: req.user._id
+    })
+
+    if (!foundCard) {
+      throw { message: 'Cannot find card' }
+    }
+
+    // charge the customer
+    const charge = await stripe.charges.create({
+      amount,
+      currency,
+      customer: foundCard.customer.id, // Previously stored, then retrieved
+      capture: false
+    })
+
+    req.charge = charge
+    // AFTER CHARGING =======
+
+    // save charge info data
+    if (flightOrder) {
+      flightOrder.chargeId = charge.id
+      flightOrder.chargeInfo = charge
+
+      await flightOrder.save()
+    }
+
+    if (hotelOrder) {
+      hotelOrder.chargeId = charge.id
+      hotelOrder.chargeInfo = charge
+
+      await hotelOrder.save()
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const stripePartnerCharging = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const flightOrder = req.flightOrder
+    const hotelOrder = req.hotelOrder
+
+    const { card } = req.body
+    let cardId = card.id
+
+    // START CHARGING =======
+
+    // calculate the trip price here
+    let currency = ''
+
+    let amount = 0
+
+    // if have flight
+    if (flightOrder && flightOrder.flight) {
+      amount += flightOrder.totalPrice
+
+      currency = flightOrder.currency
+    } // end flight
+
+    // if have hotel
+    if (hotelOrder && hotelOrder.hotel) {
+      amount += hotelOrder.totalPrice
+
+      currency = hotelOrder.currency
+    }
+
+    // rounding amount
+    amount = roundingAmountStripe(amount, currency)
+
+    // find the card
+    let foundCard = await Card.findOne({
+      _id: cardId,
+      owner: req.partnerAdmin._id // use partner's card
     })
 
     if (!foundCard) {
@@ -1264,7 +1330,6 @@ const responseCheckout = async (req, res, next) => {
 
 router.post(
   '/card',
-  isPartnerBooking,
   currentCompany,
   getTasAdminOptions,
   verifySabrePrice,
@@ -1277,6 +1342,33 @@ router.post(
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
   stripeCharging,
+  pkfareFlightTicketing,
+  sabreCreatePNR,
+  pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
+  demoForceCompletedOrders,
+  refundFailedOrder,
+  responseCheckout,
+  emailGiamsoIssueTicket,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary
+)
+
+router.post(
+  '/partner-card',
+  isPartnerBooking,
+  currentCompany,
+  getTasAdminOptions,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
+  sabreRestToken, // get token for sabre api
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  calculateRewardCost,
+  pkfareFlightPreBooking,
+  hotelbedsCheckRate,
+  stripePartnerCharging,
   pkfareFlightTicketing,
   sabreCreatePNR,
   pkfareHotelCreateOrder,
