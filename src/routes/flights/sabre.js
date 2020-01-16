@@ -47,6 +47,7 @@ router.post(
   async (req, res) => {
     let search = req.body.search
     let cacheKey = makeSabreFlightCacheKey(search)
+
     try {
       let cacheData = await getCache(cacheKey)
       // logger.info('Sabre shopping: ', cacheData.sabreRes)

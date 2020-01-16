@@ -61,8 +61,10 @@ const partnerId = new ObjectID('5cc2d7a24c72b61214aa0001')
 const partnerId2 = new ObjectID('5cc2d7a24c72b61214aa0002')
 const partnerAdminId = new ObjectID('5cc2d7a24c72b61214aa0003')
 const companyPartnerId = new ObjectID('5de9f4b1c9bda20d4b4b8497')
+const company2PartnerId = new ObjectID('5de9f4b1c9bda20d4b4b8498')
 const companyPartnerId2 = new ObjectID()
 const adminPartnerId = new ObjectID('5cc2d7a24c72b61214aa0004')
+const adminCompnay2PartnerId = new ObjectID('5cc2d7a24c72b61214aa0005')
 const adminPartnerId2 = new ObjectID()
 const employeeParterId = new ObjectID('5de88939a7d0a4095eddfede')
 const employeeParterId2 = new ObjectID()
@@ -78,6 +80,7 @@ const departmentPartnerId2 = new ObjectID()
 const partnerRoleId = new ObjectID('5df0697ed1b5060fe38626a8')
 const partnerRoleId2 = new ObjectID()
 const adminRolePartnerId = new ObjectID()
+const adminRoleCompany2PartnerId = new ObjectID()
 const adminRolePartnerId2 = new ObjectID()
 const employeeRolePartnerId = new ObjectID()
 const employeeRolePartnerId2 = new ObjectID()
@@ -296,7 +299,16 @@ const users = [
     country: 'VN',
     _partner: partnerId
   },
-
+  // user for company 2 partner 1
+  {
+    _id: adminCompnay2PartnerId,
+    username: 'adminCompnay2Partner@tastech.asia',
+    email: 'adminCompnay2@tastech.asia',
+    _company: company2PartnerId,
+    avatar: `http://i.pravatar.cc/150?img=2`,
+    _role: adminRoleCompany2PartnerId,
+    _partner: partnerId
+  },
   // user for company partner 2
   {
     _id: adminPartnerId2,
@@ -423,6 +435,31 @@ const companies = [
     _partner: partnerId,
     contactName: 'Henry Suju',
     contactEmail: 'henry@gmail.com',
+    contactPhone: '0981234234',
+    contactCallingCode: '+44',
+    onBehalf: true,
+    payment: 'deposit',
+    isCreditLimitation: true,
+    creditLimitationAmount: 2000,
+    warningAmount: 500,
+    sendMailToCompanyAdmin: true,
+    sendMailToPartnerAdmin: true,
+    balance: 0,
+    markupFlight: 'net',
+    markupFlightAmount: 20,
+    markupHotel: 'percentage',
+    markupHotelAmount: 5,
+    note: 'something about company'
+  },
+  {
+    _id: company2PartnerId,
+    name: 'Partner company 2',
+    exchangedRate: 10,
+    _policy: defaultPolicyPartnerId4,
+    currency: 'USD',
+    _partner: partnerId,
+    contactName: 'Choi Siwon Suju',
+    contactEmail: 'siwon.suju@gmail.com',
     contactPhone: '0981234234',
     contactCallingCode: '+44',
     onBehalf: true,
@@ -683,6 +720,21 @@ const roles = [
     type: 'accountant',
     permissions: ['CAN_ACCESS_BOOKING', 'CAN_ACCESS_EXPENSE'],
     _company: companyPartnerId,
+    _partner: partnerId
+  },
+  {
+    _id: adminRoleCompany2PartnerId,
+    name: 'Admin',
+    type: 'admin',
+    permissions: [
+      'CAN_ACCESS_COMPANY',
+      'CAN_ACCESS_REWARD',
+      'CAN_ACCESS_BOOKING',
+      'CAN_ACCESS_BUDGET',
+      'CAN_ACCESS_EXPENSE',
+      'CAN_ACCESS_ANALYTICS'
+    ],
+    _company: company2PartnerId,
     _partner: partnerId
   },
   // partner 2 role
