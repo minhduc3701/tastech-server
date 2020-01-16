@@ -64,7 +64,7 @@ const companyPartnerId = new ObjectID('5de9f4b1c9bda20d4b4b8497')
 const company2PartnerId = new ObjectID('5de9f4b1c9bda20d4b4b8498')
 const companyPartnerId2 = new ObjectID()
 const adminPartnerId = new ObjectID('5cc2d7a24c72b61214aa0004')
-const adminCompnay2PartnerId = new ObjectID('5cc2d7a24c72b61214aa0005')
+const adminCompany2PartnerId = new ObjectID('5cc2d7a24c72b61214aa0005')
 const adminPartnerId2 = new ObjectID()
 const employeeParterId = new ObjectID('5de88939a7d0a4095eddfede')
 const employeeParterId2 = new ObjectID()
@@ -301,7 +301,7 @@ const users = [
   },
   // user for company 2 partner 1
   {
-    _id: adminCompnay2PartnerId,
+    _id: adminCompany2PartnerId,
     username: 'adminCompnay2Partner@tastech.asia',
     email: 'adminCompnay2@tastech.asia',
     _company: company2PartnerId,
@@ -503,41 +503,41 @@ const companies = [
   }
 ]
 
-for (let i = 3; i < 30; i++) {
-  companies.push({
-    name: chance.company(),
-    exchangedRate: 10,
-    currency: 'USD'
-  })
-}
+// for (let i = 3; i < 30; i++) {
+//   companies.push({
+//     name: chance.company(),
+//     exchangedRate: 10,
+//     currency: 'USD'
+//   })
+// }
 
-for (let i = 0; i < 20; i++) {
-  companies.push({
-    _id: new ObjectID(),
-    name: chance.company(),
-    exchangedRate: 10,
-    _policy: defaultPolicyPartnerId4,
-    currency: 'USD',
-    _partner: partnerId,
-    contactName: chance.name(),
-    contactEmail: chance.email(),
-    contactPhone: chance.phone(),
-    contactCallingCode: '+65',
-    onBehalf: true,
-    payment: 'deposit',
-    isCreditLimitation: true,
-    creditLimitationAmount: 2000,
-    warningAmount: 500,
-    sendMailToCompanyAdmin: true,
-    sendMailToPartnerAdmin: true,
-    balance: 0,
-    markupFlight: 'net',
-    markupFlightAmount: 20,
-    markupHotel: 'percentage',
-    markupHotelAmount: 5,
-    note: 'something about company'
-  })
-}
+// for (let i = 0; i < 20; i++) {
+//   companies.push({
+//     _id: new ObjectID(),
+//     name: chance.company(),
+//     exchangedRate: 10,
+//     _policy: defaultPolicyPartnerId4,
+//     currency: 'USD',
+//     _partner: partnerId,
+//     contactName: chance.name(),
+//     contactEmail: chance.email(),
+//     contactPhone: chance.phone(),
+//     contactCallingCode: '+65',
+//     onBehalf: true,
+//     payment: 'deposit',
+//     isCreditLimitation: true,
+//     creditLimitationAmount: 2000,
+//     warningAmount: 500,
+//     sendMailToCompanyAdmin: true,
+//     sendMailToPartnerAdmin: true,
+//     balance: 0,
+//     markupFlight: 'net',
+//     markupFlightAmount: 20,
+//     markupHotel: 'percentage',
+//     markupHotelAmount: 5,
+//     note: 'something about company'
+//   })
+// }
 
 const partners = [
   {
