@@ -61,7 +61,12 @@ const createUser = function(req, res, next) {
       async function(user, token, done) {
         await User.populate(user, { path: '_role' })
         await User.populate(req.admin, { path: '_role' })
-        let mailOptions = await register(user, token, req.admin)
+        let mailOptions = await register(
+          req.headers.origin,
+          user,
+          token,
+          req.admin
+        )
         mail.sendMail(mailOptions, function(err, info) {
           // return done(err, user)
         })

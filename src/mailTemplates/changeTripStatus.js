@@ -1,7 +1,7 @@
 const { renderMail } = require('../config/mail')
 const { formatLocaleMoney } = require('../modules/utils')
 
-async function changeTripStatus(user, trip) {
+async function changeTripStatus(origin, user, trip) {
   let htmlTripApproved = await renderMail('trip-approved', {
     title: '',
     name: `${user.firstName}`,
@@ -9,14 +9,14 @@ async function changeTripStatus(user, trip) {
       trip.budgetPassengers[0].totalPrice,
       trip.currency
     ),
-    bookLink: `${process.env.APP_URI}/employee/booking?trip=${trip._id}`
+    bookLink: `${origin}/employee/booking?trip=${trip._id}`
   })
 
   let htmlTripRejected = await renderMail('trip-rejected', {
     title: '',
     name: `${user.firstName}`,
     message: `${trip.adminMessage}`,
-    editTripLink: `${process.env.APP_URI}/employee/travel/${trip._id}`
+    editTripLink: `${origin}/employee/travel/${trip._id}`
   })
 
   switch (trip.status) {
