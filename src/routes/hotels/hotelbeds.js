@@ -254,7 +254,6 @@ router.post(
     let hotelId = req.params.id
     let cacheKey = makeHotelBedsCacheKey(req.body.roomRequest)
 
-    console.log(req.markupOptions)
     try {
       let data = await getCache(cacheKey)
 

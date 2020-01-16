@@ -13,8 +13,6 @@ const isPartnerBooking = async (req, res, next) => {
       }
     }
   } catch (error) {}
-  console.log(req.partnerAdmin)
-  console.log(req.user)
   next()
 }
 
