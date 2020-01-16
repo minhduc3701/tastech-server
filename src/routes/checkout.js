@@ -21,7 +21,8 @@ const { logger } = require('../config/winston')
 const {
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary,
-  emailGiamsoIssueTicket
+  emailGiamsoIssueTicket,
+  emailNotEnoughDeposit
 } = require('../middleware/email')
 const { currentCompany } = require('../middleware/company')
 const { currenciesExchange } = require('../middleware/currency')
@@ -632,9 +633,27 @@ const depositCharging = async (req, res, next) => {
     // rounding amount
     let company = req.company
     let companyDeposit = company.deposit
+    let newCompanyDeposit = companyDeposit - amount
+
+    let logs = company.logs
+    logs.push({
+      _creator: req.user._id,
+      createdAt: new Date(),
+      field: 'deposit',
+      old: companyDeposit,
+      new: newCompanyDeposit,
+      note: req.trip.name
+    })
+
     if (companyDeposit >= amount) {
-      company.deposit = companyDeposit - amount
+      company.deposit = newCompanyDeposit
+      company.logs = logs
       await company.save()
+    } else {
+      req.depositError = {
+        message: 'Remaining deposit is not enough for the trip.'
+      }
+      throw new Error('Remaining deposit is not enough for the trip.')
     }
 
     let charge = {
@@ -1292,7 +1311,20 @@ const refundDepositFailedOrder = async (req, res, next) => {
     // refund
     let company = req.company
     let companyDeposit = company.deposit
-    company.deposit = companyDeposit + refundAmount
+    let newCompanyDeposit = companyDeposit + refundAmount
+
+    let logs = company.logs
+    logs.push({
+      _creator: req.user._id,
+      createdAt: new Date(),
+      field: 'deposit',
+      old: companyDeposit,
+      new: newCompanyDeposit,
+      note: 'refund for ' + req.trip.name
+    })
+
+    company.deposit = newCompanyDeposit
+    company.logs = logs
     await company.save()
   } catch (error) {
     req.checkoutError = error
@@ -1379,6 +1411,7 @@ router.post(
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
   depositCharging,
+  emailNotEnoughDeposit,
   pkfareFlightTicketing,
   sabreCreatePNR,
   pkfareHotelCreateOrder,

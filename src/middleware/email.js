@@ -347,6 +347,14 @@ const emailEzBizTripVoucherInfo = async (req, res, next) => {
   })
 }
 
+const emailNotEnoughDeposit = async (req, res, next) => {
+  if (!req.depositError) {
+    return next()
+  }
+
+  next()
+}
+
 module.exports = {
   emailEmployeeSubmitTrip,
   emailEmployeeChangeTripStatus,
@@ -359,5 +367,6 @@ module.exports = {
   emailEmployeeItineraryPkfareTickiting,
   emailGiamsoIssueTicket,
   emailGiamsoCancelFlight,
-  emailEzBizTripVoucherInfo
+  emailEzBizTripVoucherInfo,
+  emailNotEnoughDeposit
 }
