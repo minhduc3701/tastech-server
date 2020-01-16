@@ -20,6 +20,7 @@ const { sendPnrGiamso } = require('../mailTemplates/sendPnrGiamso')
 const { cancelFlightGiamso } = require('../mailTemplates/cancelFlightGiamso')
 const { sendVoucherInfo } = require('../mailTemplates/sendVoucherInfo')
 const { debugMail } = require('../config/debug')
+const { notEnoughDeposit } = require('../mailTemplates/notEnoughDeposit')
 const { CAN_ACCESS_BUDGET, CAN_ACCESS_EXPENSE } = require('../config/roles')
 const { findAirlinesAirports } = require('../modules/utils')
 
@@ -352,6 +353,12 @@ const emailNotEnoughDeposit = async (req, res, next) => {
     return next()
   }
 
+  let mailOptions = await notEnoughDeposit(req.company)
+  mail.sendMail(mailOptions, function(err, info) {
+    if (err) {
+      debugMail(err)
+    }
+  })
   next()
 }
 

@@ -1311,6 +1311,7 @@ const refundDepositFailedOrder = async (req, res, next) => {
     // refund
     let company = req.company
     let companyDeposit = company.deposit
+    console.log('refund', refundAmount)
     let newCompanyDeposit = companyDeposit + refundAmount
 
     let logs = company.logs
