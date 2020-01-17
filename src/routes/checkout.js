@@ -635,18 +635,19 @@ const depositCharging = async (req, res, next) => {
     // calculate the trip price here
     let currency = ''
     let amount = 0
+    let note = 'checkout for orders:'
 
     // if have flight
     if (flightOrder && flightOrder.flight) {
       amount += flightOrder.totalPrice
-
+      note += ' ' + _.get(req, 'flightOrder._id', '')
       currency = flightOrder.currency
     }
 
     // if have hotel
     if (hotelOrder && hotelOrder.hotel) {
       amount += hotelOrder.totalPrice
-
+      note += ' ' + _.get(req, 'hotelOrder._id', '')
       currency = hotelOrder.currency
     }
 
@@ -654,11 +655,6 @@ const depositCharging = async (req, res, next) => {
     let company = req.company
     let companyDeposit = company.deposit
     let newCompanyDeposit = companyDeposit - amount
-    let note = `checkout for orders: ${_.get(
-      req,
-      'flightOrder._id',
-      ''
-    )}, ${_.get(req, 'hotelOrder._id', '')}`
 
     let logs = company.logs
     logs.push({
@@ -1384,16 +1380,19 @@ const refundDepositFailedOrder = async (req, res, next) => {
   }
   try {
     let refundAmount = 0
+    let note = 'refund for orders:'
 
     // refund for flight booking failed
     if (req.checkoutError && req.checkoutError.flight) {
       let flightOrder = req.flightOrder
       refundAmount += flightOrder.totalPrice
+      note += ' ' + _.get(req, 'flightOrder._id', '')
 
       // refund for combo (flight & hotel) if flight booking failed
       let hotelOrder = req.hotelOrder
       if (!_.isEmpty(hotelOrder)) {
         refundAmount += hotelOrder.totalPrice
+        note += _.get(req, 'hotelOrder._id', '')
       }
 
       // if only hotel failed
@@ -1401,6 +1400,7 @@ const refundDepositFailedOrder = async (req, res, next) => {
       // refund for hotel booking failed
       let hotelOrder = req.hotelOrder
       refundAmount += hotelOrder.totalPrice
+      note += ' ' + _.get(req, 'hotelOrder._id', '')
 
       // success flight and fail hotel
       if (req.flightOrder) {
@@ -1416,11 +1416,6 @@ const refundDepositFailedOrder = async (req, res, next) => {
     let company = req.company
     let companyDeposit = company.deposit
     let newCompanyDeposit = companyDeposit + refundAmount
-    let note = `checkout for orders: ${_.get(
-      req,
-      'flightOrder._id',
-      ''
-    )}, ${_.get(req, 'hotelOrder._id', '')}`
 
     let logs = company.logs
     logs.push({
