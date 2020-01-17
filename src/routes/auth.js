@@ -11,7 +11,7 @@ const { forgotPassword } = require('../mailTemplates/forgotPassword')
 const { verifyRecaptcha } = require('../middleware/recaptcha')
 const _ = require('lodash')
 
-router.post('/login', function(req, res, next) {
+router.post('/login', verifyRecaptcha, function(req, res, next) {
   if (!req.body.email || !req.body.password) {
     return res.status(400).json({
       message: 'Something is not right with your input'
@@ -41,7 +41,14 @@ router.post('/login', function(req, res, next) {
 
       // generate a signed son web token with the contents of user object and return it in the response
       const token = jwt.sign(
-        { id: user.id, email: user.username },
+        {
+          id: user.id,
+          email: user.username,
+          // @see https://www.npmjs.com/package/jsonwebtoken
+          // @see https://stackoverflow.com/a/45207528
+          // Expires in 3 days
+          expiresIn: process.env.JWT_EXPIRES_IN
+        },
         process.env.JWT_SECRET
       )
 
