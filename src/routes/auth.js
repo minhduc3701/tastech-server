@@ -47,7 +47,7 @@ router.post('/login', verifyRecaptcha, function(req, res, next) {
           // @see https://www.npmjs.com/package/jsonwebtoken
           // @see https://stackoverflow.com/a/45207528
           // Expires in 3 days
-          expiresIn: '3d'
+          expiresIn: process.env.JWT_EXPIRES_IN
         },
         process.env.JWT_SECRET
       )

@@ -27,7 +27,7 @@ passport.use(
       // @see https://github.com/mikenicholson/passport-jwt/issues/177#issuecomment-494340933
       // @see src/routes/auth.js (POST /auth/login)
       jsonWebTokenOptions: {
-        maxAge: '3d'
+        maxAge: process.env.JWT_EXPIRES_IN
       }
     },
     function(jwtPayload, cb) {
