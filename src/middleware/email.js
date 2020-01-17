@@ -99,9 +99,7 @@ const emailAccountantClaimExpense = async (req, res) => {
           })
         }
       })
-  } catch (error) {
-    console.log(error)
-  }
+  } catch (error) {}
 }
 
 const emailEmployeeSubmitTrip = async (req, res, next) => {

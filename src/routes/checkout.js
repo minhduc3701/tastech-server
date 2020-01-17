@@ -654,6 +654,10 @@ const depositCharging = async (req, res, next) => {
     let company = req.company
     let companyDeposit = company.deposit
     let newCompanyDeposit = companyDeposit - amount
+    let note = `checkout for orders: ${_.get(req, 'flightOrder._id')}, ${_.get(
+      req,
+      'hotelOrder._id'
+    )}`
 
     let logs = company.logs
     logs.push({
@@ -662,7 +666,7 @@ const depositCharging = async (req, res, next) => {
       field: 'deposit',
       old: companyDeposit,
       new: newCompanyDeposit,
-      note: req.trip.name
+      note
     })
 
     if (companyDeposit >= amount) {
@@ -1410,8 +1414,11 @@ const refundDepositFailedOrder = async (req, res, next) => {
     // refund
     let company = req.company
     let companyDeposit = company.deposit
-    console.log('refund', refundAmount)
     let newCompanyDeposit = companyDeposit + refundAmount
+    let note = `checkout for orders: ${_.get(req, 'flightOrder._id')}, ${_.get(
+      req,
+      'hotelOrder._id'
+    )}`
 
     let logs = company.logs
     logs.push({
@@ -1420,7 +1427,7 @@ const refundDepositFailedOrder = async (req, res, next) => {
       field: 'deposit',
       old: companyDeposit,
       new: newCompanyDeposit,
-      note: 'refund for ' + req.trip.name
+      note
     })
 
     company.deposit = newCompanyDeposit
@@ -1537,6 +1544,7 @@ router.post(
 router.post(
   '/deposit',
   currentCompany,
+  getTasAdminOptions,
   verifySabrePrice,
   verifyHotelbedsPrice,
   sabreRestToken, // get token for sabre api
