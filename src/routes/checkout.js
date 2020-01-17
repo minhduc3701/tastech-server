@@ -654,10 +654,11 @@ const depositCharging = async (req, res, next) => {
     let company = req.company
     let companyDeposit = company.deposit
     let newCompanyDeposit = companyDeposit - amount
-    let note = `checkout for orders: ${_.get(req, 'flightOrder._id')}, ${_.get(
+    let note = `checkout for orders: ${_.get(
       req,
-      'hotelOrder._id'
-    )}`
+      'flightOrder._id',
+      ''
+    )}, ${_.get(req, 'hotelOrder._id', '')}`
 
     let logs = company.logs
     logs.push({
@@ -1415,10 +1416,11 @@ const refundDepositFailedOrder = async (req, res, next) => {
     let company = req.company
     let companyDeposit = company.deposit
     let newCompanyDeposit = companyDeposit + refundAmount
-    let note = `checkout for orders: ${_.get(req, 'flightOrder._id')}, ${_.get(
+    let note = `checkout for orders: ${_.get(
       req,
-      'hotelOrder._id'
-    )}`
+      'flightOrder._id',
+      ''
+    )}, ${_.get(req, 'hotelOrder._id', '')}`
 
     let logs = company.logs
     logs.push({
