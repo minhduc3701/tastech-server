@@ -104,7 +104,8 @@ const TripSchema = new Schema(
     isBookedByPartner: Boolean,
     isBookedWithinBudget: Boolean,
     isBookedWithinPolicy: Boolean,
-    isBaseOnBalance: Boolean
+    isBaseOnBalance: Boolean,
+    requestBookOnBehalfs: []
   },
   {
     timestamps: true

@@ -478,6 +478,35 @@ router.post(
   emailManagerSubmitTrip
 )
 
+router.post('/:id/request-book', function(req, res, next) {
+  let id = req.params.id
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  Trip.findOneAndUpdate(
+    {
+      _id: id,
+      _creator: req.user._id,
+      status: {
+        $in: ['approved', 'ongoing']
+      }
+    },
+    { $push: { requestBookOnBehalfs: req.body } },
+    { new: true }
+  )
+    .then(trip => {
+      if (!trip) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ trip })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 router.patch('/:id/archived', function(req, res, next) {
   let id = req.params.id
   if (!ObjectID.isValid(id)) {
