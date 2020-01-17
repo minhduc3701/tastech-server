@@ -114,7 +114,10 @@ router.patch(
       'budgetPassengers',
       'adminMessage',
       'updatedByAdmin',
-      'updatedByAdminAt'
+      'updatedByAdminAt',
+      'isBookedWithinBudget',
+      'isBookedWithinPolicy',
+      'isBaseOnBalance'
     ])
     Trip.findOneAndUpdate(
       {

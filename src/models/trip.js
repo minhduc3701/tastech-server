@@ -100,7 +100,11 @@ const TripSchema = new Schema(
     isBudgetUpdated: {
       type: Boolean,
       default: false
-    }
+    },
+    isBookedByPartner: Boolean,
+    isBookedWithinBudget: Boolean,
+    isBookedWithinPolicy: Boolean,
+    isBaseOnBalance: Boolean
   },
   {
     timestamps: true
