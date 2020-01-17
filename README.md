@@ -68,6 +68,14 @@ Add config/config.json with the content like below:
 
 ```
 
+## Special for test
+
+https://developers.google.com/recaptcha/docs/faq
+
+```
+"RECAPTCHA_SECRET_KEY": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+```
+
 ## Special for demo
 
 ### Always force order completed
