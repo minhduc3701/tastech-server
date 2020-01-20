@@ -21,6 +21,7 @@ const {
   emailManagerSubmitTrip
 } = require('../middleware/email')
 const { calculateBudget } = require('../middleware/trips')
+const { getTasAdminOptions } = require('../middleware/options')
 const { currentCompany } = require('../middleware/company')
 
 router.get('/', function(req, res, next) {
@@ -436,6 +437,7 @@ router.patch(
       res.status(400).send()
     }
   },
+  getTasAdminOptions,
   calculateBudget,
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
@@ -467,6 +469,7 @@ router.post(
       res.status(400).send()
     }
   },
+  getTasAdminOptions,
   calculateBudget,
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
@@ -565,6 +568,24 @@ router.get('/:id/expenses', function(req, res, next) {
     .catch(e => res.status(400).send())
 })
 
+// order mapping
+const orderMappingParser = order => {
+  order = order.toJSON()
+
+  return _.omit(order, [
+    'flight.rawTotalPrice',
+    'flight.totalPrice',
+    'flight.originalTotalPrice',
+    'flight.exchangedTotalPrice',
+    'hotel.net',
+    'hotel.rawNet',
+    'hotel.ratePlans',
+    'hotel.cancellationPolicies',
+    'supplierInfo.rooms[0].rates[0].net',
+    'supplierInfo.rooms[0].rates[0].cancellationPolicies'
+  ])
+}
+
 // get orders by trip
 router.get('/:id/orders', function(req, res, next) {
   let id = req.params.id
@@ -647,7 +668,7 @@ router.get('/:id/orders', function(req, res, next) {
       })
 
       res.status(200).send({
-        orders,
+        orders: orders.map(orderMappingParser),
         airlines,
         airports
       })

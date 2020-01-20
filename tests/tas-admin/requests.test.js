@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const request = require('supertest')
 const app = require('../../src/app')
 const { tasAdminToken, setupDatabase } = require('../fixtures/db.js')
+const mongoose = require('mongoose')
 
 beforeEach(setupDatabase)
 
