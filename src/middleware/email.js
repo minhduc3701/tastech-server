@@ -241,6 +241,7 @@ const emailEmployeeItinerary = async (req, res, next) => {
       })
     })
   }
+  return next()
 }
 
 const emailGiamsoIssueTicket = async (req, res, next) => {

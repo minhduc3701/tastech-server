@@ -651,23 +651,43 @@ const depositCharging = async (req, res, next) => {
       currency = hotelOrder.currency
     }
 
-    // rounding amount
+    // log changing
     let company = req.company
-    let companyDeposit = company.deposit
-    let newCompanyDeposit = companyDeposit - amount
+    let { logs, deposit, isCreditLimitation, remainingCredit } = company
+    remainingCredit = isCreditLimitation ? remainingCredit : 0
 
-    let logs = company.logs
-    logs.push({
-      _creator: req.user._id,
-      createdAt: new Date(),
-      field: 'deposit',
-      old: companyDeposit,
-      new: newCompanyDeposit,
-      note
-    })
+    // in case have enough money
+    if (deposit + remainingCredit >= amount) {
+      let newDeposit, newRemainingCredit
+      // have enough deposit
+      if (deposit >= amount) {
+        newDeposit = deposit - amount
+      } else {
+        // use credit
+        newDeposit = 0
+        newRemainingCredit = remainingCredit - (amount - deposit)
+        company.remainingCredit = newRemainingCredit
 
-    if (companyDeposit >= amount) {
-      company.deposit = newCompanyDeposit
+        logs.push({
+          _creator: req.user._id,
+          createdAt: new Date(),
+          field: 'remainingCredit',
+          old: remainingCredit,
+          new: newRemainingCredit,
+          note
+        })
+      }
+
+      logs.push({
+        _creator: req.user._id,
+        createdAt: new Date(),
+        field: 'deposit',
+        old: deposit,
+        new: newDeposit,
+        note
+      })
+
+      company.deposit = newDeposit
       company.logs = logs
       await company.save()
     } else {
@@ -1414,20 +1434,49 @@ const refundDepositFailedOrder = async (req, res, next) => {
 
     // refund
     let company = req.company
-    let companyDeposit = company.deposit
-    let newCompanyDeposit = companyDeposit + refundAmount
+    let {
+      logs,
+      deposit,
+      isCreditLimitation,
+      creditLimitationAmount,
+      remainingCredit
+    } = company
+    let newDeposit = company.deposit
+    let newRemainingCredit = company.remainingCredit
+    remainingCredit = isCreditLimitation ? remainingCredit : 0
 
-    let logs = company.logs
+    if (!isCreditLimitation) {
+      newDeposit += refundAmount
+    } else {
+      if (creditLimitationAmount - remainingCredit >= refundAmount) {
+        newRemainingCredit += refundAmount
+      } else {
+        newRemainingCredit = creditLimitationAmount
+        newDeposit += refundAmount - (creditLimitationAmount - remainingCredit)
+      }
+
+      logs.push({
+        _creator: req.user._id,
+        createdAt: new Date(),
+        field: 'remainingCredit',
+        old: remainingCredit,
+        new: newRemainingCredit,
+        note
+      })
+
+      company.remainingCredit = newRemainingCredit
+    }
+
     logs.push({
       _creator: req.user._id,
       createdAt: new Date(),
       field: 'deposit',
-      old: companyDeposit,
-      new: newCompanyDeposit,
+      old: deposit,
+      new: newDeposit,
       note
     })
 
-    company.deposit = newCompanyDeposit
+    company.deposit = newDeposit
     company.logs = logs
     await company.save()
   } catch (error) {
@@ -1552,17 +1601,16 @@ router.post(
   pkfareFlightPreBooking,
   hotelbedsCheckRate,
   depositCharging,
-  emailNotEnoughDeposit,
   pkfareFlightTicketing,
   sabreCreatePNR,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
-  demoForceCompletedOrders,
   refundDepositFailedOrder,
   responseCheckout,
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
-  emailEmployeeItinerary
+  emailEmployeeItinerary,
+  emailNotEnoughDeposit
 )
 
 router.post('/password', (req, res) => {

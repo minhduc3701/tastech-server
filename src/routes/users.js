@@ -23,7 +23,11 @@ router.get('/me/company', function(req, res, next) {
   Company.findById({
     _id: req.user._company
   })
-    .then(company => res.status(200).send({ company }))
+    .then(company =>
+      res
+        .status(200)
+        .send({ company: _.pick(company, ['payment', 'exchangedRate']) })
+    )
     .catch(e => res.status(400).send())
 })
 
