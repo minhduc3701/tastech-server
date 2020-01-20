@@ -15,6 +15,10 @@ const verifyRecaptcha = async (req, res, next) => {
     if (!recaptchaVerifyRes.data.success) {
       throw new Error('verify captcha fail')
     }
+    // @see https://stackoverflow.com/a/54118106
+    if (_.get(recaptchaVerifyRes, 'data.score', 0) <= 0.5) {
+      throw new Error('captcha score <= 0.5')
+    }
   } catch (e) {
     return res.status(400).send()
   }
