@@ -145,7 +145,7 @@ router.get('/reset-password/:token', function(req, res) {
     })
 })
 
-router.post('/reset-password/:token', function(req, res) {
+router.post('/reset-password/:token', verifyRecaptcha, function(req, res) {
   User.findOne({
     resetPasswordToken: req.params.token,
     resetPasswordExpires: { $gt: Date.now() }
