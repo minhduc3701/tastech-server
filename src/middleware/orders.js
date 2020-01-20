@@ -59,7 +59,11 @@ const emailCustomerCancelledOrder = async (req, res, next) => {
   let order = await Order.populate(req.cancelledOrder, { path: '_customer' })
   let refundAmount = order.totalPrice - order.cancelCharge
 
-  let mailOptions = await orderCancelled(order, refundAmount)
+  let mailOptions = await orderCancelled(
+    req.headers.origin,
+    order,
+    refundAmount
+  )
   mail.sendMail(mailOptions, function(err, info) {
     if (err) {
       // debugMail(err)

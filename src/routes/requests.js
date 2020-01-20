@@ -24,7 +24,10 @@ router.post('/', verifyRecaptcha, function(req, res, next) {
         }
       })
 
-      let mailFeedbackOptions = await requestDemoFeedback(request)
+      let mailFeedbackOptions = await requestDemoFeedback(
+        req.headers.origin,
+        request
+      )
       mail.sendMail(mailFeedbackOptions, function(err, info) {
         if (err) {
           debugMail(err)

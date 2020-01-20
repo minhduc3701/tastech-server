@@ -72,9 +72,21 @@ app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
 // limit cors for 1 origin (client app uri)
+const origins = process.env.ALLOW_ORIGIN
+  ? process.env.ALLOW_ORIGIN.split(',')
+  : ''
 app.use(
   cors({
-    origin: process.env.ALLOW_ORIGIN
+    // @see https://expressjs.com/en/resources/middleware/cors.html
+    origin: Array.isArray(origins)
+      ? function(origin, callback) {
+          if (origins.indexOf(origin) !== -1) {
+            callback(null, true)
+          } else {
+            callback(new Error('Not allowed by CORS'))
+          }
+        }
+      : '' // empty allow all origin
   })
 )
 

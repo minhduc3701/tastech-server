@@ -3,7 +3,7 @@ const moment = require('moment')
 const { formatLocaleMoney } = require('../modules/utils')
 const _ = require('lodash')
 
-async function pendingExpense(accountants, expenses, employee) {
+async function pendingExpense(origin, accountants, expenses, employee) {
   let html = await renderMail('expense-pending', {
     title: '',
     employeeName: employee.firstName,
@@ -16,7 +16,7 @@ async function pendingExpense(accountants, expenses, employee) {
       amount: formatLocaleMoney(e.amount, e.currency),
       message: e.message
     })),
-    reviewLink: `${process.env.APP_URI}/admin/expenses/${expenses[0]._id}`
+    reviewLink: `${origin}/admin/expenses/${expenses[0]._id}`
   })
 
   return {
