@@ -15,6 +15,12 @@ const verifyRecaptcha = async (req, res, next) => {
     if (!recaptchaVerifyRes.data.success) {
       throw new Error('verify captcha fail')
     }
+    // @see https://stackoverflow.com/a/54118106
+    // with test key to run tests on CI, there is no score field return
+    // so the score will be bypass on CI with hostname === 'testkey.google.com'
+    if (recaptchaVerifyRes.data.score <= 0.5) {
+      throw new Error('captcha score <= 0.5')
+    }
   } catch (e) {
     return res.status(400).send()
   }
