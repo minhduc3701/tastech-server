@@ -14,7 +14,7 @@ const apiRecaptcha = {
     // @see https://stackoverflow.com/a/52416003
     return recaptchaHttp.post(
       `${endpoints.siteverify}?secret=${
-        process.env.RECAPTCHA_SECRET_KEY
+        process.env.RECAPTCHA_V3_SECRET_KEY
       }&response=${response}`
     )
   }

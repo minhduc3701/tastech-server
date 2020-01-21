@@ -62,7 +62,7 @@ Add config/config.json with the content like below:
     "REWARD_BASE_CURRENCY": "SGD",
     "NEWRELIC_APP_NAME": "Dev EzBizTrip API",
     "NEWRELIC_LICENSE_KEY": "",
-    "RECAPTCHA_SECRET_KEY": ""
+    "RECAPTCHA_V3_SECRET_KEY": ""
   }
 }
 
@@ -73,7 +73,7 @@ Add config/config.json with the content like below:
 https://developers.google.com/recaptcha/docs/faq
 
 ```
-"RECAPTCHA_SECRET_KEY": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+"RECAPTCHA_V3_SECRET_KEY": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
 ```
 
 ## Special for demo
@@ -220,7 +220,7 @@ export EMAIL_GIAMSO=<EMAIL_GIAMSO>
 export REWARD_BASE_CURRENCY=SGD
 export NEWRELIC_APP_NAME=EzBizTrip API
 export NEWRELIC_LICENSE_KEY=<NEWRELIC_LICENSE_KEY>
-export RECAPTCHA_SECRET_KEY=<RECAPTCHA_SECRET_KEY>
+export RECAPTCHA_V3_SECRET_KEY=<RECAPTCHA_V3_SECRET_KEY>
 ```
 
 Now you ready to run your app
