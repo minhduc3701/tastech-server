@@ -3,6 +3,7 @@ const router = express.Router()
 const Card = require('../models/card')
 const Trip = require('../models/trip')
 const Order = require('../models/order')
+const Company = require('../models/company')
 const api = require('../modules/api')
 const apiSabre = require('../modules/apiSabre')
 const { sabreRestToken } = require('../middleware/sabre')
@@ -21,7 +22,8 @@ const { logger } = require('../config/winston')
 const {
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary,
-  emailGiamsoIssueTicket
+  emailGiamsoIssueTicket,
+  emailNotEnoughDeposit
 } = require('../middleware/email')
 const { currentCompany } = require('../middleware/company')
 const { currenciesExchange } = require('../middleware/currency')
@@ -34,6 +36,7 @@ const {
   markupHotels,
   markupFlights
 } = require('../modules/utils')
+const { ObjectID } = require('mongodb')
 
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
@@ -621,6 +624,133 @@ const stripeCharging = async (req, res, next) => {
 
     if (hotelOrder) {
       hotelOrder.chargeId = charge.id
+      hotelOrder.chargeInfo = charge
+      await hotelOrder.save()
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const depositCharging = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const flightOrder = req.flightOrder
+    const hotelOrder = req.hotelOrder
+
+    // START CHARGING =======
+
+    // calculate the trip price here
+    let currency = ''
+    let amount = 0
+    let note = 'checkout for orders:'
+
+    // if have flight
+    if (flightOrder && flightOrder.flight) {
+      amount += flightOrder.totalPrice
+      note += ' ' + _.get(req, 'flightOrder._id', '')
+      currency = flightOrder.currency
+    }
+
+    // if have hotel
+    if (hotelOrder && hotelOrder.hotel) {
+      amount += hotelOrder.totalPrice
+      note += ' ' + _.get(req, 'hotelOrder._id', '')
+      currency = hotelOrder.currency
+    }
+
+    // log changing
+    let company = req.company
+    let { deposit, isCreditLimitation, remainingCredit } = company
+    remainingCredit = isCreditLimitation ? remainingCredit : 0
+    let newLogs = []
+
+    // in case have enough money
+    if (deposit + remainingCredit >= amount) {
+      let newDeposit, newRemainingCredit
+      // have enough deposit
+      if (deposit >= amount) {
+        newDeposit = deposit - amount
+      } else {
+        // use credit
+        newDeposit = 0
+        newRemainingCredit = remainingCredit - (amount - deposit)
+
+        newLogs.push({
+          _creator: req.user._id,
+          createdAt: new Date(),
+          field: 'remainingCredit',
+          old: remainingCredit,
+          new: newRemainingCredit,
+          note
+        })
+      }
+
+      if (newDeposit !== deposit) {
+        newLogs.push({
+          _creator: req.user._id,
+          createdAt: new Date(),
+          field: 'deposit',
+          old: deposit,
+          new: newDeposit,
+          note
+        })
+        req.company.deposit = newDeposit
+      }
+
+      req.company.remainingCredit = newRemainingCredit
+
+      let updatedData = {
+        deposit: newDeposit,
+        remainingCredit: newRemainingCredit
+      }
+
+      await Company.findOneAndUpdate(
+        {
+          _id: company._id,
+          _partner: req.user._partner
+        },
+        {
+          $set: updatedData,
+          $push: { logs: newLogs }
+        },
+        { new: true }
+      )
+    } else {
+      req.depositError = {
+        message: 'Remaining deposit is not enough for the trip.'
+      }
+      throw new Error('Remaining deposit is not enough for the trip.')
+    }
+
+    let charge = {
+      amount,
+      currency,
+      _id: new ObjectID(),
+      _company: company._id,
+      _createdAt: new Date()
+    }
+
+    req.charge = charge
+
+    // AFTER CHARGING =======
+
+    // save charge info data
+    if (flightOrder) {
+      flightOrder.chargeId = charge._id
+      flightOrder.chargeInfo = charge
+
+      await flightOrder.save()
+    }
+
+    if (hotelOrder) {
+      hotelOrder.chargeId = charge._id
       hotelOrder.chargeInfo = charge
 
       await hotelOrder.save()
@@ -1293,6 +1423,114 @@ const refundFailedOrder = async (req, res, next) => {
   next()
 }
 
+const refundDepositFailedOrder = async (req, res, next) => {
+  // exit if no checkout errors
+  // or no charge, run to another middleware
+  if (!req.checkoutError || !req.charge) {
+    next()
+    return
+  }
+  try {
+    let refundAmount = 0
+    let note = 'refund for orders:'
+
+    // refund for flight booking failed
+    if (req.checkoutError && req.checkoutError.flight) {
+      let flightOrder = req.flightOrder
+      refundAmount += flightOrder.totalPrice
+      note += ' ' + _.get(req, 'flightOrder._id', '')
+
+      // refund for combo (flight & hotel) if flight booking failed
+      let hotelOrder = req.hotelOrder
+      if (!_.isEmpty(hotelOrder)) {
+        refundAmount += hotelOrder.totalPrice
+        note += _.get(req, 'hotelOrder._id', '')
+      }
+
+      // if only hotel failed
+    } else if (req.checkoutError && req.checkoutError.hotel) {
+      // refund for hotel booking failed
+      let hotelOrder = req.hotelOrder
+      refundAmount += hotelOrder.totalPrice
+      note += ' ' + _.get(req, 'hotelOrder._id', '')
+
+      // success flight and fail hotel
+      if (req.flightOrder) {
+        req.checkoutError = undefined
+
+        // change status of hotel to failed
+        hotelOrder.status = 'failed'
+        await hotelOrder.save()
+      }
+    }
+
+    // refund
+    let company = req.company
+    let {
+      deposit,
+      isCreditLimitation,
+      creditLimitationAmount,
+      remainingCredit
+    } = company
+    let newDeposit = company.deposit
+    let newRemainingCredit = company.remainingCredit
+    remainingCredit = isCreditLimitation ? remainingCredit : 0
+    let newLogs = []
+
+    if (!isCreditLimitation) {
+      newDeposit += refundAmount
+    } else {
+      if (creditLimitationAmount - remainingCredit >= refundAmount) {
+        newRemainingCredit += refundAmount
+      } else {
+        newRemainingCredit = creditLimitationAmount
+        newDeposit += refundAmount - (creditLimitationAmount - remainingCredit)
+      }
+
+      newLogs.push({
+        _creator: req.user._id,
+        createdAt: new Date(),
+        field: 'remainingCredit',
+        old: remainingCredit,
+        new: newRemainingCredit,
+        note
+      })
+    }
+
+    if (newDeposit !== deposit) {
+      newLogs.push({
+        _creator: req.user._id,
+        createdAt: new Date(),
+        field: 'deposit',
+        old: deposit,
+        new: newDeposit,
+        note
+      })
+    }
+
+    let updatedData = {
+      deposit: newDeposit,
+      remainingCredit: newRemainingCredit
+    }
+
+    await Company.findOneAndUpdate(
+      {
+        _id: company._id,
+        _partner: req.user._partner
+      },
+      {
+        $set: updatedData,
+        $push: { logs: newLogs }
+      },
+      { new: true }
+    )
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
 const responseCheckout = async (req, res, next) => {
   // from createOrFindTrip
   const trip = req.trip
@@ -1392,6 +1630,32 @@ router.post(
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary
+)
+
+router.post(
+  '/deposit',
+  currentCompany,
+  getTasAdminOptions,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
+  sabreRestToken, // get token for sabre api
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  calculateRewardCost,
+  pkfareFlightPreBooking,
+  hotelbedsCheckRate,
+  depositCharging,
+  pkfareFlightTicketing,
+  sabreCreatePNR,
+  pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
+  refundDepositFailedOrder,
+  responseCheckout,
+  emailGiamsoIssueTicket,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary,
+  emailNotEnoughDeposit
 )
 
 router.post('/password', (req, res) => {
