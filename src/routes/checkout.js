@@ -3,6 +3,7 @@ const router = express.Router()
 const Card = require('../models/card')
 const Trip = require('../models/trip')
 const Order = require('../models/order')
+const Company = require('../models/company')
 const api = require('../modules/api')
 const apiSabre = require('../modules/apiSabre')
 const { sabreRestToken } = require('../middleware/sabre')
@@ -653,8 +654,9 @@ const depositCharging = async (req, res, next) => {
 
     // log changing
     let company = req.company
-    let { logs, deposit, isCreditLimitation, remainingCredit } = company
+    let { deposit, isCreditLimitation, remainingCredit } = company
     remainingCredit = isCreditLimitation ? remainingCredit : 0
+    let newLogs = []
 
     // in case have enough money
     if (deposit + remainingCredit >= amount) {
@@ -666,9 +668,8 @@ const depositCharging = async (req, res, next) => {
         // use credit
         newDeposit = 0
         newRemainingCredit = remainingCredit - (amount - deposit)
-        company.remainingCredit = newRemainingCredit
 
-        logs.push({
+        newLogs.push({
           _creator: req.user._id,
           createdAt: new Date(),
           field: 'remainingCredit',
@@ -678,18 +679,36 @@ const depositCharging = async (req, res, next) => {
         })
       }
 
-      logs.push({
-        _creator: req.user._id,
-        createdAt: new Date(),
-        field: 'deposit',
-        old: deposit,
-        new: newDeposit,
-        note
-      })
+      if (newDeposit !== deposit) {
+        newLogs.push({
+          _creator: req.user._id,
+          createdAt: new Date(),
+          field: 'deposit',
+          old: deposit,
+          new: newDeposit,
+          note
+        })
+        req.company.deposit = newDeposit
+      }
 
-      company.deposit = newDeposit
-      company.logs = logs
-      await company.save()
+      req.company.remainingCredit = newRemainingCredit
+
+      let updatedData = {
+        deposit: newDeposit,
+        remainingCredit: newRemainingCredit
+      }
+
+      await Company.findOneAndUpdate(
+        {
+          _id: company._id,
+          _partner: req.user._partner
+        },
+        {
+          $set: updatedData,
+          $push: { logs: newLogs }
+        },
+        { new: true }
+      )
     } else {
       req.depositError = {
         message: 'Remaining deposit is not enough for the trip.'
@@ -1435,7 +1454,6 @@ const refundDepositFailedOrder = async (req, res, next) => {
     // refund
     let company = req.company
     let {
-      logs,
       deposit,
       isCreditLimitation,
       creditLimitationAmount,
@@ -1444,6 +1462,7 @@ const refundDepositFailedOrder = async (req, res, next) => {
     let newDeposit = company.deposit
     let newRemainingCredit = company.remainingCredit
     remainingCredit = isCreditLimitation ? remainingCredit : 0
+    let newLogs = []
 
     if (!isCreditLimitation) {
       newDeposit += refundAmount
@@ -1455,7 +1474,7 @@ const refundDepositFailedOrder = async (req, res, next) => {
         newDeposit += refundAmount - (creditLimitationAmount - remainingCredit)
       }
 
-      logs.push({
+      newLogs.push({
         _creator: req.user._id,
         createdAt: new Date(),
         field: 'remainingCredit',
@@ -1463,22 +1482,35 @@ const refundDepositFailedOrder = async (req, res, next) => {
         new: newRemainingCredit,
         note
       })
-
-      company.remainingCredit = newRemainingCredit
     }
 
-    logs.push({
-      _creator: req.user._id,
-      createdAt: new Date(),
-      field: 'deposit',
-      old: deposit,
-      new: newDeposit,
-      note
-    })
+    if (newDeposit !== deposit) {
+      newLogs.push({
+        _creator: req.user._id,
+        createdAt: new Date(),
+        field: 'deposit',
+        old: deposit,
+        new: newDeposit,
+        note
+      })
+    }
 
-    company.deposit = newDeposit
-    company.logs = logs
-    await company.save()
+    let updatedData = {
+      deposit: newDeposit,
+      remainingCredit: newRemainingCredit
+    }
+
+    await Company.findOneAndUpdate(
+      {
+        _id: company._id,
+        _partner: req.user._partner
+      },
+      {
+        $set: updatedData,
+        $push: { logs: newLogs }
+      },
+      { new: true }
+    )
   } catch (error) {
     req.checkoutError = error
   }
