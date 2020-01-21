@@ -124,11 +124,24 @@ const verifyHotelbedsPrice = async (req, res, next) => {
       throw new Error('Cannot find room in cache')
     }
 
+    let ratePlanSplits = req.body.trip.hotel.ratePlanCode.split('|')
+    let checkInDate = ratePlanSplits[0]
+    checkInDate = `${checkInDate.slice(0, 4)}-${checkInDate.slice(
+      4,
+      6
+    )}-${checkInDate.slice(6, 8)}`
+    let checkOutDate = ratePlanSplits[1]
+    checkOutDate = `${checkOutDate.slice(0, 4)}-${checkOutDate.slice(
+      4,
+      6
+    )}-${checkOutDate.slice(6, 8)}`
+
     req.body.trip.hotel = {
-      checkInDate: req.body.trip.hotel.checkInDate,
-      checkOutDate: req.body.trip.hotel.checkOutDate,
+      ..._.pick(req.body.trip.hotel, ['hotelId', 'ratePlanCode', 'remark']),
       ...hotelInCache,
       ...roomInCache,
+      checkInDate,
+      checkOutDate,
       numberOfAdult: roomInCache.adults,
       numberOfRoom: roomInCache.rooms
     }
