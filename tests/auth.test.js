@@ -18,7 +18,8 @@ test('Should login an user', async () => {
     .post('/auth/login')
     .send({
       email: userOne.email,
-      password: userOne.password
+      password: userOne.password,
+      captchaResponse: 'fake-captcha-response'
     })
     .expect(200)
 
@@ -43,7 +44,8 @@ test('Should not login nonexistent user', async () => {
     .post('/auth/login')
     .send({
       email: userOne.email,
-      password: 'thisisnotmypass'
+      password: 'thisisnotmypass',
+      captchaResponse: 'fake-captcha-response'
     })
     .expect(400)
 })

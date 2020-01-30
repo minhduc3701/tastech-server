@@ -20,6 +20,7 @@ const { sendPnrGiamso } = require('../mailTemplates/sendPnrGiamso')
 const { cancelFlightGiamso } = require('../mailTemplates/cancelFlightGiamso')
 const { sendVoucherInfo } = require('../mailTemplates/sendVoucherInfo')
 const { debugMail } = require('../config/debug')
+const { notEnoughDeposit } = require('../mailTemplates/notEnoughDeposit')
 const { CAN_ACCESS_BUDGET, CAN_ACCESS_EXPENSE } = require('../config/roles')
 const { findAirlinesAirports } = require('../modules/utils')
 
@@ -98,9 +99,7 @@ const emailAccountantClaimExpense = async (req, res) => {
           })
         }
       })
-  } catch (error) {
-    console.log(error)
-  }
+  } catch (error) {}
 }
 
 const emailEmployeeSubmitTrip = async (req, res, next) => {
@@ -242,6 +241,7 @@ const emailEmployeeItinerary = async (req, res, next) => {
       })
     })
   }
+  return next()
 }
 
 const emailGiamsoIssueTicket = async (req, res, next) => {
@@ -373,6 +373,20 @@ const emailEzBizTripVoucherInfo = async (req, res, next) => {
   })
 }
 
+const emailNotEnoughDeposit = async (req, res, next) => {
+  if (!req.depositError) {
+    return next()
+  }
+
+  let mailOptions = await notEnoughDeposit(req.company)
+  mail.sendMail(mailOptions, function(err, info) {
+    if (err) {
+      debugMail(err)
+    }
+  })
+  next()
+}
+
 module.exports = {
   emailEmployeeSubmitTrip,
   emailEmployeeChangeTripStatus,
@@ -385,5 +399,6 @@ module.exports = {
   emailEmployeeItineraryPkfareTickiting,
   emailGiamsoIssueTicket,
   emailGiamsoCancelFlight,
-  emailEzBizTripVoucherInfo
+  emailEzBizTripVoucherInfo,
+  emailNotEnoughDeposit
 }

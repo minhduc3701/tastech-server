@@ -289,11 +289,7 @@ router.get('/:id/policies', function(req, res) {
 router.post('/', async (req, res) => {
   const body = _.pick(req.body, companyFields)
 
-  if (
-    requiredFields
-      .filter(field => body[field] !== 0)
-      .filter(field => !body[field]).length > 0
-  ) {
+  if (requiredFields.filter(field => !body[field]).length > 0) {
     return res.status(400).send()
   }
 
@@ -354,8 +350,8 @@ router.post('/bulk', async (req, res) => {
     let markupFlight = ['net', 'percentage'].includes(company.markupFlight)
       ? company.markupFlight
       : 'net'
-    let markupHotelAmount = _.get(company, 'markupHotelAmount', 0)
-    let markupFlightAmount = _.get(company, 'markupFlightAmount', 0)
+    let markupHotelAmount = _.get(company, 'markupHotelAmount', 10)
+    let markupFlightAmount = _.get(company, 'markupFlightAmount', 25)
 
     return {
       ...company,
@@ -563,7 +559,10 @@ router.patch('/:id', async (req, res) => {
     return res.status(404).send()
   }
 
-  const updatedData = _.pick(req.body, companyFields)
+  const updatedData = _.pick(
+    req.body,
+    companyFields.filter(field => field !== 'currency')
+  )
 
   try {
     const company = await Company.findOne({
@@ -602,11 +601,7 @@ router.patch('/:id', async (req, res) => {
       { new: true }
     )
 
-    if (
-      requiredFields
-        .filter(field => updatedCompany[field] !== 0)
-        .filter(field => !updatedCompany[field]).length > 0
-    ) {
+    if (requiredFields.filter(field => !updatedCompany[field]).length > 0) {
       return res.status(400).send()
     }
 
