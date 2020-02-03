@@ -18,58 +18,61 @@ router.post('/login', verifyRecaptcha, function(req, res, next) {
       message: 'Something is not right with your input'
     })
   }
-  passport.authenticate('local', { session: false }, (err, user, info) => {
-    if (err || !user) {
-      return res.status(400).json({
-        message: 'Something is not right',
-        user: user
+  passport.authenticate(
+    'local',
+    { session: false },
+    async (err, user, info) => {
+      if (err || !user) {
+        return res.status(400).json({
+          message: 'Something is not right',
+          user: user
+        })
+      }
+
+      // disabled user
+      if (user.disabled) {
+        return res.status(400).send()
+      }
+
+      // disabled company
+      let company = await Company.findById(user._company)
+      if (company.disabled) {
+        return res.status(400).send()
+      }
+
+      req.login(user, { session: false }, err => {
+        if (err) {
+          return res.send(err)
+        }
+
+        // store last login date
+        user.lastLoginDate = Date.now()
+        user.save()
+
+        // generate a signed son web token with the contents of user object and return it in the response
+        const token = jwt.sign(
+          {
+            id: user.id,
+            email: user.username,
+            // @see https://www.npmjs.com/package/jsonwebtoken
+            // @see https://stackoverflow.com/a/45207528
+            // Expires in 3 days
+            expiresIn: process.env.JWT_EXPIRES_IN
+          },
+          process.env.JWT_SECRET
+        )
+
+        User.findById(user.id)
+          .populate('_role')
+          .then(user => {
+            return res.json({
+              user,
+              token
+            })
+          })
       })
     }
-
-    // disabled user
-    if (user.disabled) {
-      return res.status(401).send()
-    }
-
-    // disabled company
-    Company.findById(user._company).then(company => {
-      if (company.disabled) {
-        return res.status(401).send()
-      }
-    })
-
-    req.login(user, { session: false }, err => {
-      if (err) {
-        res.send(err)
-      }
-
-      // store last login date
-      user.lastLoginDate = Date.now()
-      user.save()
-
-      // generate a signed son web token with the contents of user object and return it in the response
-      const token = jwt.sign(
-        {
-          id: user.id,
-          email: user.username,
-          // @see https://www.npmjs.com/package/jsonwebtoken
-          // @see https://stackoverflow.com/a/45207528
-          // Expires in 3 days
-          expiresIn: process.env.JWT_EXPIRES_IN
-        },
-        process.env.JWT_SECRET
-      )
-
-      User.findById(user.id)
-        .populate('_role')
-        .then(user => {
-          return res.json({
-            user,
-            token
-          })
-        })
-    })
-  })(req, res)
+  )(req, res)
 })
 
 router.post('/forgot-password', verifyRecaptcha, (req, res) => {
