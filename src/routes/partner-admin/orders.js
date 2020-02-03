@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Order = require('../../models/order')
+const Trip = require('../../models/trip')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeItinerary } = require('../../middleware/email')
@@ -49,6 +50,56 @@ router.get('/', function(req, res, next) {
         perPage,
         orders,
         status
+      })
+    })
+    .catch(e => {
+      res.status(400).send({})
+    })
+})
+
+router.get('/booking-request', function(req, res, next) {
+  // let perPage = _.get(req.query, 'perPage', 50)
+  // perPage = Math.max(0, parseInt(perPage))
+  // let page = _.get(req.query, 'page', 0)
+  // page = Math.max(0, parseInt(page))
+  // let status = _.get(req.query, 'status', '')
+  // let companies = _.get(req.query, 'companies', '')
+
+  let objFind = {
+    _partner: req.user._partner,
+    isBookedByPartner: true
+  }
+  // if (status) {
+  //   objFind.status = status
+  // }
+  // if (!_.isEmpty(companies)) {
+  //   companies = companies.split(',')
+  //   objFind._company = { $in: companies }
+  // }
+
+  Trip.find(objFind)
+    .populate('_creator')
+    .populate('_company')
+    .then(trips => {
+      let requests = []
+      trips.map(trip => {
+        _.get(trip, 'requestBookOnBehalfs', []).map(r => {
+          requests.push({
+            ...r,
+            _creator: trip._creator,
+            _company: {
+              _id: trip._company._id,
+              name: trip._company.name
+            },
+            _trip: {
+              _id: trip._id,
+              name: trip.name
+            }
+          })
+        })
+      })
+      res.status(200).send({
+        requests
       })
     })
     .catch(e => {

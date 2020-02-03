@@ -454,6 +454,7 @@ router.post(
 
     trip._creator = req.user._id
     trip._company = req.user._company
+    trip._partner = req.user._partner
     trip.status = 'waiting' // set default status is waiting
     trip.businessTrip = true
     trip.currency = req.currency.code
@@ -496,7 +497,8 @@ router.post('/:id/request-book', function(req, res, next) {
       $push: {
         requestBookOnBehalfs: {
           ...req.body,
-          status: 'waiting'
+          status: 'waiting',
+          createAt: moment().format()
         }
       }
     },

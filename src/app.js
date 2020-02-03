@@ -35,6 +35,7 @@ const adminExpensesRouter = require('./routes/admin/expenses')
 const adminReportsRouter = require('./routes/admin/reports')
 const partnerAdminCompaniesRouter = require('./routes/partner-admin/companies')
 const partnerAdminUsersRouter = require('./routes/partner-admin/users')
+const partnerAdminUsersRequest = require('./routes/partner-admin/requests')
 const flightsPkfareRouter = require('./routes/flights/pkfare')
 const flightsSabreRouter = require('./routes/flights/sabre')
 const hotelsPkfareRouter = require('./routes/hotels/pkfare')
@@ -170,6 +171,12 @@ app.use(
   jwtAuthenticate,
   authenticateRole('partner-admin'),
   partnerAdminUsersRouter
+)
+app.use(
+  '/partner-admin/requests',
+  jwtAuthenticate,
+  authenticateRole('partner-admin'),
+  partnerAdminUsersRequest
 )
 
 // admin routes
