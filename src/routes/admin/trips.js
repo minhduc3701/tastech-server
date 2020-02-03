@@ -116,8 +116,7 @@ router.patch(
       'updatedByAdmin',
       'updatedByAdminAt',
       'isBookedWithinBudget',
-      'isBookedWithinPolicy',
-      'isBaseOnBalance'
+      'isBookedWithinPolicy'
     ])
     Trip.findOneAndUpdate(
       {

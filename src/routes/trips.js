@@ -492,7 +492,14 @@ router.post('/:id/request-book', function(req, res, next) {
         $in: ['approved', 'ongoing']
       }
     },
-    { $push: { requestBookOnBehalfs: req.body } },
+    {
+      $push: {
+        requestBookOnBehalfs: {
+          ...req.body,
+          status: 'waiting'
+        }
+      }
+    },
     { new: true }
   )
     .then(trip => {
