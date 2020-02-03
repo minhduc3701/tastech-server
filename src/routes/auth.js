@@ -2,6 +2,7 @@ var express = require('express')
 var router = express.Router()
 var passport = require('passport')
 var User = require('../models/user')
+var Company = require('../models/company')
 var jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const async = require('async')
@@ -29,6 +30,13 @@ router.post('/login', verifyRecaptcha, function(req, res, next) {
     if (user.disabled) {
       return res.status(401).send()
     }
+
+    // disabled company
+    Company.findById(user._company).then(company => {
+      if (company.disabled) {
+        return res.status(401).send()
+      }
+    })
 
     req.login(user, { session: false }, err => {
       if (err) {
