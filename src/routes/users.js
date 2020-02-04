@@ -31,19 +31,6 @@ router.get('/me/company', function(req, res, next) {
     .catch(e => res.status(400).send())
 })
 
-router.get('/company/:userId', async (req, res) => {
-  try {
-    let user = await User.findById({ _id: req.params.userId })
-    let company = await Company.findById({ _id: _.get(user, '_company', '') })
-
-    if (!company) {
-      return res.status(404).send()
-    }
-
-    return res.status(200).send({ company: _.pick(company, ['payment']) })
-  } catch (e) {}
-})
-
 router.get('/me/point', function(req, res, next) {
   User.findById({
     _id: req.user._id
