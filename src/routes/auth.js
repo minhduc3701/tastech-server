@@ -36,7 +36,7 @@ router.post('/login', verifyRecaptcha, function(req, res, next) {
 
       // disabled company
       let company = await Company.findById(user._company)
-      if (company.disabled) {
+      if (company && company.disabled) {
         return res.status(400).send()
       }
 
