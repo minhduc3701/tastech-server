@@ -4,7 +4,7 @@ const Trip = require('../../models/trip')
 const _ = require('lodash')
 const { ObjectID } = require('mongodb')
 
-router.get('/:id/:type', function(req, res, next) {
+router.get('/:id/:a', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
@@ -20,6 +20,9 @@ router.get('/:id/:type', function(req, res, next) {
       let request = _.get(trip, 'requestBookOnBehalfs', []).find(
         r => r.type === req.params.type
       )
+      if (_.isEmpty(request)) {
+        return res.status(404).send()
+      }
       request = {
         ...request,
         _creator: trip._creator,
