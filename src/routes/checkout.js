@@ -1633,6 +1633,33 @@ router.post(
 )
 
 router.post(
+  '/partner-deposit',
+  isPartnerBooking,
+  currentCompany,
+  getTasAdminOptions,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
+  sabreRestToken, // get token for sabre api
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  calculateRewardCost,
+  pkfareFlightPreBooking,
+  hotelbedsCheckRate,
+  depositCharging,
+  pkfareFlightTicketing,
+  sabreCreatePNR,
+  pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
+  refundDepositFailedOrder,
+  responseCheckout,
+  emailGiamsoIssueTicket,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary,
+  emailNotEnoughDeposit
+)
+
+router.post(
   '/deposit',
   currentCompany,
   getTasAdminOptions,
