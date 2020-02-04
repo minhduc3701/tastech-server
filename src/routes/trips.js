@@ -498,7 +498,7 @@ router.post('/:id/request-book', function(req, res, next) {
         requestBookOnBehalfs: {
           ...req.body,
           status: 'waiting',
-          createAt: moment().format()
+          createdAt: moment().format()
         }
       }
     },

@@ -4,7 +4,7 @@ const Trip = require('../../models/trip')
 const _ = require('lodash')
 const { ObjectID } = require('mongodb')
 
-router.get('/:id/:a', function(req, res, next) {
+router.get('/:id/:type', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
@@ -30,10 +30,7 @@ router.get('/:id/:a', function(req, res, next) {
           _id: trip._company._id,
           name: trip._company.name
         },
-        _trip: {
-          _id: trip._id,
-          name: trip.name
-        }
+        _trip: _.pick(trip, ['_id', 'name', 'budgetPassengers', 'currency'])
       }
       res.status(200).send({
         request

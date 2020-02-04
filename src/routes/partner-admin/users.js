@@ -4,6 +4,7 @@ const User = require('../../models/user')
 const _ = require('lodash')
 const Trip = require('../../models/trip')
 const { validateUserIdPartner } = require('../../middleware/users')
+const { ObjectID } = require('mongodb')
 
 router.post('/search', (req, res) => {
   let email = _.toLower(_.trim(req.body.email))
@@ -151,6 +152,44 @@ router.get('/:id/trips/booking', validateUserIdPartner, async (req, res) => {
   } catch (e) {
     res.status(400).send()
   }
+})
+
+router.get('/:id/booking-request', function(req, res, next) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+  let objFind = {
+    _creator: req.params.id,
+    _partner: req.user._partner,
+    isBookedByPartner: true
+  }
+  Trip.find(objFind)
+    .populate('_creator')
+    .populate('_company')
+    .then(trips => {
+      let requests = []
+      trips.map(trip => {
+        _.get(trip, 'requestBookOnBehalfs', []).map(r => {
+          requests.push({
+            _id: `${trip._id}-${r.type}`,
+            ...r,
+            _creator: trip._creator,
+            _company: {
+              _id: trip._company._id,
+              name: trip._company.name
+            },
+            _trip: {
+              _id: trip._id,
+              name: trip.name
+            }
+          })
+        })
+      })
+      res.status(200).send({ requests })
+    })
+    .catch(e => {
+      res.status(400).send({})
+    })
 })
 
 module.exports = router

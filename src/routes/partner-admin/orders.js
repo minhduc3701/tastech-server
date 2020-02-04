@@ -58,24 +58,10 @@ router.get('/', function(req, res, next) {
 })
 
 router.get('/booking-request', function(req, res, next) {
-  // let perPage = _.get(req.query, 'perPage', 50)
-  // perPage = Math.max(0, parseInt(perPage))
-  // let page = _.get(req.query, 'page', 0)
-  // page = Math.max(0, parseInt(page))
-  // let status = _.get(req.query, 'status', '')
-  // let companies = _.get(req.query, 'companies', '')
-
   let objFind = {
     _partner: req.user._partner,
     isBookedByPartner: true
   }
-  // if (status) {
-  //   objFind.status = status
-  // }
-  // if (!_.isEmpty(companies)) {
-  //   companies = companies.split(',')
-  //   objFind._company = { $in: companies }
-  // }
 
   Trip.find(objFind)
     .populate('_creator')
