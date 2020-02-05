@@ -1480,21 +1480,23 @@ const refundDepositFailedOrder = async (req, res, next) => {
     if (!isCreditLimitation) {
       newDeposit += refundAmount
     } else {
-      if (creditLimitationAmount - remainingCredit >= refundAmount) {
+      if (creditLimitationAmount - company.remainingCredit >= refundAmount) {
         newRemainingCredit += refundAmount
       } else {
         newRemainingCredit = creditLimitationAmount
         newDeposit += refundAmount - (creditLimitationAmount - remainingCredit)
       }
 
-      newLogs.push({
-        _creator: req.user._id,
-        createdAt: new Date(),
-        field: 'remainingCredit',
-        old: remainingCredit,
-        new: newRemainingCredit,
-        note
-      })
+      if (newRemainingCredit !== remainingCredit) {
+        newLogs.push({
+          _creator: req.user._id,
+          createdAt: new Date(),
+          field: 'remainingCredit',
+          old: remainingCredit,
+          new: newRemainingCredit,
+          note
+        })
+      }
     }
 
     if (newDeposit !== deposit) {
