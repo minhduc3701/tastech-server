@@ -631,4 +631,18 @@ router.delete('/:id', function(req, res) {
     })
 })
 
+// get company payment by employee id
+router.get('/:employeeId/company', async (req, res) => {
+  try {
+    let user = await User.findById({ _id: req.params.employeeId })
+    let company = await Company.findById({ _id: _.get(user, '_company', '') })
+
+    if (!company) {
+      return res.status(404).send()
+    }
+
+    return res.status(200).send({ company: _.pick(company, ['payment']) })
+  } catch (e) {}
+})
+
 module.exports = router
