@@ -668,12 +668,13 @@ const depositCharging = async (req, res, next) => {
     // log changing
     let company = req.company
     let { deposit, isCreditLimitation, remainingCredit } = company
+    let newDeposit = company.deposit
+    let newRemainingCredit = company.remainingCredit
     remainingCredit = isCreditLimitation ? remainingCredit : 0
     let newLogs = []
 
     // in case have enough money
     if (deposit + remainingCredit >= amount) {
-      let newDeposit, newRemainingCredit
       // have enough deposit
       if (deposit >= amount) {
         newDeposit = deposit - amount
@@ -740,7 +741,6 @@ const depositCharging = async (req, res, next) => {
     req.charge = charge
 
     // AFTER CHARGING =======
-
     // save charge info data
     if (flightOrder) {
       flightOrder.chargeId = charge._id
@@ -1480,21 +1480,23 @@ const refundDepositFailedOrder = async (req, res, next) => {
     if (!isCreditLimitation) {
       newDeposit += refundAmount
     } else {
-      if (creditLimitationAmount - remainingCredit >= refundAmount) {
+      if (creditLimitationAmount - company.remainingCredit >= refundAmount) {
         newRemainingCredit += refundAmount
       } else {
         newRemainingCredit = creditLimitationAmount
         newDeposit += refundAmount - (creditLimitationAmount - remainingCredit)
       }
 
-      newLogs.push({
-        _creator: req.user._id,
-        createdAt: new Date(),
-        field: 'remainingCredit',
-        old: remainingCredit,
-        new: newRemainingCredit,
-        note
-      })
+      if (newRemainingCredit !== remainingCredit) {
+        newLogs.push({
+          _creator: req.user._id,
+          createdAt: new Date(),
+          field: 'remainingCredit',
+          old: remainingCredit,
+          new: newRemainingCredit,
+          note
+        })
+      }
     }
 
     if (newDeposit !== deposit) {
@@ -1630,6 +1632,33 @@ router.post(
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary
+)
+
+router.post(
+  '/partner-deposit',
+  isPartnerBooking,
+  currentCompany,
+  getTasAdminOptions,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
+  sabreRestToken, // get token for sabre api
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  calculateRewardCost,
+  pkfareFlightPreBooking,
+  hotelbedsCheckRate,
+  depositCharging,
+  pkfareFlightTicketing,
+  sabreCreatePNR,
+  pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
+  refundDepositFailedOrder,
+  responseCheckout,
+  emailGiamsoIssueTicket,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary,
+  emailNotEnoughDeposit
 )
 
 router.post(
