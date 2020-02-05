@@ -1581,6 +1581,13 @@ const responseCheckout = async (req, res, next) => {
   next() // next for sent email
 }
 
+const validateDepositPayment = (req, res, next) => {
+  if (req.company.payment !== 'deposit') {
+    return res.status(400).send()
+  }
+  next()
+}
+
 router.post(
   '/card',
   currentCompany,
@@ -1638,6 +1645,7 @@ router.post(
   '/partner-deposit',
   isPartnerBooking,
   currentCompany,
+  validateDepositPayment,
   getTasAdminOptions,
   verifySabrePrice,
   verifyHotelbedsPrice,
@@ -1664,6 +1672,7 @@ router.post(
 router.post(
   '/deposit',
   currentCompany,
+  validateDepositPayment,
   getTasAdminOptions,
   verifySabrePrice,
   verifyHotelbedsPrice,
