@@ -25,6 +25,7 @@ router.get('/:id/:type', function(req, res, next) {
       }
       request = {
         ...request,
+        _id: `${trip._id}-${request.type}`,
         _creator: trip._creator,
         _company: {
           _id: trip._company._id,
