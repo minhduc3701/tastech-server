@@ -11,7 +11,8 @@ router.get('/:id/:type', function(req, res, next) {
   let objFind = {
     _id: req.params.id,
     _partner: req.user._partner,
-    isBookedByPartner: true
+    isBookedByPartner: true,
+    status: { $in: ['ongoing', 'approved'] }
   }
   Trip.findOne(objFind)
     .populate('_creator')
@@ -31,7 +32,7 @@ router.get('/:id/:type', function(req, res, next) {
           _id: trip._company._id,
           name: trip._company.name
         },
-        _trip: _.pick(trip, ['_id', 'name', 'budgetPassengers', 'currency'])
+        _trip: trip
       }
       res.status(200).send({
         request

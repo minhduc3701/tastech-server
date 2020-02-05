@@ -161,7 +161,8 @@ router.get('/:id/booking-request', function(req, res, next) {
   let objFind = {
     _creator: req.params.id,
     _partner: req.user._partner,
-    isBookedByPartner: true
+    isBookedByPartner: true,
+    status: { $in: ['ongoing', 'approved'] }
   }
   Trip.find(objFind)
     .populate('_creator')
@@ -170,19 +171,18 @@ router.get('/:id/booking-request', function(req, res, next) {
       let requests = []
       trips.map(trip => {
         _.get(trip, 'requestBookOnBehalfs', []).map(r => {
-          requests.push({
-            _id: `${trip._id}-${r.type}`,
-            ...r,
-            _creator: trip._creator,
-            _company: {
-              _id: trip._company._id,
-              name: trip._company.name
-            },
-            _trip: {
-              _id: trip._id,
-              name: trip.name
-            }
-          })
+          if (r.status === 'waiting') {
+            requests.push({
+              _id: `${trip._id}-${r.type}`,
+              ...r,
+              _creator: trip._creator,
+              _company: {
+                _id: trip._company._id,
+                name: trip._company.name
+              },
+              _trip: trip
+            })
+          }
         })
       })
       res.status(200).send({ requests })

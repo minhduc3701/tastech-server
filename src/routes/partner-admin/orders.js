@@ -70,18 +70,20 @@ router.get('/booking-request', function(req, res, next) {
       let requests = []
       trips.map(trip => {
         _.get(trip, 'requestBookOnBehalfs', []).map(r => {
-          requests.push({
-            ...r,
-            _creator: trip._creator,
-            _company: {
-              _id: trip._company._id,
-              name: trip._company.name
-            },
-            _trip: {
-              _id: trip._id,
-              name: trip.name
-            }
-          })
+          if (r.status === 'waiting') {
+            requests.push({
+              ...r,
+              _creator: trip._creator,
+              _company: {
+                _id: trip._company._id,
+                name: trip._company.name
+              },
+              _trip: {
+                _id: trip._id,
+                name: trip.name
+              }
+            })
+          }
         })
       })
       res.status(200).send({

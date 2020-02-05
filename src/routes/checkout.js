@@ -28,7 +28,10 @@ const {
 const { currentCompany } = require('../middleware/company')
 const { currenciesExchange } = require('../middleware/currency')
 const { getTasAdminOptions } = require('../middleware/options')
-const { isPartnerBooking } = require('../middleware/partnerAdmin')
+const {
+  isPartnerBooking,
+  updateBookingRequest
+} = require('../middleware/partnerAdmin')
 
 const {
   makeSabreFlightsData,
@@ -1631,7 +1634,8 @@ router.post(
   responseCheckout,
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
-  emailEmployeeItinerary
+  emailEmployeeItinerary,
+  updateBookingRequest
 )
 
 router.post(
@@ -1658,7 +1662,8 @@ router.post(
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary,
-  emailNotEnoughDeposit
+  emailNotEnoughDeposit,
+  updateBookingRequest
 )
 
 router.post(
