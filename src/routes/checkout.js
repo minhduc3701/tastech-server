@@ -668,12 +668,13 @@ const depositCharging = async (req, res, next) => {
     // log changing
     let company = req.company
     let { deposit, isCreditLimitation, remainingCredit } = company
+    let newDeposit = company.deposit
+    let newRemainingCredit = company.remainingCredit
     remainingCredit = isCreditLimitation ? remainingCredit : 0
     let newLogs = []
 
     // in case have enough money
     if (deposit + remainingCredit >= amount) {
-      let newDeposit, newRemainingCredit
       // have enough deposit
       if (deposit >= amount) {
         newDeposit = deposit - amount
@@ -740,7 +741,6 @@ const depositCharging = async (req, res, next) => {
     req.charge = charge
 
     // AFTER CHARGING =======
-
     // save charge info data
     if (flightOrder) {
       flightOrder.chargeId = charge._id
