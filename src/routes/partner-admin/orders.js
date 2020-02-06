@@ -57,6 +57,7 @@ router.get('/', function(req, res, next) {
     })
 })
 
+// get all booking request
 router.get('/booking-request', function(req, res, next) {
   let objFind = {
     _partner: req.user._partner,

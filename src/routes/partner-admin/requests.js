@@ -4,6 +4,7 @@ const Trip = require('../../models/trip')
 const _ = require('lodash')
 const { ObjectID } = require('mongodb')
 
+// get booking request by tripId and type
 router.get('/:id/:type', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()

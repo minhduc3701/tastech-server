@@ -33,6 +33,7 @@ const isPartnerBooking = async (req, res, next) => {
   next()
 }
 
+// update status book request from waiting to booked after booking
 const updateBookingRequest = async (req, res, next) => {
   let { onBehalf, selectBookingRequest } = req.body
   if (!onBehalf || !selectBookingRequest) {

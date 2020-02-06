@@ -479,7 +479,8 @@ router.post(
   emailManagerSubmitTrip
 )
 
-router.post('/:id/request-book', function(req, res, next) {
+// create booking request
+router.post('/:id/booking-request', function(req, res, next) {
   let id = req.params.id
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()

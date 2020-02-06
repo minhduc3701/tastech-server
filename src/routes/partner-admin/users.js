@@ -154,6 +154,7 @@ router.get('/:id/trips/booking', validateUserIdPartner, async (req, res) => {
   }
 })
 
+//get booking request by UserId
 router.get('/:id/booking-request', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
