@@ -101,7 +101,8 @@ router.get('/flyerPrograms', (req, res) => {
       res.status(200).send({
         flyerPrograms: flyerPrograms.map(program => ({
           value: program.name,
-          label: program.name
+          label: program.name,
+          iata: program.iata
         }))
       })
     })

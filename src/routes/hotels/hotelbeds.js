@@ -4,93 +4,115 @@ const api = require('../../modules/apiHotelbeds')
 const axios = require('axios')
 const { makeHotelbedsHotelsData } = require('../../modules/utils')
 const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
+const { findUserPolicy } = require('../../middleware/policies')
+const { findCompletedOrders } = require('../../middleware/suggestions')
 const { logger } = require('../../config/winston')
 const { makeHotelBedsCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
 const { suggestHotelRooms } = require('../../modules/suggestions')
 const _ = require('lodash')
 
-router.post('/hotels', hotelbedsCurrencyExchange, async (req, res) => {
-  let cacheKey = makeHotelBedsCacheKey(req.body.roomRequest)
+router.post(
+  '/hotels',
+  hotelbedsCurrencyExchange,
+  findUserPolicy,
+  findCompletedOrders,
+  async (req, res) => {
+    let cacheKey = makeHotelBedsCacheKey(req.body.roomRequest)
 
-  try {
-    let data = await getCache(cacheKey)
+    try {
+      let data = await getCache(cacheKey)
 
-    let hotelbedsHotelsData = makeHotelbedsHotelsData(
-      data.hotels,
-      data.rooms,
-      req.currency
-    )
+      let hotelbedsHotelsData = makeHotelbedsHotelsData(
+        data.hotels,
+        data.rooms,
+        req.currency
+      )
 
-    let suggestData = suggestHotelRooms(hotelbedsHotelsData, req.body, req.user)
+      let suggestData = suggestHotelRooms(
+        hotelbedsHotelsData,
+        req.body,
+        req.user,
+        req.policy,
+        req.bookedHotels
+      )
 
-    // for combo select room
-    _.set(
-      suggestData,
-      'bestHotelRooms',
-      suggestData.bestHotelRooms.map(room => ({
-        ...room,
-        cacheKey
-      }))
-    )
+      // for combo select room
+      _.set(
+        suggestData,
+        'bestHotelRooms',
+        suggestData.bestHotelRooms.map(room => ({
+          ...room,
+          cacheKey
+        }))
+      )
 
-    return res.status(200).send({
-      ...suggestData,
-      cacheKey
-    })
-  } catch (e) {
-    // do nothing to run below query
-  }
-
-  try {
-    // get available hotelbeds rooms
-    let { roomRequest } = req.body
-    let hotelbedsRoomsRes = await api.getRooms(roomRequest)
-
-    // get appropriate hotelbeds hotel content, merge to available hotels
-    let hotelIds = hotelbedsRoomsRes.data.hotels.hotels.map(hotel => hotel.code)
-    const queryString = `fields=all&codes=${hotelIds.join(',')}&from=1&to=${
-      hotelIds.length
-    }`
-    let hotelbedsHotelsRes = await api.getHotels(queryString)
-
-    let hotelbedsHotelsData = makeHotelbedsHotelsData(
-      hotelbedsHotelsRes.data.hotels,
-      hotelbedsRoomsRes.data.hotels,
-      req.currency
-    )
-
-    let suggestData = suggestHotelRooms(hotelbedsHotelsData, req.body, req.user)
-    // for combo select room
-    _.set(
-      suggestData,
-      'bestHotelRooms',
-      suggestData.bestHotelRooms.map(room => ({
-        ...room,
-        cacheKey
-      }))
-    )
-
-    if (hotelbedsRoomsRes.data) {
-      res.status(200).send({
+      return res.status(200).send({
         ...suggestData,
         cacheKey
       })
+    } catch (e) {
+      // do nothing to run below query
     }
 
-    // cached for using 1 hour later
-    setCache(
-      cacheKey,
-      {
-        hotels: hotelbedsHotelsRes.data.hotels,
-        rooms: hotelbedsRoomsRes.data.hotels
-      },
-      3600
-    )
-  } catch (error) {
-    res.status(400).send()
+    try {
+      // get available hotelbeds rooms
+      let { roomRequest } = req.body
+      let hotelbedsRoomsRes = await api.getRooms(roomRequest)
+
+      // get appropriate hotelbeds hotel content, merge to available hotels
+      let hotelIds = hotelbedsRoomsRes.data.hotels.hotels.map(
+        hotel => hotel.code
+      )
+      const queryString = `fields=all&codes=${hotelIds.join(',')}&from=1&to=${
+        hotelIds.length
+      }`
+      let hotelbedsHotelsRes = await api.getHotels(queryString)
+
+      let hotelbedsHotelsData = makeHotelbedsHotelsData(
+        hotelbedsHotelsRes.data.hotels,
+        hotelbedsRoomsRes.data.hotels,
+        req.currency
+      )
+
+      let suggestData = suggestHotelRooms(
+        hotelbedsHotelsData,
+        req.body,
+        req.user,
+        req.policy,
+        req.bookedHotels
+      )
+      // for combo select room
+      _.set(
+        suggestData,
+        'bestHotelRooms',
+        suggestData.bestHotelRooms.map(room => ({
+          ...room,
+          cacheKey
+        }))
+      )
+
+      if (hotelbedsRoomsRes.data) {
+        res.status(200).send({
+          ...suggestData,
+          cacheKey
+        })
+      }
+
+      // cached for using 1 hour later
+      setCache(
+        cacheKey,
+        {
+          hotels: hotelbedsHotelsRes.data.hotels,
+          rooms: hotelbedsRoomsRes.data.hotels
+        },
+        3600
+      )
+    } catch (error) {
+      res.status(400).send()
+    }
   }
-})
+)
 
 router.post('/checkRate', async (req, res) => {
   const rateKey = req.body.rateKey
