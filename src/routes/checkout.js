@@ -735,7 +735,8 @@ const depositCharging = async (req, res, next) => {
       currency,
       _id: new ObjectID(),
       _company: company._id,
-      _createdAt: new Date()
+      _createdAt: new Date(),
+      paymentType: 'deposit'
     }
 
     req.charge = charge
