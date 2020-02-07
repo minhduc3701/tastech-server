@@ -8,6 +8,8 @@ const Airport = require('../../models/airport')
 const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
 const { sabreCurrencyExchange } = require('../../middleware/currency')
+const { findUserPolicy } = require('../../middleware/policies')
+const { findCompletedOrders } = require('../../middleware/suggestions')
 const {
   sabreRestToken,
   sabreSoapSecurityToken
@@ -24,6 +26,8 @@ router.post(
   '/shopping',
   sabreCurrencyExchange,
   sabreRestToken,
+  findUserPolicy,
+  findCompletedOrders,
   async (req, res) => {
     let search = req.body.search
     let cacheKey = makeSabreFlightCacheKey(search)
@@ -38,7 +42,13 @@ router.post(
         cacheData.numberOfPassengers
       )
 
-      let suggestData = suggestFlights(flights, req.body.trip, req.user)
+      let suggestData = suggestFlights(
+        flights,
+        req.body.trip,
+        req.user,
+        req.policy,
+        req.bookedAirlines
+      )
 
       return res.status(200).send({
         ...suggestData,
@@ -124,7 +134,13 @@ router.post(
             }
           })
 
-        let suggestData = suggestFlights(flights, req.body.trip, req.user)
+        let suggestData = suggestFlights(
+          flights,
+          req.body.trip,
+          req.user,
+          req.policy,
+          req.bookedAirlines
+        )
 
         res.status(200).send({
           ...suggestData,
