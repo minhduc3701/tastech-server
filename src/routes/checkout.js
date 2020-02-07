@@ -1473,6 +1473,7 @@ const refundDepositFailedOrder = async (req, res, next) => {
       creditLimitationAmount,
       remainingCredit
     } = company
+
     let newDeposit = company.deposit
     let newRemainingCredit = company.remainingCredit
     remainingCredit = isCreditLimitation ? remainingCredit : 0

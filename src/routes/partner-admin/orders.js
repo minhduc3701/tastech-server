@@ -6,6 +6,7 @@ const _ = require('lodash')
 const { emailEmployeeItinerary } = require('../../middleware/email')
 const {
   refundCancelledOrderManually,
+  refundCancelledOrderDepositManually,
   emailCustomerCancelledOrder
 } = require('../../middleware/orders')
 const { findAirlinesAirports } = require('../../modules/utils')
@@ -146,6 +147,7 @@ router.patch(
     }
   },
   refundCancelledOrderManually,
+  refundCancelledOrderDepositManually,
   emailCustomerCancelledOrder,
   emailEmployeeItinerary
 )

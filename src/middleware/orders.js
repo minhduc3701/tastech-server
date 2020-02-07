@@ -4,6 +4,7 @@ const { orderCancelled } = require('../mailTemplates/orderCancelled')
 const Order = require('../models/order')
 const Company = require('../models/company')
 const { mail } = require('../config/mail')
+const _ = require('lodash')
 
 // Run after PATCH /tas-admin/orders/:id
 const refundCancelledOrderManually = async (req, res, next) => {
