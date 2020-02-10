@@ -1,42 +1,120 @@
 const _ = require('lodash')
 const { getDistanceFromLatLonInKm } = require('./utils')
 
-const suggestFlights = (flights, trip, user) => {
+const SMART_POINTS_FLIGHT = {
+  BUSINESS_TRIP: {
+    underBudget: 20,
+    matchPolicyClass: 20,
+    underPolicyLimit: 15,
+    matchBooked: 15,
+    nonStop: 10,
+    refundable: 10,
+    baggageAllowance: 10,
+    matchLoyaltyProgram: 10,
+    lowestPrice: 10
+  },
+  PERSONAL_TRIP: {
+    underBudget: 0,
+    matchPolicyClass: 0,
+    underPolicyLimit: 0,
+    matchBooked: 20,
+    nonStop: 10,
+    refundable: 10,
+    baggageAllowance: 10,
+    matchLoyaltyProgram: 10,
+    lowestPrice: 20
+  }
+}
+
+const SMART_POINTS_HOTEL = {
+  BUSINESS_TRIP: {
+    underBudget: 20,
+    matchPolicyClass: 20,
+    overPolicyClass: 10,
+    underPolicyLimit: 15,
+    matchBooked: 15,
+    matchFavorite: 10,
+    matchLoyaltyProgram: 10,
+    lowestPrice: 10,
+    matchSearchedName: 30,
+    distance: 20
+  },
+  PERSONAL_TRIP: {
+    underBudget: 0,
+    matchPolicyClass: 0,
+    overPolicyClass: 0,
+    underPolicyLimit: 0,
+    matchBooked: 15,
+    matchFavorite: 10,
+    matchLoyaltyProgram: 10,
+    lowestPrice: 20,
+    matchSearchedName: 30,
+    distance: 20
+  }
+}
+
+const suggestFlights = (flights, trip, user, policy, bookedAirlines) => {
   let limitFlight = _.get(trip, 'flightLimitation', 0)
   let minFlight = _.minBy(flights, 'totalPrice')
+
+  let purpose = _.isEmpty(trip) ? 'PERSONAL_TRIP' : 'BUSINESS_TRIP'
 
   flights = flights.map(flight => {
     let point = 0
 
     // under budget
     if (flight.totalPrice <= limitFlight) {
-      point += 5
+      point += SMART_POINTS_FLIGHT[purpose]['underBudget']
     }
 
-    // booking history + 5 if match
-    // logic goes here
+    // Match to flight class in Flight policy
+    if (
+      _.toLower(_.get(flight, 'departureSegments[0].cabinClass')) ===
+      _.toLower(policy.flightClass)
+    ) {
+      point += SMART_POINTS_FLIGHT[purpose]['matchPolicyClass']
+    }
+
+    // Under flight cost limitation in Flight policy
+    if (policy.setFlightLimit && flight.totalPrice <= policy.flightLimit) {
+      point += SMART_POINTS_FLIGHT[purpose]['underPolicyLimit']
+    }
+
+    // Match to user booking history +15
+    if (_.includes(bookedAirlines, flight.departureSegments[0].airline)) {
+      point += SMART_POINTS_FLIGHT[purpose]['matchBooked']
+    }
 
     // no stop
     if (flight.departureSegments.length === 1) {
-      point += 5
+      point += SMART_POINTS_FLIGHT[purpose]['nonStop']
     }
 
     // cancellable/refundable
     if (flight.refundable) {
-      point += 4
+      point += SMART_POINTS_FLIGHT[purpose]['refundable']
     }
 
-    // prefer airline
+    // Baggage included
+    if (flight.baggageAllowance) {
+      point += SMART_POINTS_FLIGHT[purpose]['baggageAllowance']
+    }
+
+    // Match to user’s loyalty program +10
     if (
-      _.toLower(flight.departureSegments[0].airline) ===
-      _.toLower(user.preferenceFlight.prefAirline)
+      !_.isEmpty(
+        _.find(user.preferenceFlight.flyerPrograms, {
+          active: true,
+          iata: flight.departureSegments[0].airline
+        })
+      )
     ) {
-      point += 4
+      point += SMART_POINTS_FLIGHT[purpose]['matchLoyaltyProgram']
     }
 
-    // price
+    // Lowest price
     if (flight.totalPrice === minFlight.totalPrice) {
-      point += 3
+      point += SMART_POINTS_FLIGHT[purpose]['lowestPrice']
     }
 
     return {
@@ -54,11 +132,13 @@ const suggestFlights = (flights, trip, user) => {
   }
 }
 
-const suggestHotelRooms = (hotels, request, user) => {
+const suggestHotelRooms = (hotels, request, user, policy, bookedHotels) => {
   let limitHotel = _.get(request, 'trip.hotelLimitation', 0)
   let targetLat = _.get(request, 'roomRequest.geolocation.latitude', 0)
   let targetLng = _.get(request, 'roomRequest.geolocation.longitude', 0)
   let minHotel = _.minBy(hotels, 'lowestPrice')
+
+  let purpose = _.isEmpty(request.trip) ? 'PERSONAL_TRIP' : 'BUSINESS_TRIP'
 
   hotels = hotels.map(hotel => {
     let point = 0
@@ -72,22 +152,26 @@ const suggestHotelRooms = (hotels, request, user) => {
 
     // under budget
     if (hotel.lowestPrice <= limitHotel) {
-      point += 5
+      point += SMART_POINTS_HOTEL[purpose]['underBudget']
     }
 
-    // prefer hotel class
-    if (hotel.starRating === user.preferenceHotel.prefHotelClass) {
-      point += 5
+    // Match to hotel class in Hotel policy
+    if (hotel.starRating === policy.hotelClass) {
+      point += SMART_POINTS_HOTEL[purpose]['matchPolicyClass']
     }
 
-    // price
+    if (hotel.starRating > policy.hotelClass) {
+      point += SMART_POINTS_HOTEL[purpose]['overPolicyClass']
+    }
+
+    // Under hotel cost limitation in Hotel policy
+    if (policy.setHotelLimit && hotel.lowestPrice <= policy.hotelLimit) {
+      point += SMART_POINTS_HOTEL[purpose]['underPolicyLimit']
+    }
+
+    // Lowest price
     if (hotel.lowestPrice === minHotel.lowestPrice) {
-      point += 4
-    }
-
-    // distance from search coordinate to hotel coordinate < 150 m
-    if (distanceToHotelInMeter <= 150) {
-      point += 5
+      point += SMART_POINTS_HOTEL[purpose]['lowestPrice']
     }
 
     // if in favorite hotels
@@ -96,7 +180,7 @@ const suggestHotelRooms = (hotels, request, user) => {
         favoriteHotel => Number(favoriteHotel.hotelId) === hotel.hotelId
       )
     ) {
-      point += 5
+      point += SMART_POINTS_HOTEL[purpose]['matchFavorite']
     }
 
     // if match hotel name
@@ -107,8 +191,20 @@ const suggestHotelRooms = (hotels, request, user) => {
           _.includes(_.toLower(request.locationName), hotelName)
         )
     ) {
-      point += 10
+      point += SMART_POINTS_HOTEL[purpose]['matchSearchedName']
     }
+
+    // distance from search coordinate to hotel coordinate < 150 m
+    if (distanceToHotelInMeter <= 150) {
+      point += SMART_POINTS_HOTEL[purpose]['distance']
+    }
+
+    // Match to user booking history +15
+    if (_.includes(bookedHotels, hotel.hotelId)) {
+      point += SMART_POINTS_HOTEL[purpose]['matchBooked']
+    }
+
+    // Match to user’s loyalty program  +10
 
     return {
       ...hotel,

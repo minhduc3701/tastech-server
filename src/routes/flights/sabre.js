@@ -8,6 +8,8 @@ const Airport = require('../../models/airport')
 const IataCity = require('../../models/iataCity')
 const _ = require('lodash')
 const { sabreCurrencyExchange } = require('../../middleware/currency')
+const { findUserPolicy } = require('../../middleware/policies')
+const { findCompletedOrders } = require('../../middleware/suggestions')
 const { getTasAdminOptions } = require('../../middleware/options')
 
 const {
@@ -41,6 +43,8 @@ router.post(
   sabreCurrencyExchange,
   getTasAdminOptions,
   sabreRestToken,
+  findUserPolicy,
+  findCompletedOrders,
   async (req, res) => {
     let search = req.body.search
     let cacheKey = makeSabreFlightCacheKey(search)
@@ -59,7 +63,13 @@ router.post(
         req.markupOptions.flight.value
       )
 
-      let suggestData = suggestFlights(flights, req.body.trip, req.user)
+      let suggestData = suggestFlights(
+        flights,
+        req.body.trip,
+        req.user,
+        req.policy,
+        req.bookedAirlines
+      )
 
       // hide original prices
       suggestData = hideFlightsOriginalPrices(suggestData)
@@ -153,7 +163,13 @@ router.post(
             }
           })
 
-        let suggestData = suggestFlights(flights, req.body.trip, req.user)
+        let suggestData = suggestFlights(
+          flights,
+          req.body.trip,
+          req.user,
+          req.policy,
+          req.bookedAirlines
+        )
 
         // hide original prices
         suggestData = hideFlightsOriginalPrices(suggestData)

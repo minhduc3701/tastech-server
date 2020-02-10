@@ -3,7 +3,8 @@ const Schema = mongoose.Schema
 
 const FlyerProgramSchema = new Schema(
   {
-    name: String
+    name: String,
+    iata: String
   },
   {
     collection: 'flyerPrograms'
