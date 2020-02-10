@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Order = require('../../models/order')
+const Trip = require('../../models/trip')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeItinerary } = require('../../middleware/email')

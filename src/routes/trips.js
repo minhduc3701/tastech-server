@@ -403,7 +403,8 @@ router.patch(
         'startDate',
         'endDate',
         'note',
-        'budgetPassengers'
+        'budgetPassengers',
+        'isBookedByPartner'
       ])
       body.daysOfTrip =
         moment(body.endDate).diff(moment(body.startDate), 'days') + 1
@@ -450,8 +451,10 @@ router.post(
   sabreRestToken,
   async (req, res, next) => {
     const trip = new Trip(req.body)
+
     trip._creator = req.user._id
     trip._company = req.user._company
+    trip._partner = req.user._partner
     trip.status = 'waiting' // set default status is waiting
     trip.businessTrip = true
     trip.currency = req.currency.code
@@ -475,6 +478,44 @@ router.post(
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
 )
+
+// create booking request
+router.post('/:id/booking-request', function(req, res, next) {
+  let id = req.params.id
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  Trip.findOneAndUpdate(
+    {
+      _id: id,
+      _creator: req.user._id,
+      status: {
+        $in: ['approved', 'ongoing']
+      }
+    },
+    {
+      $push: {
+        requestBookOnBehalfs: {
+          ...req.body,
+          status: 'waiting',
+          createdAt: moment().format()
+        }
+      }
+    },
+    { new: true }
+  )
+    .then(trip => {
+      if (!trip) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ trip })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
 
 router.patch('/:id/archived', function(req, res, next) {
   let id = req.params.id
