@@ -138,7 +138,7 @@ const suggestHotelRooms = (hotels, request, user, policy, bookedHotels) => {
   let targetLng = _.get(request, 'roomRequest.geolocation.longitude', 0)
   let minHotel = _.minBy(hotels, 'lowestPrice')
 
-  let purpose = _.isEmpty(trip) ? 'PERSONAL_TRIP' : 'BUSINESS_TRIP'
+  let purpose = _.isEmpty(request.trip) ? 'PERSONAL_TRIP' : 'BUSINESS_TRIP'
 
   hotels = hotels.map(hotel => {
     let point = 0
