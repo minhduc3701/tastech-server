@@ -738,7 +738,8 @@ const depositCharging = async (req, res, next) => {
       currency,
       _id: new ObjectID(),
       _company: company._id,
-      _createdAt: new Date()
+      _createdAt: new Date(),
+      paymentType: 'deposit'
     }
 
     req.charge = charge
@@ -1475,6 +1476,7 @@ const refundDepositFailedOrder = async (req, res, next) => {
       creditLimitationAmount,
       remainingCredit
     } = company
+
     let newDeposit = company.deposit
     let newRemainingCredit = company.remainingCredit
     remainingCredit = isCreditLimitation ? remainingCredit : 0
