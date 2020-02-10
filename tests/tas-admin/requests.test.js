@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const request = require('supertest')
 const app = require('../../src/app')
 const { tasAdminToken, setupDatabase } = require('../fixtures/db.js')
@@ -5,6 +6,8 @@ const mongoose = require('mongoose')
 
 beforeEach(setupDatabase)
 
+// @see https://github.com/visionmedia/supertest/issues/520#issuecomment-469044925
+// @see https://github.com/facebook/jest/issues/7287
 afterAll(async () => {
   await new Promise(resolve => setTimeout(() => resolve(), 500)) // avoid jest open handle error
   mongoose.disconnect()
