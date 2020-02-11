@@ -33,7 +33,8 @@ router.get('/', function(req, res, next) {
   Promise.all([
     Order.find(objFind)
       .populate('_trip', ['type', 'name', 'contactInfo'])
-      .populate('_customer', ['email'])
+      .populate('_customer', ['email', 'firstName', 'lastName', 'avatar'])
+      .populate('_company')
       .sort({ createdAt: -1 })
       .limit(perPage)
       .skip(perPage * page),
@@ -66,6 +67,7 @@ router.get('/:id', function(req, res, next) {
     _id: req.params.id,
     _partner: req.user._partner
   })
+    .populate('_customer', ['email', 'firstName', 'lastName', 'avatar'])
     .then(order => {
       if (!order) {
         return res.status(404).send()
