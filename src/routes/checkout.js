@@ -1436,7 +1436,7 @@ const refundDepositFailedOrder = async (req, res, next) => {
   }
   try {
     let refundAmount = 0
-    let note = 'refund for orders:'
+    let note = 'refund for orders: '
 
     // refund for flight booking failed
     if (req.checkoutError && req.checkoutError.flight) {

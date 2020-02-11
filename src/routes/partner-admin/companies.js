@@ -645,4 +645,62 @@ router.get('/:employeeId/company', async (req, res) => {
   } catch (e) {}
 })
 
+// get company logs
+router.get('/:id/logs', (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+
+  const perPage = Number(_.get(req, 'query.perPage', 10))
+  const page = Number(_.get(req, 'query.page', 0))
+
+  Promise.all([
+    Company.aggregate([
+      {
+        $match: {
+          _id: new ObjectID(req.params.id),
+          _partner: req.user._partner
+        }
+      },
+      { $unwind: '$logs' },
+      {
+        $group: {
+          _id: '$logs._id',
+          _creator: { $first: '$logs._creator' },
+          createdAt: { $first: '$logs.createdAt' },
+          field: { $first: '$logs.field' },
+          old: { $first: '$logs.old' },
+          new: { $first: '$logs.new' },
+          note: { $first: '$logs.note' }
+        }
+      },
+      // { $lookup: {from: 'user', localField: '_creator', foreignField: '_id', as: 'a'} },
+      {
+        $sort: { createdAt: -1 }
+      },
+      { $skip: perPage * page },
+      { $limit: perPage }
+    ]),
+    Company.find({
+      _id: new ObjectID(req.params.id),
+      _partner: req.user._partner
+    })
+  ])
+    .then(results => {
+      let logs = results[0]
+      let total = results[1][0].logs.length
+      res.status(200).send({
+        logs,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        count: logs.length,
+        perPage,
+        page
+      })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 module.exports = router

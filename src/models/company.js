@@ -4,7 +4,11 @@ const { supportCurrencies } = require('../config/currency')
 
 const CompanySchema = new Schema({
   name: String,
-  _creator: mongoose.Schema.Types.ObjectId,
+  _creator: {
+    type: 'ObjectId',
+    required: true,
+    ref: 'User'
+  },
   logo: String,
   address: String,
   website: String,
