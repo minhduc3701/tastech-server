@@ -10,11 +10,18 @@ const _ = require('lodash')
 const { sabreCurrencyExchange } = require('../../middleware/currency')
 const { findUserPolicy } = require('../../middleware/policies')
 const { findCompletedOrders } = require('../../middleware/suggestions')
+const { getTasAdminOptions } = require('../../middleware/options')
+
 const {
   sabreRestToken,
   sabreSoapSecurityToken
 } = require('../../middleware/sabre')
-const { makeSabreFlightsData, roundPrice } = require('../../modules/utils')
+const {
+  makeSabreFlightsData,
+  roundPrice,
+  markupFlights,
+  hideFlightOriginalPrices
+} = require('../../modules/utils')
 const { logger } = require('../../config/winston')
 const { makeSabreRequestData } = require('../../modules/utilsSabre')
 const { makeSabreFlightCacheKey } = require('../../modules/cache')
@@ -22,16 +29,25 @@ const { getCache, setCache } = require('../../config/cache')
 const { suggestFlights } = require('../../modules/suggestions')
 const convert = require('xml-js')
 
+const hideFlightsOriginalPrices = data => {
+  const hideMapping = flight =>
+    _.omit(flight, ['originalTotalPrice', 'exchangedTotalPrice'])
+  let suggestData = { ...data }
+  suggestData.flights = suggestData.flights.map(hideMapping)
+  suggestData.bestFlights = suggestData.bestFlights.map(hideMapping)
+  return suggestData
+}
+
 router.post(
   '/shopping',
   sabreCurrencyExchange,
+  getTasAdminOptions,
   sabreRestToken,
   findUserPolicy,
   findCompletedOrders,
   async (req, res) => {
     let search = req.body.search
     let cacheKey = makeSabreFlightCacheKey(search)
-
     try {
       let cacheData = await getCache(cacheKey)
       // logger.info('Sabre shopping: ', cacheData.sabreRes)
@@ -41,6 +57,11 @@ router.post(
         req.currency,
         cacheData.numberOfPassengers
       )
+      flights = markupFlights(
+        flights,
+        req.currency,
+        req.markupOptions.flight.value
+      )
 
       let suggestData = suggestFlights(
         flights,
@@ -49,6 +70,9 @@ router.post(
         req.policy,
         req.bookedAirlines
       )
+
+      // hide original prices
+      suggestData = hideFlightsOriginalPrices(suggestData)
 
       return res.status(200).send({
         ...suggestData,
@@ -71,6 +95,11 @@ router.post(
 
       // logger.info('Sabre shopping: ', { sabreRes })
       let flights = makeSabreFlightsData(sabreRes, req.currency, search.adults)
+      flights = markupFlights(
+        flights,
+        req.currency,
+        req.markupOptions.flight.value
+      )
 
       let airlines = []
       let airports = []
@@ -141,6 +170,9 @@ router.post(
           req.policy,
           req.bookedAirlines
         )
+
+        // hide original prices
+        suggestData = hideFlightsOriginalPrices(suggestData)
 
         res.status(200).send({
           ...suggestData,

@@ -25,9 +25,13 @@ const {
 } = require('../middleware/email')
 const { currentCompany } = require('../middleware/company')
 const { currenciesExchange } = require('../middleware/currency')
+const { getTasAdminOptions } = require('../middleware/options')
+
 const {
   makeSabreFlightsData,
-  makeHotelbedsHotelsData
+  makeHotelbedsHotelsData,
+  markupHotels,
+  markupFlights
 } = require('../modules/utils')
 
 // Set your secret key: remember to change this to your live secret key in production
@@ -56,6 +60,11 @@ const verifySabrePrice = async (req, res, next) => {
       sabreCacheData.sabreRes,
       sabreCurrency,
       sabreCacheData.numberOfPassengers
+    )
+    flights = markupFlights(
+      flights,
+      sabreCurrency,
+      req.markupOptions.flight.value
     )
 
     let flightInCache = flights.find(f => f.id === req.body.trip.flight.id)
@@ -95,6 +104,11 @@ const verifyHotelbedsPrice = async (req, res, next) => {
       hotelbedsData.hotels,
       hotelbedsData.rooms,
       hotelbedsCurrency
+    )
+    hotels = markupHotels(
+      hotels,
+      hotelbedsCurrency,
+      req.markupOptions.hotel.value
     )
 
     let hotelInCache = hotels.find(
@@ -237,7 +251,11 @@ const createOrFindFlightOrder = async (req, res, next) => {
           rawTotalPrice: trip.flight.rawTotalPrice,
           type: 'flight',
           _trip: trip._id,
-          flight: trip.flight,
+          flight: {
+            ...trip.flight,
+            rawTotalPrice: trip.flight.originalTotalPrice,
+            totalPrice: trip.flight.exchangedTotalPrice
+          },
           _customer: req.user._id,
           _company: req.user._company,
           passengers: trip.passengers,
@@ -1207,8 +1225,12 @@ const responseCheckout = async (req, res, next) => {
     res.status(200).send({
       status: _.get(req, 'charge.status'),
       trip: _.pick(trip, ['_id']),
-      flightOrder,
-      hotelOrder
+      flightOrder: {
+        status: _.get(flightOrder, 'status')
+      },
+      hotelOrder: {
+        status: _.get(hotelOrder, 'status')
+      }
     })
   } catch (error) {
     logger.error('checkoutERR', _.get(error, 'message', ''))
@@ -1226,8 +1248,12 @@ const responseCheckout = async (req, res, next) => {
     res.status(400).send({
       message: _.get(error, 'message'),
       trip: _.pick(trip, ['_id']),
-      flightOrder,
-      hotelOrder
+      flightOrder: {
+        status: _.get(flightOrder, 'status')
+      },
+      hotelOrder: {
+        status: _.get(hotelOrder, 'status')
+      }
     })
   }
   next() // next for sent email
@@ -1236,6 +1262,7 @@ const responseCheckout = async (req, res, next) => {
 router.post(
   '/card',
   currentCompany,
+  getTasAdminOptions,
   verifySabrePrice,
   verifyHotelbedsPrice,
   sabreRestToken, // get token for sabre api

@@ -125,8 +125,6 @@ workflows:
               only:
                 - test
       - deploy_demo:
-          requires:
-            - test
           filters:
             branches:
               only:
