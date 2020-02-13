@@ -70,13 +70,16 @@ const suggestFlights = (flights, trip, user, policy, bookedAirlines) => {
     // Match to flight class in Flight policy
     if (
       _.toLower(_.get(flight, 'departureSegments[0].cabinClass')) ===
-      _.toLower(policy.flightClass)
+      _.toLower(_.get(policy, 'flightClass'))
     ) {
       point += SMART_POINTS_FLIGHT[purpose]['matchPolicyClass']
     }
 
     // Under flight cost limitation in Flight policy
-    if (policy.setFlightLimit && flight.totalPrice <= policy.flightLimit) {
+    if (
+      _.get(policy, 'setFlightLimit') &&
+      flight.totalPrice <= _.get(policy, 'flightLimit')
+    ) {
       point += SMART_POINTS_FLIGHT[purpose]['underPolicyLimit']
     }
 
@@ -156,16 +159,19 @@ const suggestHotelRooms = (hotels, request, user, policy, bookedHotels) => {
     }
 
     // Match to hotel class in Hotel policy
-    if (hotel.starRating === policy.hotelClass) {
+    if (hotel.starRating === _.get(policy, 'hotelClass')) {
       point += SMART_POINTS_HOTEL[purpose]['matchPolicyClass']
     }
 
-    if (hotel.starRating > policy.hotelClass) {
+    if (hotel.starRating > _.get(policy, 'hotelClass')) {
       point += SMART_POINTS_HOTEL[purpose]['overPolicyClass']
     }
 
     // Under hotel cost limitation in Hotel policy
-    if (policy.setHotelLimit && hotel.lowestPrice <= policy.hotelLimit) {
+    if (
+      _.get(policy, 'setHotelLimit') &&
+      hotel.lowestPrice <= _.get(policy, 'hotelLimit')
+    ) {
       point += SMART_POINTS_HOTEL[purpose]['underPolicyLimit']
     }
 
