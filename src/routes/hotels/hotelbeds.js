@@ -4,6 +4,8 @@ const api = require('../../modules/apiHotelbeds')
 const axios = require('axios')
 const { makeHotelbedsHotelsData, markupHotels } = require('../../modules/utils')
 const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
+const { findUserPolicy } = require('../../middleware/policies')
+const { findCompletedOrders } = require('../../middleware/suggestions')
 const { getTasAdminOptions } = require('../../middleware/options')
 const { logger } = require('../../config/winston')
 const { makeHotelBedsCacheKey } = require('../../modules/cache')
@@ -40,6 +42,8 @@ const hideSingleHotelOriginalPrices = data => {
 router.post(
   '/hotels',
   getTasAdminOptions,
+  findUserPolicy,
+  findCompletedOrders,
   hotelbedsCurrencyExchange,
   async (req, res) => {
     let cacheKey = makeHotelBedsCacheKey(req.body.roomRequest)
@@ -61,7 +65,9 @@ router.post(
       let suggestData = suggestHotelRooms(
         hotelbedsHotelsData,
         req.body,
-        req.user
+        req.user,
+        req.policy,
+        req.bookedHotels
       )
 
       suggestData = hideHotelsOriginalPrices(suggestData)
@@ -112,7 +118,9 @@ router.post(
       let suggestData = suggestHotelRooms(
         hotelbedsHotelsData,
         req.body,
-        req.user
+        req.user,
+        req.policy,
+        req.bookedHotels
       )
       // for combo select room
       _.set(
