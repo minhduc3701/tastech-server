@@ -655,40 +655,79 @@ router.get('/:id/logs', (req, res) => {
   const page = Number(_.get(req, 'query.page', 0))
 
   Promise.all([
-    Company.aggregate([
-      {
-        $match: {
-          _id: new ObjectID(req.params.id),
-          _partner: req.user._partner
-        }
-      },
-      { $unwind: '$logs' },
-      {
-        $group: {
-          _id: '$logs._id',
-          _creator: { $first: '$logs._creator' },
-          createdAt: { $first: '$logs.createdAt' },
-          field: { $first: '$logs.field' },
-          old: { $first: '$logs.old' },
-          new: { $first: '$logs.new' },
-          note: { $first: '$logs.note' }
-        }
-      },
-      // { $lookup: {from: 'user', localField: '_creator', foreignField: '_id', as: 'a'} },
-      {
-        $sort: { createdAt: -1 }
-      },
-      { $skip: perPage * page },
-      { $limit: perPage }
-    ]),
-    Company.find({
-      _id: new ObjectID(req.params.id),
-      _partner: req.user._partner
+    User.find({
+      email: new RegExp(_.get(req, 'query.s', ''), 'i')
     })
   ])
     .then(results => {
+      const userIds = results[0].map(user => user._id)
+      return Promise.all([
+        Company.aggregate([
+          {
+            $match: {
+              _id: new ObjectID(req.params.id),
+              _partner: req.user._partner
+            }
+          },
+          { $unwind: '$logs' },
+          {
+            $group: {
+              _id: '$logs._id',
+              _creator: { $first: '$logs._creator' },
+              createdAt: { $first: '$logs.createdAt' },
+              field: { $first: '$logs.field' },
+              old: { $first: '$logs.old' },
+              new: { $first: '$logs.new' },
+              note: { $first: '$logs.note' }
+            }
+          },
+          {
+            $match: {
+              _creator: { $in: userIds }
+            }
+          },
+          {
+            $sort: { createdAt: -1 }
+          },
+          { $skip: perPage * page },
+          { $limit: perPage }
+        ]),
+        Company.aggregate([
+          {
+            $match: {
+              _id: new ObjectID(req.params.id),
+              _partner: req.user._partner
+            }
+          },
+          { $unwind: '$logs' },
+          {
+            $group: {
+              _id: '$logs._id',
+              _creator: { $first: '$logs._creator' }
+            }
+          },
+          {
+            $match: {
+              _creator: { $in: userIds }
+            }
+          }
+        ])
+      ])
+    })
+    .then(results => {
+      return Promise.all([
+        User.populate(results[0], [
+          {
+            path: '_creator',
+            select: 'email username firstName lastName avatar'
+          }
+        ]),
+        results[1].length
+      ])
+    })
+    .then(results => {
       let logs = results[0]
-      let total = results[1][0].logs.length
+      let total = results[1]
       res.status(200).send({
         logs,
         totalPage: Math.ceil(total / perPage),

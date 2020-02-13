@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const { supportCurrencies } = require('../config/currency')
+const _ = require('lodash')
 
 const CompanySchema = new Schema({
   name: String,
@@ -99,7 +100,7 @@ const CompanySchema = new Schema({
 
 CompanySchema.methods.toJSON = function() {
   var company = this
-  var companyObject = company.toObject()
+  var companyObject = _.omit(company.toObject(), ['logs'])
 
   companyObject.logo = companyObject.logo
     ? process.env.AWS_S3_URI + '/' + companyObject.logo
