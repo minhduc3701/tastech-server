@@ -68,6 +68,7 @@ router.get('/:id', function(req, res, next) {
     _partner: req.user._partner
   })
     .populate('_customer', ['email', 'firstName', 'lastName', 'avatar'])
+    .populate('_trip')
     .then(order => {
       if (!order) {
         return res.status(404).send()
