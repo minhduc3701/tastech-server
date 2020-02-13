@@ -23,7 +23,8 @@ router.get('/', function(req, res) {
         notes: 1,
         'users.disabled': 1,
         'users.email': 1,
-        'users._id': 1
+        'users._id': 1,
+        referral: 1
       }
     },
     {
