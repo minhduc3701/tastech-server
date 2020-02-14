@@ -7,7 +7,6 @@ const CompanySchema = new Schema({
   name: String,
   _creator: {
     type: 'ObjectId',
-    required: true,
     ref: 'User'
   },
   logo: String,
