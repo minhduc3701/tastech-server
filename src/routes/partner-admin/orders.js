@@ -113,7 +113,7 @@ router.patch(
       return res.status(404).send()
     }
 
-    let updatedProperties = ['status', 'pnr']
+    let updatedProperties = ['status', 'pnr', 'message']
     const body = _.pick(req.body, updatedProperties)
 
     try {
@@ -127,7 +127,7 @@ router.patch(
         _creator: req.user._id,
         createdAt: new Date(),
         changedValues: [],
-        note: 'update order'
+        note: body.message || 'update order'
       }
       for (let index = 0; index < updatedProperties.length; index++) {
         if (
@@ -144,7 +144,7 @@ router.patch(
       if (body.status === 'cancelled') {
         newLogs.changedValues.push({
           field: 'cancelCharge',
-          old: _.get(oldOrder, cancelCharge),
+          old: _.get(oldOrder, 'cancelCharge'),
           new: req.body.cancelCharge
         })
       }
@@ -183,6 +183,7 @@ router.patch(
         return next()
       }
     } catch (e) {
+      console.log(e)
       res.status(400).send()
     }
   },
