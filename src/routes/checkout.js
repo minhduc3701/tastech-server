@@ -266,6 +266,7 @@ const createOrFindFlightOrder = async (req, res, next) => {
           _customer: req.user._id,
           _company: req.user._company,
           _partner: _.get(req, 'user._partner', null),
+          _bookedBy: req._bookedBy,
           passengers: trip.passengers,
           contactInfo: trip.contactInfo,
           discountCode: trip.discountCode
@@ -324,6 +325,7 @@ const createOrFindHotelOrder = async (req, res, next) => {
           _customer: req.user._id,
           _company: req.user._company,
           _partner: _.get(req, 'user._partner', null),
+          _bookedBy: req._bookedBy,
           passengers: trip.passengers,
           childrenInfo: trip.childrenInfo,
           contactInfo: trip.contactInfo,
@@ -1593,8 +1595,19 @@ const validateDepositPayment = (req, res, next) => {
   next()
 }
 
+const setBookedByUser = (req, res, next) => {
+  // set _bookedBy after check isPartnerAdmin
+  if (!_.isEmpty(req.partnerAdmin)) {
+    req._bookedBy = req.partnerAdmin._id
+  } else {
+    req._bookedBy = req.user._id
+  }
+  next()
+}
+
 router.post(
   '/card',
+  setBookedByUser,
   currentCompany,
   getTasAdminOptions,
   verifySabrePrice,
@@ -1620,8 +1633,37 @@ router.post(
 )
 
 router.post(
+  '/deposit',
+  setBookedByUser,
+  currentCompany,
+  validateDepositPayment,
+  getTasAdminOptions,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
+  sabreRestToken, // get token for sabre api
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  calculateRewardCost,
+  pkfareFlightPreBooking,
+  hotelbedsCheckRate,
+  depositCharging,
+  pkfareFlightTicketing,
+  sabreCreatePNR,
+  pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
+  refundDepositFailedOrder,
+  responseCheckout,
+  emailGiamsoIssueTicket,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary,
+  emailNotEnoughDeposit
+)
+
+router.post(
   '/partner-card',
   isPartnerBooking,
+  setBookedByUser,
   currentCompany,
   getTasAdminOptions,
   verifySabrePrice,
@@ -1650,6 +1692,7 @@ router.post(
 router.post(
   '/partner-deposit',
   isPartnerBooking,
+  setBookedByUser,
   currentCompany,
   validateDepositPayment,
   getTasAdminOptions,
@@ -1674,33 +1717,6 @@ router.post(
   emailEmployeeItinerary,
   emailNotEnoughDeposit,
   updateBookingRequest
-)
-
-router.post(
-  '/deposit',
-  currentCompany,
-  validateDepositPayment,
-  getTasAdminOptions,
-  verifySabrePrice,
-  verifyHotelbedsPrice,
-  sabreRestToken, // get token for sabre api
-  createOrFindTrip,
-  createOrFindFlightOrder,
-  createOrFindHotelOrder,
-  calculateRewardCost,
-  pkfareFlightPreBooking,
-  hotelbedsCheckRate,
-  depositCharging,
-  pkfareFlightTicketing,
-  sabreCreatePNR,
-  pkfareHotelCreateOrder,
-  hotelbedsCreateOrder,
-  refundDepositFailedOrder,
-  responseCheckout,
-  emailGiamsoIssueTicket,
-  emailEmployeeCheckoutFailed,
-  emailEmployeeItinerary,
-  emailNotEnoughDeposit
 )
 
 router.post('/password', (req, res) => {
