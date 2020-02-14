@@ -100,7 +100,6 @@ router.get('/:id', function(req, res, next) {
       })
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })
@@ -114,16 +113,52 @@ router.patch(
       return res.status(404).send()
     }
 
-    const body = _.pick(req.body, ['status', 'pnr'])
+    let updatedProperties = ['status', 'pnr']
+    const body = _.pick(req.body, updatedProperties)
 
     try {
+      let oldOrder = await Order.findOne({
+        _id: id,
+        _partner: req.user._partner,
+        status: { $ne: 'cancelled' } // don't update cancelled order
+      })
+
+      let newLogs = {
+        _creator: req.user._id,
+        createdAt: new Date(),
+        changedValues: [],
+        note: 'update order'
+      }
+      for (let index = 0; index < updatedProperties.length; index++) {
+        if (
+          _.get(oldOrder, updatedProperties[index]) !==
+          _.get(body, updatedProperties[index])
+        ) {
+          newLogs.changedValues.push({
+            field: updatedProperties[index],
+            old: _.get(oldOrder, updatedProperties[index]),
+            new: _.get(body, updatedProperties[index])
+          })
+        }
+      }
+      if (body.status === 'cancelled') {
+        newLogs.changedValues.push({
+          field: 'cancelCharge',
+          old: _.get(oldOrder, cancelCharge),
+          new: req.body.cancelCharge
+        })
+      }
+
       let order = await Order.findOneAndUpdate(
         {
           _id: id,
           _partner: req.user._partner,
           status: { $ne: 'cancelled' } // don't update cancelled order
         },
-        { $set: body },
+        {
+          $set: body,
+          $push: { logs: newLogs }
+        },
         { new: true }
       )
 

@@ -172,9 +172,13 @@ const OrderSchema = new Schema(
           ref: 'User'
         },
         createdAt: Date,
-        field: String,
-        old: Number,
-        new: Number,
+        changedValues: [
+          {
+            field: String,
+            old: Object,
+            new: Object
+          }
+        ],
         note: String
       }
     ]
