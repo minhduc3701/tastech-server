@@ -262,8 +262,6 @@ router.get('/:id/logs', (req, res) => {
         ])
       })
       .then(results => {
-        console.log('results  0: ', results[0])
-        console.log('results  1: ', results[0].length)
         return Promise.all([
           User.populate(results[0], [
             {
@@ -287,12 +285,9 @@ router.get('/:id/logs', (req, res) => {
         })
       })
       .catch(e => {
-        console.log(e)
         res.status(400).send()
       })
-  } catch (error) {
-    console.log(e)
-  }
+  } catch (error) {}
 })
 
 module.exports = router
