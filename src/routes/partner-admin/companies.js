@@ -486,12 +486,20 @@ router.patch('/:id/deposit', async (req, res) => {
       _partner: req.user._partner
     })
 
-    let { deposit, remainingCredit, creditLimitationAmount } = company
+    let {
+      deposit,
+      remainingCredit,
+      creditLimitationAmount,
+      isCreditLimitation
+    } = company
     const spendingCredit = creditLimitationAmount - remainingCredit
     const depositAdding = Number(body.depositAdding)
 
-    // if remainingCredit = limit, add to deposit, otherwise, add unitl full limit, then add to deposit
-    if (remainingCredit === company.creditLimitationAmount) {
+    // if not allow credit or remainingCredit reach to limit, add to deposit, otherwise, add unitl full limit, then add to deposit
+    if (
+      !isCreditLimitation ||
+      remainingCredit === company.creditLimitationAmount
+    ) {
       deposit += depositAdding
     } else {
       if (depositAdding <= spendingCredit) {
