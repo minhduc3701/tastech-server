@@ -127,12 +127,12 @@ router.patch(
         _creator: req.user._id,
         createdAt: new Date(),
         changedValues: [],
-        note: body.message || 'update order'
+        note: body.message || 'Update'
       }
       for (let index = 0; index < updatedProperties.length; index++) {
         if (
-          _.get(oldOrder, updatedProperties[index]) !==
-          _.get(body, updatedProperties[index])
+          _.get(oldOrder, updatedProperties[index], '') !==
+          _.get(body, updatedProperties[index], '')
         ) {
           newLogs.changedValues.push({
             field: updatedProperties[index],
@@ -196,7 +196,6 @@ router.get('/:id/logs', (req, res) => {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
-  console.log(1)
   const perPage = Number(_.get(req, 'query.perPage', 10))
   const page = Number(_.get(req, 'query.page', 0))
   try {
@@ -221,9 +220,6 @@ router.get('/:id/logs', (req, res) => {
                 _id: '$logs._id',
                 _creator: { $first: '$logs._creator' },
                 createdAt: { $first: '$logs.createdAt' },
-                // field: { $first: '$logs.field' },
-                // old: { $first: '$logs.old' },
-                // new: { $first: '$logs.new' },
                 changedValues: { $first: '$logs.changedValues' },
                 note: { $first: '$logs.note' }
               }

@@ -164,7 +164,6 @@ const OrderSchema = new Schema(
       type: Number,
       default: 0
     },
-    message: String,
     logs: [
       {
         _creator: {
