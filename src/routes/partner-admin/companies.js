@@ -663,75 +663,113 @@ router.get('/:id/logs', (req, res) => {
   const page = Number(_.get(req, 'query.page', 0))
 
   Promise.all([
-    User.find({
-      email: new RegExp(_.get(req, 'query.s', ''), 'i')
-    })
+    Company.aggregate([
+      {
+        $match: {
+          _id: new ObjectID(req.params.id),
+          _partner: req.user._partner
+        }
+      },
+      { $unwind: '$logs' },
+      {
+        $group: {
+          _id: '$logs._id',
+          _creator: { $first: '$logs._creator' },
+          createdAt: { $first: '$logs.createdAt' },
+          field: { $first: '$logs.field' },
+          old: { $first: '$logs.old' },
+          new: { $first: '$logs.new' },
+          note: { $first: '$logs.note' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_creator',
+          foreignField: '_id',
+          as: '_creator'
+        }
+      },
+      {
+        $match: {
+          '_creator.0.email': {
+            $regex: new RegExp(_.get(req, 'query.s', ''), 'i')
+          }
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      },
+      { $skip: perPage * page },
+      { $limit: perPage },
+      {
+        $project: {
+          _creator: {
+            $let: {
+              vars: {
+                field: {
+                  $arrayElemAt: ['$_creator', 0]
+                }
+              },
+              in: {
+                firstName: '$$field.firstName',
+                lastName: '$$field.lastName',
+                email: '$$field.email',
+                avatar: '$$field.avatar'
+              }
+            }
+          },
+          field: 1,
+          old: 1,
+          new: 1,
+          note: 1
+        }
+      }
+    ]),
+    Company.aggregate([
+      {
+        $match: {
+          _id: new ObjectID(req.params.id),
+          _partner: req.user._partner
+        }
+      },
+      { $unwind: '$logs' },
+      {
+        $group: {
+          _id: '$logs._id',
+          _creator: { $first: '$logs._creator' },
+          createdAt: { $first: '$logs.createdAt' },
+          field: { $first: '$logs.field' },
+          old: { $first: '$logs.old' },
+          new: { $first: '$logs.new' },
+          note: { $first: '$logs.note' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_creator',
+          foreignField: '_id',
+          as: '_creator'
+        }
+      },
+      {
+        $match: {
+          '_creator.0.email': {
+            $regex: new RegExp(_.get(req, 'query.s', ''), 'i')
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 }
+        }
+      }
+    ])
   ])
     .then(results => {
-      const userIds = results[0].map(user => user._id)
-      return Promise.all([
-        Company.aggregate([
-          {
-            $match: {
-              _id: new ObjectID(req.params.id),
-              _partner: req.user._partner
-            }
-          },
-          { $unwind: '$logs' },
-          {
-            $group: {
-              _id: '$logs._id',
-              _creator: { $first: '$logs._creator' },
-              createdAt: { $first: '$logs.createdAt' },
-              field: { $first: '$logs.field' },
-              old: { $first: '$logs.old' },
-              new: { $first: '$logs.new' },
-              note: { $first: '$logs.note' }
-            }
-          },
-          {
-            $match: {
-              _creator: { $in: userIds }
-            }
-          },
-          {
-            $sort: { createdAt: -1 }
-          },
-          { $skip: perPage * page },
-          { $limit: perPage }
-        ]),
-        Company.aggregate([
-          {
-            $match: {
-              _id: new ObjectID(req.params.id),
-              _partner: req.user._partner
-            }
-          },
-          { $unwind: '$logs' },
-          {
-            $group: {
-              _id: '$logs._id',
-              _creator: { $first: '$logs._creator' }
-            }
-          },
-          {
-            $match: {
-              _creator: { $in: userIds }
-            }
-          }
-        ])
-      ])
-    })
-    .then(results => {
-      return Promise.all([
-        User.populate(results[0], [
-          {
-            path: '_creator',
-            select: 'email username firstName lastName avatar'
-          }
-        ]),
-        results[1].length
-      ])
+      return Promise.all([results[0], results[1][0].count])
     })
     .then(results => {
       let logs = results[0]
