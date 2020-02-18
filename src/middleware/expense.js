@@ -46,7 +46,7 @@ const validateExpenseProps = async (req, res, next) => {
   }
 }
 
-const makeExpenseAfterCheckout = async (req, res, next) => {
+const makeExpensesAfterCheckout = async (req, res, next) => {
   try {
     let trip = await Trip.findOne({
       _id: req.trip._id
@@ -72,7 +72,7 @@ const makeExpenseAfterCheckout = async (req, res, next) => {
       _attendees: []
     }
 
-    if (req.flightOrder) {
+    if (_.get(req, 'flightOrder.status', '') === 'processing') {
       try {
         flightExpenseData = {
           ...commonExpenseData,
@@ -92,7 +92,7 @@ const makeExpenseAfterCheckout = async (req, res, next) => {
       }
     }
 
-    if (req.hotelOrder) {
+    if (_.get(req, 'hotelOrder.status', '') === 'completed') {
       try {
         hotelExpenseData = {
           ...commonExpenseData,
@@ -111,11 +111,8 @@ const makeExpenseAfterCheckout = async (req, res, next) => {
         return res.status(400).send()
       }
     }
-
-    return next()
-  } catch (error) {
-    return res.status(400).send()
-  }
+  } catch (error) {}
+  return next()
 }
 
 const uploadReceipts = function(req, res, next) {
@@ -130,6 +127,6 @@ const uploadReceipts = function(req, res, next) {
 }
 module.exports = {
   validateExpenseProps,
-  makeExpenseAfterCheckout,
+  makeExpensesAfterCheckout,
   uploadReceipts
 }
