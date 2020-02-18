@@ -737,12 +737,7 @@ router.get('/:id/logs', (req, res) => {
       {
         $group: {
           _id: '$logs._id',
-          _creator: { $first: '$logs._creator' },
-          createdAt: { $first: '$logs.createdAt' },
-          field: { $first: '$logs.field' },
-          old: { $first: '$logs.old' },
-          new: { $first: '$logs.new' },
-          note: { $first: '$logs.note' }
+          _creator: { $first: '$logs._creator' }
         }
       },
       {
