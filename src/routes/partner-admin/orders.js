@@ -272,6 +272,30 @@ router.get('/:id/logs', async (req, res) => {
         { $unwind: '$logs' },
         {
           $group: {
+            _id: '$logs._id',
+            _creator: { $first: '$logs._creator' },
+            createdAt: { $first: '$logs.createdAt' },
+            changedValues: { $first: '$logs.changedValues' },
+            note: { $first: '$logs.note' }
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: '_creator',
+            foreignField: '_id',
+            as: '_creator'
+          }
+        },
+        {
+          $match: {
+            '_creator.0.email': {
+              $regex: new RegExp(_.get(req, 'query.s', ''), 'i')
+            }
+          }
+        },
+        {
+          $group: {
             _id: null,
             count: { $sum: 1 }
           }
@@ -291,9 +315,12 @@ router.get('/:id/logs', async (req, res) => {
         })
       })
       .catch(e => {
+        console.log(e)
         res.status(400).send()
       })
-  } catch (error) {}
+  } catch (error) {
+    console.log(error)
+  }
 })
 
 module.exports = router
