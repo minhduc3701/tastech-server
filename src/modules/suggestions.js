@@ -4,14 +4,15 @@ const { getDistanceFromLatLonInKm } = require('./utils')
 const SMART_POINTS_FLIGHT = {
   BUSINESS_TRIP: {
     underBudget: 20,
-    matchPolicyClass: 20,
-    underPolicyLimit: 15,
-    matchBooked: 15,
-    nonStop: 10,
-    refundable: 10,
+    matchPolicyClass: 30,
+    underPolicyLimit: 20,
+    matchBooked: 30,
+    nonStop: 30,
+    refundable: 30,
     baggageAllowance: 10,
-    matchLoyaltyProgram: 10,
-    lowestPrice: 10
+    matchLoyaltyProgram: 20,
+    lowestPrice: 20,
+    matchPreferenceFlight: 0
   },
   PERSONAL_TRIP: {
     underBudget: 0,
@@ -22,7 +23,8 @@ const SMART_POINTS_FLIGHT = {
     refundable: 10,
     baggageAllowance: 10,
     matchLoyaltyProgram: 10,
-    lowestPrice: 20
+    lowestPrice: 20,
+    matchPreferenceFlight: 10
   }
 }
 
@@ -31,13 +33,14 @@ const SMART_POINTS_HOTEL = {
     underBudget: 20,
     matchPolicyClass: 20,
     overPolicyClass: 10,
-    underPolicyLimit: 15,
-    matchBooked: 15,
-    matchFavorite: 10,
-    matchLoyaltyProgram: 10,
+    underPolicyLimit: 20,
+    matchBooked: 30,
+    matchFavorite: 30,
+    matchLoyaltyProgram: 15,
     lowestPrice: 10,
     matchSearchedName: 30,
-    distance: 20
+    distance: 20,
+    matchPrefHotelClass: 0
   },
   PERSONAL_TRIP: {
     underBudget: 0,
@@ -49,7 +52,8 @@ const SMART_POINTS_HOTEL = {
     matchLoyaltyProgram: 10,
     lowestPrice: 20,
     matchSearchedName: 30,
-    distance: 20
+    distance: 20,
+    matchPrefHotelClass: 10
   }
 }
 
@@ -118,6 +122,14 @@ const suggestFlights = (flights, trip, user, policy, bookedAirlines) => {
     // Lowest price
     if (flight.totalPrice === minFlight.totalPrice) {
       point += SMART_POINTS_FLIGHT[purpose]['lowestPrice']
+    }
+
+    // match prefer flight
+    if (
+      _.toLower(flight.departureSegments[0].airline) ===
+      _.toLower(user.preferenceFlight.prefAirline)
+    ) {
+      point += SMART_POINTS_FLIGHT[purpose]['matchPreferenceFlight']
     }
 
     return {
@@ -210,6 +222,11 @@ const suggestHotelRooms = (hotels, request, user, policy, bookedHotels) => {
       point += SMART_POINTS_HOTEL[purpose]['matchBooked']
     }
 
+    // match prefer hotel class
+    if (hotel.starRating === user.preferenceHotel.prefHotelClass) {
+      point += SMART_POINTS_HOTEL[purpose]['matchPrefHotelClass']
+    }
+
     // Match to user’s loyalty program  +10
 
     return {
@@ -217,6 +234,11 @@ const suggestHotelRooms = (hotels, request, user, policy, bookedHotels) => {
       point
     }
   })
+
+  // BUSINESS_TRIP Not show hotel if starRating <3
+  if (purpose === 'BUSINESS_TRIP') {
+    hotels = hotels.filter(hotel => hotel.starRating >= 3)
+  }
 
   let bestHotels = _.reverse(_.sortBy(hotels, hotel => hotel.point))
   let threeBestHotels = _.slice(bestHotels, 0, 3)
