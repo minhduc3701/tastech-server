@@ -242,7 +242,21 @@ router.get('/:id/logs', async (req, res) => {
         { $limit: perPage },
         {
           $project: {
-            _creator: { $arrayElemAt: ['$_creator', 0] },
+            _creator: {
+              $let: {
+                vars: {
+                  field: {
+                    $arrayElemAt: ['$_creator', 0]
+                  }
+                },
+                in: {
+                  firstName: '$$field.firstName',
+                  lastName: '$$field.lastName',
+                  email: '$$field.email',
+                  avatar: '$$field.avatar'
+                }
+              }
+            },
             changedValues: 1,
             note: 1
           }
