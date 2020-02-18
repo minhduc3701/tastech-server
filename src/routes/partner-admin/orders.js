@@ -315,12 +315,9 @@ router.get('/:id/logs', async (req, res) => {
         })
       })
       .catch(e => {
-        console.log(e)
         res.status(400).send()
       })
-  } catch (error) {
-    console.log(error)
-  }
+  } catch (error) {}
 })
 
 module.exports = router
