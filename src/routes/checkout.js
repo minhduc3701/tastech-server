@@ -26,6 +26,7 @@ const {
 const { currentCompany } = require('../middleware/company')
 const { currenciesExchange } = require('../middleware/currency')
 const { getTasAdminOptions } = require('../middleware/options')
+const { makeExpensesAfterCheckout } = require('../middleware/expense')
 
 const {
   makeSabreFlightsData,
@@ -1280,6 +1281,7 @@ router.post(
   demoForceCompletedOrders,
   refundFailedOrder,
   responseCheckout,
+  makeExpensesAfterCheckout,
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary

@@ -106,7 +106,7 @@ router.get('/', function(req, res, next) {
         ...results,
         Expense.find({
           _trip: { $in: results[0].map(trip => trip._id) }
-        })
+        }).sort({ updatedAt: -1 })
       ])
     })
     .then(results => {
@@ -118,7 +118,14 @@ router.get('/', function(req, res, next) {
         ...trip.toObject(),
         totalExpense: expenses
           .filter(e => e._trip.toHexString() === trip._id.toHexString())
-          .reduce((acc, e) => acc + e.amount, 0)
+          .reduce((acc, e) => acc + e.amount, 0),
+        expenseStatus: _.get(
+          expenses.filter(
+            e => e._trip.toHexString() === trip._id.toHexString()
+          ),
+          '[0].status',
+          null
+        )
       }))
 
       res.status(200).send({
