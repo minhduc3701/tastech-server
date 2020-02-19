@@ -106,7 +106,7 @@ router.get('/', function(req, res, next) {
         ...results,
         Expense.find({
           _trip: { $in: results[0].map(trip => trip._id) }
-        })
+        }).sort({ updatedAt: -1 })
       ])
     })
     .then(results => {
