@@ -79,9 +79,9 @@ const makeExpensesAfterCheckout = async (req, res, next) => {
           name: 'Flight expense for ' + trip.name,
           category: 'flight',
           currency: req.flightOrder.currency,
-          rawCurrency: req.flightOrder.rawCurrency,
+          rawCurrency: req.flightOrder.currency,
           amount: req.flightOrder.totalPrice,
-          rawAmount: req.flightOrder.rawTotalPrice
+          rawAmount: req.flightOrder.totalPrice
         }
         const flightExpense = new Expense(flightExpenseData)
         flightExpense.save().then(() => {
@@ -99,9 +99,9 @@ const makeExpensesAfterCheckout = async (req, res, next) => {
           name: 'Hotel expense for ' + trip.name,
           category: 'lodging',
           currency: req.hotelOrder.currency,
-          rawCurrency: req.hotelOrder.rawCurrency,
+          rawCurrency: req.hotelOrder.currency,
           amount: req.hotelOrder.totalPrice,
-          rawAmount: req.hotelOrder.rawTotalPrice
+          rawAmount: req.hotelOrder.totalPrice
         }
         const hotelExpense = new Expense(hotelExpenseData)
         hotelExpense.save().then(() => {
