@@ -26,10 +26,7 @@ router.get('/', function(req, res, next) {
                 _id: trip._company._id,
                 name: trip._company.name
               },
-              _trip: {
-                _id: trip._id,
-                name: trip.name
-              }
+              _trip: trip
             })
           }
         })
