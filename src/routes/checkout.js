@@ -32,6 +32,7 @@ const {
   isPartnerBooking,
   updateBookingRequest
 } = require('../middleware/partnerAdmin')
+const { makeExpensesAfterCheckout } = require('../middleware/expense')
 
 const {
   makeSabreFlightsData,
@@ -1627,6 +1628,7 @@ router.post(
   demoForceCompletedOrders,
   refundFailedOrder,
   responseCheckout,
+  makeExpensesAfterCheckout,
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary
@@ -1654,6 +1656,7 @@ router.post(
   hotelbedsCreateOrder,
   refundDepositFailedOrder,
   responseCheckout,
+  makeExpensesAfterCheckout,
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary,
@@ -1683,6 +1686,7 @@ router.post(
   demoForceCompletedOrders,
   refundFailedOrder,
   responseCheckout,
+  makeExpensesAfterCheckout,
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary,
@@ -1712,6 +1716,7 @@ router.post(
   hotelbedsCreateOrder,
   refundDepositFailedOrder,
   responseCheckout,
+  makeExpensesAfterCheckout,
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary,
