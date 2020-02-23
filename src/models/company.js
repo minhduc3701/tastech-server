@@ -95,6 +95,13 @@ const CompanySchema = new Schema(
         new: Number,
         note: String
       }
+    ],
+    tourCodes: [
+      {
+        iata: String,
+        name: String,
+        code: String
+      }
     ]
   },
   {
