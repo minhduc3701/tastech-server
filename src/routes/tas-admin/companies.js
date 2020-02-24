@@ -136,27 +136,4 @@ router.patch('/:id', function(req, res) {
     })
 })
 
-router.delete('/:id', function(req, res) {
-  let id = req.params.id
-
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send()
-  }
-
-  Company.findByIdAndDelete(id)
-    .then(company => {
-      if (!company) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ company })
-
-      return Role.deleteMany({ _company: company._id })
-    })
-    .then(roles => {})
-    .catch(e => {
-      res.status(400).send()
-    })
-})
-
 module.exports = router

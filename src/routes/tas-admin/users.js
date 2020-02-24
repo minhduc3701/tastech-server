@@ -115,24 +115,4 @@ router.patch('/:id', function(req, res) {
     })
 })
 
-router.delete('/:id', function(req, res) {
-  let id = req.params.id
-
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send()
-  }
-
-  User.findByIdAndDelete(id)
-    .then(user => {
-      if (!user) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ user })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
-})
-
 module.exports = router
