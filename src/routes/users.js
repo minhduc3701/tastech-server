@@ -26,7 +26,9 @@ router.get('/me/company', function(req, res, next) {
     .then(company =>
       res
         .status(200)
-        .send({ company: _.pick(company, ['payment', 'exchangedRate']) })
+        .send({
+          company: _.pick(company, ['payment', 'exchangedRate', 'tourCodes'])
+        })
     )
     .catch(e => res.status(400).send())
 })

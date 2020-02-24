@@ -3,6 +3,8 @@ const router = express.Router()
 const User = require('../../models/user')
 const _ = require('lodash')
 const Trip = require('../../models/trip')
+const Company = require('../../models/company')
+
 const { validateUserIdPartner } = require('../../middleware/users')
 const { ObjectID } = require('mongodb')
 
@@ -48,6 +50,17 @@ router.post('/search', (req, res) => {
     })
   // @see https://stackoverflow.com/questions/3305561/how-to-query-mongodb-with-like
   // @see https://stackoverflow.com/questions/26699885/how-can-i-use-a-regex-variable-in-a-query-for-mongodb
+})
+
+// respone company tour code for user id
+router.get('/:id/tour-code', validateUserIdPartner, function(req, res, next) {
+  Company.findById({
+    _id: req.userPartner._company
+  })
+    .then(company =>
+      res.status(200).send({ tourCodes: _.get(company, 'tourCodes', []) })
+    )
+    .catch(e => res.status(400).send())
 })
 
 // response approved trips for booking
