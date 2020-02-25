@@ -5,38 +5,50 @@ const User = require('../../models/user')
 const _ = require('lodash')
 const { ObjectID } = require('mongodb')
 
-router.get('/', function(req, res) {
-  Request.aggregate([
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'email',
-        foreignField: 'email',
-        as: 'users'
-      }
-    },
-    {
-      $project: {
-        _id: 1,
-        status: 1,
-        email: 1,
-        notes: 1,
-        'users.disabled': 1,
-        'users.email': 1,
-        'users._id': 1,
-        referral: 1
-      }
-    },
-    {
-      $sort: {
-        _id: -1
-      }
-    }
-  ])
-    .then(requests => {
-      res.status(200).send({ requests })
+router.get('/', async function(req, res) {
+  let perPage = 10
+  let page = Math.max(0, _.get(req, 'query.page', 0))
+  let status = _.get(req, 'query.status', '')
+  let queryOptions = {}
+
+  let statuses = ['waiting', 'pending', 'completed', 'rejected']
+
+  if (statuses.some(s => s === status)) {
+    queryOptions.status = status
+  }
+
+  try {
+    let results = await Promise.all([
+      Request.find(queryOptions)
+        .limit(perPage)
+        .skip(perPage * page)
+        .sort([['_id', -1]]),
+      Request.countDocuments(queryOptions)
+    ])
+
+    let requests = results[0]
+    let total = results[1]
+    let users = await User.find({
+      email: { $in: requests.map(r => r.email) }
     })
-    .catch(e => res.status(400).send())
+
+    requests = requests.map(r => ({
+      ...r.toJSON(),
+      users: users
+        .filter(user => user.email === r.email)
+        .map(user => _.pick(user, ['disabled', 'email', '_id']))
+    }))
+
+    res.status(200).send({
+      requests,
+      page,
+      perPage,
+      total,
+      totalPage: Math.ceil(total / perPage)
+    })
+  } catch (e) {
+    res.status(400).send()
+  }
 })
 
 router.get('/:id', function(req, res) {
@@ -125,29 +137,6 @@ router.put('/disabled', (req, res) => {
       res.status(200).send({ user })
     })
     .catch(e => res.status(400).send())
-})
-
-router.delete('/:id', function(req, res) {
-  let id = req.params.id
-
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send()
-  }
-
-  Request.findByIdAndDelete(id)
-    .then(request => {
-      if (!request) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ request })
-
-      return Role.deleteMany({ _request: request._id })
-    })
-    .then(roles => {})
-    .catch(e => {
-      res.status(400).send()
-    })
 })
 
 module.exports = router
