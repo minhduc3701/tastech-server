@@ -204,30 +204,6 @@ router.patch('/:id/employees/:employeeId', function(req, res) {
     })
 })
 
-router.delete('/:id/employees/:employeeId', function(req, res) {
-  if (
-    !ObjectID.isValid(req.params.id) ||
-    !ObjectID.isValid(req.params.employeeId)
-  ) {
-    return res.status(404).send()
-  }
-  User.findOneAndDelete({
-    _id: req.params.employeeId,
-    _company: req.params.id,
-    _partner: req.user._partner
-  })
-    .then(user => {
-      if (!user) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ user })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
-})
-
 router.post('/:id/employees', createUser, (req, res) => {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
@@ -617,26 +593,6 @@ router.patch('/:id', async (req, res) => {
   } catch (error) {
     res.status(400).send()
   }
-})
-
-router.delete('/:id', function(req, res) {
-  if (!ObjectID.isValid(req.params.id)) {
-    return res.status(404).send()
-  }
-
-  Company.findOneAndDelete({
-    _id: req.params.id,
-    _partner: req.user._partner
-  })
-    .then(company => {
-      if (!company) {
-        return res.status(404).send()
-      }
-      res.status(200).send({ company })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
 })
 
 // get company payment by employee id
