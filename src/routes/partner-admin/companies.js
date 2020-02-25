@@ -49,7 +49,8 @@ const companyFields = [
   'deposit',
   'remainingCredit',
   'depositAdding',
-  'note'
+  'note',
+  'tourCodes'
 ]
 
 const logFields = [
