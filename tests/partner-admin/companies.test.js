@@ -104,22 +104,6 @@ test('Should not update company, return 400 because of lacking required data', a
     .expect(400)
 })
 
-test('Should delete company by Id', async () => {
-  const response = await request(app)
-    .delete(`/partner-admin/companies/${partnerCompanyId}`)
-    .set('Authorization', `Bearer ${partnerAdminToken}`)
-    .expect(200)
-
-  expect(response.body.company._id).toMatch(partnerCompanyId.toHexString())
-})
-
-test('Should not delete company, return 404 because of non existing company', async () => {
-  await request(app)
-    .delete(`/partner-admin/companies/${newObjectId}`)
-    .set('Authorization', `Bearer ${partnerAdminToken}`)
-    .expect(404)
-})
-
 test('Should create two new companies', async () => {
   const response = await request(app)
     .post('/partner-admin/companies/bulk')
