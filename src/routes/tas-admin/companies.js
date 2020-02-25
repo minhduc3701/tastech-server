@@ -9,11 +9,25 @@ const { roles } = require('../../config/roles')
 const api = require('../../modules/api')
 
 router.get('/', function(req, res) {
-  Promise.all([Company.find({}).sort([['_id', -1]]), Company.count({})])
+  let perPage = 10
+  let page = Math.max(0, _.get(req, 'query.page', 0))
+
+  Promise.all([
+    Company.find({})
+      .limit(perPage)
+      .skip(perPage * page)
+      .sort([['_id', -1]]),
+    Company.count({})
+  ])
     .then(results => {
       let companies = results[0]
       let total = results[1]
-      res.status(200).send({ total, companies })
+      res.status(200).send({
+        page,
+        total,
+        totalPage: Math.ceil(total / perPage),
+        companies
+      })
     })
     .catch(e => res.status(400).send())
 })
@@ -131,29 +145,6 @@ router.patch('/:id', function(req, res) {
 
       res.status(200).send({ company })
     })
-    .catch(e => {
-      res.status(400).send()
-    })
-})
-
-router.delete('/:id', function(req, res) {
-  let id = req.params.id
-
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send()
-  }
-
-  Company.findByIdAndDelete(id)
-    .then(company => {
-      if (!company) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ company })
-
-      return Role.deleteMany({ _company: company._id })
-    })
-    .then(roles => {})
     .catch(e => {
       res.status(400).send()
     })
