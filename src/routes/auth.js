@@ -27,7 +27,7 @@ router.post('/login', verifyRecaptcha, function(req, res, next) {
 
     // disabled user
     if (user.disabled) {
-      return res.status(401).send()
+      return res.status(400).send()
     }
 
     req.login(user, { session: false }, err => {

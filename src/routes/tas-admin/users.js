@@ -7,21 +7,30 @@ const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
 router.get('/', function(req, res) {
-  let perPage = 20
-  let page = Math.max(0, req.query.page)
+  let perPage = 10
+  let page = Math.max(0, _.get(req, 'query.page', 0))
 
   // @see https://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js
   Promise.all([
-    User.find({})
+    User.find({}, 'email firstName lastName _company _role')
       .limit(perPage)
       .skip(perPage * page)
-      .sort([['_id', -1]]),
+      .sort([['_id', -1]])
+      .populate('_company', 'name')
+      .populate('_role', 'name'),
     User.count({})
   ])
     .then(results => {
       let users = results[0]
       let total = results[1]
-      res.status(200).send({ page, total, count: users.length, perPage, users })
+      res.status(200).send({
+        page,
+        total,
+        totalPage: Math.ceil(total / perPage),
+        count: users.length,
+        perPage,
+        users
+      })
     })
     .catch(e => res.status(400).send())
 })
@@ -103,26 +112,6 @@ router.patch('/:id', function(req, res) {
   ])
 
   User.findByIdAndUpdate(id, { $set: body }, { new: true })
-    .then(user => {
-      if (!user) {
-        return res.status(404).send()
-      }
-
-      res.status(200).send({ user })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
-})
-
-router.delete('/:id', function(req, res) {
-  let id = req.params.id
-
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send()
-  }
-
-  User.findByIdAndDelete(id)
     .then(user => {
       if (!user) {
         return res.status(404).send()
