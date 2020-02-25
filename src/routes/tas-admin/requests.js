@@ -8,14 +8,22 @@ const { ObjectID } = require('mongodb')
 router.get('/', async function(req, res) {
   let perPage = 10
   let page = Math.max(0, _.get(req, 'query.page', 0))
+  let status = _.get(req, 'query.status', '')
+  let queryOptions = {}
+
+  let statuses = ['waiting', 'pending', 'completed', 'rejected']
+
+  if (statuses.some(s => s === status)) {
+    queryOptions.status = status
+  }
 
   try {
     let results = await Promise.all([
-      Request.find()
+      Request.find(queryOptions)
         .limit(perPage)
         .skip(perPage * page)
         .sort([['_id', -1]]),
-      Request.countDocuments()
+      Request.countDocuments(queryOptions)
     ])
 
     let requests = results[0]
