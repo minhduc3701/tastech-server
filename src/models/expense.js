@@ -17,7 +17,7 @@ var ExpenseSchema = new Schema(
     ],
     name: {
       type: String,
-      required: true
+      required: false
     },
     amount: {
       type: Number,
