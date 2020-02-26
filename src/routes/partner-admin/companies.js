@@ -679,7 +679,8 @@ router.get('/:id/logs', (req, res) => {
           field: 1,
           old: 1,
           new: 1,
-          note: 1
+          note: 1,
+          createdAt: 1
         }
       }
     ]),
