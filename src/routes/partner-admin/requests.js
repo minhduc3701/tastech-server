@@ -65,10 +65,7 @@ router.get('/:id/:type', function(req, res, next) {
         ...request,
         _id: `${trip._id}-${request.type}`,
         _creator: trip._creator,
-        _company: {
-          _id: trip._company._id,
-          name: trip._company.name
-        },
+        _company: trip._company,
         _trip: trip
       }
       res.status(200).send({

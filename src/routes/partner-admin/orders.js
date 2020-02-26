@@ -257,6 +257,7 @@ router.get('/:id/logs', async (req, res) => {
                 }
               }
             },
+            createdAt: 1,
             changedValues: 1,
             note: 1
           }

@@ -681,6 +681,13 @@ const depositCharging = async (req, res, next) => {
 
     // in case have enough money
     if (deposit + remainingCredit >= amount) {
+      let _creator
+      // set _creator for company logs
+      if (!_.isEmpty(req.partnerAdmin)) {
+        _creator = req.partnerAdmin._id
+      } else {
+        _creator = req.user._id
+      }
       // have enough deposit
       if (deposit >= amount) {
         newDeposit = deposit - amount
@@ -690,7 +697,7 @@ const depositCharging = async (req, res, next) => {
         newRemainingCredit = remainingCredit - (amount - deposit)
 
         newLogs.push({
-          _creator: req.user._id,
+          _creator,
           createdAt: new Date(),
           field: 'remainingCredit',
           old: remainingCredit,
@@ -701,7 +708,7 @@ const depositCharging = async (req, res, next) => {
 
       if (newDeposit !== deposit) {
         newLogs.push({
-          _creator: req.user._id,
+          _creator,
           createdAt: new Date(),
           field: 'deposit',
           old: deposit,
@@ -1484,7 +1491,13 @@ const refundDepositFailedOrder = async (req, res, next) => {
     let newRemainingCredit = company.remainingCredit
     remainingCredit = isCreditLimitation ? remainingCredit : 0
     let newLogs = []
-
+    let _creator
+    // set _creator for company logs
+    if (!_.isEmpty(req.partnerAdmin)) {
+      _creator = req.partnerAdmin._id
+    } else {
+      _creator = req.user._id
+    }
     if (!isCreditLimitation) {
       newDeposit += refundAmount
     } else {
@@ -1497,7 +1510,7 @@ const refundDepositFailedOrder = async (req, res, next) => {
 
       if (newRemainingCredit !== remainingCredit) {
         newLogs.push({
-          _creator: req.user._id,
+          _creator,
           createdAt: new Date(),
           field: 'remainingCredit',
           old: remainingCredit,
@@ -1509,7 +1522,7 @@ const refundDepositFailedOrder = async (req, res, next) => {
 
     if (newDeposit !== deposit) {
       newLogs.push({
-        _creator: req.user._id,
+        _creator,
         createdAt: new Date(),
         field: 'deposit',
         old: deposit,

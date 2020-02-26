@@ -13,6 +13,7 @@ const CompanySchema = new Schema(
     logo: String,
     address: String,
     website: String,
+    taxCode: String,
     country: String,
     city: String,
     companySize: String,
