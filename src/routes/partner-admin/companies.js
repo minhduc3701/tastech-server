@@ -75,8 +75,7 @@ const requiredFields = [
   'markupFlight',
   'markupFlightAmount',
   'markupHotel',
-  'markupHotelAmount',
-  'taxCode'
+  'markupHotelAmount'
 ]
 
 router.get('/', function(req, res) {
