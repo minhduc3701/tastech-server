@@ -64,7 +64,7 @@ const makeExpensesAfterCheckout = async (req, res, next) => {
       _trip: trip._id,
       claimed: false,
       status: 'waiting',
-      vendor: '',
+      vendor: 'EzBizTrip',
       city: '',
       message: '',
       account: 'credit-card',
