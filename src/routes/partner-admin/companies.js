@@ -50,7 +50,8 @@ const companyFields = [
   'remainingCredit',
   'depositAdding',
   'note',
-  'tourCodes'
+  'tourCodes',
+  'taxCode'
 ]
 
 const logFields = [
@@ -74,7 +75,8 @@ const requiredFields = [
   'markupFlight',
   'markupFlightAmount',
   'markupHotel',
-  'markupHotelAmount'
+  'markupHotelAmount',
+  'taxCode'
 ]
 
 router.get('/', function(req, res) {
