@@ -6,12 +6,28 @@ const { createUser } = require('../../middleware/users')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 
-router.get('/', function(req, res) {
+router.get('/', async (req, res) => {
   let perPage = 10
   let page = Math.max(0, _.get(req, 'query.page', 0))
+
+  let partnerAdminRoleIds = []
+  try {
+    let roles = await Role.find({ type: 'partner-admin' })
+    partnerAdminRoleIds = roles.map(role => role._id)
+  } catch (e) {
+    // do nothing if cannot find partner admin roles
+  }
+
   let options = {
     _id: { $ne: req.user._id }, // don't show current tas-admin
-    _partner: null // do not get partner's orders
+    $or: [
+      {
+        _partner: null // do not get partner's users
+      },
+      {
+        _role: { $in: partnerAdminRoleIds } // except partner-admin
+      }
+    ]
   }
 
   // @see https://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js
@@ -21,7 +37,8 @@ router.get('/', function(req, res) {
       .skip(perPage * page)
       .sort([['_id', -1]])
       .populate('_company', 'name')
-      .populate('_role', 'name'),
+      .populate('_role', 'name')
+      .populate('_partner', 'name'),
     User.count(options)
   ])
     .then(results => {
