@@ -15,6 +15,7 @@ router.get('/me', currentCompany, function(req, res, next) {
     user: req.user,
     profileStrength: getUserProfileStrength(req.user),
     currency: req.company.currency,
+    baseCurrency: process.env.BASE_CURRENCY,
     exchangedRate: req.company.exchangedRate
   })
 })
@@ -24,11 +25,9 @@ router.get('/me/company', function(req, res, next) {
     _id: req.user._company
   })
     .then(company =>
-      res
-        .status(200)
-        .send({
-          company: _.pick(company, ['payment', 'exchangedRate', 'tourCodes'])
-        })
+      res.status(200).send({
+        company: _.pick(company, ['payment', 'exchangedRate', 'tourCodes'])
+      })
     )
     .catch(e => res.status(400).send())
 })
