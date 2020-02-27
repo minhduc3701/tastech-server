@@ -449,8 +449,8 @@ const calculateRewardCost = async (req, res, next) => {
     let totalFlightSpend = _.get(tripsSpend, '[0].totalFlightSpend', 0)
     let totalHotelSpend = _.get(tripsSpend, '[0].totalHotelSpend', 0)
 
-    let flightTotalPrice = _.get(req, 'flightOrder.flight.totalPrice', 0)
-    let hotelTotalPrice = _.get(req, 'hotelOrder.hotel.totalPrice', 0)
+    let flightTotalPrice = _.get(req, 'flightOrder.totalPrice', 0)
+    let hotelTotalPrice = _.get(req, 'hotelOrder.totalPrice', 0)
 
     let exchangedRate = req.company.exchangedRate
 
@@ -464,7 +464,10 @@ const calculateRewardCost = async (req, res, next) => {
         (exchangedRate * remainingFlightBudget) / 100,
         flightOrder.currency
       )
-      flightOrder.totalPrice = flightOrder.totalPrice + flightOrder.rewardCost
+      flightOrder.totalPrice = roundPrice(
+        flightOrder.totalPrice + flightOrder.rewardCost,
+        flightOrder.currency
+      )
       flightOrder.rawTotalPrice = roundPrice(
         flightOrder.totalPrice / currencyRate,
         flightOrder.rawCurrency
@@ -478,7 +481,10 @@ const calculateRewardCost = async (req, res, next) => {
         (exchangedRate * remainingHotelBudget) / 100,
         hotelOrder.currency
       )
-      hotelOrder.totalPrice = hotelOrder.totalPrice + hotelOrder.rewardCost
+      hotelOrder.totalPrice = roundPrice(
+        hotelOrder.totalPrice + hotelOrder.rewardCost,
+        hotelOrder.currency
+      )
       hotelOrder.rawTotalPrice = roundPrice(
         hotelOrder.totalPrice / currencyRate,
         hotelOrder.rawCurrency
