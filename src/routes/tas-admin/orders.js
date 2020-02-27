@@ -10,7 +10,7 @@ const {
 } = require('../../middleware/orders')
 
 router.get('/', function(req, res, next) {
-  let perPage = _.get(req.query, 'perPage', 50)
+  let perPage = _.get(req.query, 'perPage', 10)
   perPage = Math.max(0, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))

@@ -11,6 +11,7 @@ const RequestSchema = new Schema({
   role: { type: String },
   numberOfEmployees: { type: String },
   country: { type: String },
+  referral: { type: String },
   status: {
     type: String,
     enum: ['completed', 'pending', 'waiting', 'rejected'],

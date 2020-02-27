@@ -110,7 +110,8 @@ var UserSchema = new Schema({
       {
         name: String,
         number: String,
-        active: false
+        active: false,
+        iata: String
       }
     ]
   },

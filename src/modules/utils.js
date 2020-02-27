@@ -677,7 +677,7 @@ const makeHotelbedsHotelsData = (
     let featuredImage =
       images.find(image => image.imageTypeCode === 'GEN') || images[0]
     let featuredImageLink = featuredImage
-      ? 'https://photos.hotelbeds.com/giata/xxl/' + featuredImage.path
+      ? 'https://photos.hotelbeds.com/giata/bigger/' + featuredImage.path
       : ''
     let thumbnailLink = featuredImage
       ? 'https://photos.hotelbeds.com/giata/' + featuredImage.path
@@ -685,7 +685,8 @@ const makeHotelbedsHotelsData = (
     const imageLinks = images.map(image => {
       let newImage = {
         ...image,
-        url: 'https://photos.hotelbeds.com/giata/bigger/' + image.path
+        url: 'https://photos.hotelbeds.com/giata/' + image.path,
+        biggerUrl: 'https://photos.hotelbeds.com/giata/bigger/' + image.path
       }
       return newImage
     })

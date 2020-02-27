@@ -13,7 +13,7 @@ function requestDemo(data) {
       data.role
     } \n\nNumber Of Employees: ${data.numberOfEmployees} \n\nCountry: ${
       data.country
-    }`
+    }\n\nReferral code: ${data.referral}`
   }
 }
 
