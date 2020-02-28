@@ -561,8 +561,10 @@ router.patch('/:id', async (req, res) => {
     }
 
     // update remainingCredit if user change creditLimitationAmount
-    updatedData.remainingCredit +=
-      updatedData.creditLimitationAmount - company.creditLimitationAmount
+    updatedData.remainingCredit =
+      Number(_.get(company, 'remainingCredit', 0)) +
+      Number(_.get(updatedData, 'creditLimitationAmount', 0)) -
+      Number(_.get(company, 'creditLimitationAmount', 0))
 
     const createdAt = new Date()
     let newLogs = []
