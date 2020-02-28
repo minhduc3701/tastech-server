@@ -39,6 +39,14 @@ const updateBookingRequest = async (req, res, next) => {
   if (!onBehalf || !selectBookingRequest) {
     return next()
   }
+
+  let { flightOrder, hotelOrder } = req
+
+  // do not change request status if booking failed
+  if (flightOrder.status === 'failed' || hotelOrder.status === 'failed') {
+    return next()
+  }
+
   try {
     let trip = await Trip.findOne({
       _id: _.get(selectBookingRequest, '_trip._id'),

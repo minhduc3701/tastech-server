@@ -6,6 +6,11 @@ const { ObjectID } = require('mongodb')
 
 // get all booking request
 router.get('/', function(req, res, next) {
+  let perPage = _.get(req.query, 'perPage', 10)
+  perPage = Math.max(0, parseInt(perPage))
+  let page = _.get(req.query, 'page', 0)
+  page = Math.max(0, parseInt(page))
+
   let objFind = {
     _partner: req.user._partner,
     isBookedByPartner: true
@@ -31,8 +36,15 @@ router.get('/', function(req, res, next) {
           }
         })
       })
+      let total = requests.length
+      requests = requests.slice(page * perPage, (page + 1) * perPage)
       res.status(200).send({
-        requests
+        requests,
+        page,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        count: requests.length,
+        perPage
       })
     })
     .catch(e => {
