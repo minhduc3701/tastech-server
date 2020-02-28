@@ -36,6 +36,7 @@ async function tripItinerary(origin, user, orders, airlines, airports) {
             )
           },
           payment: {
+            type: _.get(order, 'chargeInfo.paymentType'),
             brand: _.get(order, 'chargeInfo.payment_method_details.card.brand'),
             last4: _.get(order, 'chargeInfo.payment_method_details.card.last4')
           }
@@ -52,6 +53,7 @@ async function tripItinerary(origin, user, orders, airlines, airports) {
           checkOutDate: moment(order.hotel.checkOutDate).format('ll')
         },
         payment: {
+          type: _.get(order, 'chargeInfo.paymentType'),
           brand: _.get(order, 'chargeInfo.payment_method_details.card.brand'),
           last4: _.get(order, 'chargeInfo.payment_method_details.card.last4')
         }

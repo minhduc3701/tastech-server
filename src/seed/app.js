@@ -3,6 +3,7 @@ require('../config/mongoose')
 
 const {
   populateUsers,
+  populatePartners,
   populateCompanies,
   populateRoles,
   populateRequests,
@@ -71,6 +72,10 @@ let collections = [
   {
     collection: 'vouchers',
     population: populateVouchers
+  },
+  {
+    collection: 'partners',
+    population: populatePartners
   },
   {
     collection: 'options',

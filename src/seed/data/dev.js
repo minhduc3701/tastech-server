@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb')
 const User = require('../../models/user')
+const Partner = require('../../models/partner')
 const Company = require('../../models/company')
 const Role = require('../../models/role')
 const Request = require('../../models/request')
@@ -17,9 +18,11 @@ const tasAdminId = new ObjectID('5cc2d7a24c72b61214af0049')
 const adminId = new ObjectID('5cc2d7a24c72b61214af004a')
 const employeeId = new ObjectID('5cc2d7a24c72b61214af004b')
 const employeeId2 = new ObjectID('5cc2d7a24c72b61214af004c')
+
 const companyId = new ObjectID('5cc2d7a24c72b61214af004d')
 const companyId2 = new ObjectID()
 const companyId3 = new ObjectID()
+
 const tripId = new ObjectID('5cc2d7a24c72b61214af0051')
 const tripId2 = new ObjectID('5cc2d7a24c72b61214af0052')
 const tripId3 = new ObjectID('5cc2d7a24c72b61214af0053')
@@ -40,11 +43,12 @@ const tripIdsUser1 = [
 ]
 const tripIdsUser2 = []
 const departmentId = new ObjectID('5cd03b1571811c06ad420d36')
-const secondDepartmentId = new ObjectID('5cd03b1571811c06ad420d35')
+const departmentId2 = new ObjectID('5cd03b1571811c06ad420d35')
 const tasAdminRoleId = new ObjectID('5cc2d7a24c72b61214af0058')
 const adminRoleId = new ObjectID('5cc2d7a24c72b61214af0059')
 const adminRoleId2 = new ObjectID()
 const adminRoleId3 = new ObjectID()
+
 const employeeRoleId = new ObjectID('5cc2d7a24c72b61214af0060')
 const employeeRoleId2 = new ObjectID()
 const employeeRoleId3 = new ObjectID()
@@ -52,10 +56,46 @@ const managerId = new ObjectID()
 const managerRoleId = new ObjectID()
 const accountantId = new ObjectID()
 const accountantRoleId = new ObjectID()
+// partner id
+const partnerId = new ObjectID('5cc2d7a24c72b61214aa0001')
+const partnerId2 = new ObjectID('5cc2d7a24c72b61214aa0002')
+const partnerAdminId = new ObjectID('5cc2d7a24c72b61214aa0003')
+const companyPartnerId = new ObjectID('5de9f4b1c9bda20d4b4b8497')
+const company2PartnerId = new ObjectID('5de9f4b1c9bda20d4b4b8498')
+const companyPartner2Id = new ObjectID()
+const adminPartnerId = new ObjectID('5cc2d7a24c72b61214aa0004')
+const adminCompany2PartnerId = new ObjectID('5cc2d7a24c72b61214aa0005')
+const adminPartnerId2 = new ObjectID()
+const employeeParterId = new ObjectID('5de88939a7d0a4095eddfede')
+const employeeParterId2 = new ObjectID()
+const managerPartnerId = new ObjectID()
+const managerPartnerId2 = new ObjectID()
+const accountantPartnerId = new ObjectID()
+const accountantPartnerId2 = new ObjectID()
+// =======================
+// role, department for partner flow
+const departmentPartnerId = new ObjectID()
+const department2PartnerId = new ObjectID()
+const departmentPartnerId2 = new ObjectID()
+const partnerRoleId = new ObjectID('5df0697ed1b5060fe38626a8')
+const partnerRoleId2 = new ObjectID()
+const adminRolePartnerId = new ObjectID()
+const adminRoleCompany2PartnerId = new ObjectID()
+const adminRolePartnerId2 = new ObjectID()
+const employeeRolePartnerId = new ObjectID()
+const employeeRolePartnerId2 = new ObjectID()
+const managerRolePartnerId = new ObjectID()
+const managerRolePartnerId2 = new ObjectID()
+const accountantRolePartnerId = new ObjectID()
+const accountantRolePartnerId2 = new ObjectID()
+//=======================
+
 const password = '12345678'
 const defaultPolicyId = new ObjectID()
 const defaultPolicyId2 = new ObjectID()
 const defaultPolicyId3 = new ObjectID()
+const defaultPolicyPartnerId4 = new ObjectID()
+const defaultPolicyPartnerId5 = new ObjectID()
 const policyId1 = new ObjectID()
 const policyId2 = new ObjectID()
 
@@ -182,9 +222,168 @@ const users = [
     _role: employeeRoleId3,
     firstName: chance.first(),
     lastName: chance.last()
+  },
+
+  // partner admin
+  {
+    _id: partnerAdminId,
+    username: 'partner-admin@tastech.asia',
+    email: 'partner-admin@tastech.asia',
+    _partner: partnerId,
+    avatar: `http://i.pravatar.cc/150?img=1`,
+    _role: partnerRoleId,
+    firstName: 'Thierry',
+    lastName: 'Henry'
+  },
+  {
+    username: 'partner-admin2@tastech.asia',
+    email: 'partner-admin2@tastech.asia',
+    _partner: partnerId2,
+    avatar: `http://i.pravatar.cc/150?img=2`,
+    _role: partnerRoleId2,
+    firstName: 'Lionel',
+    lastName: 'Messi'
+  },
+  // user for company partner 1
+  {
+    _id: adminPartnerId,
+    username: 'adminPartner@tastech.asia',
+    email: 'adminPartner@tastech.asia',
+    _company: companyPartnerId,
+    avatar: `http://i.pravatar.cc/150?img=2`,
+    _role: adminRolePartnerId,
+    _partner: partnerId
+  },
+  {
+    _id: employeeParterId,
+    username: 'employeePartner@tastech.asia',
+    email: 'employeePartner@tastech.asia',
+    _company: companyPartnerId,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: employeeRolePartnerId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    _department: departmentPartnerId,
+    phone: '0819020695',
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'VN',
+    _partner: partnerId
+  },
+  {
+    _id: managerPartnerId,
+    username: 'managerPartner@tastech.asia',
+    email: 'managerPartner@tastech.asia',
+    _company: companyPartnerId,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: managerRolePartnerId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    _department: departmentPartnerId,
+    phone: '0819020695',
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'VN',
+    _partner: partnerId
+  },
+  {
+    _id: accountantPartnerId,
+    username: 'accountantPartner@tastech.asia',
+    email: 'accountantPartner@tastech.asia',
+    _company: companyPartnerId,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: accountantRolePartnerId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    _department: departmentPartnerId,
+    phone: '0819020695',
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'VN',
+    _partner: partnerId
+  },
+  // user for company 2 partner 1
+  {
+    _id: adminCompany2PartnerId,
+    username: 'adminCompany2Partner@tastech.asia',
+    email: 'adminCompany2Partner@tastech.asia',
+    _company: company2PartnerId,
+    avatar: `http://i.pravatar.cc/150?img=2`,
+    _role: adminRoleCompany2PartnerId,
+    _partner: partnerId
+  },
+  // user for company partner 2
+  {
+    _id: adminPartnerId2,
+    username: 'adminPartner2@tastech.asia',
+    email: 'adminPartner2@tastech.asia',
+    _company: companyPartner2Id,
+    avatar: `http://i.pravatar.cc/150?img=2`,
+    _role: adminRolePartnerId2,
+    _partner: partnerId2
+  },
+  {
+    _id: employeeParterId2,
+    username: 'employeePartner2@tastech.asia',
+    email: 'employeePartner2@tastech.asia',
+    _company: companyPartner2Id,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: employeeRolePartnerId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    _department: departmentPartnerId,
+    phone: '0819020695',
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'VN',
+    _partner: partnerId2
+  },
+  {
+    _id: managerPartnerId2,
+    username: 'managerPartner2@tastech.asia',
+    email: 'managerPartner2@tastech.asia',
+    _company: companyPartner2Id,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: managerRolePartnerId2,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    _department: departmentPartnerId2,
+    phone: '0819020695',
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'VN',
+    _partner: partnerId2
+  },
+  {
+    _id: accountantPartnerId2,
+    username: 'accountantPartner2@tastech.asia',
+    email: 'accountantPartner2@tastech.asia',
+    _company: companyPartner2Id,
+    avatar: `http://i.pravatar.cc/150?img=3`,
+    _role: accountantRolePartnerId2,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    _department: departmentPartnerId2,
+    phone: '0819020695',
+    dateOfBirth: new Date('1996-07-02'),
+    country: 'VN',
+    _partner: partnerId2
   }
 ]
-
+for (let i = 2; i < 50; i++) {
+  let email = `employee${i - 1}Partner@tastech.asia`
+  users.push({
+    _id: new ObjectID(),
+    username: email,
+    email,
+    _company: companyPartnerId,
+    _partner: partnerId,
+    firstName: chance.first(),
+    lastName: chance.last(),
+    avatar: `http://i.pravatar.cc/150?img=${i + 1}`,
+    _department: randomItemInArray([departmentPartnerId, department2PartnerId]),
+    _role: employeeRolePartnerId,
+    _policy: defaultPolicyPartnerId4,
+    phone: (Math.random() * 1000000000).toFixed(0),
+    dateOfBirth: chance.birthday(),
+    country: 'VN'
+  })
+}
 for (let i = 4; i < 50; i++) {
   let email = `employee${i - 1}@tastech.asia`
 
@@ -196,7 +395,7 @@ for (let i = 4; i < 50; i++) {
     firstName: chance.first(),
     lastName: chance.last(),
     avatar: i < 40 ? '' : `http://i.pravatar.cc/150?img=${i + 1}`,
-    _department: randomItemInArray([departmentId, secondDepartmentId]),
+    _department: randomItemInArray([departmentId, departmentId2]),
     _role: employeeRoleId,
     _policy: randomItemInArray([policyId1, policyId2]),
     phone: (Math.random() * 1000000000).toFixed(0),
@@ -226,22 +425,185 @@ const companies = [
     exchangedRate: 10,
     _policy: defaultPolicyId3,
     currency: 'VND'
+  },
+  {
+    _id: companyPartnerId,
+    name: 'Partner company 1',
+    exchangedRate: 10,
+    _policy: defaultPolicyPartnerId4,
+    currency: 'USD',
+    _partner: partnerId,
+    contactName: 'Henry Suju',
+    contactEmail: 'henry@gmail.com',
+    contactPhone: '0981234234',
+    contactCallingCode: '44',
+    onBehalf: true,
+    payment: 'deposit',
+    isCreditLimitation: true,
+    creditLimitationAmount: 2000,
+    warningAmount: 500,
+    sendMailToCompanyAdmin: true,
+    sendMailToPartnerAdmin: true,
+    balance: 0,
+    markupFlight: 'net',
+    markupFlightAmount: 20,
+    markupHotel: 'percentage',
+    markupHotelAmount: 5,
+    note: 'something about company',
+    industry: 'Advertising',
+    country: 'VN',
+    language: 'Vietnamese'
+  },
+  {
+    _id: company2PartnerId,
+    name: 'Partner company 2',
+    exchangedRate: 10,
+    _policy: defaultPolicyPartnerId4,
+    currency: 'VND',
+    _partner: partnerId,
+    contactName: 'Choi Siwon Suju',
+    contactEmail: 'siwon.suju@gmail.com',
+    contactPhone: '0981234234',
+    contactCallingCode: '44',
+    onBehalf: true,
+    payment: 'deposit',
+    isCreditLimitation: true,
+    creditLimitationAmount: 2000,
+    warningAmount: 500,
+    sendMailToCompanyAdmin: true,
+    sendMailToPartnerAdmin: true,
+    balance: 0,
+    markupFlight: 'net',
+    markupFlightAmount: 20,
+    markupHotel: 'percentage',
+    markupHotelAmount: 5,
+    note: 'something about company',
+    industry: 'Advertising',
+    country: 'VN',
+    language: 'Vietnamese'
+  },
+  {
+    _id: companyPartner2Id,
+    name: 'Partner company 2',
+    exchangedRate: 10,
+    _policy: defaultPolicyPartnerId5,
+    currency: 'USD',
+    _partner: partnerId2,
+    contactName: 'Ha phan',
+    contactEmail: 'phan@gmail.com',
+    contactPhone: '0819020796',
+    contactCallingCode: '84',
+    onBehalf: false,
+    payment: 'credit-card',
+    isCreditLimitation: true,
+    // creditLimitationAmount: 2000,
+    // warningAmount: 500,
+    // sendMailToCompanyAdmin: true,
+    // sendMailToPartnerAdmin: true,
+    // balance: 0,
+    markupFlight: 'net',
+    markupFlightAmount: 20,
+    markupHotel: 'percentage',
+    markupHotelAmount: 5,
+    note: 'something about company',
+    industry: 'Advertising',
+    country: 'VN',
+    language: 'Vietnamese'
+  }
+]
+
+// for (let i = 3; i < 30; i++) {
+//   companies.push({
+//     name: chance.company(),
+//     exchangedRate: 10,
+//     currency: 'USD'
+//   })
+// }
+
+// for (let i = 0; i < 20; i++) {
+//   companies.push({
+//     _id: new ObjectID(),
+//     name: chance.company(),
+//     exchangedRate: 10,
+//     _policy: defaultPolicyPartnerId4,
+//     currency: 'USD',
+//     _partner: partnerId,
+//     contactName: chance.name(),
+//     contactEmail: chance.email(),
+//     contactPhone: chance.phone(),
+//     contactCallingCode: '+65',
+//     onBehalf: true,
+//     payment: 'deposit',
+//     isCreditLimitation: true,
+//     creditLimitationAmount: 2000,
+//     warningAmount: 500,
+//     sendMailToCompanyAdmin: true,
+//     sendMailToPartnerAdmin: true,
+//     balance: 0,
+//     markupFlight: 'net',
+//     markupFlightAmount: 20,
+//     markupHotel: 'percentage',
+//     markupHotelAmount: 5,
+//     note: 'something about company'
+//   })
+// }
+
+const partners = [
+  {
+    _id: partnerId,
+    name: 'Giamso Travel',
+    address: 'Singapore City, Singapore',
+    country: 'Singapore',
+    contactTitle: 'Mr',
+    contactName: 'Ha Huy',
+    contactEmail: 'giamso@tastech.asia',
+    contactPhone: '123123123',
+    currency: 'USD'
+  },
+  {
+    _id: partnerId2,
+    name: 'Giamso 2',
+    address: 'Singapore City, Singapore',
+    country: 'Singapore',
+    contactTitle: 'Mr',
+    contactName: 'Ha Huy',
+    contactEmail: 'giamso2@tastech.asia',
+    contactPhone: '123123123',
+    currency: 'USD'
   }
 ]
 
 for (let i = 3; i < 30; i++) {
-  companies.push({
+  partners.push({
     name: chance.company(),
-    exchangedRate: 10,
+    address: chance.address(),
+    country: chance.country(),
+    contactTitle: 'Mr',
+    contactName: chance.name(),
+    contactEmail: chance.email(),
+    contactPhone: chance.phone(),
     currency: 'USD'
   })
 }
-
 const roles = [
   {
     _id: tasAdminRoleId,
     name: 'Tas Admin',
     type: 'tas-admin',
+    permissions: []
+  },
+  {
+    _id: partnerRoleId,
+    name: 'Partner Admin',
+    type: 'partner-admin',
+    _partner: partnerId,
+    permissions: []
+  },
+  {
+    _id: partnerRoleId2,
+    name: 'Partner Admin',
+    type: 'partner-admin',
+    _partner: partnerId2,
     permissions: []
   },
   {
@@ -324,6 +686,109 @@ const roles = [
     type: 'employee',
     permissions: ['CAN_ACCESS_BOOKING'],
     _company: companyId3
+  },
+  // partner 1 role
+  {
+    _id: adminRolePartnerId,
+    name: 'Admin',
+    type: 'admin',
+    permissions: [
+      'CAN_ACCESS_COMPANY',
+      'CAN_ACCESS_REWARD',
+      'CAN_ACCESS_BOOKING',
+      'CAN_ACCESS_BUDGET',
+      'CAN_ACCESS_EXPENSE',
+      'CAN_ACCESS_ANALYTICS'
+    ],
+    _company: companyPartnerId,
+    _partner: partnerId
+  },
+  {
+    _id: employeeRolePartnerId,
+    name: 'Employee',
+    type: 'employee',
+    permissions: ['CAN_ACCESS_BOOKING'],
+    _company: companyPartnerId,
+    _partner: partnerId
+  },
+  {
+    _id: managerRolePartnerId,
+    name: 'Manager',
+    type: 'manager',
+    permissions: [
+      'CAN_ACCESS_BUDGET',
+      'CAN_ACCESS_ANALYTICS',
+      'CAN_ACCESS_BOOKING'
+    ],
+    _company: companyPartnerId,
+    _partner: partnerId
+  },
+  {
+    _id: accountantRolePartnerId,
+    name: 'Accountant',
+    type: 'accountant',
+    permissions: ['CAN_ACCESS_BOOKING', 'CAN_ACCESS_EXPENSE'],
+    _company: companyPartnerId,
+    _partner: partnerId
+  },
+  {
+    _id: adminRoleCompany2PartnerId,
+    name: 'Admin',
+    type: 'admin',
+    permissions: [
+      'CAN_ACCESS_COMPANY',
+      'CAN_ACCESS_REWARD',
+      'CAN_ACCESS_BOOKING',
+      'CAN_ACCESS_BUDGET',
+      'CAN_ACCESS_EXPENSE',
+      'CAN_ACCESS_ANALYTICS'
+    ],
+    _company: company2PartnerId,
+    _partner: partnerId
+  },
+  // partner 2 role
+  {
+    _id: adminRolePartnerId2,
+    name: 'Admin',
+    type: 'admin',
+    permissions: [
+      'CAN_ACCESS_COMPANY',
+      'CAN_ACCESS_REWARD',
+      'CAN_ACCESS_BOOKING',
+      'CAN_ACCESS_BUDGET',
+      'CAN_ACCESS_EXPENSE',
+      'CAN_ACCESS_ANALYTICS'
+    ],
+    _company: companyPartner2Id,
+    _partner: partnerId2
+  },
+  {
+    _id: employeeRolePartnerId2,
+    name: 'Employee',
+    type: 'employee',
+    permissions: ['CAN_ACCESS_BOOKING'],
+    _company: companyPartner2Id,
+    _partner: partnerId2
+  },
+  {
+    _id: managerRolePartnerId2,
+    name: 'Manager',
+    type: 'manager',
+    permissions: [
+      'CAN_ACCESS_BUDGET',
+      'CAN_ACCESS_ANALYTICS',
+      'CAN_ACCESS_BOOKING'
+    ],
+    _company: companyPartner2Id,
+    _partner: partnerId2
+  },
+  {
+    _id: accountantRolePartnerId2,
+    name: 'Accountant',
+    type: 'accountant',
+    permissions: ['CAN_ACCESS_BOOKING', 'CAN_ACCESS_EXPENSE'],
+    _company: companyPartner2Id,
+    _partner: partnerId2
   }
 ]
 
@@ -522,6 +987,18 @@ const policies = [
     ...defaultPolicy,
     _id: defaultPolicyId3,
     _company: companyId3
+  },
+
+  {
+    ...defaultPolicy,
+    _id: defaultPolicyPartnerId4,
+    _company: companyPartnerId
+  },
+
+  {
+    ...defaultPolicy,
+    _id: defaultPolicyPartnerId5,
+    _company: companyPartner2Id
   }
 ]
 
@@ -617,7 +1094,7 @@ for (let i = 0; i < 200; i++) {
     namePrefix = 'Personal Trip'
   }
 
-  let startDate = chance.date({ month: 8, year: 2019 })
+  let startDate = chance.date({ month: 11, year: 2019 })
   let startDateObj = new Date(startDate)
   let duration = chance.integer({ min: 1, max: 10 })
   let endDateObj = new Date(startDateObj.getTime() + duration * 86400000)
@@ -696,9 +1173,24 @@ const departments = [
     name: `Department 1`
   },
   {
-    _id: secondDepartmentId,
+    _id: departmentId2,
     _company: companyId,
     name: `Department 2`
+  },
+  {
+    _id: departmentPartnerId,
+    _company: companyPartnerId,
+    name: `Partner - Department 1`
+  },
+  {
+    _id: department2PartnerId,
+    _company: companyPartnerId,
+    name: `Partner - Department 2`
+  },
+  {
+    _id: departmentPartnerId2,
+    _company: companyPartner2Id,
+    name: `Partner 2 - Department 1`
   }
 ]
 
@@ -718,6 +1210,13 @@ const populateUsers = done => {
     .then(res => {
       return Promise.all(res.map(user => user.save()))
     })
+}
+
+const populatePartners = done => {
+  return Partner.deleteMany({}).then(() => {
+    let allParters = partners.map(partner => new Partner(partner))
+    return Promise.all(allParters.map(partner => partner.save()))
+  })
 }
 
 const populateCompanies = done => {
@@ -899,6 +1398,8 @@ module.exports = {
   populateRewards,
   vouchers,
   populateVouchers,
+  partners,
+  populatePartners,
   options,
   populateOptions
 }

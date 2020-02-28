@@ -20,7 +20,9 @@ const { sendPnrGiamso } = require('../mailTemplates/sendPnrGiamso')
 const { cancelFlightGiamso } = require('../mailTemplates/cancelFlightGiamso')
 const { sendVoucherInfo } = require('../mailTemplates/sendVoucherInfo')
 const { debugMail } = require('../config/debug')
+const { notEnoughDeposit } = require('../mailTemplates/notEnoughDeposit')
 const { CAN_ACCESS_BUDGET, CAN_ACCESS_EXPENSE } = require('../config/roles')
+const { findAirlinesAirports } = require('../modules/utils')
 
 const emailEmployeeChangeExpenseStatus = async (req, res) => {
   if (!_.isEmpty(req.expense)) {
@@ -97,9 +99,7 @@ const emailAccountantClaimExpense = async (req, res) => {
           })
         }
       })
-  } catch (error) {
-    console.log(error)
-  }
+  } catch (error) {}
 }
 
 const emailEmployeeSubmitTrip = async (req, res, next) => {
@@ -205,51 +205,26 @@ const emailEmployeeItinerary = async (req, res, next) => {
         $in: ['completed', 'processing']
       }
     }).then(async orders => {
-      // get airlines and airports information
-      let airlines = []
-      let airports = []
-      orders
+      let flights = orders
         .filter(order => order.type === 'flight')
-        .forEach(order => {
-          _.get(order, 'flight.departureSegments', []).forEach(segment => {
-            airlines.push(segment.airline)
-            airports.push(segment.departure)
-            airports.push(segment.arrival)
-          })
-          _.get(order, 'flight.returnSegments', []).forEach(segment => {
-            airlines.push(segment.airline)
-            airports.push(segment.departure)
-            airports.push(segment.arrival)
-          })
-        })
-      airlines = _.uniq(airlines)
-      airports = _.uniq(airports)
-
+        .map(order => order.flight)
+      // get airlines and airports information
       return Promise.all([
-        Airline.find({
-          iata: {
-            $in: airlines
-          }
-        }),
-        Airport.find({
-          airport_code: {
-            $in: airports
-          }
-        }),
+        findAirlinesAirports(flights),
         User.findById(_.get(orders, '[0]._customer'))
       ]).then(async results => {
         // map arr to object
-        let arrAirline = results[0]
+        let arrAirline = results[0][0]
         let airlines = {}
         arrAirline.forEach(airline => {
           airlines[airline._doc.iata] = airline.toObject()
         })
-        let arrAirport = results[1]
+        let arrAirport = results[0][1]
         let airports = {}
         arrAirport.forEach(airport => {
           airports[airport._doc.airport_code] = airport.toObject()
         })
-        let user = results[2]
+        let user = results[1]
         let mailOptions = await tripItinerary(
           req.headers.origin,
           user,
@@ -266,6 +241,7 @@ const emailEmployeeItinerary = async (req, res, next) => {
       })
     })
   }
+  return next()
 }
 
 const emailGiamsoIssueTicket = async (req, res, next) => {
@@ -328,6 +304,7 @@ const emailEmployeeItineraryPkfareTickiting = async (req, res, next) => {
       // get airlines and airports information
       let airlines = []
       let airports = []
+      // Will refactor by findAirlinesAirports function later, path: src/modules/utils
       orders
         .filter(order => order.type === 'flight')
         .forEach(order => {
@@ -396,6 +373,20 @@ const emailEzBizTripVoucherInfo = async (req, res, next) => {
   })
 }
 
+const emailNotEnoughDeposit = async (req, res, next) => {
+  if (!req.depositError) {
+    return next()
+  }
+
+  let mailOptions = await notEnoughDeposit(req.company)
+  mail.sendMail(mailOptions, function(err, info) {
+    if (err) {
+      debugMail(err)
+    }
+  })
+  next()
+}
+
 module.exports = {
   emailEmployeeSubmitTrip,
   emailEmployeeChangeTripStatus,
@@ -408,5 +399,6 @@ module.exports = {
   emailEmployeeItineraryPkfareTickiting,
   emailGiamsoIssueTicket,
   emailGiamsoCancelFlight,
-  emailEzBizTripVoucherInfo
+  emailEzBizTripVoucherInfo,
+  emailNotEnoughDeposit
 }

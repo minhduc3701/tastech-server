@@ -112,6 +112,8 @@ block content
 
         h4
           |Payment: 
+          if (order.payment.type)
+            |  Deposit
           if (order.payment.brand)
             | #{order.payment.brand} **** **** **** #{order.payment.last4}
         hr
@@ -177,7 +179,9 @@ block content
           span(style={color:'#f4b400'}) #{order.totalPrice}
 
         h4 
-          |Payment: 
+          |Payment:
+          if (order.payment.type)
+            |  Deposit
           if (order.payment.brand)
             |#{order.payment.brand} **** **** **** #{order.payment.last4}
         hr

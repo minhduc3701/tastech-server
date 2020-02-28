@@ -18,6 +18,7 @@ const createUser = function(req, res, next) {
         User.register(
           new User({
             username: req.body.email,
+            _partner: req.user._partner, // partnerId or null for tas flow
             ...req.body
           }),
           req.body.password,
@@ -119,7 +120,25 @@ const validateUserProps = async (req, res, next) => {
   next()
 }
 
+const validateUserIdPartner = async (req, res, next) => {
+  try {
+    let user = await User.findOne({
+      _id: req.params.id,
+      _partner: req.user._partner
+    })
+    if (!user) {
+      return res.status(400).send()
+    }
+
+    req.userPartner = user
+  } catch (error) {
+    return res.status(400).send()
+  }
+  next()
+}
+
 module.exports = {
   createUser,
-  validateUserProps
+  validateUserProps,
+  validateUserIdPartner
 }

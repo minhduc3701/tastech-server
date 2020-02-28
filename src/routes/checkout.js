@@ -3,6 +3,7 @@ const router = express.Router()
 const Card = require('../models/card')
 const Trip = require('../models/trip')
 const Order = require('../models/order')
+const Company = require('../models/company')
 const api = require('../modules/api')
 const apiSabre = require('../modules/apiSabre')
 const { sabreRestToken } = require('../middleware/sabre')
@@ -21,11 +22,16 @@ const { logger } = require('../config/winston')
 const {
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary,
-  emailGiamsoIssueTicket
+  emailGiamsoIssueTicket,
+  emailNotEnoughDeposit
 } = require('../middleware/email')
 const { currentCompany } = require('../middleware/company')
 const { currenciesExchange } = require('../middleware/currency')
 const { getTasAdminOptions } = require('../middleware/options')
+const {
+  isPartnerBooking,
+  updateBookingRequest
+} = require('../middleware/partnerAdmin')
 const { makeExpensesAfterCheckout } = require('../middleware/expense')
 
 const {
@@ -34,6 +40,7 @@ const {
   markupHotels,
   markupFlights
 } = require('../modules/utils')
+const { ObjectID } = require('mongodb')
 
 // Set your secret key: remember to change this to your live secret key in production
 // See your keys here: https://dashboard.stripe.com/account/apikeys
@@ -259,6 +266,8 @@ const createOrFindFlightOrder = async (req, res, next) => {
           },
           _customer: req.user._id,
           _company: req.user._company,
+          _partner: _.get(req, 'user._partner', null),
+          _bookedBy: req._bookedBy,
           passengers: trip.passengers,
           contactInfo: trip.contactInfo,
           discountCode: trip.discountCode
@@ -316,6 +325,8 @@ const createOrFindHotelOrder = async (req, res, next) => {
           hotel: trip.hotel,
           _customer: req.user._id,
           _company: req.user._company,
+          _partner: _.get(req, 'user._partner', null),
+          _bookedBy: req._bookedBy,
           passengers: trip.passengers,
           childrenInfo: trip.childrenInfo,
           contactInfo: trip.contactInfo,
@@ -598,6 +609,220 @@ const stripeCharging = async (req, res, next) => {
     let foundCard = await Card.findOne({
       _id: cardId,
       owner: req.user._id
+    })
+
+    if (!foundCard) {
+      throw { message: 'Cannot find card' }
+    }
+
+    // charge the customer
+    const charge = await stripe.charges.create({
+      amount,
+      currency,
+      customer: foundCard.customer.id, // Previously stored, then retrieved
+      capture: false
+    })
+
+    req.charge = charge
+    // AFTER CHARGING =======
+
+    // save charge info data
+    if (flightOrder) {
+      flightOrder.chargeId = charge.id
+      flightOrder.chargeInfo = charge
+
+      await flightOrder.save()
+    }
+
+    if (hotelOrder) {
+      hotelOrder.chargeId = charge.id
+      hotelOrder.chargeInfo = charge
+      await hotelOrder.save()
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const depositCharging = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const flightOrder = req.flightOrder
+    const hotelOrder = req.hotelOrder
+
+    // START CHARGING =======
+
+    // calculate the trip price here
+    let currency = ''
+    let amount = 0
+    let note = 'checkout for orders:'
+
+    // if have flight
+    if (flightOrder && flightOrder.flight) {
+      amount += flightOrder.totalPrice
+      note += ' ' + _.get(req, 'flightOrder._id', '')
+      currency = flightOrder.currency
+    }
+
+    // if have hotel
+    if (hotelOrder && hotelOrder.hotel) {
+      amount += hotelOrder.totalPrice
+      note += ' ' + _.get(req, 'hotelOrder._id', '')
+      currency = hotelOrder.currency
+    }
+
+    // log changing
+    let company = req.company
+    let { deposit, isCreditLimitation, remainingCredit } = company
+    let newDeposit = company.deposit
+    let newRemainingCredit = company.remainingCredit
+    remainingCredit = isCreditLimitation ? remainingCredit : 0
+    let newLogs = []
+
+    // in case have enough money
+    if (deposit + remainingCredit >= amount) {
+      let _creator
+      // set _creator for company logs
+      if (!_.isEmpty(req.partnerAdmin)) {
+        _creator = req.partnerAdmin._id
+      } else {
+        _creator = req.user._id
+      }
+      // have enough deposit
+      if (deposit >= amount) {
+        newDeposit = deposit - amount
+      } else {
+        // use credit
+        newDeposit = 0
+        newRemainingCredit = remainingCredit - (amount - deposit)
+
+        newLogs.push({
+          _creator,
+          createdAt: new Date(),
+          field: 'remainingCredit',
+          old: remainingCredit,
+          new: newRemainingCredit,
+          note
+        })
+      }
+
+      if (newDeposit !== deposit) {
+        newLogs.push({
+          _creator,
+          createdAt: new Date(),
+          field: 'deposit',
+          old: deposit,
+          new: newDeposit,
+          note
+        })
+        req.company.deposit = newDeposit
+      }
+
+      req.company.remainingCredit = newRemainingCredit
+
+      let updatedData = {
+        deposit: newDeposit,
+        remainingCredit: newRemainingCredit
+      }
+
+      await Company.findOneAndUpdate(
+        {
+          _id: company._id,
+          _partner: req.user._partner
+        },
+        {
+          $set: updatedData,
+          $push: { logs: newLogs }
+        },
+        { new: true }
+      )
+    } else {
+      req.depositError = {
+        message: 'Remaining deposit is not enough for the trip.'
+      }
+      throw new Error('Remaining deposit is not enough for the trip.')
+    }
+
+    let charge = {
+      amount,
+      currency,
+      _id: new ObjectID(),
+      _company: company._id,
+      _createdAt: new Date(),
+      paymentType: 'deposit'
+    }
+
+    req.charge = charge
+
+    // AFTER CHARGING =======
+    // save charge info data
+    if (flightOrder) {
+      flightOrder.chargeId = charge._id
+      flightOrder.chargeInfo = charge
+
+      await flightOrder.save()
+    }
+
+    if (hotelOrder) {
+      hotelOrder.chargeId = charge._id
+      hotelOrder.chargeInfo = charge
+
+      await hotelOrder.save()
+    }
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
+const stripePartnerCharging = async (req, res, next) => {
+  try {
+    // if error occurs before
+    if (req.checkoutError) {
+      throw req.checkoutError
+    }
+
+    const flightOrder = req.flightOrder
+    const hotelOrder = req.hotelOrder
+
+    const { card } = req.body
+    let cardId = card.id
+
+    // START CHARGING =======
+
+    // calculate the trip price here
+    let currency = ''
+
+    let amount = 0
+
+    // if have flight
+    if (flightOrder && flightOrder.flight) {
+      amount += flightOrder.totalPrice
+
+      currency = flightOrder.currency
+    } // end flight
+
+    // if have hotel
+    if (hotelOrder && hotelOrder.hotel) {
+      amount += hotelOrder.totalPrice
+
+      currency = hotelOrder.currency
+    }
+
+    // rounding amount
+    amount = roundingAmountStripe(amount, currency)
+
+    // find the card
+    let foundCard = await Card.findOne({
+      _id: cardId,
+      owner: req.partnerAdmin._id // use partner's card
     })
 
     if (!foundCard) {
@@ -1218,6 +1443,123 @@ const refundFailedOrder = async (req, res, next) => {
   next()
 }
 
+const refundDepositFailedOrder = async (req, res, next) => {
+  // exit if no checkout errors
+  // or no charge, run to another middleware
+  if (!req.checkoutError || !req.charge) {
+    next()
+    return
+  }
+  try {
+    let refundAmount = 0
+    let note = 'refund for orders: '
+
+    // refund for flight booking failed
+    if (req.checkoutError && req.checkoutError.flight) {
+      let flightOrder = req.flightOrder
+      refundAmount += flightOrder.totalPrice
+      note += ' ' + _.get(req, 'flightOrder._id', '')
+
+      // refund for combo (flight & hotel) if flight booking failed
+      let hotelOrder = req.hotelOrder
+      if (!_.isEmpty(hotelOrder)) {
+        refundAmount += hotelOrder.totalPrice
+        note += _.get(req, 'hotelOrder._id', '')
+      }
+
+      // if only hotel failed
+    } else if (req.checkoutError && req.checkoutError.hotel) {
+      // refund for hotel booking failed
+      let hotelOrder = req.hotelOrder
+      refundAmount += hotelOrder.totalPrice
+      note += ' ' + _.get(req, 'hotelOrder._id', '')
+
+      // success flight and fail hotel
+      if (req.flightOrder) {
+        req.checkoutError = undefined
+
+        // change status of hotel to failed
+        hotelOrder.status = 'failed'
+        await hotelOrder.save()
+      }
+    }
+
+    // refund
+    let company = req.company
+    let {
+      deposit,
+      isCreditLimitation,
+      creditLimitationAmount,
+      remainingCredit
+    } = company
+
+    let newDeposit = company.deposit
+    let newRemainingCredit = company.remainingCredit
+    remainingCredit = isCreditLimitation ? remainingCredit : 0
+    let newLogs = []
+    let _creator
+    // set _creator for company logs
+    if (!_.isEmpty(req.partnerAdmin)) {
+      _creator = req.partnerAdmin._id
+    } else {
+      _creator = req.user._id
+    }
+    if (!isCreditLimitation) {
+      newDeposit += refundAmount
+    } else {
+      if (creditLimitationAmount - company.remainingCredit >= refundAmount) {
+        newRemainingCredit += refundAmount
+      } else {
+        newRemainingCredit = creditLimitationAmount
+        newDeposit += refundAmount - (creditLimitationAmount - remainingCredit)
+      }
+
+      if (newRemainingCredit !== remainingCredit) {
+        newLogs.push({
+          _creator,
+          createdAt: new Date(),
+          field: 'remainingCredit',
+          old: remainingCredit,
+          new: newRemainingCredit,
+          note
+        })
+      }
+    }
+
+    if (newDeposit !== deposit) {
+      newLogs.push({
+        _creator,
+        createdAt: new Date(),
+        field: 'deposit',
+        old: deposit,
+        new: newDeposit,
+        note
+      })
+    }
+
+    let updatedData = {
+      deposit: newDeposit,
+      remainingCredit: newRemainingCredit
+    }
+
+    await Company.findOneAndUpdate(
+      {
+        _id: company._id,
+        _partner: req.user._partner
+      },
+      {
+        $set: updatedData,
+        $push: { logs: newLogs }
+      },
+      { new: true }
+    )
+  } catch (error) {
+    req.checkoutError = error
+  }
+
+  next()
+}
+
 const responseCheckout = async (req, res, next) => {
   // from createOrFindTrip
   const trip = req.trip
@@ -1266,8 +1608,26 @@ const responseCheckout = async (req, res, next) => {
   next() // next for sent email
 }
 
+const validateDepositPayment = (req, res, next) => {
+  if (req.company.payment !== 'deposit') {
+    return res.status(400).send()
+  }
+  next()
+}
+
+const setBookedByUser = (req, res, next) => {
+  // set _bookedBy after check isPartnerAdmin
+  if (!_.isEmpty(req.partnerAdmin)) {
+    req._bookedBy = req.partnerAdmin._id
+  } else {
+    req._bookedBy = req.user._id
+  }
+  next()
+}
+
 router.post(
   '/card',
+  setBookedByUser,
   currentCompany,
   getTasAdminOptions,
   verifySabrePrice,
@@ -1291,6 +1651,96 @@ router.post(
   emailGiamsoIssueTicket,
   emailEmployeeCheckoutFailed,
   emailEmployeeItinerary
+)
+
+router.post(
+  '/deposit',
+  setBookedByUser,
+  currentCompany,
+  validateDepositPayment,
+  getTasAdminOptions,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
+  sabreRestToken, // get token for sabre api
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  calculateRewardCost,
+  pkfareFlightPreBooking,
+  hotelbedsCheckRate,
+  depositCharging,
+  pkfareFlightTicketing,
+  sabreCreatePNR,
+  pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
+  refundDepositFailedOrder,
+  responseCheckout,
+  makeExpensesAfterCheckout,
+  emailGiamsoIssueTicket,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary,
+  emailNotEnoughDeposit
+)
+
+router.post(
+  '/partner-card',
+  isPartnerBooking,
+  setBookedByUser,
+  currentCompany,
+  getTasAdminOptions,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
+  sabreRestToken, // get token for sabre api
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  calculateRewardCost,
+  pkfareFlightPreBooking,
+  hotelbedsCheckRate,
+  stripePartnerCharging,
+  pkfareFlightTicketing,
+  sabreCreatePNR,
+  pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
+  demoForceCompletedOrders,
+  refundFailedOrder,
+  responseCheckout,
+  makeExpensesAfterCheckout,
+  emailGiamsoIssueTicket,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary,
+  updateBookingRequest
+)
+
+router.post(
+  '/partner-deposit',
+  isPartnerBooking,
+  setBookedByUser,
+  currentCompany,
+  validateDepositPayment,
+  getTasAdminOptions,
+  verifySabrePrice,
+  verifyHotelbedsPrice,
+  sabreRestToken, // get token for sabre api
+  createOrFindTrip,
+  createOrFindFlightOrder,
+  createOrFindHotelOrder,
+  calculateRewardCost,
+  pkfareFlightPreBooking,
+  hotelbedsCheckRate,
+  depositCharging,
+  pkfareFlightTicketing,
+  sabreCreatePNR,
+  pkfareHotelCreateOrder,
+  hotelbedsCreateOrder,
+  refundDepositFailedOrder,
+  responseCheckout,
+  makeExpensesAfterCheckout,
+  emailGiamsoIssueTicket,
+  emailEmployeeCheckoutFailed,
+  emailEmployeeItinerary,
+  emailNotEnoughDeposit,
+  updateBookingRequest
 )
 
 router.post('/password', (req, res) => {
