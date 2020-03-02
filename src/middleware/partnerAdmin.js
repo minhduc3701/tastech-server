@@ -43,7 +43,10 @@ const updateBookingRequest = async (req, res, next) => {
   let { flightOrder, hotelOrder } = req
 
   // do not change request status if booking failed
-  if (flightOrder.status === 'failed' || hotelOrder.status === 'failed') {
+  if (
+    _.get(flightOrder, 'status', '') === 'failed' ||
+    _.get(hotelOrder, 'status', '') === 'failed'
+  ) {
     return next()
   }
 
