@@ -9,15 +9,19 @@ const { roles } = require('../../config/roles')
 const api = require('../../modules/api')
 
 router.get('/', function(req, res) {
+  let options = {
+    _partner: null
+  }
+
   let perPage = 10
   let page = Math.max(0, _.get(req, 'query.page', 0))
 
   Promise.all([
-    Company.find({})
+    Company.find(options)
       .limit(perPage)
       .skip(perPage * page)
       .sort([['_id', -1]]),
-    Company.count({})
+    Company.count(options)
   ])
     .then(results => {
       let companies = results[0]

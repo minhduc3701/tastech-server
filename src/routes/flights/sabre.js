@@ -11,6 +11,7 @@ const { sabreCurrencyExchange } = require('../../middleware/currency')
 const { findUserPolicy } = require('../../middleware/policies')
 const { findCompletedOrders } = require('../../middleware/suggestions')
 const { getTasAdminOptions } = require('../../middleware/options')
+const { isPartnerBooking } = require('../../middleware/partnerAdmin')
 
 const {
   sabreRestToken,
@@ -28,6 +29,7 @@ const { makeSabreFlightCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
 const { suggestFlights } = require('../../modules/suggestions')
 const convert = require('xml-js')
+const { findAirlinesAirports } = require('../../modules/utils')
 
 const hideFlightsOriginalPrices = data => {
   const hideMapping = flight =>
@@ -40,6 +42,7 @@ const hideFlightsOriginalPrices = data => {
 
 router.post(
   '/shopping',
+  isPartnerBooking,
   sabreCurrencyExchange,
   getTasAdminOptions,
   sabreRestToken,
@@ -48,6 +51,7 @@ router.post(
   async (req, res) => {
     let search = req.body.search
     let cacheKey = makeSabreFlightCacheKey(search)
+
     try {
       let cacheData = await getCache(cacheKey)
       // logger.info('Sabre shopping: ', cacheData.sabreRes)
@@ -101,35 +105,8 @@ router.post(
         req.markupOptions.flight.value
       )
 
-      let airlines = []
-      let airports = []
-
-      flights.forEach(flight => {
-        flight.departureSegments.forEach(segment => {
-          airlines.push(segment.airline)
-          airports.push(segment.departure)
-          airports.push(segment.arrival)
-        })
-        flight.returnSegments.forEach(segment => {
-          airlines.push(segment.airline)
-          airports.push(segment.departure)
-          airports.push(segment.arrival)
-        })
-      })
-
-      airlines = _.uniq(airlines)
-      airports = _.uniq(airports)
       Promise.all([
-        Airline.find({
-          iata: {
-            $in: airlines
-          }
-        }),
-        Airport.find({
-          airport_code: {
-            $in: airports
-          }
-        }),
+        findAirlinesAirports(flights),
         IataCity.aggregate([
           {
             $lookup: {
@@ -141,19 +118,19 @@ router.post(
           }
         ])
       ]).then(results => {
-        let arrAirline = results[0]
+        let arrAirline = results[0][0]
         let airlines = {}
         arrAirline.forEach(airline => {
           airlines[airline._doc.iata] = airline
         })
-        let arrAirport = results[1]
+        let arrAirport = results[0][1]
         let airports = {}
         arrAirport.forEach(airport => {
           airports[airport._doc.airport_code] = airport.toObject()
         })
 
         // add more iata city codes to airports
-        results[2]
+        results[1]
           .filter(ic => ic.cities.length > 0)
           .forEach(ic => {
             let airport = _.get(airports, `[${ic.city_code}]`, {})

@@ -22,6 +22,8 @@ const tasAdminCompaniesRouter = require('./routes/tas-admin/companies')
 const tasAdminRequestsRouter = require('./routes/tas-admin/requests')
 const tasAdminOrdersRouter = require('./routes/tas-admin/orders')
 const tasAdminRewardsRouter = require('./routes/tas-admin/rewards')
+const tasAdminPartnerRouter = require('./routes/tas-admin/partners')
+const partnerAdminOrdersRouter = require('./routes/partner-admin/orders')
 const tasAdminOptionsRouter = require('./routes/tas-admin/options')
 const adminCompanyRouter = require('./routes/admin/company')
 const adminUsersRouter = require('./routes/admin/users')
@@ -31,6 +33,9 @@ const adminDepartmentRouter = require('./routes/admin/departments')
 const adminTripsRouter = require('./routes/admin/trips')
 const adminExpensesRouter = require('./routes/admin/expenses')
 const adminReportsRouter = require('./routes/admin/reports')
+const partnerAdminCompaniesRouter = require('./routes/partner-admin/companies')
+const partnerAdminUsersRouter = require('./routes/partner-admin/users')
+const partnerAdminUsersRequest = require('./routes/partner-admin/requests')
 const flightsPkfareRouter = require('./routes/flights/pkfare')
 const flightsSabreRouter = require('./routes/flights/sabre')
 const hotelsPkfareRouter = require('./routes/hotels/pkfare')
@@ -139,6 +144,39 @@ app.use(
   jwtAuthenticate,
   authenticateRole('tas-admin'),
   tasAdminOptionsRouter
+)
+
+app.use(
+  '/tas-admin/partners',
+  jwtAuthenticate,
+  authenticateRole('tas-admin'),
+  tasAdminPartnerRouter
+)
+
+// partner-admin routes
+app.use(
+  '/partner-admin/orders',
+  jwtAuthenticate,
+  authenticateRole('partner-admin'),
+  partnerAdminOrdersRouter
+)
+app.use(
+  '/partner-admin/companies',
+  jwtAuthenticate,
+  authenticateRole('partner-admin'),
+  partnerAdminCompaniesRouter
+)
+app.use(
+  '/partner-admin/users',
+  jwtAuthenticate,
+  authenticateRole('partner-admin'),
+  partnerAdminUsersRouter
+)
+app.use(
+  '/partner-admin/requests',
+  jwtAuthenticate,
+  authenticateRole('partner-admin'),
+  partnerAdminUsersRequest
 )
 
 // admin routes

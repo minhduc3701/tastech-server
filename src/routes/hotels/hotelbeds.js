@@ -7,6 +7,7 @@ const { hotelbedsCurrencyExchange } = require('../../middleware/currency')
 const { findUserPolicy } = require('../../middleware/policies')
 const { findCompletedOrders } = require('../../middleware/suggestions')
 const { getTasAdminOptions } = require('../../middleware/options')
+const { isPartnerBooking } = require('../../middleware/partnerAdmin')
 const { logger } = require('../../config/winston')
 const { makeHotelBedsCacheKey } = require('../../modules/cache')
 const { getCache, setCache } = require('../../config/cache')
@@ -41,6 +42,7 @@ const hideSingleHotelOriginalPrices = data => {
 
 router.post(
   '/hotels',
+  isPartnerBooking,
   getTasAdminOptions,
   findUserPolicy,
   findCompletedOrders,
@@ -253,6 +255,7 @@ router.post('/rateCommentDetails', async (req, res) => {
 
 router.post(
   '/:id',
+  isPartnerBooking,
   hotelbedsCurrencyExchange,
   getTasAdminOptions,
   async (req, res) => {
