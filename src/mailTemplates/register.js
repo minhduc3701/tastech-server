@@ -10,9 +10,9 @@ async function register(origin, user, token, userCreator) {
   ) {
     html = await renderMail('register-admin', {
       title: 'Welcome to EzBizTrip',
-      link: `${origin}/reset-password/${token}`,
+      link: `${origin}/app/reset-password/${token}`,
       user,
-      loginLink: `${origin}/login`,
+      loginLink: `${origin}/app/login`,
       note:
         process.env.NODE_ENV === 'production'
           ? 'We have created account for you:'
@@ -22,7 +22,7 @@ async function register(origin, user, token, userCreator) {
   } else {
     html = await renderMail('register', {
       title: 'Welcome to EzBizTrip',
-      link: `${origin}/reset-password/${token}`,
+      link: `${origin}/app/reset-password/${token}`,
       user
     })
   }
