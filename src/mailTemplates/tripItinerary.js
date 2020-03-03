@@ -58,7 +58,7 @@ async function tripItinerary(origin, user, orders, airlines, airports) {
           last4: _.get(order, 'chargeInfo.payment_method_details.card.last4')
         }
       })),
-    tripLink: `${origin}/employee/travel/${_.get(
+    tripLink: `${origin}/app/employee/travel/${_.get(
       orders,
       '[0]._trip'
     )}?tab=itinerary`,
