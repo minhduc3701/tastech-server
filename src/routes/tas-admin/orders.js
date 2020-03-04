@@ -15,7 +15,9 @@ router.get('/', function(req, res, next) {
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
   let status = _.get(req.query, 'status', '')
-  let objFind = {}
+  let objFind = {
+    _partner: null // do not get partner's orders
+  }
   if (status) {
     objFind.status = status
   }
@@ -51,7 +53,8 @@ router.get('/:id', function(req, res, next) {
     return res.status(404).send()
   }
   Order.findOne({
-    _id: req.params.id
+    _id: req.params.id,
+    _partner: null // do not get partner's orders
   })
     .then(order => {
       if (!order) {
@@ -82,6 +85,7 @@ router.patch(
       let order = await Order.findOneAndUpdate(
         {
           _id: id,
+          _partner: null, //  don't update partner's orders
           status: { $ne: 'cancelled' } // don't update cancelled order
         },
         { $set: body },

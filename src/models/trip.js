@@ -9,7 +9,10 @@ const TripSchema = new Schema(
       required: true
     },
 
-    _company: mongoose.Schema.Types.ObjectId,
+    _company: {
+      type: 'ObjectId',
+      ref: 'Company'
+    },
     status: {
       type: String,
       required: true,
@@ -27,6 +30,10 @@ const TripSchema = new Schema(
       type: 'ObjectId',
       ref: 'User',
       required: true
+    },
+    _partner: {
+      type: 'ObjectId',
+      ref: 'Partner'
     },
     forCreator: Boolean,
     budgetPassengers: [
@@ -100,7 +107,11 @@ const TripSchema = new Schema(
     isBudgetUpdated: {
       type: Boolean,
       default: false
-    }
+    },
+    isBookedByPartner: Boolean,
+    isBookedWithinBudget: Boolean,
+    isBookedWithinPolicy: Boolean,
+    requestBookOnBehalfs: []
   },
   {
     timestamps: true

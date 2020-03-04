@@ -10,10 +10,18 @@ const OrderSchema = new Schema(
       required: true,
       ref: 'User'
     },
+    _bookedBy: {
+      type: 'ObjectId',
+      ref: 'User'
+    },
     _company: {
       type: 'ObjectId',
       required: true,
       ref: 'Company'
+    },
+    _partner: {
+      type: 'ObjectId',
+      ref: 'Partner'
     },
     _trip: {
       type: 'ObjectId',
@@ -155,7 +163,25 @@ const OrderSchema = new Schema(
     rewardCost: {
       type: Number,
       default: 0
-    }
+    },
+    logs: [
+      {
+        _creator: {
+          type: 'ObjectId',
+          required: true,
+          ref: 'User'
+        },
+        createdAt: Date,
+        changedValues: [
+          {
+            field: String,
+            old: Object,
+            new: Object
+          }
+        ],
+        note: String
+      }
+    ]
   },
   {
     timestamps: true

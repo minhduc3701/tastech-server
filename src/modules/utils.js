@@ -16,6 +16,8 @@ const {
   BND,
   PHP
 } = require('../config/currency')
+const Airline = require('../models/airline')
+const Airport = require('../models/airport')
 
 const hotelAccomodations = [
   { code: 'APARTMENT', text: 'Apartment' },
@@ -1003,6 +1005,76 @@ const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
   let d = R * c // Distance in km
   return d
 }
+const findAirlinesAirports = (flights = []) => {
+  let airlines = []
+  let airports = []
+  flights.forEach(flight => {
+    _.get(flight, 'departureSegments', []).forEach(segment => {
+      airlines.push(segment.airline)
+      airports.push(segment.departure)
+      airports.push(segment.arrival)
+    })
+    _.get(flight, 'returnSegments', []).forEach(segment => {
+      airlines.push(segment.airline)
+      airports.push(segment.departure)
+      airports.push(segment.arrival)
+    })
+  })
+
+  airlines = _.uniq(airlines)
+  airports = _.uniq(airports)
+
+  return new Promise((resolve, reject) => {
+    Promise.all([
+      Airline.find({
+        iata: {
+          $in: airlines
+        }
+      }),
+      Airport.find({
+        airport_code: {
+          $in: airports
+        }
+      })
+    ])
+      .then(results => {
+        resolve(results)
+      })
+      .catch(e => {
+        reject(e)
+      })
+  })
+}
+
+const makeDefaultPolicy = (companyId, rate) => {
+  return {
+    name: 'Default Policy',
+    _company: companyId,
+    status: 'default',
+    flightClass: 'Economy',
+    stops: '0',
+    setDaysBeforeFlights: false,
+    daysBeforeFlights: 7,
+    setFlightLimit: false,
+    flightLimit: 500 * rate,
+    flightNotification: 'no',
+    flightApproval: 'no',
+    hotelClass: 3,
+    hotelSearchDistance: 15,
+    setDaysBeforeLodging: false,
+    daysBeforeLodging: 7,
+    setHotelLimit: false,
+    hotelLimit: 500 * rate,
+    hotelNotification: 'no',
+    hotelApproval: 'no',
+    setTransportLimit: true,
+    transportLimit: 10 * rate,
+    setMealLimit: true,
+    mealLimit: 10 * rate,
+    setProvision: true,
+    provision: 5
+  }
+}
 
 module.exports = {
   getImageUri,
@@ -1021,5 +1093,7 @@ module.exports = {
   getUserProfileStrength,
   makeUrboxGiftData,
   roundPrice,
-  getDistanceFromLatLonInKm
+  getDistanceFromLatLonInKm,
+  findAirlinesAirports,
+  makeDefaultPolicy
 }

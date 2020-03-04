@@ -23,6 +23,7 @@ const {
 const { calculateBudget } = require('../middleware/trips')
 const { getTasAdminOptions } = require('../middleware/options')
 const { currentCompany } = require('../middleware/company')
+const { findAirlinesAirports } = require('../modules/utils')
 
 router.get('/', function(req, res, next) {
   let perPage = _.get(req.query, 'perPage', 15)
@@ -409,7 +410,8 @@ router.patch(
         'startDate',
         'endDate',
         'note',
-        'budgetPassengers'
+        'budgetPassengers',
+        'isBookedByPartner'
       ])
       body.daysOfTrip =
         moment(body.endDate).diff(moment(body.startDate), 'days') + 1
@@ -456,8 +458,10 @@ router.post(
   sabreRestToken,
   async (req, res, next) => {
     const trip = new Trip(req.body)
+
     trip._creator = req.user._id
     trip._company = req.user._company
+    trip._partner = req.user._partner
     trip.status = 'waiting' // set default status is waiting
     trip.businessTrip = true
     trip.currency = req.currency.code
@@ -481,6 +485,44 @@ router.post(
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
 )
+
+// create booking request
+router.post('/:id/booking-request', function(req, res, next) {
+  let id = req.params.id
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  Trip.findOneAndUpdate(
+    {
+      _id: id,
+      _creator: req.user._id,
+      status: {
+        $in: ['approved', 'ongoing']
+      }
+    },
+    {
+      $push: {
+        requestBookOnBehalfs: {
+          ...req.body,
+          status: 'waiting',
+          createdAt: moment().format()
+        }
+      }
+    },
+    { new: true }
+  )
+    .then(trip => {
+      if (!trip) {
+        return res.status(404).send()
+      }
+
+      res.status(200).send({ trip })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
 
 router.patch('/:id/archived', function(req, res, next) {
   let id = req.params.id
@@ -596,8 +638,6 @@ const orderMappingParser = order => {
 // get orders by trip
 router.get('/:id/orders', function(req, res, next) {
   let id = req.params.id
-  let airlines = []
-  let airports = []
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()
   }
@@ -629,42 +669,15 @@ router.get('/:id/orders', function(req, res, next) {
     }
   })
     .then(orders => {
-      orders.forEach(order => {
-        if (order.flight) {
-          order.flight.departureSegments.forEach(segment => {
-            airlines.push(segment.airline)
-            airports.push(segment.departure)
-            airports.push(segment.arrival)
-          })
-          order.flight.returnSegments.forEach(segment => {
-            airlines.push(segment.airline)
-            airports.push(segment.departure)
-            airports.push(segment.arrival)
-          })
-        }
-      })
-
-      airlines = _.uniq(airlines)
-      airports = _.uniq(airports)
-
       return Promise.all([
         orders,
-        Airline.find({
-          iata: {
-            $in: airlines
-          }
-        }),
-        Airport.find({
-          airport_code: {
-            $in: airports
-          }
-        })
+        findAirlinesAirports(orders.map(order => order.flight))
       ])
     })
     .then(results => {
       let orders = results[0]
-      let arrAirline = results[1]
-      let arrAirport = results[2]
+      let arrAirline = results[1][0]
+      let arrAirport = results[1][1]
       let airlines = {}
       arrAirline.forEach(airline => {
         airlines[airline._doc.iata] = airline
