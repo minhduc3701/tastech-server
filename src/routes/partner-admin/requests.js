@@ -11,6 +11,10 @@ router.get('/', function(req, res, next) {
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
 
+  let keyword = _.get(req.query, 's', '')
+    .trim()
+    .toLowerCase()
+
   let objFind = {
     _partner: req.user._partner,
     isBookedByPartner: true
@@ -36,6 +40,28 @@ router.get('/', function(req, res, next) {
           }
         })
       })
+
+      if (!_.isEmpty(keyword)) {
+        requests = requests.filter(r => {
+          return (
+            _.get(r, '_trip.name', '')
+              .toLowerCase()
+              .includes(keyword) ||
+            _.get(r, '_company.name', '')
+              .toLowerCase()
+              .includes(keyword) ||
+            _.get(r, '_creator.email', '')
+              .toLowerCase()
+              .includes(keyword) ||
+            _.get(r, '_creator.firstName', '')
+              .toLowerCase()
+              .includes(keyword) ||
+            _.get(r, '_creator.lastName', '')
+              .toLowerCase()
+              .includes(keyword)
+          )
+        })
+      }
       let total = requests.length
       requests = requests.slice(page * perPage, (page + 1) * perPage)
       res.status(200).send({
