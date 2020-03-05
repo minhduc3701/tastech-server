@@ -10,6 +10,9 @@ router.get('/', function(req, res, next) {
   perPage = Math.max(0, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
+  let sortBy = _.get(req.query, 'sortBy', '')
+  let sort = _.get(req.query, 'sort', 'desc')
+  sort = sort === 'desc'
 
   let keyword = _.get(req.query, 's', '')
     .trim()
@@ -35,6 +38,22 @@ router.get('/', function(req, res, next) {
                 _id: trip._company._id,
                 name: trip._company.name
               },
+              startDate:
+                r.type === 'flight'
+                  ? _.get(trip, 'budgetPassengers[0].flight.departDate')
+                  : _.get(trip, 'budgetPassengers[0].lodging.checkInDate'),
+              routine:
+                r.type === 'flight'
+                  ? `${_.get(
+                      trip,
+                      'budgetPassengers[0].flight.departDestinationCode'
+                    )} - 
+                ${_.get(
+                  trip,
+                  'budgetPassengers[0].flight.returnDestinationCode'
+                )}`
+                  : `${_.get(trip, 'budgetPassengers[0].lodging.regionName')}`,
+
               _trip: trip
             })
           }
@@ -63,6 +82,13 @@ router.get('/', function(req, res, next) {
         })
       }
       let total = requests.length
+
+      if (!_.isEmpty(sortBy)) {
+        requests = _.sortBy(requests, sortBy)
+        if (sort) {
+          requests.reverse()
+        }
+      }
       requests = requests.slice(page * perPage, (page + 1) * perPage)
       res.status(200).send({
         requests,

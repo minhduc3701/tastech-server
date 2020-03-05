@@ -18,6 +18,9 @@ router.get('/', async (req, res, next) => {
   perPage = Math.max(0, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
+  let sortBy = _.get(req.query, 'sortBy', '')
+  let sort = _.get(req.query, 'sort', 'desc')
+  sort = sort === 'desc' ? -1 : 1
 
   let keyword = _.get(req.query, 's', '')
     .trim()
@@ -25,6 +28,13 @@ router.get('/', async (req, res, next) => {
   let searchObject = {
     $regex: new RegExp(keyword),
     $options: 'i'
+  }
+
+  let objSort = {}
+  if (sortBy) {
+    objSort[sortBy] = sort
+  } else {
+    objSort = { updatedAt: -1 }
   }
 
   let companyIds = []
@@ -76,7 +86,7 @@ router.get('/', async (req, res, next) => {
       .populate('_trip', ['type', 'name', 'contactInfo'])
       .populate('_customer', ['email', 'firstName', 'lastName', 'avatar'])
       .populate('_company')
-      .sort({ createdAt: -1 })
+      .sort(objSort)
       .limit(perPage)
       .skip(perPage * page),
     Order.countDocuments(objFind)
