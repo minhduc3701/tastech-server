@@ -40,7 +40,7 @@ router.get('/', async (req, res, next) => {
   let companyIds = []
   let userIds = []
   try {
-    let companies = await Company.find({ name: searchObject })
+    let companies = await Company.find({ name: searchObject }).limit(5)
     companyIds = companies.map(c => c._id)
   } catch (e) {
     // do nothing if cannot find company
