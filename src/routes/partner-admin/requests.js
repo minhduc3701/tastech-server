@@ -188,6 +188,35 @@ router.get('/', function(req, res, next) {
   })
 })
 
+router.get('/count', function(req, res) {
+  Trip.aggregate([
+    {
+      $match: {
+        _partner: req.user._partner,
+        isBookedByPartner: true,
+        requestBookOnBehalfs: { $elemMatch: { status: 'waiting' } }
+      }
+    },
+    { $unwind: '$requestBookOnBehalfs' },
+    {
+      $match: {
+        'requestBookOnBehalfs.status': 'waiting'
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        count: { $sum: 1 }
+      }
+    }
+  ]).then(result => {
+    let numberOfRequests = result[0].count
+    res.status(200).send({
+      numberOfRequests
+    })
+  })
+})
+
 // get booking request by tripId and type
 router.get('/:id/:type', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
