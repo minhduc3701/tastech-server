@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Order = require('../../models/order')
 const User = require('../../models/user')
+const Company = require('../../models/company')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeItinerary } = require('../../middleware/email')
@@ -12,23 +13,72 @@ const {
 } = require('../../middleware/orders')
 const { findAirlinesAirports } = require('../../modules/utils')
 
-router.get('/', function(req, res, next) {
+router.get('/', async (req, res, next) => {
   let perPage = _.get(req.query, 'perPage', 50)
   perPage = Math.max(0, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
-  let status = _.get(req.query, 'status', '')
-  let companies = _.get(req.query, 'companies', '')
+  let sortBy = _.get(req.query, 'sortBy', '')
+  let sort = _.get(req.query, 'sort', 'desc')
+  sort = sort === 'desc' ? -1 : 1
 
+  let keyword = _.get(req.query, 's', '')
+    .trim()
+    .toLowerCase()
+  let searchObject = {
+    $regex: new RegExp(keyword),
+    $options: 'i'
+  }
+
+  let objSort = {}
+  if (sortBy) {
+    objSort[sortBy] = sort
+  } else {
+    objSort = { updatedAt: -1 }
+  }
+
+  let companyIds = []
+  let userIds = []
+  try {
+    let companies = await Company.find({ name: searchObject }).limit(5)
+    companyIds = companies.map(c => c._id)
+  } catch (e) {
+    // do nothing if cannot find company
+  }
+  try {
+    let users = await User.find({
+      $or: [
+        {
+          email: searchObject
+        },
+        {
+          firstName: searchObject
+        },
+        {
+          lastName: searchObject
+        }
+      ]
+    })
+    userIds = users.map(u => u._id)
+  } catch (e) {
+    // do nothing if cannot find user
+  }
   let objFind = {
-    _partner: req.user._partner
-  }
-  if (status) {
-    objFind.status = status
-  }
-  if (!_.isEmpty(companies)) {
-    companies = companies.split(',')
-    objFind._company = { $in: companies }
+    _partner: req.user._partner,
+    $or: [
+      {
+        pnr: searchObject
+      },
+      {
+        customerCode: searchObject
+      },
+      {
+        _company: { $in: companyIds }
+      },
+      {
+        _customer: { $in: userIds }
+      }
+    ]
   }
 
   Promise.all([
@@ -36,7 +86,7 @@ router.get('/', function(req, res, next) {
       .populate('_trip', ['type', 'name', 'contactInfo'])
       .populate('_customer', ['email', 'firstName', 'lastName', 'avatar'])
       .populate('_company')
-      .sort({ createdAt: -1 })
+      .sort(objSort)
       .limit(perPage)
       .skip(perPage * page),
     Order.countDocuments(objFind)
@@ -50,8 +100,7 @@ router.get('/', function(req, res, next) {
         total,
         count: orders.length,
         perPage,
-        orders,
-        status
+        orders
       })
     })
     .catch(e => {
