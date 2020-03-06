@@ -16,7 +16,7 @@ async function pendingExpense(origin, accountants, expenses, employee) {
       amount: formatLocaleMoney(e.amount, e.currency),
       message: e.message
     })),
-    reviewLink: `${origin}/admin/expenses/${expenses[0]._id}`
+    reviewLink: `${origin}/app/admin/expenses/${expenses[0]._id}`
   })
 
   return {
