@@ -10,7 +10,7 @@ async function changeExpenseStatus(origin, user, expense) {
     tripName: _.get(expense, '_trip.name'),
     paymentDate: moment(expense.transactionDate).format('ll'),
     paymentAmount: formatLocaleMoney(expense.amount, expense.currency),
-    expenseLink: `${origin}/employee/expenses/${expense._id}`
+    expenseLink: `${origin}/app/employee/expenses/${expense._id}`
   })
 
   let htmlExpenseRejected = await renderMail('expense-rejected', {
@@ -22,7 +22,7 @@ async function changeExpenseStatus(origin, user, expense) {
     description: expense.message,
     amount: formatLocaleMoney(expense.amount, expense.currency),
     adminMessage: expense.adminMessage,
-    expenseLink: `${origin}/employee/expenses/${expense._id}`
+    expenseLink: `${origin}/app/employee/expenses/${expense._id}`
   })
 
   switch (expense.status) {

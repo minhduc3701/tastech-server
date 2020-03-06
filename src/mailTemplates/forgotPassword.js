@@ -5,7 +5,7 @@ async function forgotPassword(origin, user, token) {
     title: 'Reset Your Password',
     name: `${user.firstName}`,
     email: user.email,
-    resetLink: `${origin}/reset-password/${token}`
+    resetLink: `${origin}/app/reset-password/${token}`
   })
 
   return {
