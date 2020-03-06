@@ -14,7 +14,7 @@ async function orderCancelled(origin, order, refundAmount) {
       flight: order.flight,
       isHotelOrder: order.type === 'hotel',
       hotel: order.hotel,
-      orderLink: `${origin}/app/employee/travel/${order._trip}?tab=itinerary`
+      orderLink: `${origin}/employee/travel/${order._trip}?tab=itinerary`
     })
   } catch (e) {
     console.log(e)

@@ -9,14 +9,14 @@ async function changeTripStatus(origin, user, trip) {
       trip.budgetPassengers[0].totalPrice,
       trip.currency
     ),
-    bookLink: `${origin}/app/employee/booking?trip=${trip._id}`
+    bookLink: `${origin}/employee/booking?trip=${trip._id}`
   })
 
   let htmlTripRejected = await renderMail('trip-rejected', {
     title: '',
     name: `${user.firstName}`,
     message: `${trip.adminMessage}`,
-    editTripLink: `${origin}/app/employee/travel/${trip._id}`
+    editTripLink: `${origin}/employee/travel/${trip._id}`
   })
 
   switch (trip.status) {

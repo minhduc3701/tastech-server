@@ -37,7 +37,7 @@ async function pendingTrip(origin, managers, trip, employee) {
       _.get(trip, 'budgetPassengers[0].totalPrice', 0),
       trip.currency
     ),
-    reviewLink: `${origin}/app/admin/trips/${trip._id}`
+    reviewLink: `${origin}/admin/trips/${trip._id}`
   })
 
   return {
