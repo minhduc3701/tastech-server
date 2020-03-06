@@ -18,6 +18,8 @@ router.get('/', async (req, res, next) => {
   perPage = Math.max(0, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
+  let status = _.get(req.query, 'status', '')
+  let type = _.get(req.query, 'type', '')
   let sortBy = _.get(req.query, 'sortBy', '')
   let sort = _.get(req.query, 'sort', 'desc')
   sort = sort === 'desc' ? -1 : 1
@@ -79,6 +81,12 @@ router.get('/', async (req, res, next) => {
         _customer: { $in: userIds }
       }
     ]
+  }
+  if (status) {
+    objFind.status = status
+  }
+  if (type) {
+    objFind.type = type
   }
 
   Promise.all([
