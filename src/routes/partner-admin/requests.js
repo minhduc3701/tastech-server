@@ -11,6 +11,7 @@ router.get('/', function(req, res, next) {
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
   let sortBy = _.get(req.query, 'sortBy', '')
+  sortBy = _.isEmpty(sortBy) ? 'createdAt' : sortBy
   let sort = _.get(req.query, 'sort', 'desc')
   sort = sort === 'desc' ? -1 : 1
 
@@ -150,42 +151,46 @@ router.get('/', function(req, res, next) {
         }
       }
     ])
-  ]).then(results => {
-    let requests = []
-    results[0].map(trip => {
-      requests.push({
-        ...trip.requestBookOnBehalfs,
-        _creator: trip._creator[0],
-        _company: {
-          _id: trip._company[0]._id,
-          name: trip._company[0].name
-        },
-        startDate:
-          trip.requestBookOnBehalfs.type === 'flight'
-            ? _.get(trip, 'budgetPassengers[0].flight.departDate')
-            : _.get(trip, 'budgetPassengers[0].lodging.checkInDate'),
-        routine:
-          trip.requestBookOnBehalfs.type === 'flight'
-            ? `${_.get(
-                trip,
-                'budgetPassengers[0].flight.departDestinationCode'
-              )} - 
+  ])
+    .then(results => {
+      let requests = []
+      results[0].map(trip => {
+        requests.push({
+          ...trip.requestBookOnBehalfs,
+          _creator: trip._creator[0],
+          _company: {
+            _id: trip._company[0]._id,
+            name: trip._company[0].name
+          },
+          startDate:
+            trip.requestBookOnBehalfs.type === 'flight'
+              ? _.get(trip, 'budgetPassengers[0].flight.departDate')
+              : _.get(trip, 'budgetPassengers[0].lodging.checkInDate'),
+          routine:
+            trip.requestBookOnBehalfs.type === 'flight'
+              ? `${_.get(
+                  trip,
+                  'budgetPassengers[0].flight.departDestinationCode'
+                )} - 
           ${_.get(trip, 'budgetPassengers[0].flight.returnDestinationCode')}`
-            : `${_.get(trip, 'budgetPassengers[0].lodging.regionName')}`,
+              : `${_.get(trip, 'budgetPassengers[0].lodging.regionName')}`,
 
-        _trip: trip
+          _trip: trip
+        })
+      })
+      let total = results[1][0].count
+      res.status(200).send({
+        requests,
+        page,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        count: requests.length,
+        perPage
       })
     })
-    let total = results[1][0].count
-    res.status(200).send({
-      requests,
-      page,
-      totalPage: Math.ceil(total / perPage),
-      total,
-      count: requests.length,
-      perPage
+    .catch(e => {
+      res.status(400).send({})
     })
-  })
 })
 
 router.get('/count', function(req, res) {
@@ -209,12 +214,16 @@ router.get('/count', function(req, res) {
         count: { $sum: 1 }
       }
     }
-  ]).then(result => {
-    let numberOfRequests = result[0].count
-    res.status(200).send({
-      numberOfRequests
+  ])
+    .then(result => {
+      let numberOfRequests = result[0].count
+      res.status(200).send({
+        numberOfRequests
+      })
     })
-  })
+    .catch(e => {
+      res.status(400).send({})
+    })
 })
 
 // get booking request by tripId and type
