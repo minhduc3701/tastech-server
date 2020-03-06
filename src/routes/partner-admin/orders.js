@@ -108,6 +108,23 @@ router.get('/', async (req, res, next) => {
     })
 })
 
+router.get('/count', async (req, res, next) => {
+  let objFind = {
+    _partner: req.user._partner,
+    status: { $in: ['cancelling', 'processing'] }
+  }
+
+  Order.countDocuments(objFind)
+    .then(result => {
+      res.status(200).send({
+        numberOfOrders: result
+      })
+    })
+    .catch(e => {
+      res.status(400).send({})
+    })
+})
+
 router.get('/:id', function(req, res, next) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
