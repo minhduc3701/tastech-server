@@ -10,6 +10,7 @@ router.get('/', function(req, res, next) {
   perPage = Math.max(0, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
+  let type = _.get(req.query, 'type', '')
   let sortBy = _.get(req.query, 'sortBy', '')
   sortBy = _.isEmpty(sortBy) ? 'createdAt' : sortBy
   let sort = _.get(req.query, 'sort', 'desc')
@@ -23,6 +24,14 @@ router.get('/', function(req, res, next) {
     requestBookOnBehalfs: { $elemMatch: { status: 'waiting' } }
   }
 
+  let objMatch = {
+    'requestBookOnBehalfs.status': 'waiting'
+  }
+
+  if (type) {
+    objMatch['requestBookOnBehalfs.type'] = type
+  }
+
   Promise.all([
     Trip.aggregate([
       {
@@ -30,9 +39,7 @@ router.get('/', function(req, res, next) {
       },
       { $unwind: '$requestBookOnBehalfs' },
       {
-        $match: {
-          'requestBookOnBehalfs.status': 'waiting'
-        }
+        $match: objMatch
       },
       {
         $lookup: {
@@ -93,9 +100,7 @@ router.get('/', function(req, res, next) {
       },
       { $unwind: '$requestBookOnBehalfs' },
       {
-        $match: {
-          'requestBookOnBehalfs.status': 'waiting'
-        }
+        $match: objMatch
       },
       {
         $lookup: {
