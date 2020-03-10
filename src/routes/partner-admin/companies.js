@@ -267,7 +267,10 @@ router.get('/:id/policies', function(req, res) {
 router.post('/', async (req, res) => {
   const body = _.pick(req.body, companyFields)
 
-  if (requiredFields.filter(field => !body[field]).length > 0) {
+  if (
+    requiredFields.filter(field => !body[field] && !_.isNumber(body[field]))
+      .length > 0
+  ) {
     return res.status(400).send()
   }
 
@@ -592,8 +595,11 @@ router.patch('/:id', async (req, res) => {
       },
       { new: true }
     )
-
-    if (requiredFields.filter(field => !updatedCompany[field]).length > 0) {
+    if (
+      requiredFields.filter(
+        field => !updatedCompany[field] && !_.isNumber(updatedCompany[field])
+      ).length > 0
+    ) {
       return res.status(400).send()
     }
 
