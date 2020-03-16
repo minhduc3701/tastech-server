@@ -6,13 +6,19 @@ const {
   supportCurrenciesOptions,
   supportExpenseCurrenciesOptions
 } = require('../config/currency')
+const { languageOptions } = require('../config/language')
 const { currentCompany } = require('../middleware/company')
-const api = require('../modules/api')
 const { currenciesExchange } = require('../middleware/currency')
 
 router.get('/supportCurrencies', (req, res) => {
   res.status(200).send({
     currencies: supportCurrenciesOptions
+  })
+})
+
+router.get('/languageOptions', (req, res) => {
+  res.status(200).send({
+    languages: languageOptions
   })
 })
 
