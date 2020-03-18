@@ -6,6 +6,7 @@ const upload = fileUpload('receipts')
 const multiUpload = upload.array('receipts')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
+const { createPdf } = require('../modules/pdf')
 
 const validateExpenseProps = async (req, res, next) => {
   try {
@@ -73,43 +74,36 @@ const makeExpensesAfterCheckout = async (req, res, next) => {
     }
 
     if (_.get(req, 'flightOrder.status', '') === 'processing') {
-      try {
-        flightExpenseData = {
-          ...commonExpenseData,
-          name: 'Flight expense for ' + trip.name,
-          category: 'flight',
-          currency: req.flightOrder.currency,
-          rawCurrency: req.flightOrder.currency,
-          amount: req.flightOrder.totalPrice,
-          rawAmount: req.flightOrder.totalPrice
-        }
-        const flightExpense = new Expense(flightExpenseData)
-        flightExpense.save().then(() => {
-          return res.status(200).json({ expense: flightExpense })
-        })
-      } catch (error) {
-        return res.status(400).send()
+      const flightPdf = await createPdf(`<h1>Flight ${trip.name}</h1>`)
+      flightExpenseData = {
+        ...commonExpenseData,
+        name: 'Flight expense for ' + trip.name,
+        category: 'flight',
+        currency: req.flightOrder.currency,
+        rawCurrency: req.flightOrder.currency,
+        amount: req.flightOrder.totalPrice,
+        rawAmount: req.flightOrder.totalPrice,
+        receipts: [flightPdf.pdfName]
       }
+      const flightExpense = new Expense(flightExpenseData)
+      await flightExpense.save()
     }
 
     if (_.get(req, 'hotelOrder.status', '') === 'completed') {
-      try {
-        hotelExpenseData = {
-          ...commonExpenseData,
-          name: 'Hotel expense for ' + trip.name,
-          category: 'lodging',
-          currency: req.hotelOrder.currency,
-          rawCurrency: req.hotelOrder.currency,
-          amount: req.hotelOrder.totalPrice,
-          rawAmount: req.hotelOrder.totalPrice
-        }
-        const hotelExpense = new Expense(hotelExpenseData)
-        hotelExpense.save().then(() => {
-          return res.status(200).json({ expense: hotelExpense })
-        })
-      } catch (error) {
-        return res.status(400).send()
+      const hotelPdf = await createPdf(`<h1>Hotel ${trip.name}</h1>`)
+
+      hotelExpenseData = {
+        ...commonExpenseData,
+        name: 'Hotel expense for ' + trip.name,
+        category: 'lodging',
+        currency: req.hotelOrder.currency,
+        rawCurrency: req.hotelOrder.currency,
+        amount: req.hotelOrder.totalPrice,
+        rawAmount: req.hotelOrder.totalPrice,
+        receipts: [hotelPdf.pdfName]
       }
+      const hotelExpense = new Expense(hotelExpenseData)
+      await hotelExpense.save()
     }
   } catch (error) {}
   return next()
