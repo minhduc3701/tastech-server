@@ -1,6 +1,7 @@
 const multer = require('multer')
 const multerS3 = require('multer-s3')
 const aws = require('aws-sdk')
+const fs = require('fs')
 
 aws.config.update({
   // Never share it!
@@ -60,6 +61,34 @@ const fileUpload = context => {
   })
 }
 
+// @see https://stackoverflow.com/a/43327573
+// @see http://blog.katworksgames.com/2014/01/26/nodejs-deploying-files-to-aws-s3/
+const s3Upload = (source, target, contentType) => {
+  fs.readFile(source, function(err, data) {
+    if (!err) {
+      var params = {
+        Bucket: process.env.AWS_S3_NAME,
+        Key: target,
+        Body: data,
+        ContentType: contentType || 'application/octet-stream'
+      }
+
+      s3.putObject(params, function(err, data) {
+        if (!err) {
+          // console.log('[s3] file uploaded:');
+          // console.log(data);
+          fs.unlink(source, () => {
+            // console.log('deleted file')
+          }) // optionally delete the file
+        } else {
+          // console.log(err);
+        }
+      })
+    }
+  })
+}
+
 module.exports = {
-  fileUpload
+  fileUpload,
+  s3Upload
 }
