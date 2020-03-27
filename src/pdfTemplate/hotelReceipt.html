@@ -1,0 +1,213 @@
+<html>
+  <head>
+    <meta charset="utf8" />
+    <title></title>
+  </head>
+  <body>
+    <div class="header">
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <img class="logo" src="{{logo}}" alt="" />
+            </td>
+            <td>
+              <b class="order">
+                EzBizTrip Order ID:
+                <span>{{orderId}}</span>
+              </b>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col-6">
+          <h3>Customer detail</h3>
+          <table>
+            <tbody>
+              <tr>
+                <th>Name:</th>
+                <td>{{customerName}}</td>
+              </tr>
+              <tr>
+                <th>Email:</th>
+                <td>{{email}}</td>
+              </tr>
+              <tr>
+                <th>Company:</th>
+                <td>{{company}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="col-6">
+          <h3>Payment detail</h3>
+          <table>
+            <tbody>
+              <tr>
+                <th>Booking date:</th>
+                <td>{{bookingDate}}</td>
+              </tr>
+              <tr>
+                <th>Payment method:</th>
+                <td>{{paymentMethod}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h3 class="mt-30">Cost breakdown</h3>
+      <div class="cost-table">
+        <table>
+          <tbody>
+            <tr>
+              <td colspan="2">{{hotelName}}</td>
+            </tr>
+            <tr>
+              <td>{{roomName}}</td>
+              <td>{{price}}</td>
+            </tr>
+            <tr>
+              <td>Booking fee</td>
+              <td>{{bookingFee}}</td>
+            </tr>
+            <tr>
+              <td colspan="2"><hr /></td>
+            </tr>
+            <tr>
+              <td>TOTAL COST</td>
+              <td>{{totalCost}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="help">
+        <p>Need help with invoice?</p>
+        <p>- Visit our Support page for answers to common questions</p>
+        <p>- Contact us at support@ezbiztrip.com</p>
+        <p>
+          - Mention your EzBizTrip Order ID or Invoice number for faster service
+        </p>
+      </div>
+      <br />
+      <div class="generated">
+        Generate by Ezbiztrip.com, date: {{generatedDate}}
+      </div>
+    </div>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-size: 12px;
+        color: #323232;
+      }
+
+      .row {
+        display: block;
+        margin-left: -15px;
+        margin-right: -15px;
+        position: relative;
+        box-sizing: border-box;
+      }
+
+      .row:after {
+        content: '';
+        display: block;
+        clear: both;
+      }
+
+      .col-4 {
+        width: 33.333333%;
+        padding: 0 15px;
+        float: left;
+        box-sizing: border-box;
+      }
+
+      .col-6 {
+        width: 50%;
+        padding: 0 15px;
+        float: left;
+        box-sizing: border-box;
+      }
+
+      .col-8 {
+        width: 66.666667%;
+        padding: 0 15px;
+        float: left;
+        box-sizing: border-box;
+      }
+
+      .mt-30 {
+        margin-top: 25px;
+      }
+
+      .header {
+        background-color: #171e45;
+        padding: 17px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header td:last-child {
+        text-align: right;
+        vertical-align: middle;
+      }
+
+      .container {
+        padding: 25px;
+      }
+
+      .logo {
+        height: 30px;
+      }
+
+      .order {
+        color: #fff;
+        display: inline-block;
+      }
+
+      .order span {
+        text-transform: uppercase;
+      }
+
+      .help {
+        border: 1px solid #e4e4e4;
+        border-radius: 10px;
+        padding: 15px 25px;
+        margin-top: 50px;
+      }
+
+      .help p:last-child {
+        margin-bottom: 0;
+      }
+
+      .generated {
+        text-align: right;
+      }
+
+      table {
+        width: 100%;
+      }
+
+      th,
+      td {
+        font-size: 12px;
+        text-align: left;
+        vertical-align: top;
+        padding: 3px 5px;
+      }
+
+      th {
+        font-weight: bold;
+      }
+    </style>
+  </body>
+</html>
