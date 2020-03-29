@@ -12,6 +12,8 @@ const crypto = require('crypto')
 const _ = require('lodash')
 
 const createUser = function(req, res, next) {
+  // creat random password
+  req.body.password = crypto.randomBytes(20).toString('hex')
   async.waterfall(
     [
       function(done) {
