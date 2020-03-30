@@ -225,7 +225,7 @@ const makeExpensesAfterCheckout = async (req, res, next) => {
     }
 
     if (_.get(req, 'hotelOrder.status', '') === 'completed') {
-      const hotelPdfTemplate = fs.readFileSync(
+      let hotelPdfTemplate = fs.readFileSync(
         `${__dirname}/../pdfTemplate/hotelReceipt.html`,
         'utf8'
       )
@@ -233,12 +233,9 @@ const makeExpensesAfterCheckout = async (req, res, next) => {
       let price = req.hotelOrder.currency + ' ' + req.hotelOrder.totalPrice
 
       let hotelName =
+        '<strong>' +
         _.get(req, 'hotelOrder.hotel.name') +
-        ', ' +
-        _.get(req, 'hotelOrder.hotel.cityName') +
-        ', ' +
-        _.get(req, 'hotelOrder.hotel.country') +
-        '<br/>(' +
+        '</strong><br/>(' +
         moment(_.get(req, 'hotelOrder.hotel.checkInDate')).format(
           'DD MMM YYYY'
         ) +
