@@ -18,7 +18,7 @@ router.post('/search', function(req, res, next) {
         }
       }
     },
-    { $limit: 30 },
+    { $limit: 10 },
     {
       $project: {
         name: 1,
@@ -42,9 +42,21 @@ router.post('/search', function(req, res, next) {
                 $regex: '.*' + _.trim(_.toString(req.body.name)) + '.*',
                 $options: 'i'
               }
+            },
+            {
+              country_name: {
+                $regex: new RegExp(_.trim(_.toString(req.body.name))),
+                $options: 'i'
+              }
+            },
+            {
+              country_name_nl: {
+                $regex: new RegExp(_.trim(_.toString(req.body.name))),
+                $options: 'i'
+              }
             }
           ]
-        }).limit(10), // limit airports to 10
+        }).limit(30), // limit airports to 30
         IataCity.find({
           city_id: { $in: cityIds }
         }),
