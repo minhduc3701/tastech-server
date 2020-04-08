@@ -5,13 +5,20 @@ const User = require('../../models/user')
 const { createUser, validateUserProps } = require('../../middleware/users')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
+const Policy = require('../../models/policy')
 
-router.post('/', validateUserProps, createUser, (req, res) => {
+router.post('/', validateUserProps, createUser, async (req, res) => {
+  const policyDefault = await Policy.findOne({
+    _company: req.admin._company,
+    status: 'default'
+  })
+
   User.findOneAndUpdate(
     { _id: req.user._id },
     {
       $set: {
-        _company: req.admin._company
+        _company: req.admin._company,
+        _policy: policyDefault._id
       }
     }
   )
