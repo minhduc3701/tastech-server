@@ -18,7 +18,14 @@ router.get('/', function(req, res) {
   let status = _.get(req.query, 'status', 'waiting,approved,rejected')
   status = status.split(',')
 
-  let allStatus = ['waiting', 'approved', 'rejected']
+  let allStatus = [
+    'waiting',
+    'approved',
+    'rejected',
+    'ongoing',
+    'finished',
+    'completed'
+  ]
 
   status = status.filter(s => allStatus.includes(s))
   status = _.isEmpty(status) ? allStatus : status
