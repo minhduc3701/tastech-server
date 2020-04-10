@@ -3,6 +3,7 @@ const Schema = mongoose.Schema
 
 const InvoicesSchema = new Schema({
   invoiceId: String,
+  externalId: String,
   status: String,
   payerEmail: String,
   amount: Number,
