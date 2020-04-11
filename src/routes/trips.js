@@ -513,6 +513,7 @@ router.post(
     trip._company = req.user._company
     trip._partner = req.user._partner
     trip.status = 'waiting' // set default status is waiting
+    trip.expensesStatus = 'empty' // set default expensesStatus is empty
     trip.businessTrip = true
     trip.currency = req.currency.code
     let countDays =

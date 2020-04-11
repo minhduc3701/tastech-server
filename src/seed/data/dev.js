@@ -1103,6 +1103,7 @@ for (let i = 0; i < 200; i++) {
     _id: currentTripId,
     name: `${namePrefix} ${i}`,
     status,
+    expenstStatus: 'draft',
     _creator: currentCreator,
     _company: companyId,
     businessTrip: true,
