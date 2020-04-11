@@ -7,6 +7,7 @@ const Order = require('../models/order')
 const Users = require('../models/user')
 const Airline = require('../models/airline')
 const Airport = require('../models/airport')
+const Company = require('../models/company')
 const _ = require('lodash')
 const { submitTrip } = require('../mailTemplates/submitTrip')
 const { pendingTrip } = require('../mailTemplates/pendingTrip')
@@ -23,6 +24,9 @@ const { debugMail } = require('../config/debug')
 const { notEnoughDeposit } = require('../mailTemplates/notEnoughDeposit')
 const { CAN_ACCESS_BUDGET, CAN_ACCESS_EXPENSE } = require('../config/roles')
 const { findAirlinesAirports } = require('../modules/utils')
+const {
+  bookingOnBehalfRequest
+} = require('../mailTemplates/bookingOnBehalfRequest')
 
 const emailEmployeeChangeExpenseStatus = async (req, res) => {
   if (!_.isEmpty(req.expense)) {
@@ -387,6 +391,26 @@ const emailNotEnoughDeposit = async (req, res, next) => {
   next()
 }
 
+const emailPartnerAdminBookOnBehalfRequest = async (req, res, next) => {
+  const { _partner } = req.trip
+  const roles = await Role.find({ type: 'partner-admin' })
+
+  const partnerAdmin = await User.findOne({
+    _partner,
+    _role: {
+      $in: roles.map(role => role._id)
+    }
+  })
+  const company = await Company.findById(req.user._company)
+
+  const mailOptions = await bookingOnBehalfRequest(req, partnerAdmin, company)
+  mail.sendMail(mailOptions, function(err, info) {
+    if (err) {
+      debugMail(err)
+    }
+  })
+}
+
 module.exports = {
   emailEmployeeSubmitTrip,
   emailEmployeeChangeTripStatus,
@@ -400,5 +424,6 @@ module.exports = {
   emailGiamsoIssueTicket,
   emailGiamsoCancelFlight,
   emailEzBizTripVoucherInfo,
-  emailNotEnoughDeposit
+  emailNotEnoughDeposit,
+  emailPartnerAdminBookOnBehalfRequest
 }
