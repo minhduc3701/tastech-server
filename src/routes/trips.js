@@ -18,7 +18,8 @@ const { sabreRestToken } = require('../middleware/sabre')
 
 const {
   emailEmployeeSubmitTrip,
-  emailManagerSubmitTrip
+  emailManagerSubmitTrip,
+  emailPartnerAdminBookOnBehalfRequest
 } = require('../middleware/email')
 const { calculateBudget } = require('../middleware/trips')
 const { getTasAdminOptions } = require('../middleware/options')
@@ -536,42 +537,48 @@ router.post(
 )
 
 // create booking request
-router.post('/:id/booking-request', function(req, res, next) {
-  let id = req.params.id
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send()
-  }
+router.post(
+  '/:id/booking-request',
+  function(req, res, next) {
+    let id = req.params.id
+    if (!ObjectID.isValid(id)) {
+      return res.status(404).send()
+    }
 
-  Trip.findOneAndUpdate(
-    {
-      _id: id,
-      _creator: req.user._id,
-      status: {
-        $in: ['approved', 'ongoing']
-      }
-    },
-    {
-      $push: {
-        requestBookOnBehalfs: {
-          ...req.body,
-          status: 'waiting',
-          createdAt: moment().format()
+    Trip.findOneAndUpdate(
+      {
+        _id: id,
+        _creator: req.user._id,
+        status: {
+          $in: ['approved', 'ongoing']
         }
-      }
-    },
-    { new: true }
-  )
-    .then(trip => {
-      if (!trip) {
-        return res.status(404).send()
-      }
+      },
+      {
+        $push: {
+          requestBookOnBehalfs: {
+            ...req.body,
+            status: 'waiting',
+            createdAt: moment().format()
+          }
+        }
+      },
+      { new: true }
+    )
+      .then(trip => {
+        if (!trip) {
+          return res.status(404).send()
+        }
 
-      res.status(200).send({ trip })
-    })
-    .catch(e => {
-      res.status(400).send()
-    })
-})
+        res.status(200).send({ trip })
+        req.trip = trip
+        next()
+      })
+      .catch(e => {
+        res.status(400).send()
+      })
+  },
+  emailPartnerAdminBookOnBehalfRequest
+)
 
 router.patch('/:id/archived', function(req, res, next) {
   let id = req.params.id
