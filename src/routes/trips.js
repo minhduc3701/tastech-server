@@ -43,119 +43,133 @@ const checkExpensesStatus = expenses => {
 }
 
 router.get('/', function(req, res, next) {
-  let perPage = _.get(req.query, 'perPage', 15)
-  perPage = Math.max(0, parseInt(perPage))
-  let page = _.get(req.query, 'page', 0)
-  page = Math.max(0, parseInt(page))
+  try {
+    let perPage = _.get(req.query, 'perPage', 15)
+    perPage = Math.max(0, parseInt(perPage))
+    let page = _.get(req.query, 'page', 0)
+    page = Math.max(0, parseInt(page))
 
-  let sortBy = _.get(req.query, 'sortBy', '')
-  let sort = _.get(req.query, 'sort', 'desc')
-  sort = sort === 'desc' ? -1 : 1
+    let sortBy = _.get(req.query, 'sortBy', '')
+    let sort = _.get(req.query, 'sort', 'desc')
+    sort = sort === 'desc' ? -1 : 1
 
-  let status = _.get(
-    req.query,
-    'status',
-    'waiting,approved,rejected,ongoing,finished,completed'
-  )
-  status = status.split(',')
-  let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
-
-  let allStatus = []
-
-  if (isBusinessTrip) {
-    allStatus = [
-      'waiting',
-      'approved',
-      'rejected',
-      'ongoing',
-      'finished',
-      'completed'
-    ]
-  } else {
-    allStatus = ['ongoing', 'finished']
-  }
-
-  status = status.filter(s => allStatus.includes(s))
-  status = _.isEmpty(status) ? allStatus : status
-
-  let objSort = {}
-  if (sortBy) {
-    if (sortBy === 'amount') {
-      //https://stackoverflow.com/questions/35655747/how-to-sort-by-n-th-element-of-array-in-mongoose
-      objSort = { 'budgetPassengers.0.totalPrice': sort }
-    } else {
-      objSort[sortBy] = sort
+    let objFind = {
+      _creator: req.user._id,
+      archived: { $ne: true },
+      businessTrip: isBusinessTrip ? true : false,
+      status: { $in: status },
+      // expensesStatus: { $in: expensesStatus },
+      name: {
+        $regex: new RegExp(keyword),
+        $options: 'i'
+      }
     }
-  } else {
-    objSort = { updatedAt: -1 }
-  }
 
-  let keyword = _.get(req.query, 's', '')
-    .trim()
-    .toLowerCase()
-
-  Promise.all([
-    Trip.find({
-      _creator: req.user._id,
-      archived: { $ne: true },
-      businessTrip: isBusinessTrip ? true : false,
-      status: { $in: status },
-      name: {
-        $regex: new RegExp(keyword),
-        $options: 'i'
-      }
-    })
-      .sort(objSort)
-      .limit(perPage)
-      .skip(perPage * page),
-    Trip.countDocuments({
-      _creator: req.user._id,
-      archived: { $ne: true },
-      businessTrip: isBusinessTrip ? true : false,
-      status: { $in: status },
-      name: {
-        $regex: new RegExp(keyword),
-        $options: 'i'
-      }
-    })
-  ])
-    .then(results => {
-      return Promise.all([
-        ...results,
-        Expense.find({
-          _trip: { $in: results[0].map(trip => trip._id) }
-        }).sort({ updatedAt: -1 })
-      ])
-    })
-    .then(results => {
-      let trips = results[0]
-      let total = results[1]
-      let expenses = results[2]
-
-      trips = trips.map(trip => {
-        let expensesInTrip = expenses.filter(
-          e => e._trip.toHexString() === trip._id.toHexString()
+    let expensesStatus = _.get(req.query, 'expensesStatus', '')
+    if (!_.isEmpty(expensesStatus)) {
+      let allExpensesStatus = ['draft', 'claiming', 'approved', 'rejected']
+      if (expensesStatus === 'all') {
+        expensesStatus = allExpensesStatus
+      } else {
+        expensesStatus = expensesStatus.split(',')
+        expensesStatus = expensesStatus.filter(s =>
+          allExpensesStatus.includes(s)
         )
-        let expensesStatus = checkExpensesStatus(expensesInTrip)
+        // expensesStatus = _.isEmpty(expensesStatus) ? allStatus : expensesStatus
+      }
+      objFind.expensesStatus = { $in: expensesStatus }
+    }
 
-        return {
-          ...trip.toObject(),
-          totalExpense: expensesInTrip.reduce((acc, e) => acc + e.amount, 0),
-          expensesStatus
-        }
-      })
+    let status = _.get(
+      req.query,
+      'status',
+      'waiting,approved,rejected,ongoing,finished,completed'
+    )
 
-      res.status(200).send({
-        page,
-        totalPage: Math.ceil(total / perPage),
-        total,
-        perPage,
-        trips
+    status = status.split(',')
+
+    let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
+
+    let allStatus = []
+
+    if (isBusinessTrip) {
+      allStatus = [
+        'waiting',
+        'approved',
+        'rejected',
+        'ongoing',
+        'finished',
+        'completed'
+      ]
+    } else {
+      allStatus = ['ongoing', 'finished']
+    }
+
+    status = status.filter(s => allStatus.includes(s))
+    status = _.isEmpty(status) ? allStatus : status
+
+    let objSort = {}
+    if (sortBy) {
+      if (sortBy === 'amount') {
+        //https://stackoverflow.com/questions/35655747/how-to-sort-by-n-th-element-of-array-in-mongoose
+        objSort = { 'budgetPassengers.0.totalPrice': sort }
+      } else {
+        objSort[sortBy] = sort
+      }
+    } else {
+      objSort = { updatedAt: -1 }
+    }
+
+    let keyword = _.get(req.query, 's', '')
+      .trim()
+      .toLowerCase()
+
+    Promise.all([
+      Trip.find(objFind)
+        .sort(objSort)
+        .limit(perPage)
+        .skip(perPage * page),
+      Trip.countDocuments(objFind)
+    ])
+      .then(results => {
+        return Promise.all([
+          ...results,
+          Expense.find({
+            _trip: { $in: results[0].map(trip => trip._id) }
+          }).sort({ updatedAt: -1 })
+        ])
       })
-    })
-    .catch(e => {
-      res.send({ error: 'Not Found' })
-    })
+      .then(results => {
+        let trips = results[0]
+        let total = results[1]
+        let expenses = results[2]
+
+        trips = trips.map(trip => {
+          let expensesInTrip = expenses.filter(
+            e => e._trip.toHexString() === trip._id.toHexString()
+          )
+
+          return {
+            ...trip.toObject(),
+            totalExpense: expensesInTrip.reduce((acc, e) => acc + e.amount, 0)
+          }
+        })
+
+        res.status(200).send({
+          page,
+          totalPage: Math.ceil(total / perPage),
+          total,
+          perPage,
+          trips
+        })
+      })
+      .catch(e => {
+        console.log(e)
+        res.status(400).send({ error: 'Not Found' })
+      })
+  } catch (error) {
+    console.log(error)
+  }
 })
 
 // response approved trips for booking
