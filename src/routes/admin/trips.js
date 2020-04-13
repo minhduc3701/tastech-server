@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Trip = require('../../models/trip')
+const Expense = require('../../models/expense')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeChangeTripStatus } = require('../../middleware/email')
@@ -15,7 +16,7 @@ router.get('/', function(req, res) {
     .trim()
     .toLowerCase()
 
-  let status = _.get(req.query, 'status', 'waiting,approved,rejected')
+  let status = _.get(req.query, 'status', '')
   status = status.split(',')
 
   let allStatus = [
@@ -30,18 +31,31 @@ router.get('/', function(req, res) {
   status = status.filter(s => allStatus.includes(s))
   status = _.isEmpty(status) ? allStatus : status
 
+  let expensesSearching = _.get(req.query, 'expensesSearching', '')
+  expensesSearching = expensesSearching.split(',')
+
+  allExpenseStatus = ['empty', 'waiting', 'claiming', 'approved', 'rejected']
+  expensesSearching = expensesSearching.filter(s =>
+    allExpenseStatus.includes(s)
+  )
+
+  let objFind = {
+    _company: req.user._company,
+    businessTrip: true,
+    isBudgetUpdated: true,
+    archived: false,
+    status: { $in: status },
+    name: {
+      $regex: new RegExp(keyword),
+      $options: 'i'
+    }
+  }
+  if (!_.isEmpty(expensesSearching)) {
+    objFind.expensesStatus = { $in: expensesSearching }
+  }
+
   Promise.all([
-    Trip.find({
-      _company: req.user._company,
-      businessTrip: true,
-      isBudgetUpdated: true,
-      archived: false,
-      status: { $in: status },
-      name: {
-        $regex: new RegExp(keyword),
-        $options: 'i'
-      }
-    })
+    Trip.find(objFind)
       .populate({
         path: '_creator',
         populate: {
@@ -52,23 +66,33 @@ router.get('/', function(req, res) {
       .sort({ updatedAt: -1 })
       .limit(perPage)
       .skip(perPage * page),
-    Trip.countDocuments({
-      _company: req.user._company,
-      businessTrip: true,
-      isBudgetUpdated: true,
-      archived: false,
-      status: { $in: status },
-      name: {
-        $regex: new RegExp(keyword),
-        $options: 'i'
-      }
-    })
+    Trip.countDocuments(objFind)
   ])
     .then(results => {
+      return Promise.all([
+        ...results,
+        Expense.find({
+          _trip: { $in: results[0].map(trip => trip._id) }
+        })
+      ])
+    })
+    .then(results => {
       let trips = results[0]
-      trips = trips.filter(trip => trip._creator)
-
       let total = results[1]
+      let expenses = results[2]
+
+      trips = trips
+        .filter(trip => trip._creator)
+        .map(trip => {
+          let expensesInTrip = expenses.filter(
+            e => e._trip.toHexString() === trip._id.toHexString()
+          )
+
+          return {
+            ...trip.toObject(),
+            totalExpense: expensesInTrip.reduce((acc, e) => acc + e.amount, 0)
+          }
+        })
 
       res.status(200).send({
         page,
