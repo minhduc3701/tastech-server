@@ -25,6 +25,23 @@ const { getTasAdminOptions } = require('../middleware/options')
 const { currentCompany } = require('../middleware/company')
 const { findAirlinesAirports } = require('../modules/utils')
 
+const checkExpensesStatus = expenses => {
+  let status = ''
+  let arr = _.uniq(expenses.map(expense => expense.status))
+
+  if (_.includes(arr, 'claiming')) {
+    status = 'claiming'
+  } else if (_.includes(arr, 'rejected')) {
+    status = 'rejected'
+  } else if (_.includes(arr, 'waiting')) {
+    status = 'waiting'
+  } else if (_.includes(arr, 'approved')) {
+    status = 'approved'
+  }
+
+  return status
+}
+
 router.get('/', function(req, res, next) {
   let perPage = _.get(req.query, 'perPage', 15)
   perPage = Math.max(0, parseInt(perPage))
@@ -115,19 +132,18 @@ router.get('/', function(req, res, next) {
       let total = results[1]
       let expenses = results[2]
 
-      trips = trips.map(trip => ({
-        ...trip.toObject(),
-        totalExpense: expenses
-          .filter(e => e._trip.toHexString() === trip._id.toHexString())
-          .reduce((acc, e) => acc + e.amount, 0),
-        expenseStatus: _.get(
-          expenses.filter(
-            e => e._trip.toHexString() === trip._id.toHexString()
-          ),
-          '[0].status',
-          null
+      trips = trips.map(trip => {
+        let expensesInTrip = expenses.filter(
+          e => e._trip.toHexString() === trip._id.toHexString()
         )
-      }))
+        let expensesStatus = checkExpensesStatus(expensesInTrip)
+
+        return {
+          ...trip.toObject(),
+          totalExpense: expensesInTrip.reduce((acc, e) => acc + e.amount, 0),
+          expensesStatus
+        }
+      })
 
       res.status(200).send({
         page,
@@ -257,7 +273,33 @@ router.get('/expense', (req, res) => {
     archived: false,
     status: { $in: availableStatus }
   })
-    .then(trips => res.status(200).send({ trips }))
+    .then(trips => {
+      return Promise.all([
+        trips,
+        Expense.find({
+          _trip: { $in: trips.map(trip => trip._id) }
+        })
+      ])
+    })
+    .then(results => {
+      let trips = results[0]
+      let expenses = results[1]
+
+      trips = trips.map(trip => {
+        let expensesInTrip = expenses.filter(
+          e => e._trip.toHexString() === trip._id.toHexString()
+        )
+        let expensesStatus = checkExpensesStatus(expensesInTrip)
+
+        return {
+          ...trip.toObject(),
+          expensesStatus
+        }
+      })
+
+      res.status(200).send({ trips })
+    })
+    // .then(trips => res.status(200).send({ trips }))
     .catch(e => res.status(400).send())
 })
 
@@ -381,6 +423,12 @@ router.get(
         (rewardSaveHotel * req.company.exchangedRate) / 100
       )
 
+      let expensesInTrip = await Expense.find({
+        _trip: { $in: req.params.id }
+      })
+
+      let expensesStatus = checkExpensesStatus(expensesInTrip)
+
       res.status(200).json({
         trip: {
           ...trip.toJSON(),
@@ -390,7 +438,8 @@ router.get(
           saveFlight,
           saveHotel,
           saveFlightPoint,
-          saveHotelPoint
+          saveHotelPoint,
+          expensesStatus
         }
       })
     } catch (e) {
