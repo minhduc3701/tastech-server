@@ -139,6 +139,7 @@ router.patch(
         if (!trip) {
           return res.status(404).send()
         }
+        console.log('aaaa: ', body, body.budgetPassengers[0].meal)
         res.status(200).send({ trip })
         next()
       })
@@ -146,6 +147,7 @@ router.patch(
         res.status(400).send()
       })
   },
+
   emailEmployeeChangeTripStatus
 )
 
