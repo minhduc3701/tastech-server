@@ -277,12 +277,14 @@ router.get('/booking', async (req, res) => {
 // response available trips for adding expense
 router.get('/expense', (req, res) => {
   let availableStatus = ['approved', 'ongoing', 'finished']
+  let availableExpensesStatus = ['empty', 'draft', 'rejected']
   Trip.find({
     _company: req.user._company,
     _creator: req.user._id,
     businessTrip: true,
     archived: false,
-    status: { $in: availableStatus }
+    status: { $in: availableStatus },
+    expensesStatus: { $in: availableExpensesStatus }
   })
     .then(trips => {
       return Promise.all([
