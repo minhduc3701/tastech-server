@@ -26,6 +26,12 @@ const TripSchema = new Schema(
       ],
       default: 'waiting'
     },
+    expensesStatus: {
+      type: String,
+      required: true,
+      enum: ['empty', 'draft', 'claiming', 'approved', 'rejected'],
+      default: 'empty'
+    },
     _creator: {
       type: 'ObjectId',
       ref: 'User',

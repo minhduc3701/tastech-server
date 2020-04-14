@@ -198,10 +198,15 @@ router.patch('/:id', function(req, res) {
     { $set: body },
     { new: true }
   )
-    .then(policy => {
+    .then(async policy => {
       if (!policy) {
         return res.status(404).send()
       }
+
+      const policyDefault = await Policy.findOne({
+        _company: req.user._company,
+        status: 'default'
+      })
 
       return Promise.all([
         User.updateMany(
@@ -227,7 +232,7 @@ router.patch('/:id', function(req, res) {
           },
           {
             $set: {
-              _policy: null
+              _policy: policyDefault._id
             }
           }
         ),
