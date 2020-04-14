@@ -178,7 +178,8 @@ router.get('/booking', async (req, res) => {
       businessTrip: true,
       archived: false,
       $or: [{ status: 'approved' }, { status: 'ongoing' }],
-      endDate: { $gte: Date.now() }
+      endDate: { $gte: Date.now() },
+      isExpenseReport: { $ne: true }
     })
 
     let tripsSpend = await Trip.aggregate([
@@ -193,7 +194,8 @@ router.get('/booking', async (req, res) => {
             {
               status: 'ongoing'
             }
-          ]
+          ],
+          isExpenseReport: { $ne: true }
         }
       },
       {
@@ -547,6 +549,41 @@ router.post(
   calculateBudget,
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
+)
+
+router.post(
+  '/expense-report',
+  sabreCurrencyExchange,
+  sabreRestToken,
+  async (req, res, next) => {
+    const trip = new Trip(req.body)
+
+    trip._creator = req.user._id
+    trip._company = req.user._company
+    trip._partner = req.user._partner
+    trip.status = 'approved' // set default status is approved
+    trip.businessTrip = true
+    trip.currency = req.currency.code
+    let countDays =
+      moment(req.body.endDate).diff(moment(req.body.startDate), 'days') + 1
+    trip.daysOfTrip = countDays
+    trip.isBudgetUpdated = false
+    trip.budgetPassengers = null
+    trip.isExpenseReport = true
+
+    try {
+      console.log(trip)
+      // save and send back trip
+      await trip.save()
+      res.status(200).send({ trip })
+    } catch (error) {
+      res.status(400).send()
+    }
+  }
+  // getTasAdminOptions,
+  // calculateBudget,
+  // emailEmployeeSubmitTrip,
+  // emailManagerSubmitTrip
 )
 
 // create booking request

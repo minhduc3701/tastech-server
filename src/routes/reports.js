@@ -11,7 +11,8 @@ router.get('/trips', (req, res) => {
     {
       $match: {
         _company: req.user._company,
-        _creator: req.user._id
+        _creator: req.user._id,
+        isExpenseReport: { $ne: true }
       }
     },
     {
@@ -146,7 +147,8 @@ router.get('/ongoingTrip', currentCompany, function(req, res, next) {
   Trip.findOne({
     _creator: req.user._id,
     status: 'ongoing',
-    businessTrip: true
+    businessTrip: true,
+    isExpenseReport: { $ne: true }
   })
     .sort({ createdAt: -1 })
     .then(trip => {
