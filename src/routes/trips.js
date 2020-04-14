@@ -48,7 +48,8 @@ router.get('/', function(req, res, next) {
   perPage = Math.max(0, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
-
+  let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
+  let isTripExpense = Number(_.get(req.query, 'isTripExpense', 0))
   let sortBy = _.get(req.query, 'sortBy', '')
   let sort = _.get(req.query, 'sort', 'desc')
   sort = sort === 'desc' ? -1 : 1
@@ -59,10 +60,7 @@ router.get('/', function(req, res, next) {
     'waiting,approved,rejected,ongoing,finished,completed'
   )
   status = status.split(',')
-  let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
-
   let allStatus = []
-
   if (isBusinessTrip) {
     allStatus = [
       'waiting',
@@ -79,6 +77,42 @@ router.get('/', function(req, res, next) {
   status = status.filter(s => allStatus.includes(s))
   status = _.isEmpty(status) ? allStatus : status
 
+  let keyword = _.get(req.query, 's', '')
+    .trim()
+    .toLowerCase()
+
+  let objFind = {
+    _creator: req.user._id,
+    archived: { $ne: true },
+    businessTrip: isBusinessTrip ? true : false,
+    status: { $in: status },
+    name: {
+      $regex: new RegExp(keyword),
+      $options: 'i'
+    }
+  }
+
+  if (isTripExpense) {
+    let expensesStatus = _.get(req.query, 'expensesStatus', '')
+    if (!_.isEmpty(expensesStatus)) {
+      let allExpensesStatus = [
+        'empty',
+        'draft',
+        'claiming',
+        'approved',
+        'rejected'
+      ]
+
+      expensesStatus = expensesStatus.split(',')
+      expensesStatus = expensesStatus.filter(s => allExpensesStatus.includes(s))
+
+      expensesStatus = _.isEmpty(expensesStatus)
+        ? allExpensesStatus
+        : expensesStatus
+      objFind.expensesStatus = { $in: expensesStatus }
+    }
+  }
+
   let objSort = {}
   if (sortBy) {
     if (sortBy === 'amount') {
@@ -91,34 +125,12 @@ router.get('/', function(req, res, next) {
     objSort = { updatedAt: -1 }
   }
 
-  let keyword = _.get(req.query, 's', '')
-    .trim()
-    .toLowerCase()
-
   Promise.all([
-    Trip.find({
-      _creator: req.user._id,
-      archived: { $ne: true },
-      businessTrip: isBusinessTrip ? true : false,
-      status: { $in: status },
-      name: {
-        $regex: new RegExp(keyword),
-        $options: 'i'
-      }
-    })
+    Trip.find(objFind)
       .sort(objSort)
       .limit(perPage)
       .skip(perPage * page),
-    Trip.countDocuments({
-      _creator: req.user._id,
-      archived: { $ne: true },
-      businessTrip: isBusinessTrip ? true : false,
-      status: { $in: status },
-      name: {
-        $regex: new RegExp(keyword),
-        $options: 'i'
-      }
-    })
+    Trip.countDocuments(objFind)
   ])
     .then(results => {
       return Promise.all([
@@ -137,12 +149,10 @@ router.get('/', function(req, res, next) {
         let expensesInTrip = expenses.filter(
           e => e._trip.toHexString() === trip._id.toHexString()
         )
-        let expensesStatus = checkExpensesStatus(expensesInTrip)
 
         return {
           ...trip.toObject(),
-          totalExpense: expensesInTrip.reduce((acc, e) => acc + e.amount, 0),
-          expensesStatus
+          totalExpense: expensesInTrip.reduce((acc, e) => acc + e.amount, 0)
         }
       })
 
@@ -155,7 +165,7 @@ router.get('/', function(req, res, next) {
       })
     })
     .catch(e => {
-      res.send({ error: 'Not Found' })
+      res.status(400).send({ error: 'Not Found' })
     })
 })
 
@@ -168,7 +178,8 @@ router.get('/booking', async (req, res) => {
       businessTrip: true,
       archived: false,
       $or: [{ status: 'approved' }, { status: 'ongoing' }],
-      endDate: { $gte: Date.now() }
+      endDate: { $gte: Date.now() },
+      isExpenseReport: { $ne: true }
     })
 
     let tripsSpend = await Trip.aggregate([
@@ -183,7 +194,8 @@ router.get('/booking', async (req, res) => {
             {
               status: 'ongoing'
             }
-          ]
+          ],
+          isExpenseReport: { $ne: true }
         }
       },
       {
@@ -267,12 +279,14 @@ router.get('/booking', async (req, res) => {
 // response available trips for adding expense
 router.get('/expense', (req, res) => {
   let availableStatus = ['approved', 'ongoing', 'finished']
+  let availableExpensesStatus = ['empty', 'draft', 'rejected']
   Trip.find({
     _company: req.user._company,
     _creator: req.user._id,
     businessTrip: true,
     archived: false,
-    status: { $in: availableStatus }
+    status: { $in: availableStatus },
+    expensesStatus: { $in: availableExpensesStatus }
   })
     .then(trips => {
       return Promise.all([
@@ -535,6 +549,41 @@ router.post(
   calculateBudget,
   emailEmployeeSubmitTrip,
   emailManagerSubmitTrip
+)
+
+router.post(
+  '/expense-report',
+  sabreCurrencyExchange,
+  sabreRestToken,
+  async (req, res, next) => {
+    const trip = new Trip(req.body)
+
+    trip._creator = req.user._id
+    trip._company = req.user._company
+    trip._partner = req.user._partner
+    trip.status = 'approved' // set default status is approved
+    trip.businessTrip = true
+    trip.currency = req.currency.code
+    let countDays =
+      moment(req.body.endDate).diff(moment(req.body.startDate), 'days') + 1
+    trip.daysOfTrip = countDays
+    trip.isBudgetUpdated = false
+    trip.budgetPassengers = null
+    trip.isExpenseReport = true
+
+    try {
+      console.log(trip)
+      // save and send back trip
+      await trip.save()
+      res.status(200).send({ trip })
+    } catch (error) {
+      res.status(400).send()
+    }
+  }
+  // getTasAdminOptions,
+  // calculateBudget,
+  // emailEmployeeSubmitTrip,
+  // emailManagerSubmitTrip
 )
 
 // create booking request
