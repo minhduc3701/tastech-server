@@ -11,7 +11,8 @@ router.get('/trips', (req, res) => {
     {
       $match: {
         _company: req.user._company,
-        _creator: req.user._id
+        _creator: req.user._id,
+        isExpenseReport: { $ne: true }
       }
     },
     {
