@@ -49,6 +49,7 @@
     "stripe": "^6.34.0",
     "validator": "^10.11.0",
     "winston": "^3.2.1",
+    "xendit-node": "^1.1.0",
     "xml-js": "^1.6.11",
     "zlib": "^1.0.5"
   },

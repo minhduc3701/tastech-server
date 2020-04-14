@@ -171,32 +171,32 @@ test('Should not edit employees policy from other company when update', async ()
 
 test('Should remove current employees in policy that not in request list', async () => {
   await request(app)
-    .patch(`/admin/policies/${policyId}`)
+    .patch(`/admin/policies/${policy2Id}`)
     .set('Authorization', `Bearer ${adminToken}`)
     .send({
-      name: 'Policy 1 update',
+      name: 'Policy 2 update',
       employees: [userId, user2Id]
     })
     .expect(200)
 
   let policyUsersCount = await User.countDocuments({
-    _policy: policyId,
+    _policy: policy2Id,
     _id: { $in: [userId, user2Id] }
   })
 
   expect(policyUsersCount).toBe(2)
 
   await request(app)
-    .patch(`/admin/policies/${policyId}`)
+    .patch(`/admin/policies/${policy2Id}`)
     .set('Authorization', `Bearer ${adminToken}`)
     .send({
-      name: 'Policy 1 update',
+      name: 'Policy 2 update',
       employees: [userId]
     })
     .expect(200)
 
   policyUsersCount = await User.countDocuments({
-    _policy: policyId,
+    _policy: policy2Id,
     _id: { $in: [userId, user2Id] }
   })
 

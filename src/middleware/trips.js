@@ -1,4 +1,5 @@
 const Policy = require('../models/policy')
+const Expense = require('../models/expense')
 const {
   makeSabreFlightsData,
   roundPriceWithMarkup
@@ -185,6 +186,57 @@ const calculateBudget = async (req, res, next) => {
   next()
 }
 
+const updateTripExpenseStatus = async (req, res, next) => {
+  console.log('updateExpenseStatus: ', req.tripIds)
+  if (!_.isEmpty(req.tripIds)) {
+    req.tripIds.forEach(async tripId => {
+      await updateExpenseStatus(tripId)
+    })
+  }
+}
+
+async function updateExpenseStatus(tripId) {
+  let expensesStatus = ''
+  let expesnes = await Expense.find({
+    _trip: tripId
+  })
+  console.log('expesnes: ', expesnes, _.isEmpty(expesnes))
+  if (_.isEmpty(expesnes)) {
+    // trip does not have any expense
+    expensesStatus = 'empty'
+  } else if (!_.isEmpty(expesnes.filter(e => e.status === 'claiming'))) {
+    // trip have at least one claiming expense
+    expensesStatus = 'claiming'
+  } else if (!_.isEmpty(expesnes.filter(e => e.status === 'rejected'))) {
+    // trip have at least one rejected expense
+    expensesStatus = 'rejected'
+  } else if (!_.isEmpty(expesnes.filter(e => e.status === 'waiting'))) {
+    // trip have at least one claiming expense
+    expensesStatus = 'draft'
+  } else {
+    expensesStatus = 'approved'
+  }
+  console.log(expensesStatus)
+  return Trip.findByIdAndUpdate(
+    {
+      _id: tripId
+    },
+    {
+      $set: {
+        expensesStatus
+      }
+    },
+    { new: true }
+  )
+    .then(trip => {
+      console.log(trip.expensesStatus)
+    })
+    .catch(e => {
+      console.log(e)
+    })
+}
+
 module.exports = {
-  calculateBudget
+  calculateBudget,
+  updateTripExpenseStatus
 }
