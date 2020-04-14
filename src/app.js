@@ -52,6 +52,7 @@ const ordersRouter = require('./routes/orders')
 const reportsRouter = require('./routes/reports')
 const rewardRouter = require('./routes/rewards')
 const voucherRouter = require('./routes/vouchers')
+const xenditPaymentRouter = require('./routes/payment/xendit')
 const {
   authenticateRole,
   authenticatePermission
@@ -258,7 +259,8 @@ app.use('/vouchers', jwtAuthenticate, voucherRouter)
 app.use('/cards', jwtAuthenticate, cardsRouter)
 
 app.use('/checkout', jwtAuthenticate, checkoutRouter)
-
+// Xendit payment
+app.use('/payment/xendit', xenditPaymentRouter)
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404))
