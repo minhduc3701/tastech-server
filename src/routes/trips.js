@@ -95,7 +95,13 @@ router.get('/', function(req, res, next) {
   if (isTripExpense) {
     let expensesStatus = _.get(req.query, 'expensesStatus', '')
     if (!_.isEmpty(expensesStatus)) {
-      let allExpensesStatus = ['draft', 'claiming', 'approved', 'rejected']
+      let allExpensesStatus = [
+        'empty',
+        'draft',
+        'claiming',
+        'approved',
+        'rejected'
+      ]
 
       expensesStatus = expensesStatus.split(',')
       expensesStatus = expensesStatus.filter(s => allExpensesStatus.includes(s))
