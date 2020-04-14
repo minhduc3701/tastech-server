@@ -50,10 +50,37 @@ router.get('/', function(req, res, next) {
     page = Math.max(0, parseInt(page))
     let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
     let isTripExpense = Number(_.get(req.query, 'isTripExpense', 0))
-
     let sortBy = _.get(req.query, 'sortBy', '')
     let sort = _.get(req.query, 'sort', 'desc')
     sort = sort === 'desc' ? -1 : 1
+
+    let status = _.get(
+      req.query,
+      'status',
+      'waiting,approved,rejected,ongoing,finished,completed'
+    )
+    status = status.split(',')
+    let allStatus = []
+    if (isBusinessTrip) {
+      allStatus = [
+        'waiting',
+        'approved',
+        'rejected',
+        'ongoing',
+        'finished',
+        'completed'
+      ]
+    } else {
+      allStatus = ['ongoing', 'finished']
+    }
+
+    status = status.filter(s => allStatus.includes(s))
+    status = _.isEmpty(status) ? allStatus : status
+
+    let keyword = _.get(req.query, 's', '')
+      .trim()
+      .toLowerCase()
+    console.log('AAAA: ', isTripExpense)
 
     let objFind = {
       _creator: req.user._id,
@@ -83,29 +110,6 @@ router.get('/', function(req, res, next) {
       }
     }
 
-    let status = _.get(
-      req.query,
-      'status',
-      'waiting,approved,rejected,ongoing,finished,completed'
-    )
-    status = status.split(',')
-    let allStatus = []
-    if (isBusinessTrip) {
-      allStatus = [
-        'waiting',
-        'approved',
-        'rejected',
-        'ongoing',
-        'finished',
-        'completed'
-      ]
-    } else {
-      allStatus = ['ongoing', 'finished']
-    }
-
-    status = status.filter(s => allStatus.includes(s))
-    status = _.isEmpty(status) ? allStatus : status
-
     let objSort = {}
     if (sortBy) {
       if (sortBy === 'amount') {
@@ -117,10 +121,6 @@ router.get('/', function(req, res, next) {
     } else {
       objSort = { updatedAt: -1 }
     }
-
-    let keyword = _.get(req.query, 's', '')
-      .trim()
-      .toLowerCase()
 
     Promise.all([
       Trip.find(objFind)
