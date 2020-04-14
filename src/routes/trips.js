@@ -48,6 +48,8 @@ router.get('/', function(req, res, next) {
     perPage = Math.max(0, parseInt(perPage))
     let page = _.get(req.query, 'page', 0)
     page = Math.max(0, parseInt(page))
+    let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
+    let isTripExpense = Number(_.get(req.query, 'isTripExpense', 0))
 
     let sortBy = _.get(req.query, 'sortBy', '')
     let sort = _.get(req.query, 'sort', 'desc')
@@ -58,26 +60,27 @@ router.get('/', function(req, res, next) {
       archived: { $ne: true },
       businessTrip: isBusinessTrip ? true : false,
       status: { $in: status },
-      // expensesStatus: { $in: expensesStatus },
       name: {
         $regex: new RegExp(keyword),
         $options: 'i'
       }
     }
 
-    let expensesStatus = _.get(req.query, 'expensesStatus', '')
-    if (!_.isEmpty(expensesStatus)) {
-      let allExpensesStatus = ['draft', 'claiming', 'approved', 'rejected']
-      if (expensesStatus === 'all') {
-        expensesStatus = allExpensesStatus
-      } else {
+    if (isTripExpense) {
+      let expensesStatus = _.get(req.query, 'expensesStatus', '')
+      if (!_.isEmpty(expensesStatus)) {
+        let allExpensesStatus = ['draft', 'claiming', 'approved', 'rejected']
+
         expensesStatus = expensesStatus.split(',')
         expensesStatus = expensesStatus.filter(s =>
           allExpensesStatus.includes(s)
         )
-        // expensesStatus = _.isEmpty(expensesStatus) ? allStatus : expensesStatus
+
+        expensesStatus = _.isEmpty(expensesStatus)
+          ? allExpensesStatus
+          : expensesStatus
+        objFind.expensesStatus = { $in: expensesStatus }
       }
-      objFind.expensesStatus = { $in: expensesStatus }
     }
 
     let status = _.get(
@@ -85,13 +88,8 @@ router.get('/', function(req, res, next) {
       'status',
       'waiting,approved,rejected,ongoing,finished,completed'
     )
-
     status = status.split(',')
-
-    let isBusinessTrip = Number(_.get(req.query, 'businessTrip', 1))
-
     let allStatus = []
-
     if (isBusinessTrip) {
       allStatus = [
         'waiting',
