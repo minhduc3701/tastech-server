@@ -198,7 +198,7 @@ const updateTripExpenseStatus = async (req, res, next) => {
 const createTripExpense = async (req, res, next) => {
   if (
     req.body.status === 'approved' &&
-    req.body.budgetPassengers[0].meal.selected === true
+    _.get(req, 'body.budgetPassengers[0].meal.selected', false) === true
   ) {
     const expense = new Expense()
     expense._creator = req.trip._creator

@@ -5,7 +5,6 @@ const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeChangeTripStatus } = require('../../middleware/email')
 const { createTripExpense } = require('../../middleware/trips')
-const Expense = require('../../models/expense')
 router.get('/', function(req, res) {
   let perPage = _.get(req.query, 'perPage', 15)
   perPage = Math.max(15, parseInt(perPage))
