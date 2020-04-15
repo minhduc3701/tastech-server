@@ -236,7 +236,6 @@ async function updateExpenseStatus(tripId) {
   } else {
     expensesStatus = 'approved'
   }
-  console.log(expensesStatus)
   return Trip.findByIdAndUpdate(
     {
       _id: tripId
@@ -248,12 +247,8 @@ async function updateExpenseStatus(tripId) {
     },
     { new: true }
   )
-    .then(trip => {
-      console.log(trip.expensesStatus)
-    })
-    .catch(e => {
-      console.log(e)
-    })
+    .then()
+    .catch()
 }
 
 module.exports = {

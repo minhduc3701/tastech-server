@@ -12,6 +12,7 @@ const Reward = require('../../models/reward')
 const Voucher = require('../../models/voucher')
 const Option = require('../../models/option')
 const Change = require('chance')
+const moment = require('moment')
 const chance = new Change()
 
 const tasAdminId = new ObjectID('5cc2d7a24c72b61214af0049')
@@ -1003,7 +1004,17 @@ const policies = [
 ]
 
 const trips = []
-const tripStatus = ['waiting', 'approved', 'rejected', 'finished', 'completed']
+const tripStatus = [
+  'waiting',
+  'approved',
+  'ongoing',
+  'rejected',
+  'finished',
+  'completed'
+]
+const expenses = []
+const expenseCategories = ['flight', 'lodging', 'meal']
+const expenseAccounts = ['credit-card', 'cash', 'banking-transfer', 'other']
 
 for (let i = 0; i < 200; i++) {
   let rejectedProps = {}
@@ -1094,16 +1105,48 @@ for (let i = 0; i < 200; i++) {
     namePrefix = 'Personal Trip'
   }
 
-  let startDate = chance.date({ month: 11, year: 2019 })
+  let startDate, expensesStatus
+  if (status) {
+    startDate = chance.date({ month: 6, year: 2020 })
+  }
+  switch (status) {
+    case 'waiting':
+    case 'rejected':
+    case 'approved':
+      startDate = chance.date({
+        month: moment().month() + 2,
+        year: moment().year()
+      }) // date in future
+      expensesStatus = 'draft'
+      break
+    case 'ongoing':
+      startDate = moment(Date.now() - 3 * 24 * 3600 * 1000).format('YYYY-MM-DD') // 3 day ago
+      expensesStatus = 'draft'
+      break
+    case 'finished':
+      startDate = chance.date({
+        month: moment().month() - 1,
+        year: moment().year()
+      }) // date in past
+      expensesStatus = randomItemInArray(['approved', 'rejected'])
+    case 'completed':
+    default:
+      startDate = chance.date({
+        month: moment().month() - 2,
+        year: moment().year()
+      }) // date in past
+      expensesStatus = 'approved'
+      break
+  }
   let startDateObj = new Date(startDate)
-  let duration = chance.integer({ min: 1, max: 10 })
+  let duration = chance.integer({ min: 5, max: 15 })
   let endDateObj = new Date(startDateObj.getTime() + duration * 86400000)
 
   let trip = {
     _id: currentTripId,
     name: `${namePrefix} ${i}`,
     status,
-    expenstStatus: 'draft',
+    expensesStatus,
     _creator: currentCreator,
     _company: companyId,
     businessTrip: true,
@@ -1115,56 +1158,45 @@ for (let i = 0; i < 200; i++) {
     ...rejectedProps
   }
   trips.push(trip)
-}
 
-const expenses = []
-const expenseStatuses = ['waiting', 'claiming', 'rejected', 'approved']
-const expenseCategories = ['flight', 'lodging', 'transportation', 'meal']
-const expenseAccounts = ['credit-card', 'cash']
-
-for (let i = 0; i < 150; i++) {
-  let rawAmount = chance.integer({ min: 0, max: 500 })
-  expenses.push({
-    _creator: employeeId,
-    name: `Expense ${i + 1}`,
-    status: randomItemInArray(expenseStatuses),
-    amount: rawAmount,
-    currency: 'USD',
-    rawAmount,
-    rawCurrency: 'USD',
-    category: randomItemInArray(expenseCategories),
-    transactionDate: new Date(chance.date({ year: 2019 })),
-    _trip: randomItemInArray(tripIdsUser1),
-    _company: companyId,
-    account: randomItemInArray(expenseAccounts),
-    receipts: ['1556164218511', '1556164218512'],
-    message: chance.paragraph({ sentences: 1 }),
-    city: chance.city(),
-    vendor: chance.company(),
-    _attendees: [employeeId2]
-  })
-}
-
-for (let i = 150; i < 200; i++) {
-  let rawAmount = chance.integer({ min: 0, max: 500 })
-  expenses.push({
-    _creator: employeeId2,
-    name: `Expense ${i + 1}`,
-    status: randomItemInArray(expenseStatuses),
-    amount: rawAmount,
-    rawAmount,
-    currency: 'USD',
-    rawCurrency: 'USD',
-    category: randomItemInArray(expenseCategories),
-    transactionDate: new Date(chance.date({ year: 2019 })),
-    _trip: randomItemInArray(tripIdsUser2),
-    _company: companyId,
-    account: randomItemInArray(expenseAccounts),
-    receipts: ['1556164218511', '1556164218512'],
-    message: chance.paragraph({ sentences: 1 }),
-    city: chance.city(),
-    vendor: chance.company()
-  })
+  let statusForExpense
+  switch (expensesStatus) {
+    case 'rejected':
+      statusForExpense = 'rejected'
+      break
+    case 'claiming':
+      statusForExpense = 'claiming'
+      break
+    case 'approved':
+      statusForExpense = 'approved'
+      break
+    case 'draft':
+    default:
+      statusForExpense = 'waiting'
+      break
+  }
+  for (let i = 0; i < 8; i++) {
+    let rawAmount = chance.integer({ min: 0, max: 500 })
+    expenses.push({
+      _creator: employeeId,
+      name: `Expense ${i + 1}`,
+      status: statusForExpense,
+      amount: rawAmount,
+      currency: 'USD',
+      rawAmount,
+      rawCurrency: 'USD',
+      category: randomItemInArray(expenseCategories),
+      transactionDate: new Date(chance.date({ year: 2019 })),
+      _trip: currentTripId,
+      _company: companyId,
+      account: randomItemInArray(expenseAccounts),
+      receipts: ['1556164218511', '1556164218512'],
+      message: chance.paragraph({ sentences: 1 }),
+      // city: chance.city(),
+      vendor: chance.company()
+      // _attendees: [employeeId2]
+    })
+  }
 }
 
 const departments = [
