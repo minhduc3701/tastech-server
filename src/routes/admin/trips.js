@@ -4,6 +4,7 @@ const Trip = require('../../models/trip')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeChangeTripStatus } = require('../../middleware/email')
+const { createTripExpense } = require('../../middleware/trips')
 const Expense = require('../../models/expense')
 router.get('/', function(req, res) {
   let perPage = _.get(req.query, 'perPage', 15)
@@ -139,23 +140,6 @@ router.patch(
         if (!trip) {
           return res.status(404).send()
         }
-        if (
-          body.status === 'approved' &&
-          body.budgetPassengers[0].meal.selected === true
-        ) {
-          const expense = new Expense()
-          expense._creator = trip._creator
-          expense.amount = body.budgetPassengers[0].meal.price
-          expense.rawAmount = body.budgetPassengers[0].meal.price
-          expense.currency = trip.currency
-          expense.rawCurrency = trip.currency
-          expense.category = 'meal'
-          expense.transactionDate = trip.startDate
-          expense._trip = trip._id
-          expense._company = req.user._company
-          expense.account = 'cash'
-          expense.save()
-        }
         res.status(200).send({ trip })
         next()
       })
@@ -163,7 +147,7 @@ router.patch(
         res.status(400).send()
       })
   },
-
+  createTripExpense,
   emailEmployeeChangeTripStatus
 )
 
