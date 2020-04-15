@@ -1199,51 +1199,6 @@ for (let i = 0; i < 200; i++) {
   }
 }
 
-// for (let i = 0; i < 150; i++) {
-//   let rawAmount = chance.integer({ min: 0, max: 500 })
-//   expenses.push({
-//     _creator: employeeId,
-//     name: `Expense ${i + 1}`,
-//     status: randomItemInArray(expenseStatuses),
-//     amount: rawAmount,
-//     currency: 'USD',
-//     rawAmount,
-//     rawCurrency: 'USD',
-//     category: randomItemInArray(expenseCategories),
-//     transactionDate: new Date(chance.date({ year: 2019 })),
-//     _trip: randomItemInArray(tripIdsUser1),
-//     _company: companyId,
-//     account: randomItemInArray(expenseAccounts),
-//     receipts: ['1556164218511', '1556164218512'],
-//     message: chance.paragraph({ sentences: 1 }),
-//     city: chance.city(),
-//     vendor: chance.company(),
-//     _attendees: [employeeId2]
-//   })
-// }
-
-// for (let i = 150; i < 200; i++) {
-//   let rawAmount = chance.integer({ min: 0, max: 500 })
-//   expenses.push({
-//     _creator: employeeId2,
-//     name: `Expense ${i + 1}`,
-//     status: randomItemInArray(expenseStatuses),
-//     amount: rawAmount,
-//     rawAmount,
-//     currency: 'USD',
-//     rawCurrency: 'USD',
-//     category: randomItemInArray(expenseCategories),
-//     transactionDate: new Date(chance.date({ year: 2019 })),
-//     _trip: randomItemInArray(tripIdsUser2),
-//     _company: companyId,
-//     account: randomItemInArray(expenseAccounts),
-//     receipts: ['1556164218511', '1556164218512'],
-//     message: chance.paragraph({ sentences: 1 }),
-//     city: chance.city(),
-//     vendor: chance.company()
-//   })
-// }
-
 const departments = [
   {
     _id: departmentId,
