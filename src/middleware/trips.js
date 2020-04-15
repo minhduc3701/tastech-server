@@ -195,6 +195,26 @@ const updateTripExpenseStatus = async (req, res, next) => {
   }
 }
 
+const createTripExpense = async (req, res, next) => {
+  if (
+    req.body.status === 'approved' &&
+    _.get(req, 'body.budgetPassengers[0].meal.selected', false) === true
+  ) {
+    const expense = new Expense()
+    expense._creator = req.trip._creator
+    expense.amount = req.body.budgetPassengers[0].meal.price
+    expense.rawAmount = req.body.budgetPassengers[0].meal.price
+    expense.currency = req.trip.currency
+    expense.rawCurrency = req.trip.currency
+    expense.category = 'meal'
+    expense.transactionDate = req.trip.startDate
+    expense._trip = req.trip._id
+    expense._company = req.user._company
+    expense.account = 'cash'
+    expense.save()
+  }
+  next()
+}
 async function updateExpenseStatus(tripId) {
   let expensesStatus = ''
   let expesnes = await Expense.find({
@@ -238,5 +258,6 @@ async function updateExpenseStatus(tripId) {
 
 module.exports = {
   calculateBudget,
-  updateTripExpenseStatus
+  updateTripExpenseStatus,
+  createTripExpense
 }

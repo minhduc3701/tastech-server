@@ -4,7 +4,7 @@ const Trip = require('../../models/trip')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeChangeTripStatus } = require('../../middleware/email')
-
+const { createTripExpense } = require('../../middleware/trips')
 router.get('/', function(req, res) {
   let perPage = _.get(req.query, 'perPage', 15)
   perPage = Math.max(15, parseInt(perPage))
@@ -146,6 +146,7 @@ router.patch(
         res.status(400).send()
       })
   },
+  createTripExpense,
   emailEmployeeChangeTripStatus
 )
 
