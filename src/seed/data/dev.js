@@ -1178,7 +1178,7 @@ for (let i = 0; i < 200; i++) {
       statusForExpense = 'waiting'
       break
   }
-  if (status !== 'rejected') {
+  if (status !== 'rejected' && trip.businessTrip) {
     for (let i = 0; i < 8; i++) {
       let rawAmount = chance.integer({ min: 0, max: 500 })
       expenses.push({
