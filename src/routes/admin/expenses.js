@@ -3,6 +3,7 @@ const router = express.Router()
 const Expense = require('../../models/expense')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
+const async = require('async')
 const { emailEmployeeChangeExpenseStatus } = require('../../middleware/email')
 
 router.get('/', function(req, res) {
@@ -139,5 +140,95 @@ router.patch(
   },
   emailEmployeeChangeExpenseStatus
 )
+
+router.patch(
+  '/:id',
+  (req, res, next) => {
+    let id = req.params.id
+
+    if (!ObjectID.isValid(id)) {
+      return res.status(404).send()
+    }
+
+    const body = _.pick(req.body, ['status', 'adminMessage'])
+
+    if (body.status !== 'approved' && body.status !== 'rejected') {
+      return res.status(400).send()
+    }
+    Expense.findOneAndUpdate(
+      {
+        _id: id,
+        _company: req.user._company,
+        status: 'claiming' // admin can update only claiming expense
+      },
+      { $set: body },
+      { new: true }
+    )
+      .then(expense => {
+        if (!expense) {
+          return res.status(404).send()
+        }
+        res.status(200).send({ expense })
+        // save for sending email to employee
+        req.expense = expense
+        next()
+      })
+      .catch(e => {
+        res.status(400).send()
+      })
+  },
+  emailEmployeeChangeExpenseStatus
+)
+
+router.patch('/', async (req, res, next) => {
+  try {
+    // let {expenses} = req.body
+    let expenses = req.body
+    if (!_.isEmpty(expenses)) {
+      let expenseIds = expenses.map(e => e.id)
+      console.log(expenseIds)
+      // Expense.find({
+      //   _id: { $in: expenseIds }
+      // }).then((expenses => {
+      //   console.log(expenses)
+      // }))
+      async.each(
+        expenses,
+        function(expense, callback) {
+          Expense.findOneAndUpdate(
+            {
+              _id: expense.id
+            },
+            {
+              $set: {
+                status: expense.status,
+                adminMessage: expense.adminMessage
+              }
+            },
+            { new: true }
+          )
+            .then(expense => {
+              console.log(expense)
+              callback()
+            })
+            .catch(e => {
+              callback('wrong')
+            })
+        },
+        function(err) {
+          console.log('Hello')
+          if (err) {
+            res.status(400).send()
+          } else {
+            console.log('ok')
+            res.status(200).send()
+          }
+        }
+      )
+    }
+  } catch (error) {
+    console.log(error)
+  }
+})
 
 module.exports = router
