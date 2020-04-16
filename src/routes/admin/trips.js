@@ -173,4 +173,39 @@ router.patch(
   emailEmployeeChangeTripStatus
 )
 
+// get expenses by trip id
+router.get('/:id/expenses', function(req, res, next) {
+  let id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  Trip.findOne({
+    _id: id,
+    _company: req.user._company
+  })
+    .populate('_creator')
+    .populate('_trip')
+    .then(trip => {
+      if (!trip) {
+        return res.status(404).send()
+      }
+      return Promise.all([
+        trip,
+        Expense.find({
+          _trip: id
+        })
+          .sort({ updatedAt: -1 })
+          .limit(100)
+      ])
+    })
+    .then(results => {
+      let trip = results[0]
+      let expenses = results[1]
+      res.status(200).send({ trip, expenses })
+    })
+    .catch(e => res.status(400).send())
+})
+
 module.exports = router
