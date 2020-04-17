@@ -276,7 +276,8 @@ const makeExpensesAfterCheckout = async (req, res, next) => {
         rawCurrency: req.hotelOrder.currency,
         amount: req.hotelOrder.totalPrice,
         rawAmount: req.hotelOrder.totalPrice,
-        receipts: [hotelPdf.pdfName]
+        receipts: [hotelPdf.pdfName],
+        _order: req.hotelOrder._id
       }
       const hotelExpense = new Expense(hotelExpenseData)
       await hotelExpense.save()
