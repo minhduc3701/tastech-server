@@ -311,7 +311,7 @@ const remakeExpenseCanceledOrder = async (req, res, next) => {
           email: customer.email,
           company: company.name,
           orderId: _id,
-          invoiceNumber: `#${12345678}`,
+          invoiceNumber: `#${_id}`,
           cancellationFeeForBooking: `$ ${cancelCharge} ${currency}`,
           totalCost: `$ ${cancelCharge} ${currency}`,
           generatedDate: moment().format('DD MMM YYYY, HH:mm:ss')
