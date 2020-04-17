@@ -218,7 +218,8 @@ const makeExpensesAfterCheckout = async (req, res, next) => {
         rawCurrency: req.flightOrder.currency,
         amount: req.flightOrder.totalPrice,
         rawAmount: req.flightOrder.totalPrice,
-        receipts: [flightPdf.pdfName]
+        receipts: [flightPdf.pdfName],
+        _order: req.flightOrder._id
       }
       const flightExpense = new Expense(flightExpenseData)
       await flightExpense.save()
