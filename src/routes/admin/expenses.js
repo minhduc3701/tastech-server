@@ -5,6 +5,7 @@ const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const async = require('async')
 const { emailEmployeeChangeExpenseStatus } = require('../../middleware/email')
+const { updateTripExpenseStatus } = require('../../middleware/trips')
 
 router.get('/', function(req, res) {
   let perPage = _.get(req.query, 'perPage', 15)
@@ -180,55 +181,62 @@ router.patch(
   emailEmployeeChangeExpenseStatus
 )
 
-router.patch('/', async (req, res, next) => {
-  try {
-    // let {expenses} = req.body
-    let expenses = req.body
-    if (!_.isEmpty(expenses)) {
-      let expenseIds = expenses.map(e => e.id)
-      console.log(expenseIds)
-      // Expense.find({
-      //   _id: { $in: expenseIds }
-      // }).then((expenses => {
-      //   console.log(expenses)
-      // }))
-      async.each(
-        expenses,
-        function(expense, callback) {
-          Expense.findOneAndUpdate(
-            {
-              _id: expense.id
-            },
-            {
-              $set: {
-                status: expense.status,
-                adminMessage: expense.adminMessage
-              }
-            },
-            { new: true }
-          )
-            .then(expense => {
-              console.log(expense)
-              callback()
-            })
-            .catch(e => {
-              callback('wrong')
-            })
-        },
-        function(err) {
-          console.log('Hello')
-          if (err) {
-            res.status(400).send()
-          } else {
-            console.log('ok')
-            res.status(200).send()
+router.patch(
+  '/',
+  async (req, res, next) => {
+    try {
+      // let {expenses} = req.body
+      let { expenses, tripId } = req.body
+
+      console.log('++++', tripId, expenses)
+      if (!_.isEmpty(expenses)) {
+        let expenseIds = expenses.map(e => e.id)
+        console.log(expenseIds)
+        // Expense.find({
+        //   _id: { $in: expenseIds }
+        // }).then((expenses => {
+        //   console.log(expenses)
+        // }))
+        async.each(
+          expenses,
+          function(expense, callback) {
+            Expense.findOneAndUpdate(
+              {
+                _id: expense.id
+              },
+              {
+                $set: {
+                  status: expense.status,
+                  adminMessage: expense.adminMessage
+                }
+              },
+              { new: true }
+            )
+              .then(expense => {
+                console.log(expense)
+                callback()
+              })
+              .catch(e => {
+                callback('wrong')
+              })
+          },
+          function(err) {
+            console.log('Hello')
+            if (err) {
+              res.status(400).send()
+            } else {
+              console.log('ok')
+              res.status(200).send()
+              req.tripIds = [tripId]
+            }
           }
-        }
-      )
+        )
+      }
+    } catch (error) {
+      console.log(error)
     }
-  } catch (error) {
-    console.log(error)
-  }
-})
+  },
+  updateTripExpenseStatus
+)
 
 module.exports = router
