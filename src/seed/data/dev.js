@@ -1111,13 +1111,15 @@ for (let i = 0; i < 200; i++) {
   }
   switch (status) {
     case 'waiting':
-    case 'rejected':
     case 'approved':
       startDate = chance.date({
         month: moment().month() + 2,
         year: moment().year()
       }) // date in future
       expensesStatus = 'draft'
+      break
+    case 'rejected':
+      expensesStatus = 'empty'
       break
     case 'ongoing':
       startDate = moment(Date.now() - 3 * 24 * 3600 * 1000).format('YYYY-MM-DD') // 3 day ago
@@ -1128,7 +1130,8 @@ for (let i = 0; i < 200; i++) {
         month: moment().month() - 1,
         year: moment().year()
       }) // date in past
-      expensesStatus = randomItemInArray(['approved', 'rejected'])
+      expensesStatus = randomItemInArray(['claiming', 'approved', 'rejected'])
+      break
     case 'completed':
     default:
       startDate = chance.date({
@@ -1175,27 +1178,30 @@ for (let i = 0; i < 200; i++) {
       statusForExpense = 'waiting'
       break
   }
-  for (let i = 0; i < 8; i++) {
-    let rawAmount = chance.integer({ min: 0, max: 500 })
-    expenses.push({
-      _creator: employeeId,
-      name: `Expense ${i + 1}`,
-      status: statusForExpense,
-      amount: rawAmount,
-      currency: 'USD',
-      rawAmount,
-      rawCurrency: 'USD',
-      category: randomItemInArray(expenseCategories),
-      transactionDate: new Date(chance.date({ year: 2019 })),
-      _trip: currentTripId,
-      _company: companyId,
-      account: randomItemInArray(expenseAccounts),
-      receipts: ['1556164218511', '1556164218512'],
-      message: chance.paragraph({ sentences: 1 }),
-      // city: chance.city(),
-      vendor: chance.company()
-      // _attendees: [employeeId2]
-    })
+  if (status !== 'rejected' && trip.businessTrip) {
+    for (let i = 0; i < 8; i++) {
+      let rawAmount = chance.integer({ min: 0, max: 500 })
+      expenses.push({
+        _creator: employeeId,
+        name: `Expense ${i + 1}`,
+        status: statusForExpense,
+        amount: rawAmount,
+        currency: 'USD',
+        rawAmount,
+        rawCurrency: 'USD',
+        category: randomItemInArray(expenseCategories),
+        transactionDate: new Date(chance.date({ year: 2019 })),
+        _trip: currentTripId,
+        _company: companyId,
+        account: randomItemInArray(expenseAccounts),
+        receipts: ['1556164218511', '1556164218512'],
+        message: chance.paragraph({ sentences: 1 }),
+        adminMessage: chance.paragraph({ sentences: 1 }),
+        // city: chance.city(),
+        vendor: chance.company()
+        // _attendees: [employeeId2]
+      })
+    }
   }
 }
 
