@@ -26,23 +26,6 @@ const { getTasAdminOptions } = require('../middleware/options')
 const { currentCompany } = require('../middleware/company')
 const { findAirlinesAirports } = require('../modules/utils')
 
-const checkExpensesStatus = expenses => {
-  let status = ''
-  let arr = _.uniq(expenses.map(expense => expense.status))
-
-  if (_.includes(arr, 'claiming')) {
-    status = 'claiming'
-  } else if (_.includes(arr, 'rejected')) {
-    status = 'rejected'
-  } else if (_.includes(arr, 'waiting')) {
-    status = 'waiting'
-  } else if (_.includes(arr, 'approved')) {
-    status = 'approved'
-  }
-
-  return status
-}
-
 router.get('/', function(req, res, next) {
   let perPage = _.get(req.query, 'perPage', 15)
   perPage = Math.max(0, parseInt(perPage))
@@ -289,32 +272,11 @@ router.get('/expense', (req, res) => {
     expensesStatus: { $in: availableExpensesStatus }
   })
     .then(trips => {
-      return Promise.all([
-        trips,
-        Expense.find({
-          _trip: { $in: trips.map(trip => trip._id) }
-        })
-      ])
-    })
-    .then(results => {
-      let trips = results[0]
-      let expenses = results[1]
-
-      trips = trips.map(trip => {
-        let expensesInTrip = expenses.filter(
-          e => e._trip.toHexString() === trip._id.toHexString()
-        )
-        let expensesStatus = checkExpensesStatus(expensesInTrip)
-
-        return {
-          ...trip.toObject(),
-          expensesStatus
-        }
-      })
-
+      if (!trips) {
+        res.status(400).send()
+      }
       res.status(200).send({ trips })
     })
-    // .then(trips => res.status(200).send({ trips }))
     .catch(e => res.status(400).send())
 })
 
@@ -438,12 +400,6 @@ router.get(
         (rewardSaveHotel * req.company.exchangedRate) / 100
       )
 
-      let expensesInTrip = await Expense.find({
-        _trip: { $in: req.params.id }
-      })
-
-      let expensesStatus = checkExpensesStatus(expensesInTrip)
-
       res.status(200).json({
         trip: {
           ...trip.toJSON(),
@@ -453,8 +409,7 @@ router.get(
           saveFlight,
           saveHotel,
           saveFlightPoint,
-          saveHotelPoint,
-          expensesStatus
+          saveHotelPoint
         }
       })
     } catch (e) {
