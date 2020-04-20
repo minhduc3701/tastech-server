@@ -67,7 +67,12 @@ var ExpenseSchema = new Schema(
     message: String,
     adminMessage: String,
     city: String,
-    vendor: String
+    vendor: String,
+    _order: {
+      type: 'ObjectId',
+      ref: 'Order',
+      required: false
+    }
   },
   {
     timestamps: true
