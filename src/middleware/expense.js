@@ -194,8 +194,11 @@ const makeExpensesAfterCheckout = async (req, res, next) => {
       let pdfData = {
         logo: path.join('file://', `${__dirname}/../pdfTemplate/`, 'logo.svg'),
         orderId: _.get(req, 'flightOrder._id', ''),
-        customerName: req.user.firstName + ' ' + req.user.lastName,
-        email: req.user.email,
+        customerName:
+          _.get(req, 'user.firstName', ' ') +
+          ' ' +
+          _.get(req, 'user.lastName', ' '),
+        email: _.get(req, 'user.email', ' '),
         company: company.name,
         bookingDate: moment(req.flightOrder.createAt).format('DD MMM YYYY'),
         paymentMethod: 'Credit card',
@@ -250,8 +253,11 @@ const makeExpensesAfterCheckout = async (req, res, next) => {
       let pdfData = {
         logo: path.join('file://', `${__dirname}/../pdfTemplate/`, 'logo.svg'),
         orderId: _.get(req, 'hotelOrder._id', ''),
-        customerName: req.user.firstName + ' ' + req.user.lastName,
-        email: req.user.email,
+        customerName:
+          _.get(req, 'user.firstName', ' ') +
+          ' ' +
+          _.get(req, 'user.lastName', ' '),
+        email: _.get(req, 'user.email', ' '),
         company: company.name,
         bookingDate: moment(req.hotelOrder.createAt).format('DD MMM YYYY'),
         paymentMethod: 'Credit card',
