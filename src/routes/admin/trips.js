@@ -2,11 +2,12 @@ const express = require('express')
 const router = express.Router()
 const Trip = require('../../models/trip')
 const Expense = require('../../models/expense')
+const User = require('../../models/user')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeChangeTripStatus } = require('../../middleware/email')
 const { createTripExpense } = require('../../middleware/trips')
-router.get('/', function(req, res) {
+router.get('/', async function(req, res) {
   let perPage = _.get(req.query, 'perPage', 15)
   perPage = Math.max(15, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
@@ -44,11 +45,30 @@ router.get('/', function(req, res) {
     businessTrip: true,
     isBudgetUpdated: true,
     archived: false,
-    status: { $in: status },
-    name: {
-      $regex: new RegExp(keyword),
-      $options: 'i'
-    }
+    status: { $in: status }
+  }
+
+  if (keyword) {
+    let users = await User.find({
+      email: {
+        $regex: new RegExp(keyword),
+        $options: 'i'
+      }
+    })
+
+    objFind.$or = [
+      {
+        name: {
+          $regex: new RegExp(keyword),
+          $options: 'i'
+        }
+      },
+      {
+        _creator: {
+          $in: users.map(v => v._id)
+        }
+      }
+    ]
   }
   if (!_.isEmpty(expensesSearching)) {
     objFind.expensesStatus = { $in: expensesSearching }
