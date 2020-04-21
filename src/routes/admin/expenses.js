@@ -188,7 +188,6 @@ router.patch(
       // let {expenses} = req.body
       let { expenses, tripId } = req.body
 
-      console.log('++++', tripId, expenses)
       if (!_.isEmpty(expenses)) {
         let expenseIds = expenses.map(e => e.id)
         console.log(expenseIds)
@@ -213,7 +212,6 @@ router.patch(
               { new: true }
             )
               .then(expense => {
-                console.log(expense)
                 callback()
               })
               .catch(e => {
@@ -225,8 +223,7 @@ router.patch(
             if (err) {
               res.status(400).send()
             } else {
-              console.log('ok')
-              res.status(200).send()
+              res.status(200).send({ expenses })
               req.tripIds = [tripId]
             }
           }
