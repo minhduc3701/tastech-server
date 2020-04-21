@@ -185,17 +185,11 @@ router.patch(
   '/',
   async (req, res, next) => {
     try {
-      // let {expenses} = req.body
       let { expenses, tripId } = req.body
 
       if (!_.isEmpty(expenses)) {
         let expenseIds = expenses.map(e => e.id)
         console.log(expenseIds)
-        // Expense.find({
-        //   _id: { $in: expenseIds }
-        // }).then((expenses => {
-        //   console.log(expenses)
-        // }))
         async.each(
           expenses,
           function(expense, callback) {
@@ -219,12 +213,12 @@ router.patch(
               })
           },
           function(err) {
-            console.log('Hello')
             if (err) {
               res.status(400).send()
             } else {
               res.status(200).send({ expenses })
               req.tripIds = [tripId]
+              next()
             }
           }
         )
