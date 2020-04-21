@@ -6,7 +6,11 @@ const User = require('../../models/user')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
 const { emailEmployeeChangeTripStatus } = require('../../middleware/email')
-const { createTripExpense } = require('../../middleware/trips')
+const {
+  createTripExpense,
+  updateTripExpenseStatus
+} = require('../../middleware/trips')
+
 router.get('/', async function(req, res) {
   let perPage = _.get(req.query, 'perPage', 15)
   perPage = Math.max(15, parseInt(perPage))
@@ -184,6 +188,7 @@ router.patch(
           return res.status(404).send()
         }
         res.status(200).send({ trip })
+        req.tripIds = [trip._id] // save for middleware updateTripExpenseStatus
         next()
       })
       .catch(e => {
@@ -191,6 +196,7 @@ router.patch(
       })
   },
   createTripExpense,
+  updateTripExpenseStatus,
   emailEmployeeChangeTripStatus
 )
 

@@ -186,15 +186,6 @@ const calculateBudget = async (req, res, next) => {
   next()
 }
 
-const updateTripExpenseStatus = async (req, res, next) => {
-  console.log('updateExpenseStatus: ', req.tripIds)
-  if (!_.isEmpty(req.tripIds)) {
-    req.tripIds.forEach(async tripId => {
-      await updateExpenseStatus(tripId)
-    })
-  }
-}
-
 const createTripExpense = async (req, res, next) => {
   if (
     req.body.status === 'approved' &&
@@ -211,10 +202,21 @@ const createTripExpense = async (req, res, next) => {
     expense._trip = req.trip._id
     expense._company = req.user._company
     expense.account = 'cash'
-    expense.save()
+    await expense.save()
   }
   next()
 }
+
+const updateTripExpenseStatus = async (req, res, next) => {
+  console.log('updateExpenseStatus: ', req.tripIds)
+  if (!_.isEmpty(req.tripIds)) {
+    req.tripIds.forEach(async tripId => {
+      await updateExpenseStatus(tripId)
+    })
+  }
+  next()
+}
+
 async function updateExpenseStatus(tripId) {
   let expensesStatus = ''
   let expesnes = await Expense.find({
