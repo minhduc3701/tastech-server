@@ -11,7 +11,6 @@ router.get('/', function(req, res) {
   perPage = Math.max(15, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
-
   let keyword = _.get(req.query, 's', '')
     .trim()
     .toLowerCase()
@@ -42,7 +41,6 @@ router.get('/', function(req, res) {
   let objFind = {
     _company: req.user._company,
     businessTrip: true,
-    isBudgetUpdated: true,
     archived: false,
     status: { $in: status },
     name: {
@@ -52,6 +50,8 @@ router.get('/', function(req, res) {
   }
   if (!_.isEmpty(expensesSearching)) {
     objFind.expensesStatus = { $in: expensesSearching }
+  } else {
+    objFind.isBudgetUpdated = true
   }
 
   Promise.all([
