@@ -902,4 +902,30 @@ router.patch(
   }
 )
 
+router.patch('/expense-report/:id', function(req, res, next) {
+  const id = req.params.id
+  const { name } = req.body
+  if (!ObjectID.isValid(id) || !name) {
+    return res.status(404).send()
+  }
+
+  Trip.findOneAndUpdate(
+    {
+      _creator: req.user._id,
+      _company: req.user._company,
+      _id: id
+    },
+    { $set: { name } }
+  )
+    .then(trip => {
+      if (!trip) {
+        return res.status(404).send()
+      }
+      res.status(200).send({ trip })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 module.exports = router
