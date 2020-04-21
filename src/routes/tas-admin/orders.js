@@ -6,7 +6,8 @@ const _ = require('lodash')
 const { emailEmployeeItinerary } = require('../../middleware/email')
 const {
   refundCancelledOrderManually,
-  emailCustomerCancelledOrder
+  emailCustomerCancelledOrder,
+  remakeExpenseCanceledOrder
 } = require('../../middleware/orders')
 
 router.get('/', function(req, res, next) {
@@ -117,6 +118,7 @@ router.patch(
     }
   },
   refundCancelledOrderManually,
+  remakeExpenseCanceledOrder,
   emailCustomerCancelledOrder,
   emailEmployeeItinerary
 )
