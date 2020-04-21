@@ -527,7 +527,6 @@ router.post(
     trip.isExpenseReport = true
 
     try {
-      console.log(trip)
       // save and send back trip
       await trip.save()
       res.status(200).send({ trip })
@@ -535,10 +534,6 @@ router.post(
       res.status(400).send()
     }
   }
-  // getTasAdminOptions,
-  // calculateBudget,
-  // emailEmployeeSubmitTrip,
-  // emailManagerSubmitTrip
 )
 
 // create booking request
