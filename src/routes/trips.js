@@ -527,7 +527,6 @@ router.post(
     trip.isExpenseReport = true
 
     try {
-      console.log(trip)
       // save and send back trip
       await trip.save()
       res.status(200).send({ trip })
@@ -535,10 +534,6 @@ router.post(
       res.status(400).send()
     }
   }
-  // getTasAdminOptions,
-  // calculateBudget,
-  // emailEmployeeSubmitTrip,
-  // emailManagerSubmitTrip
 )
 
 // create booking request
@@ -906,5 +901,31 @@ router.patch(
     }
   }
 )
+
+router.patch('/expense-report/:id', function(req, res, next) {
+  const id = req.params.id
+  const { name } = req.body
+  if (!ObjectID.isValid(id) || !name) {
+    return res.status(404).send()
+  }
+
+  Trip.findOneAndUpdate(
+    {
+      _creator: req.user._id,
+      _company: req.user._company,
+      _id: id
+    },
+    { $set: { name } }
+  )
+    .then(trip => {
+      if (!trip) {
+        return res.status(404).send()
+      }
+      res.status(200).send({ trip })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
 
 module.exports = router
