@@ -51,21 +51,21 @@ router.get('/', async function(req, res) {
   }
 
   if (keyword) {
-    let objFindKeyWord = {
+    let objFindKeyword = {
       $regex: new RegExp(keyword),
       $options: 'i'
     }
     let users = await User.find({
       $or: [
-        { email: objFindKeyWord },
-        { firstName: objFindKeyWord },
-        { lastName: objFindKeyWord }
+        { email: objFindKeyword },
+        { firstName: objFindKeyword },
+        { lastName: objFindKeyword }
       ]
     })
 
     objFind.$or = [
       {
-        name: objFindKeyWord
+        name: objFindKeyword
       },
       {
         _creator: {
