@@ -904,8 +904,8 @@ router.patch(
 
 router.patch('/expense-report/:id', function(req, res, next) {
   const id = req.params.id
-  const { name } = req.body
-  if (!ObjectID.isValid(id) || !name) {
+  // const { name } = req.body
+  if (!ObjectID.isValid(id)) {
     return res.status(404).send()
   }
 
@@ -915,7 +915,7 @@ router.patch('/expense-report/:id', function(req, res, next) {
       _company: req.user._company,
       _id: id
     },
-    { $set: { name } }
+    { $set: req.body }
   )
     .then(trip => {
       if (!trip) {
