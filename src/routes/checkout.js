@@ -6,6 +6,8 @@ const Order = require('../models/order')
 const Company = require('../models/company')
 const api = require('../modules/api')
 const apiSabre = require('../modules/apiSabre')
+const convert = require('xml-js')
+
 const {
   sabreRestToken,
   sabreSoapSecurityToken
@@ -957,7 +959,7 @@ const sabreCreatePNR = async (req, res, next) => {
           AgencyInfo: {
             Ticketing: {
               TicketType: '7TAW',
-              QueueNumber: '100' // set Queue Number - move queue number to ticketing
+              QueueNumber: 100 // set Queue Number - move queue number to ticketing
             }
           },
           CustomerInfo: {
@@ -1171,8 +1173,8 @@ const sabreMoveQueueNumber = async (req, res, next) => {
                 <eb:PartyId type="urn:x12.org:IO5:01">123123</eb:PartyId>
             </eb:To>
             <eb:CPAId>${process.env.SABRE_USER_ID}</eb:CPAId>
-            <eb:Service eb:type="OTA">StructureFareRulesRQ</eb:Service>
-            <eb:Action>StructureFareRulesRQ</eb:Action>
+            <eb:Service eb:type="OTA">QueueMoveLLSRQ</eb:Service>
+            <eb:Action>QueueMoveLLSRQ</eb:Action>
         </eb:MessageHeader>
         <wsse:Security xmlns:wsse="http://schemas.xmlsoap.org/ws/2002/12/secext">
             <wsse:BinarySecurityToken valueType="String" EncodingType="wsse:Base64Binary">${
