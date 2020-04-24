@@ -6,7 +6,12 @@ const Order = require('../models/order')
 const Company = require('../models/company')
 const api = require('../modules/api')
 const apiSabre = require('../modules/apiSabre')
-const { sabreRestToken } = require('../middleware/sabre')
+const convert = require('xml-js')
+
+const {
+  sabreRestToken,
+  sabreSoapSecurityToken
+} = require('../middleware/sabre')
 const apiHotelbeds = require('../modules/apiHotelbeds')
 const { getCache, setCache } = require('../config/cache')
 const {
@@ -953,7 +958,8 @@ const sabreCreatePNR = async (req, res, next) => {
         TravelItineraryAddInfo: {
           AgencyInfo: {
             Ticketing: {
-              TicketType: '7TAW'
+              TicketType: '7TAW',
+              QueueNumber: 100 // set Queue Number - move queue number to ticketing
             }
           },
           CustomerInfo: {
@@ -1141,6 +1147,65 @@ const sabreCreatePNR = async (req, res, next) => {
     }
   }
 
+  next()
+}
+
+const sabreMoveQueueNumber = async (req, res, next) => {
+  const trip = req.trip
+  if (_.get(trip, 'flight.supplier') !== 'sabre') {
+    next()
+    return
+  }
+
+  // if error occurs before
+  if (req.checkoutError) {
+    return next()
+  }
+  try {
+    let xmlBodyStr = ` <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:eb="http://www.ebxml.org/namespaces/messageHeader" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/1999/XMLSchema">
+    <SOAP-ENV:Header>
+        <eb:MessageHeader SOAP-ENV:mustUnderstand="1" eb:version="1.0">
+            <eb:ConversationId>1</eb:ConversationId>
+            <eb:From>
+                <eb:PartyId type="urn:x12.org:IO5:01">999999</eb:PartyId>
+            </eb:From>
+            <eb:To>
+                <eb:PartyId type="urn:x12.org:IO5:01">123123</eb:PartyId>
+            </eb:To>
+            <eb:CPAId>${process.env.SABRE_USER_ID}</eb:CPAId>
+            <eb:Service eb:type="OTA">QueueMoveLLSRQ</eb:Service>
+            <eb:Action>QueueMoveLLSRQ</eb:Action>
+        </eb:MessageHeader>
+        <wsse:Security xmlns:wsse="http://schemas.xmlsoap.org/ws/2002/12/secext">
+            <wsse:BinarySecurityToken valueType="String" EncodingType="wsse:Base64Binary">${
+              req.sabreSoapSecurityToken
+            }</wsse:BinarySecurityToken>
+        </wsse:Security>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+    <QueueMoveRQ Version="2.0.0" xmlns="http://webservices.sabre.com/sabreXML/2011/10" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <QueueInfo>
+          <DestinationQueue>
+              <QueueIdentifier Number="411" PseudoCityCode="R698"/>
+          </DestinationQueue>
+          <OriginQueue>
+              <QueueIdentifier Number="100" PseudoCityCode="${
+                process.env.SABRE_USER_ID
+              }"/>
+          </OriginQueue>
+      </QueueInfo>
+  </QueueMoveRQ>
+  </SOAP-ENV:Body>
+  </SOAP-ENV:Envelope>
+  `
+
+    let sabreRes = await apiSabre.callSabreSoapAPI(xmlBodyStr)
+    let result = convert.xml2json(sabreRes.data, { compact: true, spaces: 4 })
+    result = JSON.parse(result)
+    logger.info('moveQueue res', result)
+  } catch (e) {
+    logger.info('moveQueue err', e)
+  }
   next()
 }
 
@@ -1641,7 +1706,9 @@ router.post(
   hotelbedsCheckRate,
   stripeCharging,
   pkfareFlightTicketing,
+  sabreSoapSecurityToken,
   sabreCreatePNR,
+  sabreMoveQueueNumber,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
   demoForceCompletedOrders,
@@ -1670,7 +1737,9 @@ router.post(
   hotelbedsCheckRate,
   depositCharging,
   pkfareFlightTicketing,
+  sabreSoapSecurityToken,
   sabreCreatePNR,
+  sabreMoveQueueNumber,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
   demoForceCompletedOrders,
@@ -1700,7 +1769,9 @@ router.post(
   hotelbedsCheckRate,
   stripePartnerCharging,
   pkfareFlightTicketing,
+  sabreSoapSecurityToken,
   sabreCreatePNR,
+  sabreMoveQueueNumber,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
   demoForceCompletedOrders,
@@ -1731,7 +1802,9 @@ router.post(
   hotelbedsCheckRate,
   depositCharging,
   pkfareFlightTicketing,
+  sabreSoapSecurityToken,
   sabreCreatePNR,
+  sabreMoveQueueNumber,
   pkfareHotelCreateOrder,
   hotelbedsCreateOrder,
   demoForceCompletedOrders,
