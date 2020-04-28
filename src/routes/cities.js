@@ -8,6 +8,10 @@ const Country = require('../models/country')
 const _ = require('lodash')
 
 router.post('/search', function(req, res, next) {
+  let regExpSearch = {
+    $regex: new RegExp(_.trim(_.toString(req.body.name))),
+    $options: 'i'
+  }
   City.aggregate([
     {
       $match: {
@@ -33,29 +37,26 @@ router.post('/search', function(req, res, next) {
         cityIds.push(city._id)
       })
       let countryCodes = cities.map(city => city.country)
+
+      let airportFindArr = [
+        { city_name_geo_name_id: { $in: cityIds } },
+        { airport_code: regExpSearch }
+      ]
+
+      if (_.trim(_.toString(req.body.name)).length > 3) {
+        // length > 3 - search by city country nam
+        airportFindArr.push(
+          {
+            country_name: regExpSearch
+          },
+          {
+            country_name_nl: regExpSearch
+          }
+        )
+      }
       return Promise.all([
         Airport.find({
-          $or: [
-            { city_name_geo_name_id: { $in: cityIds } },
-            {
-              airport_code: {
-                $regex: '.*' + _.trim(_.toString(req.body.name)) + '.*',
-                $options: 'i'
-              }
-            },
-            {
-              country_name: {
-                $regex: new RegExp(_.trim(_.toString(req.body.name))),
-                $options: 'i'
-              }
-            },
-            {
-              country_name_nl: {
-                $regex: new RegExp(_.trim(_.toString(req.body.name))),
-                $options: 'i'
-              }
-            }
-          ]
+          $or: airportFindArr
         }).limit(30), // limit airports to 30
         IataCity.find({
           city_id: { $in: cityIds }
