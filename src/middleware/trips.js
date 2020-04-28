@@ -186,6 +186,7 @@ const calculateBudget = async (req, res, next) => {
   next()
 }
 
+
 const createTripExpense = async (req, res, next) => {
   if (
     req.body.status === 'approved' &&
@@ -251,10 +252,12 @@ async function updateExpenseStatus(tripId) {
   )
     .then()
     .catch()
+
 }
 
 module.exports = {
   calculateBudget,
   updateTripExpenseStatus,
   createTripExpense
+
 }
