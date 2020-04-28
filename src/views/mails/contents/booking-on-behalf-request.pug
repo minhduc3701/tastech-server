@@ -1,0 +1,38 @@
+extends ../layout.pug
+
+block content
+
+  h2 Hello, #{userName}!
+  p #{employeeName} (#{employeeEmail}) from company #{companyName} is seeking for booking support on below trip:
+  
+  h3 #{tripName}
+  p Passenger:
+  p(style={'padding-left' : '25px' }) #{employeeName} (#{employeeEmail})
+  p(style={'padding-left' : '25px' }) Phone: #{employeePhone}
+
+  p Service request:
+  ul
+    if (serviceRequest.flight)
+      li Flight: 
+          p(style={'padding-left' : '25px' }) #{serviceRequest.flight.name}
+          p(style={'padding-left' : '25px' }) #{serviceRequest.flight.time}
+          p(style={'padding-left' : '25px' }) #{serviceRequest.flight.class}
+          p(style={'padding-left' : '25px' }) #{serviceRequest.flight.budget}
+          p(style={'padding-left' : '25px' }) #{serviceRequest.flight.note}
+                
+
+    if (serviceRequest.hotel)
+      li Hotel: 
+          p(style={'padding-left' : '25px' }) #{serviceRequest.hotel.name}
+          p(style={'padding-left' : '25px' }) #{serviceRequest.hotel.time}
+          p(style={'padding-left' : '25px' }) #{serviceRequest.hotel.class}
+          p(style={'padding-left' : '25px' }) #{serviceRequest.hotel.budget}
+          p(style={'padding-left' : '25px' }) #{serviceRequest.hotel.note}
+
+  p Other requirement: #{otherRequirement}
+
+  if (companyAvailableBalance) 
+    h4 Company available balance: #{currency} $#{companyAvailableBalance}
+  br
+  p.text-center
+    a(class='btn' href= reviewLink) Review and process
