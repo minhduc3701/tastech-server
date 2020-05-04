@@ -568,7 +568,6 @@ router.post(
         if (!trip) {
           return res.status(404).send()
         }
-
         res.status(200).send({ trip })
         req.trip = trip
         next()

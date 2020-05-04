@@ -46,10 +46,10 @@ const fileUpload = context => {
       key: function(req, file, cb) {
         let fileType = file.mimetype.split('/')
         let extension = fileType[fileType.length - 1]
-        let fileName = Date.now().toString()
-        if (extension === 'pdf') {
-          fileName += `.${extension}`
-        }
+        let fileName = Date.now().toString() + '___' + file.originalname
+        // if (extension === 'pdf') {
+        //   fileName += `.${extension}`
+        // }
         cb(null, fileName)
       }
     }),
