@@ -9,20 +9,29 @@ const { Invoice } = x
 const invoiceSpecificOptions = {}
 const i = new Invoice(invoiceSpecificOptions)
 
+const { Card } = x
+const cardSpecificOptions = {}
+const card = new Card(cardSpecificOptions)
+
+const { Payout } = x
+const payoutSpecificOptions = {}
+const p = new Payout(payoutSpecificOptions)
+
 router.post('/create-invoice', async (req, res) => {
   try {
     i.createInvoice({
       externalID: 'demo_create_invoices',
-      amount: 90020000,
+      amount: 5000000,
       payerEmail: 'vantuan.nguyen1289@gmail.com',
       description: 'Trip to Bali',
-      successRedirectURL: 'https://www.ezbiztrip.com/xendit/payment-success',
-      failureRedirectURL: 'https://www.ezbiztrip.com/xendit/payment-fail',
+      successRedirectURL: `${process.env.APP_URI}/employee/travel`,
+      failureRedirectURL: `${process.env.APP_URI}/employee/travel`,
       paymentMethods: []
     })
       .then(resp => {
         const invoice = new XenditInvoice()
         invoice.invoiceId = resp.id
+        invoice.externalId = resp.external_id
         invoice.status = resp.status
         invoice.payerEmail = resp.payer_email
         invoice.amount = resp.amount
@@ -42,6 +51,31 @@ router.post('/create-invoice', async (req, res) => {
     res.status(400).send()
   }
 })
+router.post('/refund-invoice', async (req, res) => {
+  try {
+    // card.createRefund({
+    //   chargeID: '5e8dacda1c3e300019b2dabc',
+    //   amount: 90020000,
+    //   externalID: 'demo_create_invoices',
+    resp = await p
+      .createPayout({
+        externalID: 'test create demo invoice 1',
+        amount: 22220,
+        email: 'vantuan.nguyen1289@gmail.com'
+      })
+      .then(resp => {
+        console.log('xxxx: ', resp)
+        res.status(200).send(resp)
+      })
+      .catch(err => {
+        console.log('yyyy: ', err)
+        res.status(400).send(err)
+      })
+  } catch (e) {
+    res.status(400).send()
+  }
+})
+
 router.post('/payment-result', async (req, res) => {
   try {
     let invoice = await XenditInvoice.findOneAndUpdate(
