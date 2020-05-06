@@ -1107,7 +1107,10 @@ for (let i = 0; i < 200; i++) {
 
   let startDate, expensesStatus
   if (status) {
-    startDate = chance.date({ month: 6, year: 2020 })
+    startDate = chance.date({
+      month: moment().month() + 2,
+      year: moment().year()
+    })
   }
   switch (status) {
     case 'waiting':
