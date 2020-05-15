@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Order = require('../models/order')
 const Company = require('../models/company')
+const Trip = require('../models/trip')
 const { ObjectID } = require('mongodb')
 const axios = require('axios')
 const { authentication } = require('../config/pkfare')
@@ -14,6 +15,14 @@ const { logger } = require('../config/winston')
 const { emailGiamsoCancelFlight } = require('../middleware/email')
 const { emailCustomerCancelledOrder } = require('../middleware/orders')
 const moment = require('moment')
+const { findAirlinesAirports } = require('../modules/utils')
+const Xendit = require('xendit-node')
+const XenditInvoice = require('../models/invoice')
+const { Payout, Card } = new Xendit({
+  secretKey: process.env.XENDIT_SECRET_KEY
+})
+const payout = new Payout({})
+const card = new Card({})
 
 const findAndValidateOrder = async (req, res, next) => {
   try {
@@ -366,5 +375,107 @@ router.post(
   emailGiamsoCancelFlight,
   emailCustomerCancelledOrder
 )
+
+router.get('/', async (req, res, next) => {
+  try {
+    let perPage = _.get(req.query, 'perPage', 15)
+    perPage = Math.max(0, parseInt(perPage))
+    let page = _.get(req.query, 'page', 0)
+    page = Math.max(0, parseInt(page))
+
+    let sortBy = _.get(req.query, 'sortBy', '')
+    let sort = _.get(req.query, 'sort', 'desc')
+    sort = sort === 'desc' ? -1 : 1
+
+    let keyword = _.get(req.query, 's', '')
+      .trim()
+      .toLowerCase()
+
+    let objFind = {
+      _customer: req.user._id
+      // archived: { $ne: true },
+      // status: { $in: status },
+    }
+    if (keyword) {
+      const trips = await Trip.find({
+        _company: req.user._company,
+        _creator: req.user._id,
+        businessTrip: true,
+        archived: false,
+        name: {
+          $regex: new RegExp(keyword),
+          $options: 'i'
+        }
+      })
+
+      objFind._trip = {
+        $in: trips.map(v => v._id)
+      }
+    }
+
+    let objSort = {}
+    if (sortBy) {
+      objSort[sortBy] = sort
+    } else {
+      objSort = { createdAt: -1 }
+    }
+
+    let [orders, total] = await Promise.all([
+      Order.find(objFind)
+        .populate('_trip', ['type', 'name', 'contactInfo'])
+        // .populate('_customer', ['email'])
+        .sort(objSort)
+        .limit(perPage)
+        .skip(perPage * page),
+      Order.countDocuments(objFind)
+    ])
+
+    const [arrAirline, arrAirport] = await findAirlinesAirports(
+      orders.map(order => order.flight)
+    )
+    let airlines = {}
+    arrAirline.forEach(airline => {
+      airlines[airline._doc.iata] = airline
+    })
+    let airports = {}
+    arrAirport.forEach(airport => {
+      airports[airport._doc.airport_code] = airport
+    })
+    res.status(200).send({
+      page,
+      totalPage: Math.ceil(total / perPage),
+      total,
+      count: orders.length,
+      perPage,
+      orders,
+      // status,
+      airlines,
+      airports
+    })
+  } catch (error) {
+    console.log('findAndValidateOrder -> error', error)
+    res.status(400).send(error)
+  }
+})
+
+router.patch('/', async (req, res, next) => {
+  const { id, _trip } = req.body
+  if (!ObjectID.isValid(_trip)) {
+    return res.status(404).send()
+  }
+
+  try {
+    let order = await Order.findOneAndUpdate(
+      {
+        _id: id,
+        _customer: req.user._id
+      },
+      { $set: { _trip } }
+    )
+    res.status(200).send({ order })
+  } catch (error) {
+    return res.status(400).send(error)
+  }
+})
 
 module.exports = router
