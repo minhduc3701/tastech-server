@@ -279,6 +279,23 @@ router.get('/expense', (req, res) => {
     })
     .catch(e => res.status(400).send())
 })
+router.get('/order', (req, res) => {
+  let availableStatus = ['approved', 'ongoing', 'finished']
+  Trip.find({
+    _company: req.user._company,
+    _creator: req.user._id,
+    businessTrip: true,
+    archived: false,
+    status: { $in: availableStatus }
+  })
+    .then(trips => {
+      if (!trips) {
+        res.status(400).send()
+      }
+      res.status(200).send({ trips })
+    })
+    .catch(e => res.status(400).send())
+})
 
 router.get(
   '/:id',
