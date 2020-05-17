@@ -391,10 +391,14 @@ router.get('/', async (req, res, next) => {
       .trim()
       .toLowerCase()
 
+    let status = (
+      req.query.status ||
+      'unpaid,pending,processing,completed,failed,cancelling,cancelled'
+    ).split(',')
+
     let objFind = {
-      _customer: req.user._id
-      // archived: { $ne: true },
-      // status: { $in: status },
+      _customer: req.user._id,
+      status: { $in: status }
     }
     if (keyword) {
       const trips = await Trip.find({
@@ -422,7 +426,7 @@ router.get('/', async (req, res, next) => {
 
     let [orders, total] = await Promise.all([
       Order.find(objFind)
-        .populate('_trip', ['type', 'name', 'contactInfo'])
+        // .populate('_trip', ['type', 'name', 'contactInfo'])
         // .populate('_customer', ['email'])
         .sort(objSort)
         .limit(perPage)
