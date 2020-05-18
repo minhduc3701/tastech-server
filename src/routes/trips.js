@@ -628,7 +628,6 @@ router.patch('/:id/archived', function(req, res, next) {
   )
     .then(trip => {
       if (!trip) {
-        console.log('abc')
         return res.status(404).send()
       }
 
