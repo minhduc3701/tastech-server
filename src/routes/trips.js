@@ -609,15 +609,26 @@ router.patch('/:id/archived', function(req, res, next) {
       _creator: req.user._id,
       _company: req.user._company,
       _id: id,
-      status: {
-        $in: ['rejected', 'completed', 'waiting']
-      }
+      $or: [
+        {
+          status: {
+            $in: ['rejected', 'completed', 'waiting']
+          }
+        },
+        {
+          status: {
+            $in: ['approved', 'ongoing', 'finished']
+          },
+          expensesStatus: 'empty'
+        }
+      ]
     },
     { $set: body },
     { new: true }
   )
     .then(trip => {
       if (!trip) {
+        console.log('abc')
         return res.status(404).send()
       }
 
