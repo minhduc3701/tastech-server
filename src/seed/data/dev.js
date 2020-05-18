@@ -1243,6 +1243,16 @@ for (let i = 2; i < 10; i++) {
   })
 }
 
+users.map(user => {
+  if (!user._policy)
+    user._policy = (
+      policies.find(v => v._company === user._company) || {
+        _id: defaultPolicyId
+      }
+    )._id
+  return user
+})
+
 const populateUsers = done => {
   return User.deleteMany({})
     .then(() => {
