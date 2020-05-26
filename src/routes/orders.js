@@ -3,6 +3,7 @@ const router = express.Router()
 const Order = require('../models/order')
 const Company = require('../models/company')
 const Trip = require('../models/trip')
+const Expense = require('../models/expense')
 const { ObjectID } = require('mongodb')
 const axios = require('axios')
 const { authentication } = require('../config/pkfare')
@@ -14,6 +15,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const { logger } = require('../config/winston')
 const { emailGiamsoCancelFlight } = require('../middleware/email')
 const { emailCustomerCancelledOrder } = require('../middleware/orders')
+const { updateTripExpenseStatus } = require('../middleware/trips')
 const moment = require('moment')
 const { findAirlinesAirports } = require('../modules/utils')
 const Xendit = require('xendit-node')
@@ -465,24 +467,42 @@ router.get('/', async (req, res, next) => {
   }
 })
 
-router.patch('/', async (req, res, next) => {
-  const { id, _trip } = req.body
-  if (!ObjectID.isValid(_trip)) {
-    return res.status(404).send()
-  }
+router.patch(
+  '/',
+  async (req, res, next) => {
+    const { id, _trip } = req.body
+    if (!ObjectID.isValid(_trip)) {
+      return res.status(404).send()
+    }
 
-  try {
-    let order = await Order.findOneAndUpdate(
-      {
-        _id: id,
-        _customer: req.user._id
-      },
-      { $set: { _trip } }
-    )
-    res.status(200).send({ order })
-  } catch (error) {
-    return res.status(400).send(error)
-  }
-})
+    try {
+      let order = await Order.findOneAndUpdate(
+        {
+          _id: id,
+          _customer: req.user._id
+        },
+        { $set: { _trip } }
+      )
+      res.status(200).send({ order })
+      let newtrips = await Trip.findOne({ _id: _trip })
+      let oldtrips = await Trip.findOne({ _id: order._doc._trip })
+      if (
+        newtrips.expensesStatus !== 'approved' &&
+        oldtrips.expensesStatus !== 'approved'
+      ) {
+        await Expense.findOneAndUpdate(
+          { _order: id },
+          { $set: { _trip } },
+          { new: true }
+        )
+        req.tripIds = [`${_trip}`, `${order._doc._trip}`]
+        next()
+      }
+    } catch (error) {
+      return res.status(400).send(error)
+    }
+  },
+  updateTripExpenseStatus
+)
 
 module.exports = router
