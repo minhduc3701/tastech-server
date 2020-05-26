@@ -396,9 +396,12 @@ router.get('/', async (req, res, next) => {
       'unpaid,pending,processing,completed,failed,cancelling,cancelled'
     ).split(',')
 
+    let types = (req.query.type || 'hotel,flight').split(',')
+
     let objFind = {
       _customer: req.user._id,
-      status: { $in: status }
+      status: { $in: status },
+      type: { $in: types }
     }
     if (keyword) {
       const trips = await Trip.find({

@@ -259,10 +259,27 @@ router.delete('/:id', function(req, res) {
     _company: req.user._company,
     status: { $ne: 'default' }
   })
-    .then(policy => {
+    .then(async policy => {
       if (!policy) {
         return res.status(404).send()
       }
+
+      const policyDefault = await Policy.findOne({
+        _company: req.user._company,
+        status: 'default'
+      })
+
+      await User.updateMany(
+        {
+          _policy: req.params.id,
+          _company: req.user._company
+        },
+        {
+          $set: {
+            _policy: policyDefault._id
+          }
+        }
+      )
 
       res.status(200).send({ policy })
     })
