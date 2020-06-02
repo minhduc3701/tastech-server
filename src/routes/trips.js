@@ -76,6 +76,8 @@ router.get('/', function(req, res, next) {
   }
 
   if (isTripExpense) {
+    allStatus = ['approved', 'ongoing', 'finished', 'completed']
+    objFind.status = { $in: allStatus }
     let expensesStatus = _.get(req.query, 'expensesStatus', '')
     if (!_.isEmpty(expensesStatus)) {
       let allExpensesStatus = [
