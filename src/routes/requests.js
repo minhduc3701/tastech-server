@@ -101,6 +101,7 @@ router.post(
           })
           .then(policy => {
             company._policy = policy._id
+            req.body._policy = policy._id
             return company.save()
           })
           .then(async company => {
@@ -111,7 +112,8 @@ router.post(
               'phone',
               '_company',
               '_role',
-              'email'
+              'email',
+              '_policy'
             ])
             const adminUser = await User.findOne({
               email: 'tas-admin@tastech.asia'
