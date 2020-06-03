@@ -15,6 +15,7 @@ const Policy = require('../models/policy')
 const { roles } = require('../config/roles')
 const api = require('../modules/api')
 const { createUser } = require('../middleware/users')
+const { makeDefaultPolicy } = require('../modules/utils')
 
 router.post(
   '/',
@@ -47,7 +48,7 @@ router.post(
         let company = new Company({
           // _creator: req.user._id,
           name: req.body.company,
-          currency: 'USD'
+          currency: process.env.BASE_CURRENCY
         })
 
         company
@@ -69,34 +70,7 @@ router.post(
           })
           .then(currency => {
             let rate = currency.data[0].rate
-            let policy = new Policy({
-              name: 'Default Policy',
-              _company: company._id,
-              status: 'default',
-              flightClass: 'Economy',
-              stops: '0',
-              setDaysBeforeFlights: false,
-              daysBeforeFlights: 7,
-              setFlightLimit: false,
-              flightLimit: 500 * rate,
-              flightNotification: 'no',
-              flightApproval: 'no',
-              hotelClass: 3,
-              hotelSearchDistance: 15,
-              setDaysBeforeLodging: false,
-              daysBeforeLodging: 7,
-              setHotelLimit: false,
-              hotelLimit: 500 * rate,
-              hotelNotification: 'no',
-              hotelApproval: 'no',
-              setTransportLimit: true,
-              transportLimit: 10 * rate,
-              setMealLimit: true,
-              mealLimit: 10 * rate,
-              setProvision: true,
-              provision: 5
-            })
-
+            let policy = new Policy(makeDefaultPolicy(company._id, rate))
             return policy.save()
           })
           .then(policy => {
