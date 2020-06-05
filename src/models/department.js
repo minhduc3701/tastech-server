@@ -6,6 +6,10 @@ const DepartmentSchema = new Schema({
   name: {
     type: String,
     required: true
+  },
+  _approver: {
+    type: 'ObjectId',
+    ref: 'User'
   }
 })
 

@@ -162,7 +162,12 @@ router.get('/booking', async (req, res) => {
       _creator: req.user._id,
       businessTrip: true,
       archived: false,
-      $or: [{ status: 'approved' }, { status: 'ongoing' }],
+      status: {
+        $in: ['approved', 'ongoing']
+      },
+      expensesStatus: {
+        $in: ['draft', 'rejected', 'empty']
+      },
       endDate: { $gte: Date.now() },
       isExpenseReport: { $ne: true }
     })
