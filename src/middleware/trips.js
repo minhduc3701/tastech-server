@@ -73,34 +73,42 @@ const calculateBudget = async (req, res, next) => {
         policy
       )
       req.trip.budgetPassengers[0].flight.class = policy.flightClass
-      let sabreRes = await apiSabre.shopping(
-        makeSabreRequestData(budgetRequest),
-        req.sabreRestToken
-      )
-      sabreRes = sabreRes.data.groupedItineraryResponse
-      let flights = makeSabreFlightsData(sabreRes, req.currency, 1)
+      try {
+        let sabreRes = await apiSabre.shopping(
+          makeSabreRequestData(budgetRequest),
+          req.sabreRestToken
+        )
+        sabreRes = sabreRes.data.groupedItineraryResponse
+        let flights = makeSabreFlightsData(sabreRes, req.currency, 1)
 
-      let sumPrice = 0
-      flights.forEach(flight => {
-        sumPrice += Number(flight.price)
-      })
+        let sumPrice = 0
+        flights.forEach(flight => {
+          sumPrice += Number(flight.price)
+        })
 
-      let averageFlightPrice = Math.round(Number(sumPrice / flights.length))
-      averageFlightPrice = roundPriceWithMarkup(
-        averageFlightPrice,
-        req.currency,
-        req.markupOptions.flight.value
-      )
-      // compare averagePrice with company policy
-      if (policy.setFlightLimit && averageFlightPrice > policy.flightLimit) {
-        req.trip.budgetPassengers[0].flight.price = policy.flightLimit
-      } else {
-        req.trip.budgetPassengers[0].flight.price = averageFlightPrice
-      }
+        let averageFlightPrice = Math.round(Number(sumPrice / flights.length))
+        averageFlightPrice = roundPriceWithMarkup(
+          averageFlightPrice,
+          req.currency,
+          req.markupOptions.flight.value
+        )
+        // compare averagePrice with company policy
+        if (policy.setFlightLimit && averageFlightPrice > policy.flightLimit) {
+          req.trip.budgetPassengers[0].flight.price = policy.flightLimit
+        } else {
+          req.trip.budgetPassengers[0].flight.price = averageFlightPrice
+        }
 
-      // in case price still equal to 0
-      if (req.trip.budgetPassengers[0].flight.price === 0) {
-        req.trip.budgetPassengers[0].flight.price = policy.flightLimit
+        // in case price still equal to 0
+        if (req.trip.budgetPassengers[0].flight.price === 0) {
+          req.trip.budgetPassengers[0].flight.price = policy.flightLimit
+        }
+      } catch (error) {
+        if (policy.setFlightLimit) {
+          req.trip.budgetPassengers[0].flight.price = policy.flightLimit
+        } else {
+          req.trip.budgetPassengers[0].flight.price = 0
+        }
       }
 
       req.trip.budgetPassengers[0].totalPrice +=
@@ -134,39 +142,46 @@ const calculateBudget = async (req, res, next) => {
         }
       }
 
-      let responseHotel = await htbApi.getRooms(request)
-      let { data } = responseHotel
-      let hotelInfoList = _.get(data, 'hotels.hotels', [])
-      hotelInfoList = hotelInfoList.filter(
-        hotel => parseInt(hotel.categoryCode.charAt(0)) === policy.hotelClass
-      )
+      try {
+        let responseHotel = await htbApi.getRooms(request)
+        let { data } = responseHotel
+        let hotelInfoList = _.get(data, 'hotels.hotels', [])
+        hotelInfoList = hotelInfoList.filter(
+          hotel => parseInt(hotel.categoryCode.charAt(0)) === policy.hotelClass
+        )
 
-      let sumPriceHotelRoom = 0
-      hotelInfoList.forEach(hotel => {
-        sumPriceHotelRoom += Number(hotel.minRate * req.currency.rate)
-      })
+        let sumPriceHotelRoom = 0
+        hotelInfoList.forEach(hotel => {
+          sumPriceHotelRoom += Number(hotel.minRate * req.currency.rate)
+        })
 
-      let averageHotelPrice = Math.round(
-        Number(sumPriceHotelRoom / hotelInfoList.length)
-      )
-      averageHotelPrice = roundPriceWithMarkup(
-        averageHotelPrice,
-        req.currency,
-        req.markupOptions.hotel.value
-      )
+        let averageHotelPrice = Math.round(
+          Number(sumPriceHotelRoom / hotelInfoList.length)
+        )
+        averageHotelPrice = roundPriceWithMarkup(
+          averageHotelPrice,
+          req.currency,
+          req.markupOptions.hotel.value
+        )
 
-      // compare averagePrice with company policy
-      if (policy.setHotelLimit && averageHotelPrice > policy.hotelLimit) {
-        req.trip.budgetPassengers[0].lodging.price = policy.hotelLimit
-      } else {
-        req.trip.budgetPassengers[0].lodging.price = averageHotelPrice
+        // compare averagePrice with company policy
+        if (policy.setHotelLimit && averageHotelPrice > policy.hotelLimit) {
+          req.trip.budgetPassengers[0].lodging.price = policy.hotelLimit
+        } else {
+          req.trip.budgetPassengers[0].lodging.price = averageHotelPrice
+        }
+        // in case price still equal to 0
+        if (req.trip.budgetPassengers[0].lodging.price === 0) {
+          req.trip.budgetPassengers[0].lodging.price = policy.hotelLimit
+        }
+      } catch (error) {
+        // case suppliers don't return data
+        if (policy.setHotelLimit) {
+          req.trip.budgetPassengers[0].lodging.price = policy.hotelLimit
+        } else {
+          req.trip.budgetPassengers[0].lodging.price = 0
+        }
       }
-
-      // in case price still equal to 0
-      if (req.trip.budgetPassengers[0].lodging.price === 0) {
-        req.trip.budgetPassengers[0].lodging.price = policy.hotelLimit
-      }
-
       req.trip.budgetPassengers[0].totalPrice +=
         req.trip.budgetPassengers[0].lodging.price
     }
@@ -185,7 +200,6 @@ const calculateBudget = async (req, res, next) => {
   } catch (error) {}
   next()
 }
-
 
 const createTripExpense = async (req, res, next) => {
   if (
@@ -252,12 +266,10 @@ async function updateExpenseStatus(tripId) {
   )
     .then()
     .catch()
-
 }
 
 module.exports = {
   calculateBudget,
   updateTripExpenseStatus,
   createTripExpense
-
 }
