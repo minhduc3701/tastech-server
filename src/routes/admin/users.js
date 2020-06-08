@@ -32,7 +32,6 @@ router.get('/', function(req, res) {
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
   let keyword = _.get(req.query, 'keyword', '')
-  console.log('keyword', keyword)
 
   let orFind = {}
   if (keyword) {
