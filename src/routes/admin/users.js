@@ -31,11 +31,45 @@ router.get('/', function(req, res) {
   perPage = Math.max(0, parseInt(perPage))
   let page = _.get(req.query, 'page', 0)
   page = Math.max(0, parseInt(page))
+  let keyword = _.get(req.query, 'keyword', '')
+
+  let orFind = {}
+  if (keyword) {
+    orFind = {
+      $or: [
+        {
+          displayName: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
+        },
+        {
+          firstName: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
+        },
+        {
+          lastName: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
+        },
+        {
+          email: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
+        }
+      ]
+    }
+  }
 
   Promise.all([
     User.find({
       _company: req.user._company,
-      _id: { $ne: req.user._id }
+      _id: { $ne: req.user._id },
+      ...orFind
     })
       .sort([['_id', -1]])
       .populate('_department')
@@ -45,7 +79,8 @@ router.get('/', function(req, res) {
       .skip(perPage * page),
     User.countDocuments({
       _company: req.user._company,
-      _id: { $ne: req.user._id }
+      _id: { $ne: req.user._id },
+      ...orFind
     })
   ])
     .then(results => {
