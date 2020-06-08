@@ -202,4 +202,16 @@ router.delete('/:id', function(req, res) {
     })
 })
 
+router.get('/options/select', (req, res) => {
+  Department.find({
+    _company: req.user._company
+  })
+    .then(departments => {
+      res.status(200).send({ departments })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
 module.exports = router
