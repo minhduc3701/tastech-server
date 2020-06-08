@@ -125,4 +125,14 @@ router.patch('/:id', function(req, res) {
     .catch(e => res.status(400).send())
 })
 
+router.get('/options/select', function(req, res) {
+  Role.find({
+    _company: req.user._company
+  })
+    .then(roles => {
+      res.status(200).send({ roles })
+    })
+    .catch(e => res.status(400).send())
+})
+
 module.exports = router
