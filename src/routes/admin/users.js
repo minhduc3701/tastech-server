@@ -8,20 +8,17 @@ const _ = require('lodash')
 const Policy = require('../../models/policy')
 
 router.post('/', validateUserProps, createUser, async (req, res) => {
-  const policyDefault = await Policy.findOne({
-    _company: req.admin._company,
-    status: 'default'
-  })
-
-  User.findOneAndUpdate(
-    { _id: req.user._id },
-    {
-      $set: {
-        _company: req.admin._company,
-        _policy: policyDefault._id
-      }
-    }
-  )
+  const dataUpdate = {
+    _company: req.admin._company
+  }
+  if (!req.user._policy) {
+    const policyDefault = await Policy.findOne({
+      _company: req.admin._company,
+      status: 'default'
+    })
+    dataUpdate._policy = policyDefault._id
+  }
+  User.findOneAndUpdate({ _id: req.user._id }, { $set: dataUpdate })
     .then(user => {})
     .catch(e => {})
 })
@@ -190,6 +187,23 @@ router.delete('/:id', function(req, res) {
       res.status(400).send()
     })
 })
+router.delete('/', function(req, res) {
+  User.remove({
+    _id: {
+      $in: req.query.ids
+    },
+    _company: req.user._company
+  })
+    .then(data => {
+      if (!data) {
+        return res.status(404).send()
+      }
+      res.status(200).send(data)
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
 
 router.put('/disabled', (req, res) => {
   let id = req.body.id
@@ -208,6 +222,24 @@ router.put('/disabled', (req, res) => {
         return res.status(404).send()
       }
       res.status(200).send({ user })
+    })
+    .catch(e => res.status(400).send())
+})
+router.put('/disabledMany', (req, res) => {
+  let disabled = req.body.disabled
+  User.updateMany(
+    {
+      _id: { $in: req.body.ids },
+      _company: req.user._company
+    },
+    { $set: { disabled } },
+    { new: true }
+  )
+    .then(data => {
+      if (!data || data.n < 0) {
+        return res.status(404).send()
+      }
+      res.status(200).send(data)
     })
     .catch(e => res.status(400).send())
 })

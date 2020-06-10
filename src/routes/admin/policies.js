@@ -288,4 +288,14 @@ router.delete('/:id', function(req, res) {
     })
 })
 
+router.get('/options/select', (req, res) => {
+  Policy.find({
+    _company: req.user._company
+  })
+    .then(policies => {
+      res.status(200).send({ policies })
+    })
+    .catch(e => res.status(400).send())
+})
+
 module.exports = router
