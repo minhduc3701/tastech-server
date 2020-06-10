@@ -80,19 +80,51 @@ router.get('/', async function(req, res) {
     objFind.isBudgetUpdated = true
   }
 
+  const queryAggregate = [
+    {
+      $match: { ...objFind }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_creator',
+        foreignField: '_id',
+        as: '_creator'
+      }
+    },
+    { $unwind: '$_creator' },
+    {
+      $lookup: {
+        from: 'departments',
+        localField: '_creator._department',
+        foreignField: '_id',
+        as: '_creator._department'
+      }
+    },
+    { $unwind: '$_creator._department' },
+    {
+      $match: {
+        '_creator._department._approver': req.user._id
+      }
+    }
+  ]
+
+  const queryAggregateList = [
+    ...queryAggregate,
+    { $sort: { updatedAt: -1 } },
+    { $skip: perPage * page },
+    { $limit: perPage }
+  ]
+  const queryAggregateCount = [
+    ...queryAggregate,
+    {
+      $group: { _id: null, total: { $sum: 1 } }
+    }
+  ]
+
   Promise.all([
-    Trip.find(objFind)
-      .populate({
-        path: '_creator',
-        populate: {
-          path: '_department',
-          select: 'name'
-        }
-      })
-      .sort({ updatedAt: -1 })
-      .limit(perPage)
-      .skip(perPage * page),
-    Trip.countDocuments(objFind)
+    Trip.aggregate(queryAggregateList),
+    Trip.aggregate(queryAggregateCount)
   ])
     .then(results => {
       return Promise.all([
@@ -104,7 +136,7 @@ router.get('/', async function(req, res) {
     })
     .then(results => {
       let trips = results[0]
-      let total = results[1]
+      let total = results[1][0].total
       let expenses = results[2]
 
       trips = trips
@@ -113,9 +145,8 @@ router.get('/', async function(req, res) {
           let expensesInTrip = expenses.filter(
             e => e._trip.toHexString() === trip._id.toHexString()
           )
-
           return {
-            ...trip.toObject(),
+            ...trip,
             totalExpense: expensesInTrip.reduce((acc, e) => acc + e.amount, 0)
           }
         })
