@@ -1212,12 +1212,14 @@ const departments = [
   {
     _id: departmentId,
     _company: companyId,
-    name: `Department 1`
+    name: `Department 1`,
+    _approver: adminId
   },
   {
     _id: departmentId2,
     _company: companyId,
-    name: `Department 2`
+    name: `Department 2`,
+    _approver: adminId
   },
   {
     _id: departmentPartnerId,
@@ -1239,7 +1241,8 @@ const departments = [
 for (let i = 2; i < 10; i++) {
   departments.push({
     _company: companyId,
-    name: `Department ${i + 1}`
+    name: `Department ${i + 1}`,
+    _approver: adminId
   })
 }
 
