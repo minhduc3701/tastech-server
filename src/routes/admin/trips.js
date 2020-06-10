@@ -161,7 +161,6 @@ router.get('/', async function(req, res) {
       })
     })
     .catch(e => {
-      console.log('e', e)
       res.status(400).send({})
     })
 })
