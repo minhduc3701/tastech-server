@@ -206,6 +206,7 @@ router.get('/options/select', (req, res) => {
   Department.find({
     _company: req.user._company
   })
+    .populate('_approver', ['firstName', 'lastName', 'avatar'])
     .then(departments => {
       res.status(200).send({ departments })
     })
