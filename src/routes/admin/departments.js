@@ -13,6 +13,7 @@ let projectEmployeesFields = {
   'employees.avatar': 1,
   'employees._id': 1,
   _company: 1,
+  _approver: 1,
   name: 1
 }
 
@@ -27,7 +28,8 @@ const departmentParser = department => ({
 router.post('/', function(req, res, next) {
   const department = new Department(req.body)
   department._company = req.user._company
-
+  department.name = req.body.departmentName
+  department._approver = req.body._approver
   let employees = req.body.employees
   let newDepartment
 
@@ -71,6 +73,20 @@ router.get('/', (req, res) => {
         localField: '_id',
         foreignField: '_department',
         as: 'employees'
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_approver',
+        foreignField: '_id',
+        as: '_approver'
+      }
+    },
+    {
+      $unwind: {
+        path: '$_approver',
+        preserveNullAndEmptyArrays: true
       }
     },
     {
@@ -158,6 +174,20 @@ router.get('/:id', function(req, res) {
           localField: '_id',
           foreignField: '_department',
           as: 'employees'
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_approver',
+          foreignField: '_id',
+          as: '_approver'
+        }
+      },
+      {
+        $unwind: {
+          path: '$_approver',
+          preserveNullAndEmptyArrays: true
         }
       },
       {
@@ -264,6 +294,51 @@ router.delete('/:id', function(req, res) {
       res.status(200).send({ department })
     })
     .catch(e => {
+      res.status(400).send()
+    })
+})
+
+router.put('/removeUsers', (req, res) => {
+  User.updateMany(
+    {
+      _id: { $in: req.body },
+      _company: req.user._company
+    },
+    {
+      $set: { _department: null }
+    }
+  )
+    .then(data => {
+      if (!data) {
+        return res.status(404).send()
+      }
+      res.status(200).send(data)
+    })
+    .catch(e => {
+      console.log(e)
+      res.status(400).send()
+    })
+})
+router.put('/removeUser/:id', (req, res) => {
+  let id = req.params.id
+  console.log(id)
+  User.findOneAndUpdate(
+    {
+      _id: id,
+      _company: req.user._company
+    },
+    {
+      $set: { _department: null }
+    }
+  )
+    .then(user => {
+      if (!user) {
+        return res.status(404).send()
+      }
+      res.status(200).send(user)
+    })
+    .catch(e => {
+      console.log(e)
       res.status(400).send()
     })
 })
