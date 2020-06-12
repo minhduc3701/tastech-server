@@ -68,7 +68,8 @@ Add config/config.json with the content like below:
     "REWARD_BASE_CURRENCY": "SGD",
     "NEWRELIC_APP_NAME": "Dev EzBizTrip API",
     "NEWRELIC_LICENSE_KEY": "",
-    "RECAPTCHA_V3_SECRET_KEY": ""
+    "RECAPTCHA_V3_SECRET_KEY": "",
+    "XENDIT_SECRET_KEY":""
   }
 }
 

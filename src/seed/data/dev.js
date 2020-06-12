@@ -17,6 +17,7 @@ const chance = new Change()
 
 const tasAdminId = new ObjectID('5cc2d7a24c72b61214af0049')
 const adminId = new ObjectID('5cc2d7a24c72b61214af004a')
+const adminId2 = new ObjectID('5cc2d7a24c72b61214af004e')
 const employeeId = new ObjectID('5cc2d7a24c72b61214af004b')
 const employeeId2 = new ObjectID('5cc2d7a24c72b61214af004c')
 
@@ -116,6 +117,13 @@ const users = [
     _id: adminId,
     username: 'admin@tastech.asia',
     email: 'admin@tastech.asia',
+    _company: companyId,
+    _role: adminRoleId
+  },
+  {
+    _id: adminId2,
+    username: 'admin2@tastech.asia',
+    email: 'admin2@tastech.asia',
     _company: companyId,
     _role: adminRoleId
   },
@@ -1219,7 +1227,7 @@ const departments = [
     _id: departmentId2,
     _company: companyId,
     name: `Department 2`,
-    _approver: adminId
+    _approver: adminId2
   },
   {
     _id: departmentPartnerId,

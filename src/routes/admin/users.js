@@ -78,11 +78,16 @@ router.get('/', function(req, res) {
       _company: req.user._company,
       _id: { $ne: req.user._id },
       ...orFind
+    }),
+    User.countDocuments({
+      _company: req.user._company,
+      _id: { $ne: req.user._id }
     })
   ])
     .then(results => {
       let users = results[0]
       let total = results[1]
+      let totalAllUser = results[2]
 
       res.status(200).send({
         page,
@@ -90,7 +95,8 @@ router.get('/', function(req, res) {
         total,
         count: users.length,
         perPage,
-        users
+        users,
+        totalAllUser
       })
     })
     .catch(e => {
