@@ -320,13 +320,11 @@ router.put('/removeUsers', (req, res) => {
       res.status(200).send(data)
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })
 router.put('/removeUser/:id', (req, res) => {
   let id = req.params.id
-  console.log(id)
   User.findOneAndUpdate(
     {
       _id: id,
@@ -343,7 +341,6 @@ router.put('/removeUser/:id', (req, res) => {
       res.status(200).send(user)
     })
     .catch(e => {
-      console.log(e)
       res.status(400).send()
     })
 })
