@@ -287,6 +287,33 @@ router.delete('/:id', function(req, res) {
       res.status(400).send()
     })
 })
+router.delete('/employee/:id', async function(req, res) {
+  let id = req.params.id
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  try {
+    const policyDefault = await Policy.findOne({
+      _company: req.user._company,
+      status: 'default'
+    })
+    const user = await User.findOneAndUpdate(
+      {
+        _id: req.params.id
+      },
+      {
+        $set: {
+          _policy: policyDefault._id
+        }
+      }
+    )
+    res.status(200).send({ user })
+  } catch (e) {
+    res.status(400).send(e)
+  }
+})
 
 router.get('/options/select', (req, res) => {
   Policy.find({
