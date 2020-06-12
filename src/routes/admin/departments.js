@@ -28,8 +28,8 @@ const departmentParser = department => ({
 router.post('/', function(req, res, next) {
   const department = new Department(req.body)
   department._company = req.user._company
-  department.name = req.body.departmentName
-  department._approver = req.body._approver
+  department.name = req.body.name
+  department._approver = req.body._approver._id
   let employees = req.body.employees
   let newDepartment
 
@@ -87,6 +87,11 @@ router.get('/', (req, res) => {
       $unwind: {
         path: '$_approver',
         preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $sort: {
+        createdAt: -1
       }
     },
     {
