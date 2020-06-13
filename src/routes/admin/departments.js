@@ -281,17 +281,52 @@ router.patch('/:id', function(req, res) {
       res.status(400).send()
     })
 })
+router.patch('/addNewUsers/:id', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+  let userIds = req.body
+  let departmentId = req.params.id
+  User.updateMany(
+    {
+      _id: {
+        $in: userIds
+      },
+      _company: req.user._company
+    },
+    {
+      $set: {
+        _department: departmentId
+      }
+    }
+  )
+    .then(res.status(200).send())
+    .catch(e => {
+      res.status(400).send()
+    })
+})
 
 router.delete('/:id', function(req, res) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
-
-  Department.findOneAndDelete({
-    _id: req.params.id,
-    _company: req.user._company
-  })
-    .then(department => {
+  Promise.all([
+    User.updateMany(
+      {
+        _department: req.params.id,
+        _company: req.user._company
+      },
+      {
+        $set: { _department: null }
+      }
+    ),
+    Department.findOneAndDelete({
+      _id: req.params.id,
+      _company: req.user._company
+    })
+  ])
+    .then(results => {
+      let department = results[1]
       if (!department) {
         return res.status(404).send()
       }
