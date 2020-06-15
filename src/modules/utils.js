@@ -1076,6 +1076,27 @@ const makeDefaultPolicy = (companyId, rate) => {
   }
 }
 
+const DATA_CATEGORY_DEFAULT = [
+  {
+    _id: 'flight',
+    name: 'Flight',
+    icon: 'baselineFlight',
+    type: 'default'
+  },
+  {
+    _id: 'lodging',
+    name: 'Accommodation',
+    icon: 'roundLocalHotel',
+    type: 'default'
+  },
+  {
+    _id: 'meal',
+    name: 'Travel Allowance',
+    icon: 'baselineCardTravel',
+    type: 'default'
+  }
+]
+
 module.exports = {
   getImageUri,
   makeSegmentsData,
@@ -1095,5 +1116,6 @@ module.exports = {
   roundPrice,
   getDistanceFromLatLonInKm,
   findAirlinesAirports,
-  makeDefaultPolicy
+  makeDefaultPolicy,
+  DATA_CATEGORY_DEFAULT
 }
