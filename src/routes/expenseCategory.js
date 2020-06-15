@@ -11,7 +11,6 @@ router.get('/', (req, res) => {
         .send({ expenseCategories: [...DATA_CATEGORY_DEFAULT, ...data] })
     })
     .catch(err => {
-      console.log('err', err)
       res.status(400).send()
     })
 })

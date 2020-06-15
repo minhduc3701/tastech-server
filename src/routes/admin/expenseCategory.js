@@ -28,7 +28,6 @@ router.post('/', (req, res) => {
       res.status(200).send({ expenseCategory: data })
     })
     .catch(err => {
-      console.log('err', err)
       res.status(400).send()
     })
 })
