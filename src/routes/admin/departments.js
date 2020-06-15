@@ -13,6 +13,7 @@ let projectEmployeesFields = {
   'employees.avatar': 1,
   'employees._id': 1,
   _company: 1,
+  _approver: 1,
   name: 1
 }
 
@@ -27,7 +28,8 @@ const departmentParser = department => ({
 router.post('/', function(req, res, next) {
   const department = new Department(req.body)
   department._company = req.user._company
-
+  department.name = req.body.name
+  department._approver = req.body._approver._id
   let employees = req.body.employees
   let newDepartment
 
@@ -74,6 +76,25 @@ router.get('/', (req, res) => {
       }
     },
     {
+      $lookup: {
+        from: 'users',
+        localField: '_approver',
+        foreignField: '_id',
+        as: '_approver'
+      }
+    },
+    {
+      $unwind: {
+        path: '$_approver',
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $sort: {
+        createdAt: -1
+      }
+    },
+    {
       $project: projectEmployeesFields
     }
   ])
@@ -90,34 +111,114 @@ router.get('/:id', function(req, res) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
-
-  Department.aggregate([
-    {
-      $match: {
-        _id: new ObjectID(req.params.id),
-        _company: req.user._company
-      }
-    },
-    {
-      $lookup: {
-        from: 'users',
-        localField: '_id',
-        foreignField: '_department',
-        as: 'employees'
-      }
-    },
-    {
-      $project: projectEmployeesFields
+  let perPage = _.get(req.query, 'perPage', 20)
+  perPage = Math.max(0, parseInt(perPage))
+  let page = _.get(req.query, 'page', 0)
+  page = Math.max(0, parseInt(page))
+  let keyword = _.get(req.query, 'keyword', '')
+  let orFind = {}
+  if (keyword) {
+    orFind = {
+      $or: [
+        {
+          displayName: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
+        },
+        {
+          firstName: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
+        },
+        {
+          lastName: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
+        },
+        {
+          email: {
+            $regex: new RegExp(keyword),
+            $options: 'i'
+          }
+        }
+      ]
     }
+  }
+  Promise.all([
+    User.find({
+      _company: req.user._company,
+      _id: { $ne: req.user._id },
+      _department: req.params.id,
+      ...orFind
+    })
+      .sort([['_id', -1]])
+      // .populate('_department')
+      .populate('_role')
+      .populate('_policy')
+      .limit(perPage)
+      .skip(perPage * page),
+    User.countDocuments({
+      _company: req.user._company,
+      _id: { $ne: req.user._id },
+      _department: req.params.id,
+      ...orFind
+    }),
+    Department.aggregate([
+      {
+        $match: {
+          _id: new ObjectID(req.params.id),
+          _company: req.user._company
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_department',
+          as: 'employees'
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_approver',
+          foreignField: '_id',
+          as: '_approver'
+        }
+      },
+      {
+        $unwind: {
+          path: '$_approver',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: projectEmployeesFields
+      }
+    ])
   ])
-    .then(departments => {
+    .then(results => {
+      let users = results[0]
+      let total = results[1]
+      let departments = results[2]
       if (!departments[0]) {
         return res.status(404).send()
       }
-
       departments = departments.map(departmentParser)
-      res.status(200).send({ department: departments[0] })
+      res.status(200).send({
+        page,
+        totalPage: Math.ceil(total / perPage),
+        total,
+        count: users.length,
+        perPage,
+        users,
+        department: departments[0]
+      })
     })
+
     .catch(e => res.status(400).send())
 })
 
@@ -180,22 +281,99 @@ router.patch('/:id', function(req, res) {
       res.status(400).send()
     })
 })
+router.patch('/addNewUsers/:id', function(req, res) {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send()
+  }
+  let userIds = req.body
+  let departmentId = req.params.id
+  User.updateMany(
+    {
+      _id: {
+        $in: userIds
+      },
+      _company: req.user._company
+    },
+    {
+      $set: {
+        _department: departmentId
+      }
+    }
+  )
+    .then(res.status(200).send())
+    .catch(e => {
+      res.status(400).send()
+    })
+})
 
 router.delete('/:id', function(req, res) {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
-
-  Department.findOneAndDelete({
-    _id: req.params.id,
-    _company: req.user._company
-  })
-    .then(department => {
+  Promise.all([
+    User.updateMany(
+      {
+        _department: req.params.id,
+        _company: req.user._company
+      },
+      {
+        $set: { _department: null }
+      }
+    ),
+    Department.findOneAndDelete({
+      _id: req.params.id,
+      _company: req.user._company
+    })
+  ])
+    .then(results => {
+      let department = results[1]
       if (!department) {
         return res.status(404).send()
       }
 
       res.status(200).send({ department })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+
+router.put('/removeUsers', (req, res) => {
+  User.updateMany(
+    {
+      _id: { $in: req.body },
+      _company: req.user._company
+    },
+    {
+      $set: { _department: null }
+    }
+  )
+    .then(data => {
+      if (!data) {
+        return res.status(404).send()
+      }
+      res.status(200).send(data)
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
+})
+router.put('/removeUser/:id', (req, res) => {
+  let id = req.params.id
+  User.findOneAndUpdate(
+    {
+      _id: id,
+      _company: req.user._company
+    },
+    {
+      $set: { _department: null }
+    }
+  )
+    .then(user => {
+      if (!user) {
+        return res.status(404).send()
+      }
+      res.status(200).send(user)
     })
     .catch(e => {
       res.status(400).send()

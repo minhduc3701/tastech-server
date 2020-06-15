@@ -211,7 +211,7 @@ router.post('/search', (req, res) => {
       }
     ]
   })
-    .limit(50)
+    .limit(100)
     .then(users => {
       users = users.map(user =>
         _.omit(user.toJSON(), [
