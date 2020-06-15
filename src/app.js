@@ -53,6 +53,8 @@ const reportsRouter = require('./routes/reports')
 const rewardRouter = require('./routes/rewards')
 const voucherRouter = require('./routes/vouchers')
 const xenditPaymentRouter = require('./routes/payment/xendit')
+const adminExpenseCategoryRouter = require('./routes/admin/expenseCategory')
+const expenseCategoryRouter = require('./routes/expenseCategory')
 const {
   authenticateRole,
   authenticatePermission
@@ -107,6 +109,7 @@ app.use('/trips', jwtAuthenticate, tripsRouter)
 app.use('/expenses', jwtAuthenticate, expensesRouter)
 app.use('/orders', jwtAuthenticate, ordersRouter)
 app.use('/reports', jwtAuthenticate, reportsRouter)
+app.use('/expenseCategory', jwtAuthenticate, expenseCategoryRouter)
 
 // tas-admin routes
 app.use(
@@ -222,6 +225,12 @@ app.use(
   jwtAuthenticate,
   authenticatePermission(CAN_ACCESS_COMPANY),
   adminDepartmentRouter
+)
+app.use(
+  '/admin/expenseCategory',
+  jwtAuthenticate,
+  authenticatePermission(CAN_ACCESS_COMPANY),
+  adminExpenseCategoryRouter
 )
 
 app.use(

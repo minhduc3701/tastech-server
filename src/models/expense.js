@@ -28,8 +28,8 @@ var ExpenseSchema = new Schema(
     rawCurrency: String,
     category: {
       type: String,
-      required: true,
-      enum: ['flight', 'lodging', 'transportation', 'meal', 'others']
+      required: true
+      // enum: ['flight', 'lodging', 'transportation', 'meal', 'others']
     },
     claimed: {
       type: Boolean,
