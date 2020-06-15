@@ -25,51 +25,51 @@ afterAll(async () => {
   mongoose.disconnect()
 })
 
-test('Should create new department', async () => {
-  let newDepartment = await request(app)
-    .post(`/admin/departments`)
-    .set('Authorization', `Bearer ${adminToken}`)
-    .send({
-      name: 'New department',
-      employees: [userId, user2Id]
-    })
-    .expect(200)
+// test('Should create new department', async () => {
+//   let newDepartment = await request(app)
+//     .post(`/admin/departments`)
+//     .set('Authorization', `Bearer ${adminToken}`)
+//     .send({
+//       name: 'New department',
+//       employees: [userId, user2Id]
+//     })
+//     .expect(200)
 
-  expect(newDepartment.body.department).toMatchObject({
-    name: 'New department',
-    _company: companyId.toHexString()
-  })
+//   expect(newDepartment.body.department).toMatchObject({
+//     name: 'New department',
+//     _company: companyId.toHexString()
+//   })
 
-  let departmentUsersCount = await User.countDocuments({
-    _department: newDepartment.body.department._id,
-    _id: { $in: [userId, user2Id] }
-  })
+//   let departmentUsersCount = await User.countDocuments({
+//     _department: newDepartment.body.department._id,
+//     _id: { $in: [userId, user2Id] }
+//   })
 
-  expect(departmentUsersCount).toBe(2)
-})
+//   expect(departmentUsersCount).toBe(2)
+// })
 
-test('Should not update other company employee department when create', async () => {
-  let newDepartment = await request(app)
-    .post(`/admin/departments`)
-    .set('Authorization', `Bearer ${adminToken}`)
-    .send({
-      name: 'New department',
-      employees: [userId, user2Id, userCompany2Id]
-    })
-    .expect(200)
+// test('Should not update other company employee department when create', async () => {
+//   let newDepartment = await request(app)
+//     .post(`/admin/departments`)
+//     .set('Authorization', `Bearer ${adminToken}`)
+//     .send({
+//       name: 'New department',
+//       employees: [userId, user2Id, userCompany2Id]
+//     })
+//     .expect(200)
 
-  expect(newDepartment.body.department).toMatchObject({
-    name: 'New department',
-    _company: companyId.toHexString()
-  })
+//   expect(newDepartment.body.department).toMatchObject({
+//     name: 'New department',
+//     _company: companyId.toHexString()
+//   })
 
-  let departmentUsersCount = await User.countDocuments({
-    _department: newDepartment.body.department._id,
-    _id: { $in: [userId, user2Id, userCompany2Id] }
-  })
+//   let departmentUsersCount = await User.countDocuments({
+//     _department: newDepartment.body.department._id,
+//     _id: { $in: [userId, user2Id, userCompany2Id] }
+//   })
 
-  expect(departmentUsersCount).toBe(2)
-})
+//   expect(departmentUsersCount).toBe(2)
+// })
 
 test('Should get department list', async () => {
   let res = await request(app)
