@@ -11,6 +11,15 @@ const DepartmentSchema = new Schema(
     _approver: {
       type: 'ObjectId',
       ref: 'User'
+    },
+    _accountant: {
+      type: 'ObjectId',
+      ref: 'User'
+    },
+    status: {
+      type: String,
+      enum: ['default', 'enabled', 'disabled'],
+      default: 'enabled'
     }
   },
   {

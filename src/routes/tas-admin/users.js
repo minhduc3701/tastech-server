@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const User = require('../../models/user')
 const Role = require('../../models/role')
+const Department = require('../../models/department')
 const { createUser } = require('../../middleware/users')
 const { ObjectID } = require('mongodb')
 const _ = require('lodash')
@@ -65,7 +66,7 @@ router.post('/roles', (req, res) => {
     .catch(e => res.status(400).send())
 })
 
-router.post('/', createUser, (req, res) => {
+router.post('/', createUser, async (req, res) => {
   let isTasAdmin = req.body.isTasAdmin
 
   if (isTasAdmin) {
@@ -89,6 +90,26 @@ router.post('/', createUser, (req, res) => {
       .then(user => {})
       .catch(e => {})
   } // end if
+
+  // create Default Department
+  const role = await Role.findById(req.body._role)
+  if (role && role.type === 'admin') {
+    const department = await Department.findOne({
+      _company: req.body._company,
+      status: 'default'
+    })
+    if (!department) {
+      const user = await User.findOne({ _role: role._id })
+      if (user) {
+        Department.create({
+          name: 'Default Department',
+          _company: req.body._company,
+          status: 'default',
+          _approver: user._id
+        })
+      }
+    }
+  }
 })
 
 router.get('/:id', function(req, res) {

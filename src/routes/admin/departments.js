@@ -13,8 +13,14 @@ let projectEmployeesFields = {
   'employees.avatar': 1,
   'employees._id': 1,
   _company: 1,
-  _approver: 1,
-  name: 1
+  name: 1,
+  '_accountant.firstName': 1,
+  '_accountant.lastName': 1,
+  '_accountant.email': 1,
+  '_approver.firstName': 1,
+  '_approver.lastName': 1,
+  '_approver.email': 1,
+  status: 1
 }
 
 const departmentParser = department => ({
@@ -29,7 +35,7 @@ router.post('/', function(req, res, next) {
   const department = new Department(req.body)
   department._company = req.user._company
   department.name = req.body.name
-  department._approver = req.body._approver._id
+  department._approver = req.body._approver
   let employees = req.body.employees
   let newDepartment
 
@@ -86,6 +92,20 @@ router.get('/', (req, res) => {
     {
       $unwind: {
         path: '$_approver',
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_accountant',
+        foreignField: '_id',
+        as: '_accountant'
+      }
+    },
+    {
+      $unwind: {
+        path: '$_accountant',
         preserveNullAndEmptyArrays: true
       }
     },
@@ -242,40 +262,7 @@ router.patch('/:id', function(req, res) {
       if (!department) {
         return res.status(404).send()
       }
-
-      return Promise.all([
-        User.updateMany(
-          {
-            _id: {
-              $in: body.employees
-            },
-            _company: req.user._company
-          },
-          {
-            $set: {
-              _department: req.params.id
-            }
-          }
-        ),
-        User.updateMany(
-          {
-            _department: req.params.id,
-            _id: {
-              $nin: body.employees
-            },
-            _company: req.user._company
-          },
-          {
-            $set: {
-              _department: null
-            }
-          }
-        ),
-        department
-      ])
-    })
-    .then(results => {
-      res.status(200).send({ department: results[2] })
+      res.status(200).send({ department })
     })
     .catch(e => {
       res.status(400).send()
@@ -338,14 +325,18 @@ router.delete('/:id', function(req, res) {
     })
 })
 
-router.put('/removeUsers', (req, res) => {
+router.put('/removeUsers', async (req, res) => {
+  const department = await Department.findOne({
+    _company: req.user._company,
+    status: 'default'
+  })
   User.updateMany(
     {
       _id: { $in: req.body },
       _company: req.user._company
     },
     {
-      $set: { _department: null }
+      $set: { _department: department ? department._id : null }
     }
   )
     .then(data => {
@@ -358,15 +349,19 @@ router.put('/removeUsers', (req, res) => {
       res.status(400).send()
     })
 })
-router.put('/removeUser/:id', (req, res) => {
+router.put('/removeUser/:id', async (req, res) => {
   let id = req.params.id
+  const department = await Department.findOne({
+    _company: req.user._company,
+    status: 'default'
+  })
   User.findOneAndUpdate(
     {
       _id: id,
       _company: req.user._company
     },
     {
-      $set: { _department: null }
+      $set: { _department: department ? department._id : null }
     }
   )
     .then(user => {

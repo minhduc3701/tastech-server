@@ -12,6 +12,7 @@ const { contact } = require('../mailTemplates/contact')
 const { verifyRecaptcha } = require('../middleware/recaptcha')
 const Role = require('../models/role')
 const Policy = require('../models/policy')
+const Department = require('../models/department')
 const { roles } = require('../config/roles')
 const api = require('../modules/api')
 const { createUser } = require('../middleware/users')
@@ -104,7 +105,18 @@ router.post(
         res.status(400).send()
       })
   },
-  createUser
+  createUser,
+  async (req, res) => {
+    // create Default Department
+    try {
+      Department.create({
+        name: 'Default Department',
+        _company: req.body._company,
+        status: 'default',
+        _approver: req.user._id
+      })
+    } catch (error) {}
+  }
 )
 
 router.post('/contact', verifyRecaptcha, function(req, res) {

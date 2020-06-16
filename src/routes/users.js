@@ -3,6 +3,7 @@ var router = express.Router()
 const User = require('../models/user')
 const Company = require('../models/company')
 const Policy = require('../models/policy')
+const Role = require('../models/role')
 const { fileUpload } = require('../config/aws')
 const upload = fileUpload('avatar')
 const singleUpload = upload.single('image')
@@ -183,8 +184,23 @@ router.patch('/me/password', (req, res) => {
   })
 })
 
-router.post('/search', (req, res) => {
+router.post('/search', async (req, res) => {
   let email = _.toLower(_.trim(req.body.email))
+
+  let filterType = {}
+  let { type } = req.body
+
+  if (Array.isArray(type)) {
+    let roles = await Role.find({
+      _company: req.user._company,
+      type: { $in: type }
+    })
+
+    roles = roles.map(({ _id }) => _id)
+    filterType = {
+      _role: { $in: roles }
+    }
+  }
 
   // @see https://stackoverflow.com/questions/3305561/how-to-query-mongodb-with-like
   // @see https://stackoverflow.com/questions/26699885/how-can-i-use-a-regex-variable-in-a-query-for-mongodb
@@ -209,7 +225,8 @@ router.post('/search', (req, res) => {
           $options: 'i'
         }
       }
-    ]
+    ],
+    ...filterType
   })
     .limit(100)
     .then(users => {
