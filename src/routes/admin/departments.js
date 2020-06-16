@@ -36,6 +36,7 @@ router.post('/', function(req, res, next) {
   department._company = req.user._company
   department.name = req.body.name
   department._approver = req.body._approver
+  department._accountant = req.body._accountant || null
   let employees = req.body.employees
   let newDepartment
 
