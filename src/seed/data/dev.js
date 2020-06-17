@@ -117,6 +117,8 @@ const users = [
     _id: adminId,
     username: 'admin@tastech.asia',
     email: 'admin@tastech.asia',
+    firstName: 'Tomose',
+    lastName: 'Takaya',
     _company: companyId,
     _role: adminRoleId
   },
@@ -1220,13 +1222,14 @@ const departments = [
   {
     _id: departmentId,
     _company: companyId,
-    name: `Department 1`,
-    _approver: adminId
+    name: `Default Department`,
+    _approver: adminId,
+    status: 'default'
   },
   {
     _id: departmentId2,
     _company: companyId,
-    name: `Department 2`,
+    name: `Department 1`,
     _approver: adminId2
   },
   {
