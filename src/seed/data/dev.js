@@ -44,7 +44,7 @@ const tripIdsUser1 = [
   tripId8
 ]
 const tripIdsUser2 = []
-const departmentId = new ObjectID('5cd03b1571811c06ad420d36')
+const defaultDepartmentId = new ObjectID('5cd03b1571811c06ad420d36')
 const departmentId2 = new ObjectID('5cd03b1571811c06ad420d35')
 const tasAdminRoleId = new ObjectID('5cc2d7a24c72b61214af0058')
 const adminRoleId = new ObjectID('5cc2d7a24c72b61214af0059')
@@ -120,14 +120,16 @@ const users = [
     firstName: 'Tomose',
     lastName: 'Takaya',
     _company: companyId,
-    _role: adminRoleId
+    _role: adminRoleId,
+    _department: defaultDepartmentId
   },
   {
     _id: adminId2,
     username: 'admin2@tastech.asia',
     email: 'admin2@tastech.asia',
     _company: companyId,
-    _role: adminRoleId
+    _role: adminRoleId,
+    _department: defaultDepartmentId
   },
   {
     _id: employeeId,
@@ -137,7 +139,7 @@ const users = [
     _role: employeeRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
-    _department: departmentId,
+    _department: defaultDepartmentId,
     phone: '0819020695',
     dateOfBirth: new Date('1996-07-02'),
     country: 'VN'
@@ -150,7 +152,7 @@ const users = [
     _role: managerRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
-    _department: departmentId,
+    _department: defaultDepartmentId,
     phone: '0819020695',
     dateOfBirth: new Date('1996-07-02'),
     country: 'VN'
@@ -162,7 +164,7 @@ const users = [
     _role: managerRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
-    _department: departmentId,
+    _department: defaultDepartmentId,
     phone: '123546456',
     dateOfBirth: new Date('1996-07-02'),
     country: 'CN'
@@ -175,7 +177,7 @@ const users = [
     _role: accountantRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
-    _department: departmentId,
+    _department: defaultDepartmentId,
     phone: '0819020695',
     dateOfBirth: new Date('1996-07-02'),
     country: 'VN'
@@ -187,7 +189,7 @@ const users = [
     _role: accountantRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
-    _department: departmentId,
+    _department: defaultDepartmentId,
     phone: '1239871',
     dateOfBirth: new Date('1996-07-02'),
     country: 'EN'
@@ -200,7 +202,7 @@ const users = [
     _role: employeeRoleId,
     firstName: chance.first(),
     lastName: chance.last(),
-    _department: departmentId
+    _department: defaultDepartmentId
   },
 
   // admin, employee for company 2
@@ -406,7 +408,7 @@ for (let i = 4; i < 50; i++) {
     firstName: chance.first(),
     lastName: chance.last(),
     avatar: i < 40 ? '' : `http://i.pravatar.cc/150?img=${i + 1}`,
-    _department: randomItemInArray([departmentId, departmentId2]),
+    _department: randomItemInArray([defaultDepartmentId, departmentId2]),
     _role: employeeRoleId,
     _policy: randomItemInArray([policyId1, policyId2]),
     phone: (Math.random() * 1000000000).toFixed(0),
@@ -1220,7 +1222,7 @@ for (let i = 0; i < 200; i++) {
 
 const departments = [
   {
-    _id: departmentId,
+    _id: defaultDepartmentId,
     _company: companyId,
     name: `Default Department`,
     _approver: adminId,
