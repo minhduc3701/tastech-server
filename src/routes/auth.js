@@ -64,7 +64,20 @@ router.post('/login', verifyRecaptcha, function(req, res, next) {
 
         User.findById(user.id)
           .populate('_role')
+          .populate('_company')
+          .populate('_department')
+          .populate('_policy')
           .then(user => {
+            return Promise.all([
+              user,
+              User.findById(user._department._approver).then(doc => {
+                return doc
+              })
+            ])
+          })
+          .then(result => {
+            let user = result[0]
+            user._department._approver = result[1]
             return res.json({
               user,
               token

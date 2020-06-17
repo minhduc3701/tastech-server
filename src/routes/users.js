@@ -12,13 +12,30 @@ const { currentCompany } = require('../middleware/company')
 const { getUserProfileStrength } = require('../modules/utils')
 
 router.get('/me', currentCompany, function(req, res, next) {
-  res.send({
-    user: req.user,
-    profileStrength: getUserProfileStrength(req.user),
-    currency: req.company.currency,
-    baseCurrency: process.env.BASE_CURRENCY,
-    exchangedRate: req.company.exchangedRate
-  })
+  User.findById(req.user.id)
+    .populate('_role')
+    .populate('_company')
+    .populate('_department')
+    .populate('_policy')
+    .then(user => {
+      return Promise.all([
+        user,
+        User.findById(user._department._approver).then(doc => {
+          return doc
+        })
+      ])
+    })
+    .then(result => {
+      let userNew = result[0]
+      userNew._department._approver = result[1]
+      return res.send({
+        user: userNew,
+        profileStrength: getUserProfileStrength(req.user),
+        currency: req.company.currency,
+        baseCurrency: process.env.BASE_CURRENCY,
+        exchangedRate: req.company.exchangedRate
+      })
+    })
 })
 
 router.get('/me/company', function(req, res, next) {
