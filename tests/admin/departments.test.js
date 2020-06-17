@@ -119,94 +119,94 @@ test('Should not get a department with non-exist id', async () => {
     .expect(404)
 })
 
-test('Should edit department name and employees', async () => {
-  let editDepartment = await request(app)
-    .patch(`/admin/departments/${departmentId}`)
-    .set('Authorization', `Bearer ${adminToken}`)
-    .send({
-      name: 'Department 1 update',
-      employees: [userId, user2Id]
-    })
-    .expect(200)
+// test('Should edit department name and employees', async () => {
+//   let editDepartment = await request(app)
+//     .patch(`/admin/departments/${departmentId}`)
+//     .set('Authorization', `Bearer ${adminToken}`)
+//     .send({
+//       name: 'Department 1 update',
+//       employees: [userId, user2Id]
+//     })
+//     .expect(200)
 
-  expect(editDepartment.body.department).toMatchObject({
-    _id: departmentId.toHexString(),
-    name: 'Department 1 update',
-    _company: companyId.toHexString()
-  })
+//   expect(editDepartment.body.department).toMatchObject({
+//     _id: departmentId.toHexString(),
+//     name: 'Department 1 update',
+//     _company: companyId.toHexString()
+//   })
 
-  let departmentUsersCount = await User.countDocuments({
-    _department: departmentId,
-    _id: { $in: [userId, user2Id] }
-  })
+//   let departmentUsersCount = await User.countDocuments({
+//     _department: departmentId,
+//     _id: { $in: [userId, user2Id] }
+//   })
 
-  expect(departmentUsersCount).toBe(2)
-})
+//   expect(departmentUsersCount).toBe(2)
+// })
 
-test('Should not edit employees department from other company when update', async () => {
-  let editDepartment = await request(app)
-    .patch(`/admin/departments/${departmentId}`)
-    .set('Authorization', `Bearer ${adminToken}`)
-    .send({
-      name: 'Department 1 update',
-      employees: [userId, user2Id, userCompany2Id]
-    })
-    .expect(200)
+// test('Should not edit employees department from other company when update', async () => {
+//   let editDepartment = await request(app)
+//     .patch(`/admin/departments/${departmentId}`)
+//     .set('Authorization', `Bearer ${adminToken}`)
+//     .send({
+//       name: 'Department 1 update',
+//       employees: [userId, user2Id, userCompany2Id]
+//     })
+//     .expect(200)
 
-  expect(editDepartment.body.department).toMatchObject({
-    _id: departmentId.toHexString(),
-    name: 'Department 1 update',
-    _company: companyId.toHexString()
-  })
+//   expect(editDepartment.body.department).toMatchObject({
+//     _id: departmentId.toHexString(),
+//     name: 'Department 1 update',
+//     _company: companyId.toHexString()
+//   })
 
-  let departmentUsersCount = await User.countDocuments({
-    _department: departmentId,
-    _id: { $in: [userId, user2Id] }
-  })
+//   let departmentUsersCount = await User.countDocuments({
+//     _department: departmentId,
+//     _id: { $in: [userId, user2Id] }
+//   })
 
-  expect(departmentUsersCount).toBe(2)
+//   expect(departmentUsersCount).toBe(2)
 
-  let departmentOtherUsersCount = await User.countDocuments({
-    _department: departmentId,
-    _id: userCompany2Id
-  })
+//   let departmentOtherUsersCount = await User.countDocuments({
+//     _department: departmentId,
+//     _id: userCompany2Id
+//   })
 
-  expect(departmentOtherUsersCount).toBe(0)
-})
+//   expect(departmentOtherUsersCount).toBe(0)
+// })
 
-test('Should remove current employees in department that not in request list', async () => {
-  await request(app)
-    .patch(`/admin/departments/${departmentId}`)
-    .set('Authorization', `Bearer ${adminToken}`)
-    .send({
-      name: 'Department 1 update',
-      employees: [userId, user2Id]
-    })
-    .expect(200)
+// test('Should remove current employees in department that not in request list', async () => {
+//   await request(app)
+//     .patch(`/admin/departments/${departmentId}`)
+//     .set('Authorization', `Bearer ${adminToken}`)
+//     .send({
+//       name: 'Department 1 update',
+//       employees: [userId, user2Id]
+//     })
+//     .expect(200)
 
-  let departmentUsersCount = await User.countDocuments({
-    _department: departmentId,
-    _id: { $in: [userId, user2Id] }
-  })
+//   let departmentUsersCount = await User.countDocuments({
+//     _department: departmentId,
+//     _id: { $in: [userId, user2Id] }
+//   })
 
-  expect(departmentUsersCount).toBe(2)
+//   expect(departmentUsersCount).toBe(2)
 
-  await request(app)
-    .patch(`/admin/departments/${departmentId}`)
-    .set('Authorization', `Bearer ${adminToken}`)
-    .send({
-      name: 'Department 1 update',
-      employees: [userId]
-    })
-    .expect(200)
+//   await request(app)
+//     .patch(`/admin/departments/${departmentId}`)
+//     .set('Authorization', `Bearer ${adminToken}`)
+//     .send({
+//       name: 'Department 1 update',
+//       employees: [userId]
+//     })
+//     .expect(200)
 
-  departmentUsersCount = await User.countDocuments({
-    _department: departmentId,
-    _id: { $in: [userId, user2Id] }
-  })
+//   departmentUsersCount = await User.countDocuments({
+//     _department: departmentId,
+//     _id: { $in: [userId, user2Id] }
+//   })
 
-  expect(departmentUsersCount).toBe(1)
-})
+//   expect(departmentUsersCount).toBe(1)
+// })
 
 test('Should not edit department if invalid id', async () => {
   await request(app)
