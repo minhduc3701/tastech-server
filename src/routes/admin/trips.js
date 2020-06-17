@@ -136,7 +136,7 @@ router.get('/', async function(req, res) {
     })
     .then(results => {
       let trips = results[0]
-      let total = results[1][0].total
+      let total = _.get(results, '[1][0].total', 0)
       let expenses = results[2]
 
       trips = trips

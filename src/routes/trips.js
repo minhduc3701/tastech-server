@@ -462,6 +462,18 @@ router.patch(
       body.currency = req.currency.code
       body.status = 'waiting'
 
+      if (_.get(body, 'budgetPassengers[0]')) {
+        const tripFlight = _.get(body, 'budgetPassengers[0].flight', {})
+        const tripLodging = _.get(body, 'budgetPassengers[0].lodging', {})
+        body.routine = tripFlight.selected
+          ? `${tripFlight.departDestinationCode} - ${
+              tripFlight.returnDestinationCode
+            }`
+          : tripLodging.selected
+          ? tripLodging.regionName
+          : ''
+      }
+
       Trip.findOneAndUpdate(
         {
           _id: req.params.id,
@@ -501,7 +513,6 @@ router.post(
   sabreRestToken,
   async (req, res, next) => {
     const trip = new Trip(req.body)
-
     trip._creator = req.user._id
     trip._company = req.user._company
     trip._partner = req.user._partner
@@ -509,6 +520,16 @@ router.post(
     trip.expensesStatus = 'empty' // set default expensesStatus is empty
     trip.businessTrip = true
     trip.currency = req.currency.code
+
+    const tripFlight = _.get(trip, 'budgetPassengers[0].flight', {})
+    const tripLodging = _.get(trip, 'budgetPassengers[0].lodging', {})
+    trip.routine = tripFlight.selected
+      ? `${tripFlight.departDestinationCode} - ${
+          tripFlight.returnDestinationCode
+        }`
+      : tripLodging.selected
+      ? tripLodging.regionName
+      : ''
     let countDays =
       moment(req.body.endDate).diff(moment(req.body.startDate), 'days') + 1
     trip.daysOfTrip = countDays
