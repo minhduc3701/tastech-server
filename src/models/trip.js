@@ -119,7 +119,8 @@ const TripSchema = new Schema(
     isBookedWithinPolicy: Boolean,
     requestBookOnBehalfs: [],
     note: String,
-    isExpenseReport: Boolean
+    isExpenseReport: Boolean,
+    routine: String
   },
   {
     timestamps: true

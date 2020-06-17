@@ -205,7 +205,7 @@ app.use(
 app.use(
   '/admin/trips',
   jwtAuthenticate,
-  authenticatePermission(CAN_ACCESS_BUDGET),
+  authenticatePermission(CAN_ACCESS_EXPENSE),
   adminTripsRouter
 )
 app.use(

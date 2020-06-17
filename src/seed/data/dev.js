@@ -1052,6 +1052,7 @@ for (let i = 0; i < 200; i++) {
   let namePrefix = 'Business Trip'
 
   let updateData = {
+    routine: 'HAN - SGN',
     budgetPassengers: [
       {
         _passenger: currentCreator,
