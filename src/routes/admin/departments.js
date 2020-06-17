@@ -171,7 +171,7 @@ router.get('/:id', function(req, res) {
   Promise.all([
     User.find({
       _company: req.user._company,
-      _id: { $ne: req.user._id },
+      // _id: { $ne: req.user._id },
       _department: req.params.id,
       ...orFind
     })
@@ -294,10 +294,14 @@ router.patch('/addNewUsers/:id', function(req, res) {
     })
 })
 
-router.delete('/:id', function(req, res) {
+router.delete('/:id', async (req, res) => {
   if (!ObjectID.isValid(req.params.id)) {
     return res.status(404).send()
   }
+  const department = await Department.findOne({
+    _company: req.user._company,
+    status: 'default'
+  })
   Promise.all([
     User.updateMany(
       {
@@ -305,7 +309,7 @@ router.delete('/:id', function(req, res) {
         _company: req.user._company
       },
       {
-        $set: { _department: null }
+        $set: { _department: department ? department._id : null }
       }
     ),
     Department.findOneAndDelete({
